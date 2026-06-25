@@ -5,7 +5,7 @@
 
 #define NWCHEMC_TEXT 128
 #define NWCHEMC_PATH 512
-#define NWCHEMC_BLOCKS 4096
+#define NWCHEMC_BLOCKS 8192
 
 typedef struct NWChemCParams {
   char basis[NWCHEMC_TEXT];

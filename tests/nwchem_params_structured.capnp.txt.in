@@ -1,0 +1,21 @@
+(
+  basis = "sto-3g",
+  theory = "dft",
+  scfType = "pbe0",
+  charge = 0,
+  multiplicity = 1,
+  nwchemRoot = "@NWCHEM_ROOT@",
+  task = "gradient",
+  scratchDir = "@NWCHEMC_TEST_SCRATCH@",
+  permanentDir = "@NWCHEMC_TEST_PERMANENT@",
+  inputStanzas = [
+    (
+      kind = dft,
+      dft = (
+        direct = true,
+        xc = "pbe0",
+        smearing = (sigmaHartree = 0.001, mode = fixsz)
+      )
+    )
+  ]
+)

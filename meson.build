@@ -186,6 +186,44 @@ if get_option('with_tests')
         '@OUTPUT@',
       ],
     )
+    nwchem_input_blocks_params_text = configure_file(
+      input: 'tests/nwchem_params_input_blocks.capnp.txt.in',
+      output: 'nwchem_params_input_blocks.capnp.txt',
+      configuration: params_conf,
+    )
+    nwchem_input_blocks_params_bin = custom_target(
+      'nwchem_input_blocks_params_bin',
+      input: nwchem_input_blocks_params_text,
+      output: 'nwchem_params_input_blocks.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_structured_params_text = configure_file(
+      input: 'tests/nwchem_params_structured.capnp.txt.in',
+      output: 'nwchem_params_structured.capnp.txt',
+      configuration: params_conf,
+    )
+    nwchem_structured_params_bin = custom_target(
+      'nwchem_structured_params_bin',
+      input: nwchem_structured_params_text,
+      output: 'nwchem_params_structured.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     test(
       'nwchem-energy-gradient',
       executable(
@@ -199,6 +237,37 @@ if get_option('with_tests')
         ],
       ),
       args: [nwchem_params_bin],
+      is_parallel: false,
+    )
+    test(
+      'nwchem-energy-gradient-input-blocks',
+      executable(
+        'test_nwchem_energy_gradient_input_blocks',
+        'tests/test_nwchem_energy_gradient.c',
+        include_directories: inc,
+        link_with: nwchemc,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      ),
+      args: [nwchem_input_blocks_params_bin],
+      is_parallel: false,
+    )
+    test(
+      'nwchem-energy-gradient-structured',
+      executable(
+        'test_nwchem_energy_gradient_structured',
+        'tests/test_nwchem_energy_gradient.c',
+        include_directories: inc,
+        link_with: nwchemc,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      ),
+      args: [nwchem_structured_params_bin],
+      is_parallel: false,
     )
     mpirun = find_program('mpirun', required: false)
     if mpirun.found()
@@ -221,6 +290,7 @@ if get_option('with_tests')
         depends: nwchem_params_bin,
         workdir: meson.current_build_dir(),
         env: ['OMPI_MCA_prte_create_session_dirs=true'],
+        is_parallel: false,
       )
     endif
   endif
