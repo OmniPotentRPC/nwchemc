@@ -427,7 +427,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*16 tag
       character*255 mydir
       character*255 standard
-      character*255 filename
+      character*256 filename
       logical seen
       logical status
       logical osegment, oshell_is_rel, read_sphere
