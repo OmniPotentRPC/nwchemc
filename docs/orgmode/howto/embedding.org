@@ -7,6 +7,7 @@ ABI functions.
 
 #+begin_src c
 #include <nwchemc.h>
+#include <stdlib.h>
 
 int rc = nwchemc_set_params(params_bytes, params_size);
 NWChemCResult result = nwchemc_energy_gradient(
@@ -31,7 +32,11 @@ NWChemCSession *session = nwchemc_session_create(params_bytes, params_size);
 
 if (session != NULL) {
   double forces_h_bohr[n_atoms * 3];
-  unsigned char potential_result_bytes[1024];
+  size_t potential_result_capacity =
+      nwchemc_potential_result_size_for_force_input(
+          force_input_bytes, force_input_size);
+  unsigned char *potential_result_bytes =
+      malloc(potential_result_capacity);
   size_t potential_result_size = 0;
   double hessian_h_bohr2[(n_atoms * 3) * (n_atoms * 3)];
   NWChemCResult step = nwchemc_session_calculate_forces(
@@ -39,11 +44,12 @@ if (session != NULL) {
       n_atoms * 3);
   NWChemCResult rpc_step = nwchemc_session_calculate_result(
       session, force_input_bytes, force_input_size,
-      potential_result_bytes, sizeof(potential_result_bytes),
+      potential_result_bytes, potential_result_capacity,
       &potential_result_size);
   NWChemCResult curvature = nwchemc_session_calculate_hessian(
       session, force_input_bytes, force_input_size, hessian_h_bohr2,
       (n_atoms * 3) * (n_atoms * 3));
+  free(potential_result_bytes);
   nwchemc_session_destroy(session);
 }
 #+end_src
@@ -56,10 +62,12 @@ them in NWChem geometry state. The energy in ~NWChemCResult.energy_h~ is in
 Hartree. ~forces_h_bohr~ is filled in Hartree per Bohr for low-overhead native
 callers. ~nwchemc_session_calculate_result~ fills an unpacked flat
 ~PotentialResult~ Cap'n Proto message: ~energy~ uses ~ForceInput.energyUnit~,
-and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~. If the output
-buffer is too small, the call reports the required byte count through
-~potential_result_size~ and does not evaluate NWChem. ~hessian_h_bohr2~ is
-filled in Hartree per Bohr squared.
+and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
+~nwchemc_potential_result_size_for_force_input~ parses the step message and
+returns the result byte count without evaluating NWChem. If the output buffer is
+too small, ~nwchemc_session_calculate_result~ reports the required byte count
+through ~potential_result_size~ and does not evaluate NWChem. ~hessian_h_bohr2~
+is filled in Hartree per Bohr squared.
 
 * Parameter Ownership
 ~nwchemc~ reads the message with generated ~capnp-c~ bindings.

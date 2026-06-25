@@ -19,6 +19,17 @@ NWChemCResult nwchemc_hessian(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *hessian_h_bohr2);
+NWChemCSession *nwchemc_session_create(
+    const void *params_capnp, size_t params_capnp_size_bytes);
+size_t nwchemc_potential_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+void nwchemc_session_destroy(NWChemCSession *session);
 ```
 
 `params_capnp` is an unpacked flat Cap'n Proto message whose root is
@@ -26,6 +37,15 @@ NWChemCResult nwchemc_hessian(
 rgpot, mmap-backed readers, or another Cap'n Proto binding that writes the
 standard flat stream format. `nwchemc` reads that message through generated
 `capnp-c` bindings; it does not define a parallel user configuration format.
+
+Long-running callers should create one `NWChemCSession` from `NWChemParams`,
+then pass a serialized `ForceInput` for each geometry step. The result sizing
+helper parses the step message only, so callers can allocate or reuse an
+unpacked flat `PotentialResult` buffer before calling
+`nwchemc_session_calculate_result()`. The evaluating call keeps
+`NWChemCResult.energy_h` in Hartree and writes `PotentialResult.energy` /
+`PotentialResult.forces` in `ForceInput.energyUnit` and
+`ForceInput.energyUnit / ForceInput.lengthUnit`.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,

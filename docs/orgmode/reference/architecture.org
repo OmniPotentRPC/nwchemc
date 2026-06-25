@@ -47,6 +47,9 @@ drivers can update coordinates and the periodic cell without rebuilding the
 full configuration carrier. The result-carrier entry point writes an unpacked
 flat ~PotentialResult~ message for RPC callers and reports the exact byte count
 required before an NWChem evaluation when the caller's buffer is too small.
+~nwchemc_potential_result_size_for_force_input()~ exposes the same size
+calculation without touching the NWChem runtime, which lets long-running loops
+allocate or grow the result buffer from the per-step ~ForceInput~ alone.
 
 The C layer keeps reusable numeric scratch for per-step positions and atomic
 numbers. It does not introduce a second configuration struct. ~ForceInput.pos~

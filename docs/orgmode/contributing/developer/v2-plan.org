@@ -20,6 +20,7 @@ directly. The public calculation entry points are:
 - ~nwchemc_session_calculate_result~
 - ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_hessian~
+- ~nwchemc_potential_result_size_for_force_input~
 - ~nwchemc_available~
 - ~nwchemc_version~
 - ~nwchemc_finalize~
@@ -86,6 +87,9 @@ optimizer-style, and vibrational callers. They take the session's persistent
 counts and output buffer sizes, convert coordinates and cells to the C ABI
 units, call the embed bridge, and return either native NWChem buffers or a
 serialized ~PotentialResult~ in the caller's requested units.
+~nwchemc_potential_result_size_for_force_input~ gives callers the
+~PotentialResult~ byte count from the per-step ~ForceInput~ without evaluating
+NWChem.
 
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only
