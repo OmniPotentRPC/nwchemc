@@ -66,6 +66,28 @@ static int teardown_nwchem(void **state) {
   return 0;
 }
 
+/* Write machine-readable results for tools/compare_nwchem_cli.py embed leg. */
+static void maybe_write_compare_json(double energy_h, const double *grad,
+                                     int ncoord) {
+  const char *path = getenv("NWCHEMC_COMPARE_JSON");
+  if (!path || !path[0])
+    return;
+  FILE *fp = fopen(path, "w");
+  if (!fp)
+    return;
+  fprintf(fp, "{\n  \"source\": \"nwchemc_energy_gradient\",\n");
+  fprintf(fp, "  \"n_atoms\": 2,\n");
+  fprintf(fp, "  \"energy_ha\": %.17g,\n", energy_h);
+  fprintf(fp, "  \"gradient_ha_bohr\": [");
+  for (int i = 0; i < ncoord; ++i) {
+    if (i)
+      fputc(',', fp);
+    fprintf(fp, "%.17g", grad[i]);
+  }
+  fprintf(fp, "],\n  \"n_gradient\": %d\n}\n", ncoord);
+  fclose(fp);
+}
+
 static void test_h2_energy_gradient(void **state) {
   (void)state;
   size_t params_size = 0;
@@ -75,8 +97,10 @@ static void test_h2_energy_gradient(void **state) {
   assert_true(nwchemc_available());
 
   const int n_atoms = 2;
+  const int ncoord = n_atoms * 3;
   const int atomic_numbers[2] = {1, 1};
-  const double positions_ang[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.74};
+  /* Match tests/integration/nw/h2_scf_*.nw geometry (bond 0.7414 A). */
+  const double positions_ang[6] = {0.0, 0.0, -0.3707, 0.0, 0.0, 0.3707};
   double grad[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
   NWChemCResult result = nwchemc_energy_gradient(
@@ -88,10 +112,11 @@ static void test_h2_energy_gradient(void **state) {
   assert_true(isfinite(result.energy_h));
   assert_true(result.energy_h < -0.5);
   assert_true(result.energy_h > -2.0);
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < ncoord; ++i) {
     if (!isfinite(grad[i]))
       fail_msg("non-finite gradient[%d]", i);
   }
+  maybe_write_compare_json(result.energy_h, grad, ncoord);
 }
 
 int main(int argc, char **argv) {

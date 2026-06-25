@@ -23,6 +23,10 @@ jobs:
         run: pixi run test-cmocka
       - name: Inventory
         run: pixi run inventory-check
+      - name: Debug backtrace smoke
+        run: pixi run debug-backtrace-smoke
+      - name: Integration matrix schema
+        run: pixi run test-integration-matrix
 
   nwchem-cli-compare:
     runs-on: ubuntu-latest
@@ -35,12 +39,14 @@ jobs:
           pixi-version: latest
           cache: true
           environments: nwchem-runtime
-      - name: NWChem CLI reference tasks
+      - name: NWChem CLI reference tasks (matrix)
         run: pixi run -e nwchem-runtime test-nwchem-compare
       - name: Upload compare artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nwchem-cli-ref
-          path: build/nwchem-cli-ref/
+          path: |
+            build/nwchem-cli-ref/
+            build/nwchem-compare-embed/
           if-no-files-found: ignore

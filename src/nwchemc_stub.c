@@ -83,3 +83,78 @@ const char *nwchemc_version(void) { return "nwchemc-stub/0.1.0"; }
 int nwchemc_available(void) { return 0; }
 
 void nwchemc_finalize(void) {}
+
+NWChemCSession *nwchemc_session_create(const void *params_capnp,
+                                       size_t params_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  return NULL;
+}
+
+int nwchemc_session_set_params(NWChemCSession *session,
+                               const void *params_capnp,
+                               size_t params_capnp_size_bytes) {
+  (void)session;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  return -1;
+}
+
+void nwchemc_session_destroy(NWChemCSession *session) { (void)session; }
+
+static NWChemCResult stub_fail(void) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message),
+           "NWChem embed not available in nwchemc stub");
+  return r;
+}
+
+NWChemCResult nwchemc_session_energy(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
+                                              int n_atoms,
+                                              const double *positions_ang,
+                                              const int *atomic_numbers,
+                                              double *grad_h_bohr) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)grad_h_bohr;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
+                                            int n_atoms,
+                                            const double *positions_ang,
+                                            const int *atomic_numbers,
+                                            double *forces_h_bohr) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)forces_h_bohr;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
+                                      const double *positions_ang,
+                                      const int *atomic_numbers,
+                                      double *hessian_h_bohr2) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)hessian_h_bohr2;
+  return stub_fail();
+}

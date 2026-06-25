@@ -305,6 +305,198 @@ NWChemCResult nwchemc_hessian(
   return r;
 }
 
+/* Persistent session: config applied once; geometry varies per call. */
+struct NWChemCSession {
+  void *params_copy;
+  size_t params_size;
+  int charge;
+  int multiplicity;
+  int config_applied;
+};
+
+static int session_apply_config(NWChemCSession *session) {
+  if (!session || !session->params_copy || session->params_size == 0)
+    return -1;
+  if (session->config_applied)
+    return 0;
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(session->params_copy, session->params_size, &arena,
+                          &params_root) != 0)
+    return -1;
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
+  if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_params_release(&arena);
+    return -1;
+  }
+  session->charge = params.charge;
+  session->multiplicity = params.multiplicity > 0 ? params.multiplicity : 1;
+  nwchemc_params_release(&arena);
+  session->config_applied = 1;
+  return 0;
+}
+
+NWChemCSession *nwchemc_session_create(const void *params_capnp,
+                                       size_t params_capnp_size_bytes) {
+  if (!params_capnp || params_capnp_size_bytes == 0)
+    return NULL;
+  NWChemCSession *session =
+      (NWChemCSession *)calloc(1, sizeof(NWChemCSession));
+  if (!session)
+    return NULL;
+  session->params_copy = malloc(params_capnp_size_bytes);
+  if (!session->params_copy) {
+    free(session);
+    return NULL;
+  }
+  memcpy(session->params_copy, params_capnp, params_capnp_size_bytes);
+  session->params_size = params_capnp_size_bytes;
+  session->multiplicity = 1;
+  if (session_apply_config(session) != 0) {
+    free(session->params_copy);
+    free(session);
+    return NULL;
+  }
+  return session;
+}
+
+int nwchemc_session_set_params(NWChemCSession *session,
+                               const void *params_capnp,
+                               size_t params_capnp_size_bytes) {
+  if (!session || !params_capnp || params_capnp_size_bytes == 0)
+    return -1;
+  void *copy = malloc(params_capnp_size_bytes);
+  if (!copy)
+    return -1;
+  memcpy(copy, params_capnp, params_capnp_size_bytes);
+  free(session->params_copy);
+  session->params_copy = copy;
+  session->params_size = params_capnp_size_bytes;
+  session->config_applied = 0;
+  return session_apply_config(session);
+}
+
+void nwchemc_session_destroy(NWChemCSession *session) {
+  if (!session)
+    return;
+  free(session->params_copy);
+  free(session);
+}
+
+NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
+                                              int n_atoms,
+                                              const double *positions_ang,
+                                              const int *atomic_numbers,
+                                              double *grad_h_bohr) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !grad_h_bohr) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  if (session_apply_config(session) != 0) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  ensure_init();
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = session->charge;
+  int mult = session->multiplicity;
+  double eh = 0.0;
+  int rc = nwchemc_embed_energy_grad(&n, positions_ang, atomic_numbers, &ch,
+                                     &mult, &eh, grad_h_bohr, errmsg,
+                                     (int)sizeof(errmsg) - 1);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed energy/grad failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
+NWChemCResult nwchemc_session_energy(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers) {
+  double *scratch = NULL;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  scratch = (double *)calloc((size_t)n_atoms * 3u, sizeof(double));
+  if (!scratch) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  r = nwchemc_session_energy_gradient(session, n_atoms, positions_ang,
+                                      atomic_numbers, scratch);
+  free(scratch);
+  return r;
+}
+
+NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
+                                            int n_atoms,
+                                            const double *positions_ang,
+                                            const int *atomic_numbers,
+                                            double *forces_h_bohr) {
+  NWChemCResult r =
+      nwchemc_session_energy_gradient(session, n_atoms, positions_ang,
+                                      atomic_numbers, forces_h_bohr);
+  if (r.ok && forces_h_bohr && n_atoms > 0) {
+    for (int i = 0; i < n_atoms * 3; ++i)
+      forces_h_bohr[i] = -forces_h_bohr[i];
+  }
+  return r;
+}
+
+NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
+                                      const double *positions_ang,
+                                      const int *atomic_numbers,
+                                      double *hessian_h_bohr2) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !hessian_h_bohr2) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  if (session_apply_config(session) != 0) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  ensure_init();
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = session->charge;
+  int mult = session->multiplicity;
+  int rc = nwchemc_embed_hessian(&n, positions_ang, atomic_numbers, &ch, &mult,
+                                 hessian_h_bohr2, errmsg,
+                                 (int)sizeof(errmsg) - 1);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed hessian failed");
+    return r;
+  }
+  r.ok = 1;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
 const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
 
 int nwchemc_available(void) {
@@ -399,5 +591,79 @@ const char *nwchemc_version(void) { return "nwchemc/unavailable"; }
 int nwchemc_available(void) { return 0; }
 
 void nwchemc_finalize(void) {}
+
+NWChemCSession *nwchemc_session_create(const void *params_capnp,
+                                       size_t params_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  return NULL;
+}
+
+int nwchemc_session_set_params(NWChemCSession *session,
+                               const void *params_capnp,
+                               size_t params_capnp_size_bytes) {
+  (void)session;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  return -1;
+}
+
+void nwchemc_session_destroy(NWChemCSession *session) { (void)session; }
+
+static NWChemCResult no_nwchem_fail(void) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
+  return r;
+}
+
+NWChemCResult nwchemc_session_energy(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
+                                              int n_atoms,
+                                              const double *positions_ang,
+                                              const int *atomic_numbers,
+                                              double *grad_h_bohr) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)grad_h_bohr;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
+                                            int n_atoms,
+                                            const double *positions_ang,
+                                            const int *atomic_numbers,
+                                            double *forces_h_bohr) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)forces_h_bohr;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
+                                      const double *positions_ang,
+                                      const int *atomic_numbers,
+                                      double *hessian_h_bohr2) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)hessian_h_bohr2;
+  return no_nwchem_fail();
+}
 
 #endif

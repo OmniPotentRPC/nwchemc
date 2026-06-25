@@ -60,18 +60,26 @@ pixi run test-integration-matrix   # validate tests/integration/task_matrix.json
 pixi run debug-backtrace-smoke     # feature driver debug handlers + crash-test backtrace
 # CLI integration vs conda-forge nwchem (NOT embed SDK; linux-64 pixi env):
 pixi run -e nwchem-runtime test-nwchem-compare
+# CLI + embed numeric compare (tolerances in task_matrix.json; needs build-nwchem):
+#   python3 tools/compare_nwchem_cli.py --out-dir build/nwchem-compare-embed \
+#     --embed-build build-nwchem --require-cli
+#   # or: pixi run test-nwchem-compare-embed  (after build-nwchem exists)
 # Embed integration (separate NWChem *build tree* with PIC libs):
 #   meson setup build-nwchem -Dwith_nwchem=true -Dnwchem_root=$NWCHEM_TOP -Dwith_tests=true
 #   meson test -C build-nwchem nwchem-energy-gradient nwchem-energy-forces nwchem-hessian
+# Embed test writes NWCHEMC_COMPARE_JSON for the harness (energy + gradient vectors).
 ```
 
 Debug: `tools/nwchemc_debug.c` installs `SIGSEGV`/`SIGABRT`/`SIGFPE` handlers and
-prints `backtrace(3)` frames. Enable on any driver mode with `NWCHEMC_DEBUG=1`, or
-run `./build/nwchemc_feature_driver crash-test` for a deliberate abort smoke test.
+prints `backtrace(3)` frames (execinfo; optional C++ `backward.hpp` path not required).
+Meson option `-Dwith_debug_backtrace=true` (default) links debug helpers into
+`nwchemc_feature_driver`. Enable handlers with `NWCHEMC_DEBUG=1`, or run
+`./build/nwchemc_feature_driver crash-test` for a deliberate abort smoke test.
 
 Integration/CI: `tests/integration/task_matrix.json` lists CLI `.nw` tasks under
-`tests/integration/nw/`. `.github/workflows/ci.yml` runs stub/cmocka always and
-optional `nwchem-runtime` CLI compare (embed SDK is not on GHA by default).
+`tests/integration/nw/`. `.github/workflows/ci.yml` runs stub/cmocka + debug smoke
+always and optional `nwchem-runtime` CLI compare over the matrix (embed SDK is not
+on GHA by default; local embed-vs-CLI uses `--embed-build` and exit 3 if incomplete).
 
 Lint hooks live in `prek.toml` (`prek install` for commit hooks). Lychee scope is
 controlled by `.lychee.toml`. Coverage is tracked for instrumentable in-tree C

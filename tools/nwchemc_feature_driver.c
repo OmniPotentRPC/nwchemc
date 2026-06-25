@@ -16,7 +16,9 @@
 #include "nwchemc.h"
 #include "nwchemc_features.h"
 #include "nwchemc_params.h"
+#if defined(NWCHEMC_WITH_DEBUG_BACKTRACE)
 #include "nwchemc_debug.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -205,6 +207,7 @@ int main(int argc, char **argv) {
   const char *fixture = (argc > 2) ? argv[2] : getenv("NWCHEMC_PARSER_FIXTURE");
   const char *dbg = getenv("NWCHEMC_DEBUG");
 
+#if defined(NWCHEMC_WITH_DEBUG_BACKTRACE)
   if (dbg && dbg[0] == '1')
     nwchemc_debug_install_handlers();
 
@@ -214,6 +217,14 @@ int main(int argc, char **argv) {
     nwchemc_debug_print_backtrace("before abort");
     abort();
   }
+#else
+  (void)dbg;
+  if (strcmp(mode, "crash-test") == 0) {
+    fprintf(stderr,
+            "crash-test requires -Dwith_debug_backtrace=true (default on)\n");
+    return 2;
+  }
+#endif
 
   if (strcmp(mode, "inventory") == 0)
     return run_inventory();

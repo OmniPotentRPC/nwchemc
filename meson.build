@@ -262,11 +262,13 @@ if get_option('with_tests')
     'feature-driver',
     executable(
       'nwchemc_feature_driver',
-      ['tools/nwchemc_feature_driver.c', 'tools/nwchemc_debug.c'] +
+      ['tools/nwchemc_feature_driver.c'] +
+      (get_option('with_debug_backtrace') ? ['tools/nwchemc_debug.c'] : []) +
       nwchemc_params_sources,
       dependencies: [nwchemc_features_dep, nwchemc_stub_dep] + nwchemc_params_deps,
       include_directories: [inc, include_directories('tools')] + nwchemc_params_includes,
-      c_args: common_c_args,
+      c_args: common_c_args +
+      (get_option('with_debug_backtrace') ? ['-DNWCHEMC_WITH_DEBUG_BACKTRACE=1'] : []),
     ),
     args: ['all', nwchem_parser_params_bin],
     suite: ['cmocka', 'inventory', 'drivers'],
