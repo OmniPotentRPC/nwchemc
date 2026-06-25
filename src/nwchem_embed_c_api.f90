@@ -21,6 +21,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_set_dft_direct
   public :: nwchemc_embed_set_scf_direct
+  public :: nwchemc_embed_set_driver_direct
   public :: nwchemc_embed_set_pseudopotentials
   public :: nwchemc_embed_energy_grad
   public :: nwchemc_embed_energy_grad_cell
@@ -51,6 +52,8 @@ module nwchem_embed_c_api
   integer, save :: cfg_scf_maxiter = 0
   real(real64), save :: cfg_scf_thresh = 0.0_real64
   real(real64), save :: cfg_scf_tol2e = 0.0_real64
+  integer, save :: cfg_driver_has_options = 0
+  integer, save :: cfg_driver_maxiter = 0
   integer, parameter :: max_embed_atoms = 64
   integer, parameter :: max_embed_pseudopotentials = 64
   integer, parameter :: psp_element_len = 16
@@ -78,8 +81,8 @@ module nwchem_embed_c_api
         cell_ang, has_cell, basis_name, theory_name, scf_type, input_blocks, &
         charge, mult, dft_direct, dft_smear_on, dft_smear_sigma, &
         dft_smear_spinset, scf_has_options, scf_maxiter, scf_thresh, &
-        scf_tol2e, psp_count, psp_elements, psp_types, psp_names, energy_h, &
-        grad_h_bohr, errmsg, ok)
+        scf_tol2e, driver_has_options, driver_maxiter, psp_count, &
+        psp_elements, psp_types, psp_names, energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -92,6 +95,7 @@ module nwchem_embed_c_api
       integer, intent(in) :: charge, mult
       integer, intent(in) :: dft_direct, dft_smear_on, dft_smear_spinset
       integer, intent(in) :: scf_has_options, scf_maxiter
+      integer, intent(in) :: driver_has_options, driver_maxiter
       integer, intent(in) :: psp_count
       character(len=16), intent(in) :: psp_elements(*)
       integer, intent(in) :: psp_types(*)
@@ -108,8 +112,8 @@ module nwchem_embed_c_api
         cell_ang, has_cell, basis_name, theory_name, scf_type, input_blocks, &
         charge, mult, dft_direct, dft_smear_on, dft_smear_sigma, &
         dft_smear_spinset, scf_has_options, scf_maxiter, scf_thresh, &
-        scf_tol2e, psp_count, psp_elements, psp_types, psp_names, &
-        hessian_h_bohr2, errmsg, ok)
+        scf_tol2e, driver_has_options, driver_maxiter, psp_count, &
+        psp_elements, psp_types, psp_names, hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -122,6 +126,7 @@ module nwchem_embed_c_api
       integer, intent(in) :: charge, mult
       integer, intent(in) :: dft_direct, dft_smear_on, dft_smear_spinset
       integer, intent(in) :: scf_has_options, scf_maxiter
+      integer, intent(in) :: driver_has_options, driver_maxiter
       integer, intent(in) :: psp_count
       character(len=16), intent(in) :: psp_elements(*)
       integer, intent(in) :: psp_types(*)
@@ -271,6 +276,18 @@ contains
     rc = 0_c_int
   end function nwchemc_embed_set_scf_direct
 
+  !> Store structured driver scalar controls extracted from Cap'n Proto.
+  function nwchemc_embed_set_driver_direct(has_options, maxiter) result(rc) &
+      bind(C, name='nwchemc_embed_set_driver_direct')
+    integer(c_int), intent(in), value :: has_options
+    integer(c_int), intent(in), value :: maxiter
+    integer(c_int) :: rc
+
+    cfg_driver_has_options = int(has_options)
+    cfg_driver_maxiter = int(maxiter)
+    rc = 0_c_int
+  end function nwchemc_embed_set_driver_direct
+
   !> Store direct NWPW pseudopotential library entries extracted from Cap'n Proto.
   function nwchemc_embed_set_pseudopotentials(elements, library_types, &
       library_names, count) result(rc) &
@@ -403,7 +420,8 @@ contains
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
         cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, cfg_psp_count, &
+        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_driver_has_options, cfg_driver_maxiter, cfg_psp_count, &
         cfg_psp_elements, cfg_psp_types, cfg_psp_names, energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
@@ -514,7 +532,8 @@ contains
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
         cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, cfg_psp_count, &
+        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_driver_has_options, cfg_driver_maxiter, cfg_psp_count, &
         cfg_psp_elements, cfg_psp_types, cfg_psp_names, hess, msg, ok)
 
     do i = 1, n2

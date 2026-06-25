@@ -678,7 +678,8 @@ static int render_task_stanza(NWChemTaskStanza_ptr ptr, char *dst,
 }
 
 static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
-                                size_t dst_size) {
+                                size_t dst_size,
+                                int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
     return 0;
 
@@ -686,9 +687,17 @@ static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
   char block[4096];
   block[0] = '\0';
   read_NWChemDriverStanza(&driver, ptr);
+  int has_directives = directives_have_keywords(driver.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_remaining = driver.tight || driver.loose || driver.xyz.len > 0 ||
+                      has_directives ||
+                      (include_direct_promoted && driver.maxiter > 0);
+  if (!has_remaining)
+    return 0;
   if (append_format(block, sizeof(block), "driver\n") != 0)
     return -1;
-  if (driver.maxiter > 0 &&
+  if (include_direct_promoted && driver.maxiter > 0 &&
       append_format(block, sizeof(block), "  maxiter %d\n", driver.maxiter) != 0)
     return -1;
   if (driver.tight && append_format(block, sizeof(block), "  tight\n") != 0)
@@ -808,7 +817,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 size_t dst_size,
                                 int include_direct_promoted_dft,
                                 int include_direct_promoted_scf,
-                                int include_direct_pseudopotentials) {
+                                int include_direct_pseudopotentials,
+                                int include_direct_promoted_driver) {
   int n = struct_list_len(&stanzas.p);
   if (n < 0)
     return -1;
@@ -850,7 +860,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
         return -1;
       break;
     case NWChemInputStanza_Kind_driver:
-      if (render_driver_stanza(stanza.driver, dst, dst_size) != 0)
+      if (render_driver_stanza(stanza.driver, dst, dst_size,
+                               include_direct_promoted_driver) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_property:
@@ -895,7 +906,7 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -907,7 +918,7 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -997,6 +1008,38 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
     if (scf.tol2e > 0.0) {
       *has_options = 1;
       *tol2e = scf.tol2e;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
+                                         int *has_options, int *maxiter) {
+  if (params.p.type == CAPN_NULL || !has_options || !maxiter)
+    return -1;
+
+  *has_options = 0;
+  *maxiter = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_driver ||
+        stanza.driver.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemDriverStanza driver;
+    read_NWChemDriverStanza(&driver, stanza.driver);
+    if (driver.maxiter > 0) {
+      *has_options = 1;
+      *maxiter = driver.maxiter;
     }
   }
 

@@ -30,6 +30,9 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       int *maxiter, double *thresh,
                                       double *tol2e);
 
+int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
+                                         int *has_options, int *maxiter);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

@@ -110,8 +110,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     scf_type, input_blocks, charge, mult, dft_direct,
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
      $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
-     $     psp_count, psp_elements, psp_types, psp_names, energy_h,
-     $     grad_h_bohr, errmsg, ok)
+     $     driver_has_options, driver_maxiter, psp_count,
+     $     psp_elements, psp_types, psp_names, energy_h, grad_h_bohr,
+     $     errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -124,6 +125,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
+      integer driver_has_options, driver_maxiter
       double precision pos_ang(*)
       double precision cell_ang(*)
       integer atmnrs(*)
@@ -181,7 +183,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
-     $     scf_thresh, scf_tol2e, status)
+     $     scf_thresh, scf_tol2e, driver_has_options,
+     $     driver_maxiter, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -234,8 +237,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     scf_type, input_blocks, charge, mult, dft_direct,
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
      $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
-     $     psp_count, psp_elements, psp_types, psp_names,
-     $     hessian_h_bohr2, errmsg, ok)
+     $     driver_has_options, driver_maxiter, psp_count,
+     $     psp_elements, psp_types, psp_names, hessian_h_bohr2,
+     $     errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -248,6 +252,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
+      integer driver_has_options, driver_maxiter
       double precision pos_ang(*)
       double precision cell_ang(*)
       integer atmnrs(*)
@@ -309,7 +314,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
-     $     scf_thresh, scf_tol2e, status)
+     $     scf_thresh, scf_tol2e, driver_has_options,
+     $     driver_maxiter, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -358,13 +364,15 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
-     $     scf_thresh, scf_tol2e, ok)
+     $     scf_thresh, scf_tol2e, driver_has_options,
+     $     driver_maxiter, ok)
       implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
       integer rtdb, charge, mult
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
+      integer driver_has_options, driver_maxiter
       character*64 theory_name
       character*64 scf_type
       double precision dft_smear_sigma
@@ -381,6 +389,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       ok = ok .and. status
       call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
       ok = ok .and. status
+      if (driver_has_options .ne. 0 .and. driver_maxiter .gt. 0) then
+         call nwchemc_rtdb_put_int(rtdb, 'driver:nptopt',
+     $      driver_maxiter, status)
+         ok = ok .and. status
+      endif
       vectors_in = 'atomic'
       if (theory_name(1:3) .eq. 'dft') then
          status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
