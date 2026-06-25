@@ -86,9 +86,22 @@ if has_nwchem
   if host_machine.system() == 'linux'
     nwchem_link_args += ['-Wl,--unresolved-symbols=ignore-all']
   endif
+  if host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
+    run_command(
+      cc,
+      [
+        '-shared',
+        '-fPIC',
+        meson.current_source_dir() / 'tools/nwchem_link_probe.c',
+        '-o',
+        meson.current_build_dir() / 'nwchem-link-probe.so',
+      ] + nwchem_link_args,
+      check: true,
+    )
+  endif
   nwchemc = shared_library(
     'nwchemc',
-    ['src/nwchemc.c', 'src/nwchem_embed_c_api.f90'],
+    ['src/nwchemc.c', 'src/nwchemc_params.c', 'src/nwchem_embed_c_api.f90'],
     include_directories: inc,
     c_args: nwchem_c_args,
     fortran_args: nwchem_f90_args,

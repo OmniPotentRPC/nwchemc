@@ -44,6 +44,12 @@ meson setup build-nwchem \
 meson compile -C build-nwchem
 ```
 
+`libnwchemc.so` links NWChem into a shared library, so static NWChem archives
+must be built as position-independent code. If Meson fails during the NWChem
+link probe with `relocation R_X86_64_PC32 ... can not be used when making a
+shared object`, rebuild the NWChem archives with PIC flags for the selected
+target.
+
 The resulting shared library exports `nwchemc_*` symbols. Downstream projects
 load it with `dlopen()` and pass the serialized `NWChemParams` message bytes
 directly.
