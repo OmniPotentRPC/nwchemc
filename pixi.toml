@@ -4,7 +4,7 @@ channels = ["conda-forge"]
 description = "C ABI for embedding NWChem with Cap'n Proto parameters."
 name = "nwchemc"
 platforms = ["linux-64", "osx-64", "osx-arm64"]
-version = "1.0.0"
+version = "1.1.0"
 
 [environments]
 docs = { features = ["docs"] }

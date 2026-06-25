@@ -5,6 +5,14 @@ This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- towncrier release notes start -->
 
+## [1.1.0](https://github.com/OmniPotentRPC/nwchemc/tree/v1.1.0) - 2026-06-25
+
+### Added
+
+- Expand typed NWChem module stanzas to cover the curated local NWChem
+  input-handler set and add a schema coverage test. ([#module-coverage](https://github.com/OmniPotentRPC/nwchemc/issues/module-coverage))
+
+
 ## [1.0.0](https://github.com/OmniPotentRPC/nwchemc/tree/v1.0.0) - 2026-06-25
 
 ### Added
