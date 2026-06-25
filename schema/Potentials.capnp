@@ -209,7 +209,7 @@ struct NWChemTaskStanza {
 # @struct NWChemDriverStanza
 # @brief Geometry optimization / driver block.
 struct NWChemDriverStanza {
-  maxiter    @0 :Int32 = 0;     # Emit "maxiter N" when > 0.
+  maxiter    @0 :Int32 = 0;     # Driver max steps; embed writes RTDB directly.
   tight      @1 :Bool = false;  # Emit "tight".
   loose      @2 :Bool = false;  # Emit "loose".
   xyz        @3 :Text = "";     # Emit "xyz <path>" when non-empty.

@@ -118,8 +118,9 @@ handler names derived from the local NWChem source tree.
 - *Task* (~NWChemTaskStanza~): emit an explicit ~task theory operation~ line when
   building a multi-task deck. Embed callers usually rely on top-level ~theory~ +
   ~task~ only; this stanza is for full-input generation.
-- *Driver* (~NWChemDriverStanza~): geometry optimization controls (~maxiter~,
-  ~tight~, ~loose~, ~xyz~ path, extra directives).
+- *Driver* (~NWChemDriverStanza~): geometry optimization controls. Full input
+  emits ~maxiter <n>~; embed writes ~driver:nptopt~ directly and keeps
+  ~tight~, ~loose~, ~xyz~ path, and extra directives as driver text.
 - *Property* (~NWChemPropertyStanza~): common property keywords (~dipole~,
   ~mulliken~, ~quadrupole~) plus extra directives.
 - *Basis* (~NWChemBasisStanza~): structured ~basis~ block when top-level ~basis~

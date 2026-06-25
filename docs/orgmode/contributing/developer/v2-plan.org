@@ -53,9 +53,9 @@ input handlers. Direct RTDB writes must therefore preserve this order:
 
 ~nw_inp_from_character~ remains reserved for caller-provided NWChem stanzas.
 Geometry coordinates and library basis selection are not routed through text
-input. Typed SCF scalar controls (~maxiter~, ~thresh~, and ~tol2e~) are
-promoted into direct RTDB writes for embed calculations and omitted from
-embed-rendered text when no non-promoted SCF syntax remains.
+input. Typed SCF scalar controls (~maxiter~, ~thresh~, and ~tol2e~) and driver
+~maxiter~ are promoted into direct RTDB writes for embed calculations and
+omitted from embed-rendered text when no non-promoted syntax remains.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -64,6 +64,8 @@ The schema contains typed stanzas for:
 - ~dft~ blocks including ~xc~, ~direct~, and Fermi smearing syntax
 - ~scf~ blocks including typed max-iteration, convergence-threshold, and
   two-electron tolerance scalars
+- ~driver~ blocks including direct max-iteration promotion and text fallback
+  for other optimization controls
 - ~set~ directives
 - raw NWChem fragments
 - module blocks backed by the ~NWChemModuleName~ enum
@@ -114,14 +116,19 @@ embed-boundary test: ~tests/cmocka/test_embed_config_cmocka.c~.
 bridge writes ~scf:maxiter~, ~scf:thresh~, and ~scf:tol2e~ for SCF, and
 ~dft:iterations~ / ~dft:tol2e~ where the DFT handler has matching keys.
 
-Remaining: migrate task theory/operation overrides and driver maxiter only where
-RTDB keys are confirmed; add embed regression that asserts direct path matches
-text-path energies when NWChem embed is available.
+~nwchemc_params_extract_direct_driver~ pulls typed
+~NWChemDriverStanza.maxiter~ into ~nwchemc_embed_set_driver_direct~. The
+fixed-form bridge writes ~driver:nptopt~, matching ~driver_input.F~ and
+~opt_drv.F~.
+
+Remaining: migrate task theory/operation overrides only where RTDB keys are
+confirmed; add embed regression that asserts direct path matches text-path
+energies when NWChem embed is available.
 
 ** Expand Direct RTDB Settings
 Move additional scalar options that have stable NWChem RTDB keys out of rendered
 text stanzas. Good remaining candidates are task operation/theory overrides
-beyond embed defaults, SCF convergence thresholds, and common driver controls.
+beyond embed defaults and common driver controls with confirmed RTDB keys.
 
 Each migrated option needs a cmocka parser test, a real NWChem test that proves
 the direct path still computes finite outputs, and a reference to the upstream
