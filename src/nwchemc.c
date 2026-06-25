@@ -44,6 +44,21 @@ static int g_atexit_registered = 0;
 
 static int cstr_len(const char *s) { return s ? (int)strlen(s) : 0; }
 
+static const char *text_or_with_len(capn_text text, const char *fallback,
+                                    int *len) {
+  if (text.str && text.len > 0) {
+    *len = text.len;
+    return text.str;
+  }
+  *len = cstr_len(fallback);
+  return fallback;
+}
+
+static int span_starts_with(const char *s, int len, const char *prefix) {
+  int prefix_len = cstr_len(prefix);
+  return s && len >= prefix_len && memcmp(s, prefix, (size_t)prefix_len) == 0;
+}
+
 static void finalize_at_exit(void) { nwchemc_finalize(); }
 
 static void ensure_init(void) {
@@ -58,12 +73,16 @@ static void ensure_init(void) {
 }
 
 static const char *selected_theory(const struct NWChemParams *params,
-                                   const char **scf_type) {
-  const char *theory = nwchemc_params_text_or(params->theory, "scf");
-  *scf_type = nwchemc_params_text_or(params->scfType, "rhf");
-  if (strncmp(theory, "blyp", 4) == 0 || strncmp(theory, "b3lyp", 5) == 0 ||
-      strncmp(theory, "pbe", 3) == 0) {
+                                   int *theory_len, const char **scf_type,
+                                   int *scf_len) {
+  const char *theory = text_or_with_len(params->theory, "scf", theory_len);
+  *scf_type = text_or_with_len(params->scfType, "rhf", scf_len);
+  if (span_starts_with(theory, *theory_len, "blyp") ||
+      span_starts_with(theory, *theory_len, "b3lyp") ||
+      span_starts_with(theory, *theory_len, "pbe")) {
     *scf_type = theory;
+    *scf_len = *theory_len;
+    *theory_len = 3;
     return "dft";
   }
   return theory;
@@ -86,7 +105,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                  const struct NWChemParams *params) {
   char input_blocks[NWCHEMC_BLOCKS];
   const char *scf_type = NULL;
-  const char *theory = selected_theory(params, &scf_type);
+  int theory_len = 0;
+  int scf_len = 0;
+  const char *theory = selected_theory(params, &theory_len, &scf_type, &scf_len);
   /* Embed path: strip promoted DFT fields from text; apply via RTDB/direct API. */
   if (nwchemc_params_render_embed_input_blocks(params_root, input_blocks,
                                                sizeof(input_blocks)) != 0)
@@ -103,19 +124,25 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     return -1;
   if (dft_xc.len > 0 && dft_xc.str) {
     scf_type = dft_xc.str;
-    if (strncmp(theory, "dft", 3) != 0 && strncmp(theory, "blyp", 4) != 0 &&
-        strncmp(theory, "b3lyp", 5) != 0 && strncmp(theory, "pbe", 3) != 0)
+    scf_len = (int)dft_xc.len;
+    if (!span_starts_with(theory, theory_len, "dft") &&
+        !span_starts_with(theory, theory_len, "blyp") &&
+        !span_starts_with(theory, theory_len, "b3lyp") &&
+        !span_starts_with(theory, theory_len, "pbe")) {
       theory = "dft";
+      theory_len = 3;
+    }
   }
 
   apply_env_hints(params);
   ensure_init();
   int ch = params->charge;
   int mult = params->multiplicity > 0 ? params->multiplicity : 1;
-  const char *basis = nwchemc_params_text_or(params->basis, "sto-3g");
-  if (nwchemc_embed_set_config(basis, cstr_len(basis), theory, cstr_len(theory),
-                               scf_type, cstr_len(scf_type), &ch, &mult,
-                               input_blocks, cstr_len(input_blocks)) != 0)
+  int basis_len = 0;
+  const char *basis = text_or_with_len(params->basis, "sto-3g", &basis_len);
+  if (nwchemc_embed_set_config(basis, basis_len, theory, theory_len, scf_type,
+                               scf_len, &ch, &mult, input_blocks,
+                               cstr_len(input_blocks)) != 0)
     return -1;
   return nwchemc_embed_set_dft_direct(
       dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,
