@@ -128,6 +128,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_energy_forces",
       "abi.nwchemc_session_calculate_forces",
       "abi.nwchemc_session_calculate_result",
+      "abi.nwchemc_potential_result_size_for_force_input",
       "abi.nwchemc_session_calculate_hessian",
       "abi.nwchemc_session_hessian",
       "abi.nwchemc_available",
