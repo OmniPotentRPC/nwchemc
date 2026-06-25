@@ -109,6 +109,19 @@ static int render_directives(NWChemDirective_list directives, char *dst,
   return 0;
 }
 
+static int directives_have_keywords(NWChemDirective_list directives) {
+  int n = struct_list_len(&directives.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemDirective directive;
+    get_NWChemDirective(&directive, directives, i);
+    if (directive.keyword.len > 0)
+      return 1;
+  }
+  return 0;
+}
+
 static int render_generic_stanza(NWChemGenericStanza_ptr ptr, char *dst,
                                  size_t dst_size) {
   if (ptr.p.type == CAPN_NULL)
@@ -148,7 +161,7 @@ static int render_set_stanza(NWChemSetDirective_ptr ptr, char *dst,
 }
 
 static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
-                             size_t dst_size) {
+                             size_t dst_size, int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
     return 0;
 
@@ -156,12 +169,17 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
   char block[2048];
   block[0] = '\0';
   read_NWChemDftStanza(&dft, ptr);
+  int has_directives = directives_have_keywords(dft.directives);
+  if (has_directives < 0)
+    return -1;
+  if (!include_direct_promoted && !has_directives)
+    return 0;
   if (append_format(block, sizeof(block), "dft\n") != 0)
     return -1;
-  if (dft.direct &&
+  if (include_direct_promoted && dft.direct &&
       append_format(block, sizeof(block), "  direct\n") != 0)
     return -1;
-  if (dft.smearing.p.type != CAPN_NULL) {
+  if (include_direct_promoted && dft.smearing.p.type != CAPN_NULL) {
     struct NWChemDftSmearing smearing;
     read_NWChemDftSmearing(&smearing, dft.smearing);
     if (smearing.sigmaHartree != 0.0 &&
@@ -172,7 +190,7 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
                           : "fixsz") != 0)
       return -1;
   }
-  if (dft.xc.len > 0) {
+  if (include_direct_promoted && dft.xc.len > 0) {
     if (append_format(block, sizeof(block), "  xc ") != 0 ||
         append_text(block, sizeof(block), dft.xc) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
@@ -644,7 +662,8 @@ static int render_geometry_stanza(NWChemGeometryStanza_ptr ptr, char *dst,
 }
 
 static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
-                                size_t dst_size) {
+                                size_t dst_size,
+                                int include_direct_promoted_dft) {
   int n = struct_list_len(&stanzas.p);
   if (n < 0)
     return -1;
@@ -653,7 +672,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     get_NWChemInputStanza(&stanza, stanzas, i);
     switch (stanza.kind) {
     case NWChemInputStanza_Kind_dft:
-      if (render_dft_stanza(stanza.dft, dst, dst_size) != 0)
+      if (render_dft_stanza(stanza.dft, dst, dst_size,
+                            include_direct_promoted_dft) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_set:
@@ -728,9 +748,68 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
+}
+
+int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
+                                             size_t dst_size) {
+  if (params.p.type == CAPN_NULL || !dst || dst_size == 0)
+    return -1;
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  dst[0] = '\0';
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0) != 0)
+    return -1;
+  return render_input_blocks(view.inputBlocks, dst, dst_size);
+}
+
+int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
+                                      int *direct_enabled,
+                                      int *smearing_enabled,
+                                      double *smear_sigma_hartree,
+                                      int *smearing_spinset) {
+  if (params.p.type == CAPN_NULL || !xc || !direct_enabled ||
+      !smearing_enabled || !smear_sigma_hartree || !smearing_spinset)
+    return -1;
+
+  *xc = empty_text;
+  *direct_enabled = 0;
+  *smearing_enabled = 0;
+  *smear_sigma_hartree = 0.0;
+  *smearing_spinset = 1;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_dft ||
+        stanza.dft.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemDftStanza dft;
+    read_NWChemDftStanza(&dft, stanza.dft);
+    if (dft.direct)
+      *direct_enabled = 1;
+    if (dft.xc.len > 0)
+      *xc = dft.xc;
+    if (dft.smearing.p.type != CAPN_NULL) {
+      struct NWChemDftSmearing smearing;
+      read_NWChemDftSmearing(&smearing, dft.smearing);
+      if (smearing.sigmaHartree != 0.0) {
+        *smearing_enabled = 1;
+        *smear_sigma_hartree = smearing.sigmaHartree;
+        *smearing_spinset =
+            smearing.mode == NWChemDftSmearing_Mode_nofixsz ? 0 : 1;
+      }
+    }
+  }
+  return 0;
 }
 
 int nwchemc_params_root(const void *params_capnp,
