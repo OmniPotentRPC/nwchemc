@@ -106,10 +106,11 @@ C     RTDB in permanent/scratch via util_file_name (needs dirs above).
 C     Direct embed: numeric geometry and library basis are stored through
 C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang,
-     $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
-     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, psp_count, psp_elements, psp_types,
-     $     psp_names, energy_h, grad_h_bohr, errmsg, ok)
+     $     atmnrs, cell_ang, has_cell, basis_name, theory_name,
+     $     scf_type, input_blocks, charge, mult, dft_direct,
+     $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
+     $     psp_count, psp_elements, psp_types, psp_names, energy_h,
+     $     grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -118,9 +119,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 #include "errquit.fh"
 #include "inp.fh"
       integer rtdb, n_atoms, charge, mult, ok
+      integer has_cell
       integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       double precision pos_ang(*)
+      double precision cell_ang(*)
       integer atmnrs(*)
       integer psp_types(*)
       character*64 basis_name
@@ -155,8 +158,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          return
       endif
 
-      call nwchemc_store_geometry(rtdb, n_atoms, pos_ang, atmnrs,
-     $     errmsg, status)
+      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, errmsg, status)
       if (.not. status) return
       call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
      $     basis_name, errmsg, status)
@@ -480,28 +483,52 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchemc_store_geometry(rtdb, n_atoms, pos_ang,
      $     atmnrs, errmsg, ok)
       implicit none
-#include "mafdecls.fh"
-#include "rtdb.fh"
-#include "stdio.fh"
       integer rtdb, n_atoms
       double precision pos_ang(*)
       integer atmnrs(*)
       character*(*) errmsg
       logical ok
-      integer iat, geom, maxat
+      double precision cell_ang(9)
+      integer i
+
+      do i = 1, 9
+         cell_ang(i) = 0.0d0
+      enddo
+      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, 0, errmsg, ok)
+      return
+      end
+
+      subroutine nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+#include "stdio.fh"
+      integer rtdb, n_atoms
+      integer has_cell
+      double precision pos_ang(*)
+      double precision cell_ang(*)
+      integer atmnrs(*)
+      character*(*) errmsg
+      logical ok
+      integer iat, i, j, geom, maxat
       parameter (maxat = 64)
       double precision coords(3,maxat)
       double precision charge(maxat)
       double precision mass(maxat)
+      double precision amat(3,3)
       double precision scale
       character*16 tags(maxat)
       logical status
       external geom_create, geom_destroy, geom_set_user_units
       external geom_get_user_scale, geom_cart_set, geom_masses_set
       external geom_rtdb_store, geom_atn_to_default_mass
+      external geom_amatrix_set, geom_isystype_set, geom_P1_set
       logical geom_create, geom_destroy, geom_set_user_units
       logical geom_get_user_scale, geom_cart_set, geom_masses_set
       logical geom_rtdb_store, geom_atn_to_default_mass
+      logical geom_amatrix_set, geom_isystype_set, geom_P1_set
 
       ok = .false.
       if (n_atoms .le. 0 .or. n_atoms .gt. maxat) then
@@ -521,6 +548,28 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'geom_get_user_scale failed'
          status = geom_destroy(geom)
          return
+      endif
+      if (has_cell .ne. 0) then
+         do j = 1, 3
+            do i = 1, 3
+               amat(i,j) = cell_ang(3 * (j - 1) + i) * scale
+            enddo
+         enddo
+         if (.not. geom_amatrix_set(geom, amat)) then
+            errmsg = 'geom_amatrix_set failed'
+            status = geom_destroy(geom)
+            return
+         endif
+         if (.not. geom_isystype_set(geom, 3)) then
+            errmsg = 'geom_isystype_set failed'
+            status = geom_destroy(geom)
+            return
+         endif
+         if (.not. geom_P1_set(geom)) then
+            errmsg = 'geom_P1_set failed'
+            status = geom_destroy(geom)
+            return
+         endif
       endif
       do iat = 1, n_atoms
          call nwchemc_z_to_elem(atmnrs(iat), tags(iat))

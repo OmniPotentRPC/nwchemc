@@ -4,6 +4,8 @@
 
 #include "nwchemc_params.h"
 
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,6 +36,11 @@ extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const int *multiplicity,
                                      double *energy_h, double *grad_h_bohr,
                                      char *errmsg, int errmsg_len);
+extern int nwchemc_embed_energy_grad_cell(
+    const int *n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const double *cell_ang, const int *has_cell, const int *charge,
+    const int *multiplicity, double *energy_h, double *grad_h_bohr,
+    char *errmsg, int errmsg_len);
 extern int nwchemc_embed_hessian(const int *n_atoms,
                                  const double *positions_ang,
                                  const int *atomic_numbers,
@@ -53,6 +60,9 @@ struct NWChemCSession {
   NWChemParams_ptr params_root;
   int has_params;
   int configured;
+  double *step_positions_ang;
+  int *step_atomic_numbers;
+  size_t step_atom_capacity;
 };
 
 static NWChemCSession *g_active_session = NULL;
@@ -369,6 +379,42 @@ static void session_clear_params(NWChemCSession *session) {
   session->configured = 0;
 }
 
+static void session_clear_step_scratch(NWChemCSession *session) {
+  if (!session)
+    return;
+  free(session->step_positions_ang);
+  free(session->step_atomic_numbers);
+  session->step_positions_ang = NULL;
+  session->step_atomic_numbers = NULL;
+  session->step_atom_capacity = 0;
+}
+
+static int session_reserve_step_atoms(NWChemCSession *session,
+                                      size_t n_atoms) {
+  if (!session || n_atoms == 0)
+    return -1;
+  if (n_atoms <= session->step_atom_capacity)
+    return 0;
+  if (n_atoms > (SIZE_MAX / 3u) / sizeof(double))
+    return -1;
+  double *positions =
+      (double *)malloc(n_atoms * 3u * sizeof(*session->step_positions_ang));
+  if (!positions)
+    return -1;
+  int *atomic_numbers =
+      (int *)malloc(n_atoms * sizeof(*session->step_atomic_numbers));
+  if (!atomic_numbers) {
+    free(positions);
+    return -1;
+  }
+  free(session->step_positions_ang);
+  free(session->step_atomic_numbers);
+  session->step_positions_ang = positions;
+  session->step_atomic_numbers = atomic_numbers;
+  session->step_atom_capacity = n_atoms;
+  return 0;
+}
+
 static int apply_root_to_embed(NWChemParams_ptr params_root) {
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
@@ -470,14 +516,17 @@ void nwchemc_session_destroy(NWChemCSession *session) {
   if (!session)
     return;
   session_clear_params(session);
+  session_clear_step_scratch(session);
   free(session);
 }
 
-NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
-                                              int n_atoms,
-                                              const double *positions_ang,
-                                              const int *atomic_numbers,
-                                              double *grad_h_bohr) {
+static NWChemCResult session_energy_gradient_cell(NWChemCSession *session,
+                                                  int n_atoms,
+                                                  const double *positions_ang,
+                                                  const int *atomic_numbers,
+                                                  const double *cell_ang,
+                                                  int has_cell,
+                                                  double *grad_h_bohr) {
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
@@ -499,9 +548,13 @@ NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
   int mult = 1;
   session_charge_multiplicity(session, &ch, &mult);
   double eh = 0.0;
-  int rc = nwchemc_embed_energy_grad(&n, positions_ang, atomic_numbers, &ch,
-                                     &mult, &eh, grad_h_bohr, errmsg,
-                                     (int)sizeof(errmsg) - 1);
+  int cell_flag = has_cell ? 1 : 0;
+  double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0};
+  const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  int rc = nwchemc_embed_energy_grad_cell(
+      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult, &eh,
+      grad_h_bohr, errmsg, (int)sizeof(errmsg) - 1);
   if (rc != 0) {
     snprintf(r.message, sizeof(r.message), "%s",
              errmsg[0] ? errmsg : "nwchem embed energy/grad failed");
@@ -511,6 +564,15 @@ NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
   r.energy_h = eh;
   snprintf(r.message, sizeof(r.message), "ok");
   return r;
+}
+
+NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
+                                              int n_atoms,
+                                              const double *positions_ang,
+                                              const int *atomic_numbers,
+                                              double *grad_h_bohr) {
+  return session_energy_gradient_cell(session, n_atoms, positions_ang,
+                                      atomic_numbers, NULL, 0, grad_h_bohr);
 }
 
 NWChemCResult nwchemc_session_energy(NWChemCSession *session, int n_atoms,
@@ -546,6 +608,63 @@ NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
                                       atomic_numbers, forces_h_bohr);
   if (r.ok && forces_h_bohr && n_atoms > 0) {
     for (int i = 0; i < n_atoms * 3; ++i)
+      forces_h_bohr[i] = -forces_h_bohr[i];
+  }
+  return r;
+}
+
+NWChemCResult nwchemc_session_calculate_forces(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *forces_h_bohr,
+    size_t forces_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !forces_h_bohr) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || forces_len < n_atoms * 3u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  r = session_energy_gradient_cell(session, (int)n_atoms,
+                                   session->step_positions_ang,
+                                   session->step_atomic_numbers, cell_ang,
+                                   has_cell, forces_h_bohr);
+  if (r.ok) {
+    for (size_t i = 0; i < n_atoms * 3u; ++i)
       forces_h_bohr[i] = -forces_h_bohr[i];
   }
   return r;
@@ -743,6 +862,18 @@ NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
   (void)positions_ang;
   (void)atomic_numbers;
   (void)forces_h_bohr;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_forces(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *forces_h_bohr,
+    size_t forces_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)forces_h_bohr;
+  (void)forces_len;
   return no_nwchem_fail();
 }
 

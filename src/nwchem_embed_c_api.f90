@@ -22,6 +22,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_set_dft_direct
   public :: nwchemc_embed_set_pseudopotentials
   public :: nwchemc_embed_energy_grad
+  public :: nwchemc_embed_energy_grad_cell
   public :: nwchemc_embed_hessian
   public :: nwchemc_embed_finalize
 
@@ -68,14 +69,16 @@ module nwchem_embed_c_api
     end subroutine nwchem_legacy_finalize
 
     subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang, atmnrs, &
-        basis_name, theory_name, scf_type, input_blocks, charge, mult, &
-        dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset, &
-        psp_count, psp_elements, psp_types, psp_names, &
+        cell_ang, has_cell, basis_name, theory_name, scf_type, input_blocks, &
+        charge, mult, dft_direct, dft_smear_on, dft_smear_sigma, &
+        dft_smear_spinset, psp_count, psp_elements, psp_types, psp_names, &
         energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
       integer, intent(in) :: atmnrs(*)
+      real(real64), intent(in) :: cell_ang(*)
+      integer, intent(in) :: has_cell
       character(len=64), intent(in) :: basis_name
       character(len=64), intent(in) :: theory_name, scf_type
       character(len=4096), intent(in) :: input_blocks
@@ -281,9 +284,57 @@ contains
     character(kind=c_char), intent(out) :: errmsg(*)
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
+    real(c_double) :: empty_cell(9)
+    integer(c_int) :: no_cell
+
+    empty_cell = 0.0_c_double
+    no_cell = 0_c_int
+    rc = nwchemc_embed_energy_grad_impl(n_atoms, positions_ang, &
+        atomic_numbers, empty_cell, no_cell, charge, mult, energy_h, &
+        grad_h_bohr, errmsg, errmsg_len)
+  end function nwchemc_embed_energy_grad
+
+  !> Energy (Hartree) + nuclear gradient with an optional 3x3 cell.
+  function nwchemc_embed_energy_grad_cell(n_atoms, positions_ang, &
+      atomic_numbers, cell_ang, has_cell, charge, mult, energy_h, &
+      grad_h_bohr, errmsg, errmsg_len) result(rc) &
+      bind(C, name='nwchemc_embed_energy_grad_cell')
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    real(c_double), intent(in) :: cell_ang(*)
+    integer(c_int), intent(in) :: has_cell
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: energy_h
+    real(c_double), intent(out) :: grad_h_bohr(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
+
+    rc = nwchemc_embed_energy_grad_impl(n_atoms, positions_ang, &
+        atomic_numbers, cell_ang, has_cell, charge, mult, energy_h, &
+        grad_h_bohr, errmsg, errmsg_len)
+  end function nwchemc_embed_energy_grad_cell
+
+  function nwchemc_embed_energy_grad_impl(n_atoms, positions_ang, &
+      atomic_numbers, cell_ang, has_cell, charge, mult, energy_h, &
+      grad_h_bohr, errmsg, errmsg_len) result(rc)
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    real(c_double), intent(in) :: cell_ang(*)
+    integer(c_int), intent(in) :: has_cell
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: energy_h
+    real(c_double), intent(out) :: grad_h_bohr(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
     integer :: ok, n, i
     character(len=512) :: msg
-    real(real64), allocatable :: pos(:), grad(:)
+    real(real64), allocatable :: pos(:), grad(:), cell(:)
     integer, allocatable :: z(:)
 
     rc = -1_c_int
@@ -306,18 +357,21 @@ contains
       return
     end if
 
-    allocate (pos(3 * n), grad(3 * n), z(n))
+    allocate (pos(3 * n), grad(3 * n), cell(9), z(n))
     do i = 1, 3 * n
       pos(i) = real(positions_ang(i), kind=real64)
       grad(i) = 0.0_real64
+    end do
+    do i = 1, 9
+      cell(i) = real(cell_ang(i), kind=real64)
     end do
     do i = 1, n
       z(i) = int(atomic_numbers(i))
     end do
 
-    call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cfg_basis, &
-        cfg_theory, cfg_scf, cfg_input_blocks, int(charge), &
-        max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
+    call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cell, &
+        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
+        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
         cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_psp_count, &
         cfg_psp_elements, cfg_psp_types, cfg_psp_names, energy_h, grad, msg, ok)
 
@@ -326,8 +380,8 @@ contains
     end do
     call set_c_errmsg(errmsg, errmsg_len, trim(msg))
     if (ok == 0) rc = 0_c_int
-    deallocate (pos, grad, z)
-  end function nwchemc_embed_energy_grad
+    deallocate (pos, grad, cell, z)
+  end function nwchemc_embed_energy_grad_impl
 
   !> Dense Cartesian Hessian (Hartree/Bohr**2) for current config.
   function nwchemc_embed_hessian(n_atoms, positions_ang, &
