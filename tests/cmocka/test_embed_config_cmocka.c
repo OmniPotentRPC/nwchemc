@@ -602,12 +602,15 @@ static void test_session_calculate_result_writes_potential_result(
   reset_embed_captures();
   size_t message_size = 0;
   size_t step_a_size = 0;
+  size_t step_b_size = 0;
   size_t step_ev_size = 0;
   unsigned char *message = read_file(g_params_path, &message_size);
   unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_b = read_file(g_force_step_b_path, &step_b_size);
   unsigned char *step_ev = read_file(g_force_step_ev_path, &step_ev_size);
   assert_non_null(message);
   assert_non_null(step_a);
+  assert_non_null(step_b);
   assert_non_null(step_ev);
 
   NWChemCSession *session = nwchemc_session_create(message, message_size);
@@ -632,6 +635,23 @@ static void test_session_calculate_result_writes_potential_result(
                           hartree_angstrom_forces, 6,
                           1.0e-12);
   assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_set_config_calls, 1);
+
+  size_t bohr_result_size = 0;
+  NWChemCResult bohr = nwchemc_session_calculate_result(
+      session, step_b, step_b_size, result_bytes, sizeof(result_bytes),
+      &bohr_result_size);
+  assert_int_equal(bohr.ok, 1);
+  assert_close(bohr.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(bohr_result_size, result_size);
+  assert_potential_result(result_bytes, bohr_result_size, -1.0,
+                          native_forces, 6, 1.0e-12);
+  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_call_n_atoms[1], 2);
+  assert_close(g_call_positions_ang[1][5], 1.058354421806, 1.0e-12);
+  assert_int_equal(g_call_has_cell[1], 1);
+  assert_close(g_call_cell_ang[1][0], 10.58354421806, 1.0e-11);
 
   unsigned char short_result[79];
   size_t required_size = 0;
@@ -640,7 +660,7 @@ static void test_session_calculate_result_writes_potential_result(
       &required_size);
   assert_int_equal(short_output.ok, 0);
   assert_int_equal(required_size, result_size);
-  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 2);
 
   result_size = 0;
   NWChemCResult ev = nwchemc_session_calculate_result(
@@ -654,10 +674,12 @@ static void test_session_calculate_result_writes_potential_result(
     ev_forces[i] = native_forces[i] * hartree_to_ev / bohr_to_angstrom;
   assert_potential_result(result_bytes, result_size, -hartree_to_ev, ev_forces,
                           6, 1.0e-10);
-  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_energy_grad_calls, 3);
+  assert_int_equal(g_set_config_calls, 1);
 
   nwchemc_session_destroy(session);
   free(step_ev);
+  free(step_b);
   free(step_a);
   free(message);
 }
