@@ -1,9 +1,15 @@
 #include "nwchemc_params.h"
 
+#include <limits.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
+static const double NWCHEMC_BOHR_TO_ANGSTROM = 0.529177210903;
+static const double NWCHEMC_HARTREE_TO_EV = 27.211386245988;
+static const double NWCHEMC_HARTREE_TO_J = 4.359744722206048e-18;
+static const double NWCHEMC_AVOGADRO = 6.02214076e23;
 
 static const capn_text empty_text = {0, "", 0};
 
@@ -139,6 +145,55 @@ static int force_input_length_factor(capn_text unit, double *factor) {
       text_equals_ascii_ci(unit, "picometer") ||
       text_equals_ascii_ci(unit, "picometers")) {
     *factor = 0.01;
+    return 0;
+  }
+  return -1;
+}
+
+static int force_input_energy_factor(capn_text unit, double *factor) {
+  if (!factor)
+    return -1;
+  if (!unit.str || unit.len <= 0 || text_equals_ascii_ci(unit, "eV") ||
+      text_equals_ascii_ci(unit, "electronvolt") ||
+      text_equals_ascii_ci(unit, "electronvolts")) {
+    *factor = NWCHEMC_HARTREE_TO_EV;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "hartree") || text_equals_ascii_ci(unit, "ha") ||
+      text_equals_ascii_ci(unit, "au") || text_equals_ascii_ci(unit, "a.u.")) {
+    *factor = 1.0;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "meV")) {
+    *factor = NWCHEMC_HARTREE_TO_EV * 1000.0;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "ry") || text_equals_ascii_ci(unit, "rydberg")) {
+    *factor = 2.0;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "j") || text_equals_ascii_ci(unit, "joule") ||
+      text_equals_ascii_ci(unit, "joules")) {
+    *factor = NWCHEMC_HARTREE_TO_J;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "kJ") || text_equals_ascii_ci(unit, "kilojoule") ||
+      text_equals_ascii_ci(unit, "kilojoules")) {
+    *factor = NWCHEMC_HARTREE_TO_J / 1000.0;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "kJ/mol") ||
+      text_equals_ascii_ci(unit, "kilojoule/mol") ||
+      text_equals_ascii_ci(unit, "kilojoules/mol")) {
+    *factor = NWCHEMC_HARTREE_TO_J * NWCHEMC_AVOGADRO / 1000.0;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "kcal")) {
+    *factor = NWCHEMC_HARTREE_TO_J / 4184.0;
+    return 0;
+  }
+  if (text_equals_ascii_ci(unit, "kcal/mol")) {
+    *factor = NWCHEMC_HARTREE_TO_J * NWCHEMC_AVOGADRO / 4184.0;
     return 0;
   }
   return -1;
@@ -1018,6 +1073,81 @@ int nwchemc_force_input_copy_geometry(ForceInput_ptr force_input,
                             length_factor
                       : 0.0;
   *has_cell = local_has_cell;
+  return 0;
+}
+
+int nwchemc_force_input_result_factors(ForceInput_ptr force_input,
+                                       double *energy_factor,
+                                       double *force_factor) {
+  if (force_input.p.type == CAPN_NULL || !energy_factor || !force_factor)
+    return -1;
+
+  struct ForceInput view;
+  read_ForceInput(&view, force_input);
+  double length_factor = 1.0;
+  double energy = 1.0;
+  if (force_input_length_factor(view.lengthUnit, &length_factor) != 0 ||
+      force_input_energy_factor(view.energyUnit, &energy) != 0)
+    return -1;
+
+  *energy_factor = energy;
+  *force_factor = energy * length_factor / NWCHEMC_BOHR_TO_ANGSTROM;
+  return 0;
+}
+
+size_t nwchemc_potential_result_flat_size(size_t force_count) {
+  if (force_count > (SIZE_MAX - 32u) / 8u)
+    return 0;
+  return 32u + force_count * 8u;
+}
+
+int nwchemc_potential_result_write(double energy, const double *forces,
+                                   size_t force_count,
+                                   void *potential_result_capnp,
+                                   size_t potential_result_capacity_bytes,
+                                   size_t *potential_result_size_bytes) {
+  if (!forces || !potential_result_capnp || !potential_result_size_bytes ||
+      force_count > (size_t)INT_MAX)
+    return -1;
+
+  size_t required = nwchemc_potential_result_flat_size(force_count);
+  *potential_result_size_bytes = required;
+  if (required == 0 || potential_result_capacity_bytes < required)
+    return -1;
+
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  if (root.type == CAPN_NULL) {
+    capn_free(&arena);
+    return -1;
+  }
+
+  PotentialResult_ptr result = new_PotentialResult(root.seg);
+  capn_list64 force_list = capn_new_list64(root.seg, (int)force_count);
+  if (result.p.type == CAPN_NULL ||
+      (force_count > 0 && force_list.p.type == CAPN_NULL)) {
+    capn_free(&arena);
+    return -1;
+  }
+  for (size_t i = 0; i < force_count; ++i)
+    capn_set64(force_list, (int)i, capn_from_f64(forces[i]));
+
+  struct PotentialResult view;
+  view.energy = energy;
+  view.forces = force_list;
+  write_PotentialResult(&view, result);
+  if (capn_setp(root, 0, result.p) != 0) {
+    capn_free(&arena);
+    return -1;
+  }
+
+  int written = capn_write_mem(&arena, (uint8_t *)potential_result_capnp,
+                               potential_result_capacity_bytes, 0);
+  capn_free(&arena);
+  if (written < 0)
+    return -1;
+  *potential_result_size_bytes = (size_t)written;
   return 0;
 }
 

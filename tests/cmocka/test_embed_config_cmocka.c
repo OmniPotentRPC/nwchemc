@@ -10,12 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-NWChemCResult nwchemc_session_calculate_result(
-    NWChemCSession *session, const void *force_input_capnp,
-    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
-    size_t potential_result_capnp_capacity_bytes,
-    size_t *potential_result_capnp_size_bytes);
-
 static const char *g_params_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
@@ -588,7 +582,12 @@ static void test_session_calculate_result_writes_potential_result(
   assert_true(result_size > 0);
   assert_true(result_size < sizeof(result_bytes));
   const double native_forces[6] = {-1.0, -2.0, -3.0, -4.0, -5.0, -6.0};
-  assert_potential_result(result_bytes, result_size, -1.0, native_forces, 6,
+  const double bohr_to_angstrom = 0.529177210903;
+  double hartree_angstrom_forces[6];
+  for (int i = 0; i < 6; ++i)
+    hartree_angstrom_forces[i] = native_forces[i] / bohr_to_angstrom;
+  assert_potential_result(result_bytes, result_size, -1.0,
+                          hartree_angstrom_forces, 6,
                           1.0e-12);
   assert_int_equal(g_energy_grad_calls, 1);
 
@@ -608,7 +607,6 @@ static void test_session_calculate_result_writes_potential_result(
   assert_int_equal(ev.ok, 1);
   assert_close(ev.energy_h, -1.0, 1.0e-12);
   const double hartree_to_ev = 27.211386245988;
-  const double bohr_to_angstrom = 0.529177210903;
   double ev_forces[6];
   for (int i = 0; i < 6; ++i)
     ev_forces[i] = native_forces[i] * hartree_to_ev / bohr_to_angstrom;

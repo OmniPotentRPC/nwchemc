@@ -7,12 +7,6 @@
 
 #include <cmocka.h>
 
-NWChemCResult nwchemc_session_calculate_result(
-    NWChemCSession *session, const void *force_input_capnp,
-    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
-    size_t potential_result_capnp_capacity_bytes,
-    size_t *potential_result_capnp_size_bytes);
-
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
   assert_int_equal(nwchemc_available(), 0);

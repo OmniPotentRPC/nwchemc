@@ -42,3 +42,15 @@ int nwchemc_force_input_copy_geometry(ForceInput_ptr force_input,
                                       int *atomic_numbers,
                                       size_t atom_capacity, double *cell_ang,
                                       int *has_cell);
+
+int nwchemc_force_input_result_factors(ForceInput_ptr force_input,
+                                       double *energy_factor,
+                                       double *force_factor);
+
+size_t nwchemc_potential_result_flat_size(size_t force_count);
+
+int nwchemc_potential_result_write(double energy, const double *forces,
+                                   size_t force_count,
+                                   void *potential_result_capnp,
+                                   size_t potential_result_capacity_bytes,
+                                   size_t *potential_result_size_bytes);

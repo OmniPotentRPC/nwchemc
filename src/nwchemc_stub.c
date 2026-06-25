@@ -159,6 +159,20 @@ NWChemCResult nwchemc_session_calculate_forces(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_hessian(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,

@@ -166,6 +166,26 @@ NWChemCResult nwchemc_session_calculate_forces(
     size_t forces_len);
 
 /**
+ * @brief Compute forces for one `ForceInput` step and write `PotentialResult`.
+ *
+ * This is the Cap'n Proto result-carrier entry point for RPC-style callers.
+ * The session keeps persistent `NWChemParams` method state, each call supplies
+ * a serialized `ForceInput`, and the caller provides a byte buffer that is
+ * filled with an unpacked flat `PotentialResult` message. The output message
+ * converts energy and forces to `ForceInput.energyUnit` and
+ * `ForceInput.energyUnit / ForceInput.lengthUnit`.
+ *
+ * When `potential_result_capnp_capacity_bytes` is too small, the function
+ * returns `ok == 0`, writes the required byte count to
+ * `potential_result_capnp_size_bytes`, and does not evaluate NWChem.
+ */
+NWChemCResult nwchemc_session_calculate_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief Compute a Cartesian Hessian for one Cap'n Proto `ForceInput` step.
  *
  * The session keeps persistent `NWChemParams` method state while the step
