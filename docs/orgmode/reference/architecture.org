@@ -31,9 +31,9 @@ The embed bridge stores the small Fortran strings and scalar values it needs to
 evaluate repeated calls.
 Coordinates, atomic numbers, charge, multiplicity, method, task state, and the
 selected library basis are written through NWChem RTDB-facing APIs. Structured
-SCF scalars such as ~maxiter~, ~thresh~, and ~tol2e~, plus driver ~maxiter~,
-are also promoted from Cap'n Proto stanzas into direct RTDB writes for embed
-calculations.
+SCF scalars such as ~maxiter~, ~thresh~, and ~tol2e~, plus driver ~maxiter~
+and convergence tolerance controls, are also promoted from Cap'n Proto stanzas
+into direct RTDB writes for embed calculations.
 NWChem input parsing is reserved for caller-provided free-form stanzas whose
 grammar is intentionally upstream NWChem input text.
 
@@ -80,7 +80,10 @@ Driver scalar controls follow the same rule for confirmed keys.
 as ~driver:nptopt~ before the task call. ~tight~ and ~loose~ are promoted to
 the four convergence RTDB keys used by ~driver_input.F~:
 ~driver:gmax_tol~, ~driver:grms_tol~, ~driver:xrms_tol~, and
-~driver:xmax_tol~. Driver fields without direct coverage stay in the rendered
+~driver:xmax_tol~. Explicit ~gmaxTol~, ~grmsTol~, ~xmaxTol~, and ~xrmsTol~
+fields render as ~gmax~, ~grms~, ~xmax~, and ~xrms~ for full input; embed
+writes the same four RTDB keys directly, with explicit values overriding
+preset defaults. Driver fields without direct coverage stay in the rendered
 driver block.
 
 * MPI And Finalization

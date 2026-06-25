@@ -52,7 +52,7 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
 | SCF | ~NWChemScfStanza~ | ~scf~, vectors/maxiter/thresh/tol2e/noprint, directives, ~end~. |
 | Task line | ~NWChemTaskStanza~ | ~task [theory] [operation] [ignore]~ (explicit deck task). |
-| Driver | ~NWChemDriverStanza~ | ~driver~, maxiter/tight/loose/xyz, directives, ~end~. |
+| Driver | ~NWChemDriverStanza~ | ~driver~, maxiter/tight/loose/gmax/grms/xmax/xrms/xyz, directives, ~end~. |
 | Property | ~NWChemPropertyStanza~ | ~property~, dipole/mulliken/quadrupole, directives, ~end~. |
 | Basis block | ~NWChemBasisStanza~ | ~basis [spherical]~, optional ~* library~, ECP line, directives, ~end~. |
 | Geometry meta | ~NWChemGeometryStanza~ | ~geometry~ header (units/symmetry/noautosym); atom coords via C ABI. |
@@ -119,10 +119,11 @@ handler names derived from the local NWChem source tree.
   building a multi-task deck. Embed callers usually rely on top-level ~theory~ +
   ~task~ only; this stanza is for full-input generation.
 - *Driver* (~NWChemDriverStanza~): geometry optimization controls. Full input
-  emits ~maxiter <n>~, ~tight~, and ~loose~. Embed writes ~driver:nptopt~ and
-  the ~driver:gmax_tol~ / ~driver:grms_tol~ / ~driver:xrms_tol~ /
-  ~driver:xmax_tol~ preset values directly, and keeps ~xyz~ path plus extra
-  directives as driver text.
+  emits ~maxiter <n>~, ~tight~, ~loose~, and explicit ~gmax~ / ~grms~ /
+  ~xmax~ / ~xrms~ values. Embed writes ~driver:nptopt~ and the
+  ~driver:gmax_tol~ / ~driver:grms_tol~ / ~driver:xrms_tol~ /
+  ~driver:xmax_tol~ values directly, and keeps ~xyz~ path plus extra directives
+  as driver text.
 - *Property* (~NWChemPropertyStanza~): common property keywords (~dipole~,
   ~mulliken~, ~quadrupole~) plus extra directives.
 - *Basis* (~NWChemBasisStanza~): structured ~basis~ block when top-level ~basis~

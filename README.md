@@ -51,7 +51,10 @@ Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,
 geometry, module, pseudopotential, set, generic), and escape hatches (`raw`,
 `inputBlocks`, `set`, `custom` module) for the long NWChem option tail. See
-`docs/orgmode/reference/nwchem-options.org` for the full contract.
+`docs/orgmode/reference/nwchem-options.org` for the full contract. Embed builds
+write typed SCF and driver scalar controls directly to RTDB, including driver
+`maxiter`, `tight` / `loose`, and explicit `gmax` / `grms` / `xmax` / `xrms`
+tolerances.
 
 ## Build
 
