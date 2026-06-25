@@ -1,0 +1,74 @@
+# Git hooks via `prek` (https://prek.j178.dev) — Rust drop-in for pre-commit.
+# Install locally: `prek install`  (or `pixi run prek-install`)
+# Run all hooks:   `prek run -a`   (or `pixi run prek`)
+#:schema https://www.schemastore.org/prek.json
+
+minimum_prek_version = "0.3.0"
+
+exclude = """(?x)(
+    ^\\.pixi/|
+    ^build(-nwchem)?(-[^/]+)?/|
+    ^docs/build/|
+    ^docs/doctrees/|
+    ^subprojects/|
+    ^schema/.*\\.capnp\\.(c|h)$|
+    ^pixi\\.lock$
+)"""
+
+# Fast native implementations (no clone / no Python env).
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace" },
+  { id = "end-of-file-fixer" },
+  { id = "check-yaml" },
+  { id = "check-toml" },
+  { id = "check-merge-conflict" },
+  { id = "check-added-large-files", args = ["--maxkb=1000"] },
+  { id = "detect-private-key" },
+]
+
+[[repos]]
+hooks = [{ id = "check-case-conflict" }]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+
+# Project-local tools (must be on PATH in the pixi / developer environment).
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "fortran-fprettify-check",
+    name = "Fortran fprettify (check in-tree sources)",
+    entry = "bash",
+    language = "system",
+    files = "^src/.*\\.(f90|F)$",
+    pass_filenames = true,
+    args = [
+      "-c",
+      "ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); FP=$(command -v fprettify || true); [ -z \"$FP\" ] && [ -x \"$ROOT/.pixi/envs/default/bin/fprettify\" ] && FP=\"$ROOT/.pixi/envs/default/bin/fprettify\"; [ -z \"$FP\" ] && command -v pixi >/dev/null && FP=\"pixi run -e default -- fprettify\"; if [ -z \"$FP\" ]; then echo 'fprettify not on PATH (pixi install / conda-forge fprettify)'; exit 1; fi; ec=0; for f in \"$@\"; do if [ \"${FP%% *}\" = pixi ]; then pixi run -e default -- fprettify --diff \"$f\" >/dev/null 2>&1; else \"$FP\" --diff \"$f\" >/dev/null 2>&1; fi || { echo \"fprettify would change: $f\"; ec=1; }; done; exit $ec",
+      "--",
+    ],
+  },
+  {
+    id = "lychee-docs",
+    name = "lychee link check (README + docs)",
+    entry = "bash",
+    language = "system",
+    pass_filenames = false,
+    files = "^(README\\.md|docs/orgmode/.*\\.org|docs/source/.*\\.rst|docs/newsfragments/.*)$",
+    args = [
+      "-c",
+      "if ! command -v lychee >/dev/null 2>&1; then echo 'lychee not on PATH'; exit 1; fi; exec lychee --config .lychee.toml README.md $(find docs/orgmode docs/newsfragments -type f \\( -name '*.org' -o -name '*.md' \\) 2>/dev/null)",
+    ],
+  },
+  {
+    id = "inventory-check",
+    name = "feature inventory vs schema",
+    entry = "python3",
+    language = "system",
+    pass_filenames = false,
+    files = "^(schema/Potentials\\.capnp|schema/inventory/|src/nwchemc_features\\.c|tools/(gen|check)_feature_inventory\\.py)$",
+    args = ["tools/check_feature_inventory.py"],
+  },
+]

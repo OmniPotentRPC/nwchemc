@@ -51,7 +51,17 @@ pixi run test-stub      # stub/parser Meson suite
 pixi run test-cmocka    # intern inventory + cmocka feature tests + driver
 pixi run inventory-check
 pixi run inventory-gen  # regenerate schema/inventory + C tables after schema edits
+pixi run coverage       # gcov/lcov on instrumented stub build (see build-coverage/)
+pixi run prek-validate  # validate prek.toml
+pixi run prek           # all hooks: baseline + Fortran fprettify + lychee + inventory
+pixi run fortran-lint   # fprettify check on src/*.f90 and src/*.F
+pixi run lychee         # link check README + docs/orgmode + newsfragments
 ```
+
+Lint hooks live in `prek.toml` (`prek install` for commit hooks). Lychee scope is
+controlled by `.lychee.toml`. Coverage is tracked for instrumentable in-tree C
+exercised by stub/parser/cmocka suites; embed/Fortran/NWChem-only units require
+a real embed build and are listed as explicit exceptions in the coverage report.
 
 ## Feature inventory and C driver
 

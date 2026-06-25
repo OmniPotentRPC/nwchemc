@@ -15,6 +15,7 @@ cmocka = ">=1.1.7,<3"
 cmake = ">=3.30.4,<4"
 compilers = ">=1.8.0,<2"
 fortran-compiler = ">=1.8.0,<2"
+fprettify = ">=0.3.7,<1"
 meson = ">=1.5.2,<2"
 pkgconf = ">=2.5.1,<3"
 python = ">=3.10,<4"
@@ -42,6 +43,12 @@ inventory-gen = { cmd = "python3 tools/gen_feature_inventory.py .", description 
 release-assert = { cmd = "python3 scripts/release_assert.py", description = "Verify release metadata versions agree" }
 towncrier-draft = { cmd = "uvx towncrier build --draft", description = "Preview changelog fragments" }
 release-cog-dry = { cmd = "cog bump --auto --dry-run", description = "Preview the release bump" }
+prek-validate = { cmd = "prek validate-config prek.toml", description = "Validate prek/pre-commit config" }
+prek = { cmd = "prek run --all-files", description = "Run all prek hooks on the tree" }
+prek-install = { cmd = "prek install", description = "Install prek git hooks in this clone" }
+lychee = { cmd = "bash -c 'lychee --config .lychee.toml README.md docs/newsfragments/*.md docs/orgmode/**/*.org 2>/dev/null || lychee --config .lychee.toml README.md $(find docs/orgmode docs/newsfragments -type f \\( -name \"*.org\" -o -name \"*.md\" \\) 2>/dev/null)'", description = "Link-check owned docs/README" }
+fortran-lint = { cmd = "bash -c 'for f in src/*.f90 src/*.F; do [ -f \"$f\" ] || continue; fprettify --diff \"$f\" >/dev/null || { echo \"fprettify would change $f\"; exit 1; }; done'", description = "Fortran fprettify check on src/" }
+coverage = { cmd = "bash tools/run_coverage.sh build-coverage", description = "Instrumented stub tests + lcov summary" }
 
 [feature.docs.tasks.mkrst]
 cmd = "emacs --batch --load export.el"

@@ -1,0 +1,30 @@
+# Lychee config for in-repo docs/README. Prefer stable local checks.
+# External URLs may be excluded when flaky; re-enable deliberately.
+
+include_verbatim = false
+max_redirects = 5
+timeout = 20
+max_concurrency = 8
+
+# Do not fail the whole gate on external rate limits during local hooks.
+accept = ["200..=299", "403", "429"]
+
+exclude = [
+  # Generated / build trees (also excluded by prek, listed for direct lychee runs).
+  "^file://.*/(build|docs/build|docs/doctrees|\\.pixi)/",
+  # Anchor-only / internal Sphinx refs without full URL resolution offline.
+  "^#",
+  # GitHub issue/PR fragments that are not live issue numbers in this repo.
+  "github.com/OmniPotentRPC/nwchemc/issues/",
+]
+
+exclude_path = [
+  "build",
+  "build-nwchem",
+  "build-nwchem-host",
+  "build-nwchem-system",
+  "docs/build",
+  "docs/doctrees",
+  ".pixi",
+  "subprojects",
+]
