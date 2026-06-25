@@ -55,11 +55,13 @@ feature tests verify the generated inventory lookup table and ABI coverage.
 * Pickup Tasks
 ** DONE (partial) Direct DFT promotion
 ~nwchemc_params_extract_direct_dft~ pulls ~xc~, ~direct~, and smearing from the
-first ~NWChemDftStanza~. ~apply_config_to_embed~ uses
+typed ~NWChemDftStanza~ values. ~apply_config_to_embed~ uses
 ~nwchemc_params_render_embed_input_blocks~ (omits promoted DFT text) and
-~nwchemc_embed_set_dft_direct~ to apply xc via ~cfg_scf~/~dft:xc~ and append
-~set dft:direct~ / ~set dft:smear*~ fragments. Parser test:
-~test_parser_extracts_direct_dft_options~ in ~tests/test_capnp_parser.c~.
+~nwchemc_embed_set_dft_direct~ to apply xc via ~cfg_scf~/~dft:xc~. The
+fixed-form RTDB setup writes ~dft:direct~, ~int2e:*~, ~dft:smear_sigma~, and
+~dft:spinset~ for gradient and Hessian paths. Parser test:
+~test_parser_extracts_direct_dft_options~ in ~tests/test_capnp_parser.c~;
+embed-boundary test: ~tests/cmocka/test_embed_config_cmocka.c~.
 
 Remaining: migrate more scalars (task theory/operation overrides, SCF maxiter,
 driver maxiter) only where RTDB keys are confirmed; add embed regression that

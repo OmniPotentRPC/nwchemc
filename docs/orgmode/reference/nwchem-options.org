@@ -61,14 +61,15 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
 
 * Direct embed apply (DFT promotion)
-When ~apply_config_to_embed~ runs (embed builds only), the first
-~NWChemDftStanza~ is partially applied outside rendered text:
+When ~apply_config_to_embed~ runs (embed builds only), typed
+~NWChemDftStanza~ fields are applied outside rendered text:
 
 1. ~nwchemc_params_extract_direct_dft~ reads ~xc~, ~direct~, smearing.
 2. ~nwchemc_params_render_embed_input_blocks~ renders stanzas with promoted DFT
    fields omitted (extra ~directives~ inside ~dft~ still render as text).
 3. ~nwchemc_embed_set_dft_direct~ stores ~xc~ as the effective DFT functional
-   (~cfg_scf~ / ~dft:xc~) and appends ~set dft:direct~ / ~set dft:smear*~ lines.
+   (~cfg_scf~ / ~dft:xc~), and the legacy RTDB setup writes ~dft:direct~,
+   ~int2e:filesize~, ~int2e:memsize~, ~dft:smear_sigma~, and ~dft:spinset~.
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
