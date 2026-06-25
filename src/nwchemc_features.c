@@ -122,20 +122,19 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_energy", "include/nwchemc.h::nwchemc_energy", "stub=fails ok==0; embed=runs energy-only (no grad output)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy_forces", "include/nwchemc.h::nwchemc_energy_forces", "stub=fails ok==0; embed=runs energy/forces (negated gradient)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_hessian", "include/nwchemc.h::nwchemc_hessian", "stub=fails ok==0; embed=runs Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_create", "include/nwchemc.h::nwchemc_session_create", "stub=NULL; embed=owns params copy, applies config once", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_set_params", "include/nwchemc.h::nwchemc_session_set_params", "stub=fails; embed=replaces session params + re-applies config", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_destroy", "include/nwchemc.h::nwchemc_session_destroy", "stub=no-op; embed=frees session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_energy_gradient", "include/nwchemc.h::nwchemc_session_energy_gradient", "stub=fails; embed=energy/grad without re-applying config", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_energy", "include/nwchemc.h::nwchemc_session_energy", "stub=fails; embed=session energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_energy_forces", "include/nwchemc.h::nwchemc_session_energy_forces", "stub=fails; embed=session forces (negated grad)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_hessian", "include/nwchemc.h::nwchemc_session_hessian", "stub=fails; embed=session Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_create", "include/nwchemc.h::nwchemc_session_create", "stub=returns NULL; embed=creates persistent Cap'n Proto session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_set_params", "include/nwchemc.h::nwchemc_session_set_params", "stub=fails non-zero; embed=replaces persistent Cap'n Proto params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_destroy", "include/nwchemc.h::nwchemc_session_destroy", "stub=no-op; embed=releases persistent session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_energy_gradient", "include/nwchemc.h::nwchemc_session_energy_gradient", "stub=fails ok==0; embed=runs session energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_energy", "include/nwchemc.h::nwchemc_session_energy", "stub=fails ok==0; embed=runs session energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_energy_forces", "include/nwchemc.h::nwchemc_session_energy_forces", "stub=fails ok==0; embed=runs session energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_hessian", "include/nwchemc.h::nwchemc_session_hessian", "stub=fails ok==0; embed=runs session Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_available", "include/nwchemc.h::nwchemc_available", "stub=returns 0; embed=returns 1", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_version", "include/nwchemc.h::nwchemc_version", "stub=contains stub; embed=library version", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count =
-    sizeof(k_features) / sizeof(k_features[0]);
+static const size_t k_feature_count = 129;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
@@ -176,3 +175,4 @@ const char *nwchemc_module_nwchem_name(int module_enum_id) {
   }
   return NULL;
 }
+

@@ -42,6 +42,17 @@ extern void nwchemc_embed_finalize(void);
 static int g_initialized = 0;
 static int g_atexit_registered = 0;
 
+struct NWChemCSession {
+  unsigned char *params_bytes;
+  size_t params_size;
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  int has_params;
+  int configured;
+};
+
+static NWChemCSession *g_active_session = NULL;
+
 static int cstr_len(const char *s) { return s ? (int)strlen(s) : 0; }
 
 static const char *text_or_with_len(capn_text text, const char *fallback,
@@ -162,6 +173,7 @@ int nwchemc_set_params(const void *params_capnp,
     nwchemc_params_release(&arena);
     return -1;
   }
+  g_active_session = NULL;
   nwchemc_params_release(&arena);
   return 0;
 }
@@ -195,6 +207,7 @@ NWChemCResult nwchemc_energy_gradient(
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
   }
+  g_active_session = NULL;
 
   char errmsg[512];
   memset(errmsg, 0, sizeof(errmsg));
@@ -285,6 +298,7 @@ NWChemCResult nwchemc_hessian(
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
   }
+  g_active_session = NULL;
 
   char errmsg[512];
   memset(errmsg, 0, sizeof(errmsg));
@@ -305,36 +319,92 @@ NWChemCResult nwchemc_hessian(
   return r;
 }
 
-/* Persistent session: config applied once; geometry varies per call. */
-struct NWChemCSession {
-  void *params_copy;
-  size_t params_size;
-  int charge;
-  int multiplicity;
-  int config_applied;
-};
+static void session_clear_params(NWChemCSession *session) {
+  if (!session)
+    return;
+  if (g_active_session == session)
+    g_active_session = NULL;
+  if (session->has_params)
+    nwchemc_params_release(&session->arena);
+  free(session->params_bytes);
+  session->params_bytes = NULL;
+  session->params_size = 0;
+  memset(&session->arena, 0, sizeof(session->arena));
+  memset(&session->params_root, 0, sizeof(session->params_root));
+  session->has_params = 0;
+  session->configured = 0;
+}
 
-static int session_apply_config(NWChemCSession *session) {
-  if (!session || !session->params_copy || session->params_size == 0)
-    return -1;
-  if (session->config_applied)
-    return 0;
-  struct capn arena;
-  NWChemParams_ptr params_root;
-  if (nwchemc_params_root(session->params_copy, session->params_size, &arena,
-                          &params_root) != 0)
-    return -1;
+static int apply_root_to_embed(NWChemParams_ptr params_root) {
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
-    nwchemc_params_release(&arena);
+  return apply_config_to_embed(params_root, &params);
+}
+
+static int apply_message_to_embed(const void *params_capnp,
+                                  size_t params_capnp_size_bytes) {
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                          &params_root) != 0)
+    return -1;
+  int rc = apply_root_to_embed(params_root);
+  nwchemc_params_release(&arena);
+  return rc;
+}
+
+static int session_install_params(NWChemCSession *session,
+                                  const void *params_capnp,
+                                  size_t params_capnp_size_bytes) {
+  if (!session || !params_capnp || params_capnp_size_bytes == 0)
+    return -1;
+
+  unsigned char *copy = (unsigned char *)malloc(params_capnp_size_bytes);
+  if (!copy)
+    return -1;
+  memcpy(copy, params_capnp, params_capnp_size_bytes);
+
+  if (apply_message_to_embed(copy, params_capnp_size_bytes) != 0) {
+    free(copy);
     return -1;
   }
-  session->charge = params.charge;
-  session->multiplicity = params.multiplicity > 0 ? params.multiplicity : 1;
-  nwchemc_params_release(&arena);
-  session->config_applied = 1;
+
+  session_clear_params(session);
+  session->params_bytes = copy;
+  session->params_size = params_capnp_size_bytes;
+  if (nwchemc_params_root(session->params_bytes, session->params_size,
+                          &session->arena, &session->params_root) != 0) {
+    session_clear_params(session);
+    return -1;
+  }
+  session->has_params = 1;
+  session->configured = 1;
+  g_active_session = session;
   return 0;
+}
+
+static int session_apply_config(NWChemCSession *session) {
+  if (!session || !session->has_params)
+    return -1;
+  if (session->configured && g_active_session == session)
+    return 0;
+  if (apply_root_to_embed(session->params_root) != 0) {
+    session->configured = 0;
+    if (g_active_session == session)
+      g_active_session = NULL;
+    return -1;
+  }
+  session->configured = 1;
+  g_active_session = session;
+  return 0;
+}
+
+static void session_charge_multiplicity(NWChemCSession *session, int *charge,
+                                        int *multiplicity) {
+  struct NWChemParams params;
+  read_NWChemParams(&params, session->params_root);
+  *charge = params.charge;
+  *multiplicity = params.multiplicity > 0 ? params.multiplicity : 1;
 }
 
 NWChemCSession *nwchemc_session_create(const void *params_capnp,
@@ -345,16 +415,8 @@ NWChemCSession *nwchemc_session_create(const void *params_capnp,
       (NWChemCSession *)calloc(1, sizeof(NWChemCSession));
   if (!session)
     return NULL;
-  session->params_copy = malloc(params_capnp_size_bytes);
-  if (!session->params_copy) {
-    free(session);
-    return NULL;
-  }
-  memcpy(session->params_copy, params_capnp, params_capnp_size_bytes);
-  session->params_size = params_capnp_size_bytes;
-  session->multiplicity = 1;
-  if (session_apply_config(session) != 0) {
-    free(session->params_copy);
+  if (session_install_params(session, params_capnp, params_capnp_size_bytes) !=
+      0) {
     free(session);
     return NULL;
   }
@@ -366,21 +428,14 @@ int nwchemc_session_set_params(NWChemCSession *session,
                                size_t params_capnp_size_bytes) {
   if (!session || !params_capnp || params_capnp_size_bytes == 0)
     return -1;
-  void *copy = malloc(params_capnp_size_bytes);
-  if (!copy)
-    return -1;
-  memcpy(copy, params_capnp, params_capnp_size_bytes);
-  free(session->params_copy);
-  session->params_copy = copy;
-  session->params_size = params_capnp_size_bytes;
-  session->config_applied = 0;
-  return session_apply_config(session);
+  return session_install_params(session, params_capnp,
+                                params_capnp_size_bytes);
 }
 
 void nwchemc_session_destroy(NWChemCSession *session) {
   if (!session)
     return;
-  free(session->params_copy);
+  session_clear_params(session);
   free(session);
 }
 
@@ -406,8 +461,9 @@ NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
   char errmsg[512];
   memset(errmsg, 0, sizeof(errmsg));
   int n = n_atoms;
-  int ch = session->charge;
-  int mult = session->multiplicity;
+  int ch = 0;
+  int mult = 1;
+  session_charge_multiplicity(session, &ch, &mult);
   double eh = 0.0;
   int rc = nwchemc_embed_energy_grad(&n, positions_ang, atomic_numbers, &ch,
                                      &mult, &eh, grad_h_bohr, errmsg,
@@ -482,8 +538,9 @@ NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
   char errmsg[512];
   memset(errmsg, 0, sizeof(errmsg));
   int n = n_atoms;
-  int ch = session->charge;
-  int mult = session->multiplicity;
+  int ch = 0;
+  int mult = 1;
+  session_charge_multiplicity(session, &ch, &mult);
   int rc = nwchemc_embed_hessian(&n, positions_ang, atomic_numbers, &ch, &mult,
                                  hessian_h_bohr2, errmsg,
                                  (int)sizeof(errmsg) - 1);
@@ -505,6 +562,7 @@ int nwchemc_available(void) {
 }
 
 void nwchemc_finalize(void) {
+  g_active_session = NULL;
   if (!g_initialized)
     return;
   nwchemc_embed_finalize();

@@ -1252,6 +1252,41 @@
       "embed": "runs Cartesian Hessian"
     },
     {
+      "name": "nwchemc_session_create",
+      "stub": "returns NULL",
+      "embed": "creates persistent Cap'n Proto session"
+    },
+    {
+      "name": "nwchemc_session_set_params",
+      "stub": "fails non-zero",
+      "embed": "replaces persistent Cap'n Proto params"
+    },
+    {
+      "name": "nwchemc_session_destroy",
+      "stub": "no-op",
+      "embed": "releases persistent session"
+    },
+    {
+      "name": "nwchemc_session_energy_gradient",
+      "stub": "fails ok==0",
+      "embed": "runs session energy/gradient"
+    },
+    {
+      "name": "nwchemc_session_energy",
+      "stub": "fails ok==0",
+      "embed": "runs session energy-only"
+    },
+    {
+      "name": "nwchemc_session_energy_forces",
+      "stub": "fails ok==0",
+      "embed": "runs session energy/forces"
+    },
+    {
+      "name": "nwchemc_session_hessian",
+      "stub": "fails ok==0",
+      "embed": "runs session Cartesian Hessian"
+    },
+    {
       "name": "nwchemc_available",
       "stub": "returns 0",
       "embed": "returns 1"
