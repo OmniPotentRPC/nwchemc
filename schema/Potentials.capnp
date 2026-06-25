@@ -210,8 +210,8 @@ struct NWChemTaskStanza {
 # @brief Geometry optimization / driver block.
 struct NWChemDriverStanza {
   maxiter    @0 :Int32 = 0;     # Driver max steps; embed writes RTDB directly.
-  tight      @1 :Bool = false;  # Emit "tight".
-  loose      @2 :Bool = false;  # Emit "loose".
+  tight      @1 :Bool = false;  # Tight convergence; embed writes RTDB directly.
+  loose      @2 :Bool = false;  # Loose convergence; embed writes RTDB directly.
   xyz        @3 :Text = "";     # Emit "xyz <path>" when non-empty.
   directives @4 :List(NWChemDirective);
 }

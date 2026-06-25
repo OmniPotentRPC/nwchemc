@@ -53,9 +53,10 @@ input handlers. Direct RTDB writes must therefore preserve this order:
 
 ~nw_inp_from_character~ remains reserved for caller-provided NWChem stanzas.
 Geometry coordinates and library basis selection are not routed through text
-input. Typed SCF scalar controls (~maxiter~, ~thresh~, and ~tol2e~) and driver
-~maxiter~ are promoted into direct RTDB writes for embed calculations and
-omitted from embed-rendered text when no non-promoted syntax remains.
+input. Typed SCF scalar controls (~maxiter~, ~thresh~, and ~tol2e~), driver
+~maxiter~, and driver convergence presets (~tight~ / ~loose~) are promoted into
+direct RTDB writes for embed calculations and omitted from embed-rendered text
+when no non-promoted syntax remains.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -117,9 +118,11 @@ bridge writes ~scf:maxiter~, ~scf:thresh~, and ~scf:tol2e~ for SCF, and
 ~dft:iterations~ / ~dft:tol2e~ where the DFT handler has matching keys.
 
 ~nwchemc_params_extract_direct_driver~ pulls typed
-~NWChemDriverStanza.maxiter~ into ~nwchemc_embed_set_driver_direct~. The
-fixed-form bridge writes ~driver:nptopt~, matching ~driver_input.F~ and
-~opt_drv.F~.
+~NWChemDriverStanza.maxiter~, ~tight~, and ~loose~ into
+~nwchemc_embed_set_driver_direct~. The fixed-form bridge writes
+~driver:nptopt~ and the four convergence tolerance keys
+(~driver:gmax_tol~, ~driver:grms_tol~, ~driver:xrms_tol~,
+~driver:xmax_tol~), matching ~driver_input.F~ and ~opt_drv.F~.
 
 Remaining: migrate task theory/operation overrides only where RTDB keys are
 confirmed; add embed regression that asserts direct path matches text-path
@@ -128,7 +131,8 @@ energies when NWChem embed is available.
 ** Expand Direct RTDB Settings
 Move additional scalar options that have stable NWChem RTDB keys out of rendered
 text stanzas. Good remaining candidates are task operation/theory overrides
-beyond embed defaults and common driver controls with confirmed RTDB keys.
+beyond embed defaults and common driver controls with confirmed RTDB keys such
+as explicit ~gmax~, ~grms~, ~xmax~, and ~xrms~ scalars.
 
 Each migrated option needs a cmocka parser test, a real NWChem test that proves
 the direct path still computes finite outputs, and a reference to the upstream

@@ -77,8 +77,11 @@ convergence code.
 
 Driver scalar controls follow the same rule for confirmed keys.
 ~NWChemDriverStanza.maxiter~ is extracted from the Cap'n Proto tree and written
-as ~driver:nptopt~ before the task call. Other driver directives, including
-~tight~, stay in the rendered driver block.
+as ~driver:nptopt~ before the task call. ~tight~ and ~loose~ are promoted to
+the four convergence RTDB keys used by ~driver_input.F~:
+~driver:gmax_tol~, ~driver:grms_tol~, ~driver:xrms_tol~, and
+~driver:xmax_tol~. Driver fields without direct coverage stay in the rendered
+driver block.
 
 * MPI And Finalization
 The embed layer records whether it owns the MPI/GA runtime.
