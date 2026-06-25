@@ -37,14 +37,17 @@ static double g_dft_smear_sigma_hartree = 0.0;
 static int g_dft_smearing_spinset = 0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
+static int g_hessian_cell_calls = 0;
 static int g_call_n_atoms[8];
 static int g_call_has_cell[8];
 static int g_call_atomic_numbers[8][8];
 static double g_call_positions_ang[8][24];
 static double g_call_cell_ang[8][9];
 static int g_hessian_n_atoms[8];
+static int g_hessian_has_cell[8];
 static int g_hessian_atomic_numbers[8][8];
 static double g_hessian_positions_ang[8][24];
+static double g_hessian_cell_ang[8][9];
 
 static void copy_span(char *dst, size_t dst_size, const char *src, int len) {
   size_t n = len > 0 ? (size_t)len : 0;
@@ -204,10 +207,12 @@ int nwchemc_embed_energy_grad_cell(
                                   energy_h, grad_h_bohr, errmsg, errmsg_len);
 }
 
-int nwchemc_embed_hessian(const int *n_atoms, const double *positions_ang,
-                          const int *atomic_numbers, const int *charge,
-                          const int *multiplicity, double *hessian_h_bohr2,
-                          char *errmsg, int errmsg_len) {
+static int capture_hessian_call(const int *n_atoms, const double *positions_ang,
+                                const int *atomic_numbers,
+                                const double *cell_ang, const int *has_cell,
+                                const int *charge, const int *multiplicity,
+                                double *hessian_h_bohr2, char *errmsg,
+                                int errmsg_len) {
   int call = g_hessian_calls;
   (void)charge;
   (void)multiplicity;
@@ -215,10 +220,15 @@ int nwchemc_embed_hessian(const int *n_atoms, const double *positions_ang,
     int ncopy = *n_atoms < 8 ? *n_atoms : 8;
     int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
     g_hessian_n_atoms[call] = *n_atoms;
+    g_hessian_has_cell[call] = has_cell ? *has_cell : 0;
     for (int i = 0; i < ncopy; ++i)
       g_hessian_atomic_numbers[call][i] = atomic_numbers[i];
     for (int i = 0; i < ncoord; ++i)
       g_hessian_positions_ang[call][i] = positions_ang[i];
+    for (int i = 0; i < 9; ++i)
+      g_hessian_cell_ang[call][i] = cell_ang && g_hessian_has_cell[call]
+                                        ? cell_ang[i]
+                                        : 0.0;
   }
   ++g_hessian_calls;
   int ndof = (*n_atoms) * 3;
@@ -226,6 +236,27 @@ int nwchemc_embed_hessian(const int *n_atoms, const double *positions_ang,
     hessian_h_bohr2[i] = (double)(i + 10);
   snprintf(errmsg, (size_t)errmsg_len, "ok");
   return 0;
+}
+
+int nwchemc_embed_hessian(const int *n_atoms, const double *positions_ang,
+                          const int *atomic_numbers, const int *charge,
+                          const int *multiplicity, double *hessian_h_bohr2,
+                          char *errmsg, int errmsg_len) {
+  return capture_hessian_call(n_atoms, positions_ang, atomic_numbers, NULL,
+                              NULL, charge, multiplicity, hessian_h_bohr2,
+                              errmsg, errmsg_len);
+}
+
+int nwchemc_embed_hessian_cell(const int *n_atoms, const double *positions_ang,
+                               const int *atomic_numbers,
+                               const double *cell_ang, const int *has_cell,
+                               const int *charge, const int *multiplicity,
+                               double *hessian_h_bohr2, char *errmsg,
+                               int errmsg_len) {
+  ++g_hessian_cell_calls;
+  return capture_hessian_call(n_atoms, positions_ang, atomic_numbers, cell_ang,
+                              has_cell, charge, multiplicity, hessian_h_bohr2,
+                              errmsg, errmsg_len);
 }
 
 void nwchemc_embed_finalize(void) {}
@@ -251,14 +282,17 @@ static void reset_embed_captures(void) {
   g_dft_smearing_spinset = 0;
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
+  g_hessian_cell_calls = 0;
   memset(g_call_n_atoms, 0, sizeof(g_call_n_atoms));
   memset(g_call_has_cell, 0, sizeof(g_call_has_cell));
   memset(g_call_atomic_numbers, 0, sizeof(g_call_atomic_numbers));
   memset(g_call_positions_ang, 0, sizeof(g_call_positions_ang));
   memset(g_call_cell_ang, 0, sizeof(g_call_cell_ang));
   memset(g_hessian_n_atoms, 0, sizeof(g_hessian_n_atoms));
+  memset(g_hessian_has_cell, 0, sizeof(g_hessian_has_cell));
   memset(g_hessian_atomic_numbers, 0, sizeof(g_hessian_atomic_numbers));
   memset(g_hessian_positions_ang, 0, sizeof(g_hessian_positions_ang));
+  memset(g_hessian_cell_ang, 0, sizeof(g_hessian_cell_ang));
 }
 
 static void assert_close(double actual, double expected, double tolerance) {
@@ -478,11 +512,14 @@ static void test_session_calculate_hessian_accepts_force_input_step(
       session, step_a, step_a_size, hessian, 36);
   assert_int_equal(first.ok, 1);
   assert_int_equal(g_hessian_calls, 1);
+  assert_int_equal(g_hessian_cell_calls, 1);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_n_atoms[0], 2);
   assert_int_equal(g_hessian_atomic_numbers[0][0], 1);
   assert_int_equal(g_hessian_atomic_numbers[0][1], 8);
   assert_close(g_hessian_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_hessian_has_cell[0], 1);
+  assert_close(g_hessian_cell_ang[0][0], 10.0, 1.0e-12);
   assert_close(hessian[0], 10.0, 1.0e-12);
   assert_close(hessian[35], 45.0, 1.0e-12);
 
