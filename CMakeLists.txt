@@ -379,6 +379,52 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     DEPENDS "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
   )
 
+  set(NWCHEMC_FORCE_INPUT_STEP_A_BIN
+    "${CMAKE_CURRENT_BINARY_DIR}/force_input_step_a.bin"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CAPNP_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "ForceInput"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_step_a.capnp.txt"
+      "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_step_a.capnp.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+    VERBATIM
+  )
+  add_custom_target(force_input_step_a_bin
+    DEPENDS "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
+  )
+
+  set(NWCHEMC_FORCE_INPUT_STEP_B_BIN
+    "${CMAKE_CURRENT_BINARY_DIR}/force_input_step_b.bin"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CAPNP_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "ForceInput"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_step_b.capnp.txt"
+      "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_step_b.capnp.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+    VERBATIM
+  )
+  add_custom_target(force_input_step_b_bin
+    DEPENDS "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
+  )
+
   add_executable(test_capnp_parser tests/test_capnp_parser.c)
   target_link_libraries(test_capnp_parser PRIVATE
     nwchemc_params
@@ -404,9 +450,16 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   target_compile_options(test_embed_config_cmocka PRIVATE
     ${NWCHEMC_COMMON_C_WARNINGS}
   )
-  add_dependencies(test_embed_config_cmocka nwchem_direct_dft_params_bin)
+  add_dependencies(test_embed_config_cmocka
+    nwchem_direct_dft_params_bin
+    force_input_step_a_bin
+    force_input_step_b_bin
+  )
   add_test(NAME embed-config-cmocka
-    COMMAND test_embed_config_cmocka "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
+    COMMAND test_embed_config_cmocka
+      "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
+      "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
+      "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
   )
 
   if(NWCHEMC_WITH_NWCHEM)

@@ -146,6 +146,26 @@ NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
                                             double *forces_h_bohr);
 
 /**
+ * @brief Compute energy and forces for one Cap'n Proto `ForceInput` step.
+ *
+ * This is the session-oriented potential loop entry point. The session keeps
+ * the persistent `NWChemParams` method state while every call supplies a
+ * `ForceInput` message containing positions, atomic numbers, and optional
+ * 3x3 cell vectors. Returned energy and forces use NWChem native units:
+ * Hartree and Hartree/Bohr.
+ *
+ * @param session Persistent session created from `NWChemParams`.
+ * @param force_input_capnp Pointer to an unpacked flat `ForceInput` message.
+ * @param force_input_capnp_size_bytes Size of `force_input_capnp` in bytes.
+ * @param forces_h_bohr Output force array in Hartree/Bohr.
+ * @param forces_len Number of doubles available in `forces_h_bohr`.
+ */
+NWChemCResult nwchemc_session_calculate_forces(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *forces_h_bohr,
+    size_t forces_len);
+
+/**
  * @brief Compute Hessian using a persistent session.
  */
 NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,

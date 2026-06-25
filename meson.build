@@ -246,6 +246,34 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  force_input_step_a_bin = custom_target(
+    'force_input_step_a_bin',
+    input: 'tests/force_input_step_a.capnp.txt',
+    output: 'force_input_step_a.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'ForceInput',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
+  force_input_step_b_bin = custom_target(
+    'force_input_step_b_bin',
+    input: 'tests/force_input_step_b.capnp.txt',
+    output: 'force_input_step_b.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'ForceInput',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_config_options_params_bin = custom_target(
     'nwchem_config_options_params_bin',
     input: 'tests/nwchem_params_config_options.capnp.txt',
@@ -334,7 +362,7 @@ if get_option('with_tests')
       dependencies: nwchemc_params_deps + [cmocka_dep],
       c_args: common_c_args + ['-DNWCHEMC_HAS_NWCHEM=1'],
     ),
-    args: [nwchem_direct_dft_params_bin],
+    args: [nwchem_direct_dft_params_bin, force_input_step_a_bin, force_input_step_b_bin],
     suite: ['cmocka', 'parser'],
   )
   test(
