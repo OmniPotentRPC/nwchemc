@@ -1,4 +1,4 @@
 option('with_tests', type: 'boolean', value: true, description: 'Build tests')
 option('with_nwchem', type: 'boolean', value: false, description: 'Build real NWChem embed library')
-option('nwchem_root', type: 'string', value: '', description: 'NWChem source/install root')
+option('nwchem_root', type: 'string', value: '', description: 'NWChem source/build tree root')
 option('nwchem_target', type: 'string', value: 'LINUX64', description: 'NWChem lib target directory')

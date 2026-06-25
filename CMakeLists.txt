@@ -8,7 +8,7 @@ include(CMakePackageConfigHelpers)
 
 option(NWCHEMC_BUILD_TESTS "Build nwchemc tests" ON)
 option(NWCHEMC_WITH_NWCHEM "Build the real NWChem embed library" OFF)
-set(NWCHEMC_NWCHEM_ROOT "" CACHE PATH "NWChem source/install root")
+set(NWCHEMC_NWCHEM_ROOT "" CACHE PATH "NWChem source/build tree root")
 set(NWCHEMC_NWCHEM_TARGET "LINUX64" CACHE STRING "NWChem target library directory")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
@@ -120,6 +120,27 @@ endif()
 if(NWCHEMC_WITH_NWCHEM)
   if(NOT NWCHEMC_NWCHEM_ROOT)
     message(FATAL_ERROR "NWCHEMC_NWCHEM_ROOT is required when NWCHEMC_WITH_NWCHEM=ON")
+  endif()
+
+  execute_process(
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/nwchem_root_probe.py"
+      "${NWCHEMC_NWCHEM_ROOT}"
+      "--target"
+      "${NWCHEMC_NWCHEM_TARGET}"
+    RESULT_VARIABLE NWCHEM_ROOT_PROBE_STATUS
+    OUTPUT_VARIABLE NWCHEM_ROOT_PROBE_STDOUT
+    ERROR_VARIABLE NWCHEM_ROOT_PROBE_STDERR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_STRIP_TRAILING_WHITESPACE
+  )
+  if(NOT NWCHEM_ROOT_PROBE_STATUS EQUAL 0)
+    message(FATAL_ERROR
+      "NWChem embed root validation failed:\n"
+      "${NWCHEM_ROOT_PROBE_STDERR}\n"
+      "${NWCHEM_ROOT_PROBE_STDOUT}"
+    )
   endif()
 
   set(NWCHEM_CONFIG_H "${NWCHEMC_NWCHEM_ROOT}/src/config/nwchem_config.h")

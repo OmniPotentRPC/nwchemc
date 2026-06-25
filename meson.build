@@ -23,6 +23,23 @@ endif
 nwchemc_params_sources = []
 nwchemc_params_deps = []
 nwchemc_params_includes = []
+if has_nwchem
+  nwchem_root_probe = run_command(
+    python,
+    [
+      meson.current_source_dir() / 'tools/nwchem_root_probe.py',
+      nwchem_root,
+      '--target',
+      nwchem_target,
+    ],
+    check: false,
+  )
+  if nwchem_root_probe.returncode() != 0
+    message(nwchem_root_probe.stdout().strip())
+    message(nwchem_root_probe.stderr().strip())
+    error('NWChem embed root validation failed')
+  endif
+endif
 if need_capnp_c
   capnp = find_program('capnp')
   capnp_c_project = subproject('c-capnproto')
