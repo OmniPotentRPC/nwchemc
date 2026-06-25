@@ -67,18 +67,62 @@ struct NWChemDftStanza {
   directives @3 :List(NWChemDirective);      # Extra structured DFT directives.
 }
 
+enum NWChemModuleName {
+  custom   @0;
+  basis    @1;
+  bq       @2;
+  ccsd     @3;
+  cosmo    @4;
+  dft      @5;
+  dplot    @6;
+  drdy     @7;
+  driver   @8;
+  esp      @9;
+  etrans   @10;
+  geometry @11;
+  gw       @12;
+  hessian  @13;
+  mcscf    @14;
+  md       @15;
+  mm       @16;
+  mp2      @17;
+  ncc      @18;
+  nwpw     @19;
+  property @20;
+  python   @21;
+  qmd      @22;
+  qmmm     @23;
+  rimp2    @24;
+  rism     @25;
+  scf      @26;
+  selci    @27;
+  smd      @28;
+  tce      @29;
+  vib      @30;
+  vscf     @31;
+  xtb      @32;
+}
+
+struct NWChemModuleStanza {
+  name       @0 :NWChemModuleName = custom;  # Known NWChem block name.
+  customName @1 :Text = "";                  # Block name when name == custom.
+  directives @2 :List(NWChemDirective);      # Structured block body.
+}
+
 struct NWChemInputStanza {
   kind    @0 :Kind = generic;
   generic @1 :NWChemGenericStanza;
   dft     @2 :NWChemDftStanza;
   set     @3 :NWChemSetDirective;
   raw     @4 :Text;
+  module  @5 :NWChemModuleStanza;
 
   enum Kind {
     generic @0;
     dft     @1;
     set     @2;
     raw     @3;
+    module  @4;
   }
 }
 

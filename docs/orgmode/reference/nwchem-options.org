@@ -31,6 +31,7 @@ stanzas for NWChem input blocks.
 | Directive | ~NWChemDirective~ | ~keyword arg0 arg1 ...~ inside a block. |
 | RTDB set | ~NWChemSetDirective~ | ~set key value~. |
 | DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
+| Known module | ~NWChemModuleStanza~ | A selected NWChem module block, tokenized directives, then ~end~. |
 | Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
 
 * DFT Controls
@@ -47,9 +48,25 @@ Fermi smearing and related occupancy controls can also be expressed with
 ~NWChemSetDirective~, for example RTDB keys under ~dft:*~, or with explicit DFT
 directives when the NWChem input syntax requires them.
 
+* Module Coverage
+~NWChemModuleStanza~ gives callers a typed module selector instead of a free
+text block name. It covers the common NWChem input modules exposed by the local
+input handlers:
+
+~basis~, ~bq~, ~ccsd~, ~cosmo~, ~dft~, ~dplot~, ~drdy~, ~driver~, ~esp~,
+~etrans~, ~geometry~, ~gw~, ~hessian~, ~mcscf~, ~md~, ~mm~, ~mp2~, ~ncc~,
+~nwpw~, ~property~, ~python~, ~qmd~, ~qmmm~, ~rimp2~, ~rism~, ~scf~, ~selci~,
+~smd~, ~tce~, ~vib~, ~vscf~, and ~xtb~.
+
+Each module stanza carries ~NWChemDirective~ entries, so a language binding can
+construct NWChem input without concatenating block text. ~customName~ remains
+available for NWChem modules not yet enumerated by the schema.
+
 * Coverage Model
 Typed fields cover the ABI-critical method, charge, multiplicity, directory,
 and DFT smearing controls.
+Known module stanzas represent the normal NWChem block vocabulary with enum
+selection and tokenized directives.
 The generic stanza and directive model represents arbitrary named NWChem blocks
 without requiring a raw string.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem

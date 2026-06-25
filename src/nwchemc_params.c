@@ -184,6 +184,103 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static const char *module_name_literal(enum NWChemModuleName name) {
+  switch (name) {
+  case NWChemModuleName_basis:
+    return "basis";
+  case NWChemModuleName_bq:
+    return "bq";
+  case NWChemModuleName_ccsd:
+    return "ccsd";
+  case NWChemModuleName_cosmo:
+    return "cosmo";
+  case NWChemModuleName_dft:
+    return "dft";
+  case NWChemModuleName_dplot:
+    return "dplot";
+  case NWChemModuleName_drdy:
+    return "drdy";
+  case NWChemModuleName_driver:
+    return "driver";
+  case NWChemModuleName_esp:
+    return "esp";
+  case NWChemModuleName_etrans:
+    return "etrans";
+  case NWChemModuleName_geometry:
+    return "geometry";
+  case NWChemModuleName_gw:
+    return "gw";
+  case NWChemModuleName_hessian:
+    return "hessian";
+  case NWChemModuleName_mcscf:
+    return "mcscf";
+  case NWChemModuleName_md:
+    return "md";
+  case NWChemModuleName_mm:
+    return "mm";
+  case NWChemModuleName_mp2:
+    return "mp2";
+  case NWChemModuleName_ncc:
+    return "ncc";
+  case NWChemModuleName_nwpw:
+    return "nwpw";
+  case NWChemModuleName_property:
+    return "property";
+  case NWChemModuleName_python:
+    return "python";
+  case NWChemModuleName_qmd:
+    return "qmd";
+  case NWChemModuleName_qmmm:
+    return "qmmm";
+  case NWChemModuleName_rimp2:
+    return "rimp2";
+  case NWChemModuleName_rism:
+    return "rism";
+  case NWChemModuleName_scf:
+    return "scf";
+  case NWChemModuleName_selci:
+    return "selci";
+  case NWChemModuleName_smd:
+    return "smd";
+  case NWChemModuleName_tce:
+    return "tce";
+  case NWChemModuleName_vib:
+    return "vib";
+  case NWChemModuleName_vscf:
+    return "vscf";
+  case NWChemModuleName_xtb:
+    return "xtb";
+  case NWChemModuleName_custom:
+  default:
+    return NULL;
+  }
+}
+
+static int render_module_stanza(NWChemModuleStanza_ptr ptr, char *dst,
+                                size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemModuleStanza module;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemModuleStanza(&module, ptr);
+  const char *name = module_name_literal(module.name);
+  if (!name && module.customName.len <= 0)
+    return 0;
+  if (name) {
+    if (append_format(block, sizeof(block), "%s\n", name) != 0)
+      return -1;
+  } else if (append_text(block, sizeof(block), module.customName) != 0 ||
+             append_format(block, sizeof(block), "\n") != 0) {
+    return -1;
+  }
+  if (render_directives(module.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 size_t dst_size) {
   int n = struct_list_len(&stanzas.p);
@@ -204,6 +301,10 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     case NWChemInputStanza_Kind_raw:
       if (append_block(dst, dst_size,
                        nwchemc_params_text_or(stanza.raw, "")) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_module:
+      if (render_module_stanza(stanza._module, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

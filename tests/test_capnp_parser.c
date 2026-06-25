@@ -77,6 +77,9 @@ int main(int argc, char **argv) {
            strstr(input_blocks, "iterations 40") != NULL &&
            strstr(input_blocks, "driver") != NULL &&
            strstr(input_blocks, "maxiter 20") != NULL &&
+           strstr(input_blocks, "scf") != NULL &&
+           strstr(input_blocks, "thresh 1e-6") != NULL &&
+           strstr(input_blocks, "tol2e 1e-9") != NULL &&
            strstr(input_blocks, "acc_std") != NULL;
 
   nwchemc_params_release(&arena);

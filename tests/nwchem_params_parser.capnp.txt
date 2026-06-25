@@ -33,6 +33,16 @@
           (keyword = "maxiter", args = ["20"])
         ]
       )
+    ),
+    (
+      kind = module,
+      module = (
+        name = scf,
+        directives = [
+          (keyword = "thresh", args = ["1e-6"]),
+          (keyword = "tol2e", args = ["1e-9"])
+        ]
+      )
     )
   ]
 )
