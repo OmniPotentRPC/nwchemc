@@ -88,7 +88,7 @@ if has_nwchem
   endif
   if host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
     message('Checking NWChem archives can link into libnwchemc.so')
-    run_command(
+    nwchem_link_probe = run_command(
       cc,
       [
         '-shared',
@@ -97,9 +97,12 @@ if has_nwchem
         '-o',
         meson.current_build_dir() / 'nwchem-link-probe.so',
       ] + nwchem_link_args,
-      capture: false,
-      check: true,
+      check: false,
     )
+    if nwchem_link_probe.returncode() != 0
+      message(nwchem_link_probe.stderr().strip())
+      error('NWChem archives cannot link into libnwchemc.so; rebuild NWChem with position-independent code for ' + nwchem_target)
+    endif
   endif
   nwchemc = shared_library(
     'nwchemc',
