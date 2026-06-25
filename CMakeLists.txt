@@ -193,6 +193,7 @@ if(NWCHEMC_WITH_NWCHEM)
   endforeach()
 
   set(NWCHEM_EMBED_INCLUDES
+    "${NWCHEMC_NWCHEM_ROOT}/src/basis"
     "${NWCHEMC_NWCHEM_ROOT}/src/include"
     "${NWCHEMC_NWCHEM_ROOT}/src/util"
     "${NWCHEMC_NWCHEM_ROOT}/src/tools/install/include"

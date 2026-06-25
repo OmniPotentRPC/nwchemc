@@ -116,6 +116,7 @@ if has_nwchem
   ]
   nwchem_legacy_args = [
     '-DNWCHEMC_HAS_NWCHEM=1',
+    '-I' + nwchem_root + '/src/basis',
     '-I' + nwchem_root + '/src/include',
     '-I' + nwchem_root + '/src/util',
     '-I' + nwchem_root + '/src/tools/install/include',
