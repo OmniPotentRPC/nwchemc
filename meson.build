@@ -54,6 +54,19 @@ if need_capnp_c
   nwchemc_params_includes = [include_directories('schema')]
 endif
 
+nwchemc_features = static_library(
+  'nwchemc_features',
+  'src/nwchemc_features.c',
+  include_directories: inc,
+  c_args: common_c_args,
+  install: false,
+)
+
+nwchemc_features_dep = declare_dependency(
+  link_with: nwchemc_features,
+  include_directories: inc,
+)
+
 nwchemc_stub = static_library(
   'nwchemc_stub',
   'src/nwchemc_stub.c',
@@ -185,6 +198,35 @@ if get_option('with_tests')
     'TMPDIR=' + meson.current_build_dir(),
     'NWCHEMC_TEST_SCRATCH_ROOT=' + meson.current_build_dir() / 'probe-tests',
   ]
+  test(
+    'feature-inventory-check',
+    python,
+    args: [meson.current_source_dir() / 'tools/check_feature_inventory.py'],
+    suite: ['cmocka', 'inventory'],
+  )
+  test(
+    'features-cmocka',
+    executable(
+      'test_features_cmocka',
+      'tests/cmocka/test_features_cmocka.c',
+      dependencies: [nwchemc_features_dep, cmocka_dep],
+      include_directories: inc,
+      c_args: common_c_args,
+    ),
+    suite: ['cmocka', 'inventory'],
+  )
+  test(
+    'feature-driver',
+    executable(
+      'nwchemc_feature_driver',
+      ['tools/nwchemc_feature_driver.c'],
+      dependencies: [nwchemc_features_dep, nwchemc_stub_dep],
+      include_directories: inc,
+      c_args: common_c_args,
+    ),
+    args: ['all'],
+    suite: ['cmocka', 'inventory', 'drivers'],
+  )
   test(
     'nwchem-root-probe',
     python,

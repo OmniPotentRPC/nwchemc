@@ -77,6 +77,33 @@ The renderer emits these entries inside an ~nwpw~ block with a nested
 ~libraryType = library~, and ~libraryName = "sg15"~ renders as
 ~Si library sg15~.
 
+* ABI Entry Points
+| Symbol | Intern id | Stub | Embed |
+|--------+-----------+------+-------|
+| ~nwchemc_set_params~ | ~abi.nwchemc_set_params~ | fails | apply params |
+| ~nwchemc_energy_gradient~ | ~abi.nwchemc_energy_gradient~ | fails | energy/gradient |
+| ~nwchemc_hessian~ | ~abi.nwchemc_hessian~ | fails | Cartesian Hessian |
+| ~nwchemc_available~ | ~abi.nwchemc_available~ | 0 | 1 |
+| ~nwchemc_version~ | ~abi.nwchemc_version~ | stub marker | version string |
+| ~nwchemc_finalize~ | ~abi.nwchemc_finalize~ | no-op | finalize runtime |
+
+* Feature Inventory
+Machine-readable intern tables:
+
+- ~schema/inventory/nwchem_features.json~ — modules, stanzas, params fields, ABI
+- ~include/nwchemc_features.h~ / ~src/nwchemc_features.c~ — C intern/query API
+
+#+begin_src bash
+pixi run inventory-check
+pixi run inventory-gen          # after schema edits
+pixi run test-cmocka            # intern + stub suites via cmocka/pixi
+meson test -C build feature-driver --print-errorlogs
+#+end_src
+
+~tools/nwchemc_feature_driver.c~ (Meson test ~feature-driver~) exercises intern
+counts/lookup and stub ABI through shipped ~nwchemc_*~ symbols. Modes:
+~inventory~, ~stub-abi~, ~validate~, ~all~.
+
 * Coverage Model
 Typed fields cover the ABI-critical method, charge, multiplicity, directory,
 DFT smearing controls, and NWPW pseudopotential library selection.
@@ -84,5 +111,9 @@ Known module stanzas represent the normal NWChem block vocabulary with enum
 selection and tokenized directives.
 The generic stanza and directive model represents arbitrary named NWChem blocks
 without requiring a raw string.
+The pseudopotential stanza covers library/file PSP entries (intern
+~stanza.pseudopotential~).
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
+The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a
+documented intern row with stub vs embed applicability.

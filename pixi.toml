@@ -36,6 +36,9 @@ sphinx-sitemap = ">=2.9.0,<3"
 
 [tasks]
 test-stub = { cmd = "meson setup build -Dwith_tests=true && meson test -C build --print-errorlogs", description = "Configure and test the stub/parser build" }
+test-cmocka = { cmd = "meson setup build -Dwith_tests=true && meson test -C build --suite cmocka --print-errorlogs", description = "Run cmocka and inventory suites" }
+inventory-check = { cmd = "python3 tools/check_feature_inventory.py", description = "Cross-check intern inventory vs schema" }
+inventory-gen = { cmd = "python3 tools/gen_feature_inventory.py .", description = "Regenerate inventory JSON and C intern tables" }
 release-assert = { cmd = "python3 scripts/release_assert.py", description = "Verify release metadata versions agree" }
 towncrier-draft = { cmd = "uvx towncrier build --draft", description = "Preview changelog fragments" }
 release-cog-dry = { cmd = "cog bump --auto --dry-run", description = "Preview the release bump" }

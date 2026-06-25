@@ -2,6 +2,18 @@
 #+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
 #+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
 
+#+begin_export rst
+.. image:: /_static/logo-light.svg
+   :class: light-only
+   :width: 460
+   :align: center
+
+.. image:: /_static/logo-dark.svg
+   :class: dark-only
+   :width: 460
+   :align: center
+#+end_export
+
 * Overview
 ~nwchemc~ provides a stable C ABI for in-process NWChem calculations.
 Callers pass an unpacked flat Cap'n Proto message whose root is
@@ -10,11 +22,19 @@ The runtime reads that message through generated ~capnp-c~ bindings and
 applies the resulting method configuration to a Fortran bridge around NWChem's
 RTDB, geometry, basis, energy, gradient, and Hessian entry points.
 
+Every ~NWChemModuleName~, input stanza kind, top-level ~NWChemParams~ field, and
+public ABI entrypoint is interned in ~schema/inventory/nwchem_features.json~
+with a C query table (~include/nwchemc_features.h~, ~src/nwchemc_features.c~).
+Regenerate with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
+
 #+begin_src bash
 git clone https://github.com/OmniPotentRPC/nwchemc.git
 cd nwchemc
+pixi install
+pixi run test-stub
+pixi run test-cmocka
 meson setup build -Dwith_tests=true
-meson test -C build --print-errorlogs
+meson test -C build --suite inventory --print-errorlogs
 #+end_src
 
 #+begin_export rst
