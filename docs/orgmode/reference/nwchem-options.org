@@ -108,9 +108,9 @@ handler names derived from the local NWChem source tree.
 |-------+-------------|
 | ~vectorsInput~ | ~vectors input <path>~ |
 | ~vectorsOutput~ | ~vectors output <path>~ |
-| ~maxiter~ | ~maxiter <n>~ when > 0 |
-| ~thresh~ | ~thresh <value>~ when > 0 |
-| ~tol2e~ | ~tol2e <value>~ when > 0 |
+| ~maxiter~ | Full input emits ~maxiter <n>~; embed writes ~scf:maxiter~ or ~dft:iterations~ directly. |
+| ~thresh~ | Full input emits ~thresh <value>~; embed writes ~scf:thresh~ directly. |
+| ~tol2e~ | Full input emits ~tol2e <value>~; embed writes ~scf:tol2e~ or ~dft:tol2e~ directly. |
 | ~noprint~ | ~noprint~ |
 | ~directives~ | Extra SCF directives (convergence, semidirect, ...). |
 

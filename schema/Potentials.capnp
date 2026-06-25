@@ -189,9 +189,9 @@ struct NWChemPseudopotentialStanza {
 struct NWChemScfStanza {
   vectorsInput  @0 :Text = "";   # Emit "vectors input <path>" when non-empty.
   vectorsOutput @1 :Text = "";   # Emit "vectors output <path>" when non-empty.
-  maxiter       @2 :Int32 = 0;   # Emit "maxiter N" when > 0.
-  thresh        @3 :Float64 = 0; # Emit "thresh <value>" when > 0.
-  tol2e         @4 :Float64 = 0; # Emit "tol2e <value>" when > 0.
+  maxiter       @2 :Int32 = 0;   # SCF max iterations; embed writes RTDB directly.
+  thresh        @3 :Float64 = 0; # SCF convergence threshold; embed writes RTDB directly.
+  tol2e         @4 :Float64 = 0; # Two-electron tolerance; embed writes RTDB directly.
   noprint       @5 :Bool = false;# Emit "noprint".
   directives    @6 :List(NWChemDirective);
 }

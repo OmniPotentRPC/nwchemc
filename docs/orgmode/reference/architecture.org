@@ -30,7 +30,9 @@ There is no persistent copy of the Cap'n Proto parameter tree in the C runtime.
 The embed bridge stores the small Fortran strings and scalar values it needs to
 evaluate repeated calls.
 Coordinates, atomic numbers, charge, multiplicity, method, task state, and the
-selected library basis are written through NWChem RTDB-facing APIs.
+selected library basis are written through NWChem RTDB-facing APIs. Structured
+SCF scalars such as ~maxiter~, ~thresh~, and ~tol2e~ are also promoted from
+Cap'n Proto stanzas into direct RTDB writes for embed calculations.
 NWChem input parsing is reserved for caller-provided free-form stanzas whose
 grammar is intentionally upstream NWChem input text.
 
@@ -61,6 +63,13 @@ Bohr and applied with ~geom_amatrix_set~, ~geom_isystype_set(3)~, and
 ~geom_P1_set~ before the task call. That keeps the structured path numeric for
 geometry and cell data while leaving free-form text available for NWChem grammar
 that lacks a stable direct entry point.
+
+SCF scalar controls use the same direct path. ~NWChemScfStanza.maxiter~,
+~thresh~, and ~tol2e~ are extracted from the Cap'n Proto tree and written as
+~scf:maxiter~, ~scf:thresh~, and ~scf:tol2e~ for SCF calculations. For DFT
+calculations, the promoted fields that have DFT keys are written as
+~dft:iterations~ and ~dft:tol2e~, with ~scf:thresh~ preserved for shared
+convergence code.
 
 * MPI And Finalization
 The embed layer records whether it owns the MPI/GA runtime.

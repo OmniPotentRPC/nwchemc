@@ -52,13 +52,17 @@ input handlers. Direct RTDB writes must therefore preserve this order:
 
 ~nw_inp_from_character~ remains reserved for caller-provided NWChem stanzas.
 Geometry coordinates and library basis selection are not routed through text
-input.
+input. Typed SCF scalar controls (~maxiter~, ~thresh~, and ~tol2e~) are
+promoted into direct RTDB writes for embed calculations and omitted from
+embed-rendered text when no non-promoted SCF syntax remains.
 
 * Structured Coverage
 The schema contains typed stanzas for:
 
 - generic module blocks
 - ~dft~ blocks including ~xc~, ~direct~, and Fermi smearing syntax
+- ~scf~ blocks including typed max-iteration, convergence-threshold, and
+  two-electron tolerance scalars
 - ~set~ directives
 - raw NWChem fragments
 - module blocks backed by the ~NWChemModuleName~ enum
@@ -101,9 +105,14 @@ fixed-form RTDB setup writes ~dft:direct~, ~int2e:*~, ~dft:smear_sigma~, and
 ~test_parser_extracts_direct_dft_options~ in ~tests/test_capnp_parser.c~;
 embed-boundary test: ~tests/cmocka/test_embed_config_cmocka.c~.
 
-Remaining: migrate more scalars (task theory/operation overrides, SCF maxiter,
-driver maxiter) only where RTDB keys are confirmed; add embed regression that
-asserts direct path matches text-path energies when NWChem embed is available.
+~nwchemc_params_extract_direct_scf~ pulls typed ~NWChemScfStanza.maxiter~,
+~thresh~, and ~tol2e~ values into ~nwchemc_embed_set_scf_direct~. The fixed-form
+bridge writes ~scf:maxiter~, ~scf:thresh~, and ~scf:tol2e~ for SCF, and
+~dft:iterations~ / ~dft:tol2e~ where the DFT handler has matching keys.
+
+Remaining: migrate task theory/operation overrides and driver maxiter only where
+RTDB keys are confirmed; add embed regression that asserts direct path matches
+text-path energies when NWChem embed is available.
 
 ** Expand Direct RTDB Settings
 Move additional scalar options that have stable NWChem RTDB keys out of rendered
