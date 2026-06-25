@@ -79,6 +79,10 @@ if has_nwchem
     '-DEXT_INT',
     '-DOPENBLAS',
   ]
+  nwchem_utility_libs = [
+    '-lperfm',
+    '-lpeigs_comm',
+  ]
   nwchemc_legacy = static_library(
     'nwchemc_legacy',
     'src/nwchem_embed_legacy.F',
@@ -94,7 +98,7 @@ if has_nwchem
     '-Wl,--start-group',
     nwchem_root + '/src/stubs.o',
     '-lnwctask',
-  ] + nwchem_module_libs + [
+  ] + nwchem_module_libs + nwchem_utility_libs + [
     '-lcomex',
   ] + ga_libs + [
     '-Wl,--end-group',
