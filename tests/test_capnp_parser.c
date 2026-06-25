@@ -53,13 +53,15 @@ int main(int argc, char **argv) {
     return 1;
 
   struct capn arena;
-  struct NWChemParams params;
-  if (nwchemc_params_read(message, message_size, &arena, &params) != 0) {
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(message, message_size, &arena, &params_root) != 0) {
     fprintf(stderr, "parse failed\n");
     free(message);
     return 1;
   }
 
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
   char input_blocks[NWCHEMC_BLOCKS];
   int ok = text_equals(params.basis, "def2-svp") &&
            text_equals(params.theory, "dft") &&
@@ -68,7 +70,7 @@ int main(int argc, char **argv) {
            text_equals(params.nwchemRoot, "/opt/nwchem") &&
            text_equals(params.scratchDir, "/scratch/nw") &&
            text_equals(params.permanentDir, "/perm/nw") &&
-           nwchemc_params_render_input_blocks(&params, input_blocks,
+           nwchemc_params_render_input_blocks(params_root, input_blocks,
                                               sizeof(input_blocks)) == 0 &&
            strstr(input_blocks, "smear 0.001 fixsz") != NULL &&
            strstr(input_blocks, "xc pbe0") != NULL &&

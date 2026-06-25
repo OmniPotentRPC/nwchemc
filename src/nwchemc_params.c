@@ -229,19 +229,21 @@ static int render_input_blocks(capn_ptr input_blocks, char *dst,
   return 0;
 }
 
-int nwchemc_params_render_input_blocks(const struct NWChemParams *params,
-                                       char *dst, size_t dst_size) {
-  if (!params || !dst || dst_size == 0)
+int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
+                                       size_t dst_size) {
+  if (params.p.type == CAPN_NULL || !dst || dst_size == 0)
     return -1;
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(params->inputStanzas, dst, dst_size) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size) != 0)
     return -1;
-  return render_input_blocks(params->inputBlocks, dst, dst_size);
+  return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
 
-int nwchemc_params_read(const void *params_capnp,
+int nwchemc_params_root(const void *params_capnp,
                         size_t params_capnp_size_bytes, struct capn *arena,
-                        struct NWChemParams *params) {
+                        NWChemParams_ptr *params) {
   if (!params_capnp || params_capnp_size_bytes == 0 || !arena || !params)
     return -1;
 
@@ -251,13 +253,12 @@ int nwchemc_params_read(const void *params_capnp,
                     params_capnp_size_bytes, 0) != 0)
     return -1;
 
-  NWChemParams_ptr root;
-  root.p = capn_getp(capn_root(arena), 0, 1);
-  if (root.p.type != CAPN_STRUCT) {
+  params->p = capn_getp(capn_root(arena), 0, 1);
+  if (params->p.type != CAPN_STRUCT) {
     nwchemc_params_release(arena);
+    memset(params, 0, sizeof(*params));
     return -1;
   }
-  read_NWChemParams(params, root);
   return 0;
 }
 
