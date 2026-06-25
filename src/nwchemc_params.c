@@ -690,9 +690,9 @@ static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(driver.directives);
   if (has_directives < 0)
     return -1;
-  int has_remaining = driver.tight || driver.loose || driver.xyz.len > 0 ||
-                      has_directives ||
-                      (include_direct_promoted && driver.maxiter > 0);
+  int has_promoted = driver.maxiter > 0 || driver.tight || driver.loose;
+  int has_remaining = driver.xyz.len > 0 || has_directives ||
+                      (include_direct_promoted && has_promoted);
   if (!has_remaining)
     return 0;
   if (append_format(block, sizeof(block), "driver\n") != 0)
@@ -700,9 +700,11 @@ static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
   if (include_direct_promoted && driver.maxiter > 0 &&
       append_format(block, sizeof(block), "  maxiter %d\n", driver.maxiter) != 0)
     return -1;
-  if (driver.tight && append_format(block, sizeof(block), "  tight\n") != 0)
+  if (include_direct_promoted && driver.tight &&
+      append_format(block, sizeof(block), "  tight\n") != 0)
     return -1;
-  if (driver.loose && append_format(block, sizeof(block), "  loose\n") != 0)
+  if (include_direct_promoted && driver.loose &&
+      append_format(block, sizeof(block), "  loose\n") != 0)
     return -1;
   if (driver.xyz.len > 0) {
     if (append_format(block, sizeof(block), "  xyz ") != 0 ||
@@ -1015,12 +1017,15 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
 }
 
 int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
-                                         int *has_options, int *maxiter) {
-  if (params.p.type == CAPN_NULL || !has_options || !maxiter)
+                                         int *has_options, int *maxiter,
+                                         int *tolerance_mode) {
+  if (params.p.type == CAPN_NULL || !has_options || !maxiter ||
+      !tolerance_mode)
     return -1;
 
   *has_options = 0;
   *maxiter = 0;
+  *tolerance_mode = NWCHEMC_DRIVER_TOLERANCE_NONE;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -1040,6 +1045,14 @@ int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
     if (driver.maxiter > 0) {
       *has_options = 1;
       *maxiter = driver.maxiter;
+    }
+    if (driver.tight) {
+      *has_options = 1;
+      *tolerance_mode = NWCHEMC_DRIVER_TOLERANCE_TIGHT;
+    }
+    if (driver.loose) {
+      *has_options = 1;
+      *tolerance_mode = NWCHEMC_DRIVER_TOLERANCE_LOOSE;
     }
   }
 

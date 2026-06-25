@@ -5,6 +5,9 @@
 #include <stddef.h>
 
 #define NWCHEMC_BLOCKS 8192
+#define NWCHEMC_DRIVER_TOLERANCE_NONE 0
+#define NWCHEMC_DRIVER_TOLERANCE_TIGHT 1
+#define NWCHEMC_DRIVER_TOLERANCE_LOOSE 2
 
 int nwchemc_params_root(const void *params_capnp,
                         size_t params_capnp_size_bytes, struct capn *arena,
@@ -31,7 +34,8 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       double *tol2e);
 
 int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
-                                         int *has_options, int *maxiter);
+                                         int *has_options, int *maxiter,
+                                         int *tolerance_mode);
 
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,

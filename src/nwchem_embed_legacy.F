@@ -110,9 +110,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     scf_type, input_blocks, charge, mult, dft_direct,
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
      $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
-     $     driver_has_options, driver_maxiter, psp_count,
-     $     psp_elements, psp_types, psp_names, energy_h, grad_h_bohr,
-     $     errmsg, ok)
+     $     driver_has_options, driver_maxiter, driver_tolerance_mode,
+     $     psp_count, psp_elements, psp_types, psp_names, energy_h,
+     $     grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -126,6 +126,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
+      integer driver_tolerance_mode
       double precision pos_ang(*)
       double precision cell_ang(*)
       integer atmnrs(*)
@@ -184,7 +185,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
      $     scf_thresh, scf_tol2e, driver_has_options,
-     $     driver_maxiter, status)
+     $     driver_maxiter, driver_tolerance_mode, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -237,9 +238,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     scf_type, input_blocks, charge, mult, dft_direct,
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
      $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
-     $     driver_has_options, driver_maxiter, psp_count,
-     $     psp_elements, psp_types, psp_names, hessian_h_bohr2,
-     $     errmsg, ok)
+     $     driver_has_options, driver_maxiter, driver_tolerance_mode,
+     $     psp_count, psp_elements, psp_types, psp_names,
+     $     hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -253,6 +254,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
+      integer driver_tolerance_mode
       double precision pos_ang(*)
       double precision cell_ang(*)
       integer atmnrs(*)
@@ -315,7 +317,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
      $     scf_thresh, scf_tol2e, driver_has_options,
-     $     driver_maxiter, status)
+     $     driver_maxiter, driver_tolerance_mode, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -365,7 +367,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
      $     scf_thresh, scf_tol2e, driver_has_options,
-     $     driver_maxiter, ok)
+     $     driver_maxiter, driver_tolerance_mode, ok)
       implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
@@ -373,10 +375,12 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
+      integer driver_tolerance_mode
       character*64 theory_name
       character*64 scf_type
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
+      double precision gmax_tol, grms_tol, xmax_tol, xrms_tol
       logical ok
       logical status, lval
       integer nopen, ival
@@ -392,6 +396,32 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       if (driver_has_options .ne. 0 .and. driver_maxiter .gt. 0) then
          call nwchemc_rtdb_put_int(rtdb, 'driver:nptopt',
      $      driver_maxiter, status)
+         ok = ok .and. status
+      endif
+      if (driver_tolerance_mode .eq. 1) then
+         gmax_tol = 0.000015d0
+         grms_tol = 0.00001d0
+         xmax_tol = 0.00006d0
+         xrms_tol = 0.00004d0
+      else if (driver_tolerance_mode .eq. 2) then
+         gmax_tol = 0.0045d0
+         grms_tol = 0.0030d0
+         xmax_tol = 0.0180d0
+         xrms_tol = 0.0120d0
+      endif
+      if (driver_tolerance_mode .eq. 1 .or.
+     $    driver_tolerance_mode .eq. 2) then
+         call nwchemc_rtdb_put_dbl(rtdb, 'driver:gmax_tol',
+     $      gmax_tol, status)
+         ok = ok .and. status
+         call nwchemc_rtdb_put_dbl(rtdb, 'driver:grms_tol',
+     $      grms_tol, status)
+         ok = ok .and. status
+         call nwchemc_rtdb_put_dbl(rtdb, 'driver:xrms_tol',
+     $      xrms_tol, status)
+         ok = ok .and. status
+         call nwchemc_rtdb_put_dbl(rtdb, 'driver:xmax_tol',
+     $      xmax_tol, status)
          ok = ok .and. status
       endif
       vectors_in = 'atomic'

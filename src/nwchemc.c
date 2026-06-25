@@ -27,7 +27,8 @@ extern int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
                                         int smearing_spinset);
 extern int nwchemc_embed_set_scf_direct(int has_options, int maxiter,
                                         double thresh, double tol2e);
-extern int nwchemc_embed_set_driver_direct(int has_options, int maxiter);
+extern int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
+                                           int tolerance_mode);
 extern int nwchemc_embed_set_pseudopotentials(const char *elements,
                                               const int *library_types,
                                               const char *library_names,
@@ -176,8 +177,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     return -1;
   int driver_has_options = 0;
   int driver_maxiter = 0;
+  int driver_tolerance_mode = NWCHEMC_DRIVER_TOLERANCE_NONE;
   if (nwchemc_params_extract_direct_driver(params_root, &driver_has_options,
-                                           &driver_maxiter) != 0)
+                                           &driver_maxiter,
+                                           &driver_tolerance_mode) != 0)
     return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
@@ -223,7 +226,8 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_embed_set_scf_direct(scf_has_options, scf_maxiter, scf_thresh,
                                    scf_tol2e) != 0)
     return -1;
-  if (nwchemc_embed_set_driver_direct(driver_has_options, driver_maxiter) != 0)
+  if (nwchemc_embed_set_driver_direct(driver_has_options, driver_maxiter,
+                                      driver_tolerance_mode) != 0)
     return -1;
   return nwchemc_embed_set_dft_direct(
       dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,
