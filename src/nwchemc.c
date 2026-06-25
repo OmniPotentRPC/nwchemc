@@ -15,7 +15,9 @@ extern int nwchemc_embed_available(void);
 extern int nwchemc_embed_set_config(const char *basis, int basis_len,
                                     const char *theory, int theory_len,
                                     const char *scf_type, int scf_len,
-                                    const int *charge, const int *mult);
+                                    const int *charge, const int *mult,
+                                    const char *input_blocks,
+                                    int input_blocks_len);
 extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers,
@@ -68,7 +70,8 @@ static int apply_config_to_embed(const NWChemCParams *params) {
   int mult = p.multiplicity > 0 ? p.multiplicity : 1;
   return nwchemc_embed_set_config(p.basis, cstr_len(p.basis), p.theory,
                                   cstr_len(p.theory), p.scf_type,
-                                  cstr_len(p.scf_type), &ch, &mult);
+                                  cstr_len(p.scf_type), &ch, &mult,
+                                  p.input_blocks, cstr_len(p.input_blocks));
 }
 
 int nwchemc_set_params(const void *params_capnp,

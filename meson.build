@@ -7,6 +7,7 @@ project(
 
 cc = meson.get_compiler('c')
 fc = meson.get_compiler('fortran')
+python = find_program('python3')
 
 inc = include_directories('include', 'src')
 nwchem_root = get_option('nwchem_root')
@@ -136,4 +137,46 @@ if get_option('with_tests')
       c_args: common_c_args,
     ),
   )
+  if has_nwchem
+    capnp = find_program('capnp')
+    test_scratch_dir = meson.current_build_dir() / 'nwchem-test-scratch'
+    test_permanent_dir = meson.current_build_dir() / 'nwchem-test-permanent'
+    params_conf = configuration_data()
+    params_conf.set('NWCHEM_ROOT', nwchem_root)
+    params_conf.set('NWCHEMC_TEST_SCRATCH', test_scratch_dir)
+    params_conf.set('NWCHEMC_TEST_PERMANENT', test_permanent_dir)
+    nwchem_params_text = configure_file(
+      input: 'tests/nwchem_params.capnp.txt.in',
+      output: 'nwchem_params.capnp.txt',
+      configuration: params_conf,
+    )
+    nwchem_params_bin = custom_target(
+      'nwchem_params_bin',
+      input: nwchem_params_text,
+      output: 'nwchem_params.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    test(
+      'nwchem-energy-gradient',
+      executable(
+        'test_nwchem_energy_gradient',
+        'tests/test_nwchem_energy_gradient.c',
+        include_directories: inc,
+        link_with: nwchemc,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      ),
+      args: [nwchem_params_bin],
+    )
+  endif
 endif

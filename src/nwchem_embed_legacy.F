@@ -106,8 +106,8 @@ C     Direct embed: build geom+basis via NWChem embed API nw_inp_from_character
 C     (same path as NWChemWrap/geninterface; internal util_file_name temp only),
 C     then task_energy/gradient. No user-facing .nw files; coords from C ABI.
       subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang,
-     $     atmnrs, basis_name, charge, mult, energy_h,
-     $     grad_h_bohr, errmsg, ok)
+     $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
+     $     charge, mult, energy_h, grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -119,6 +119,9 @@ C     then task_energy/gradient. No user-facing .nw files; coords from C ABI.
       double precision pos_ang(*)
       integer atmnrs(*)
       character*64 basis_name
+      character*64 theory_name
+      character*64 scf_type
+      character*4096 input_blocks
       double precision energy_h
       double precision grad_h_bohr(*)
       character*(*) errmsg
@@ -186,15 +189,27 @@ C     symmetry/mass/autoz state and NaN integrals.
          errmsg = 'nw_inp_from_character geom/basis failed'
          return
       endif
+      if (inp_strlen(input_blocks) .gt. 0) then
+         if (.not. nw_inp_from_character(rtdb,
+     $        input_blocks(1:inp_strlen(input_blocks)))) then
+            errmsg = 'nw_inp_from_character inputBlocks failed'
+            return
+         endif
+      endif
 
       chg = dble(charge)
       status = rtdb_put(rtdb, 'charge', mt_dbl, 1, chg)
       status = rtdb_put(rtdb, 'spin mult', mt_int, 1, mult)
       vectors_in = 'atomic'
-      status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-      status = rtdb_cput(rtdb, 'scf:type', 1, 'rhf')
+      if (theory_name(1:3) .eq. 'dft') then
+         status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
+         status = rtdb_put(rtdb, 'dft:mult', mt_int, 1, mult)
+      else
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+         status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
+      endif
       status = rtdb_cput(rtdb, 'task:operation', 1, 'energy')
-      status = rtdb_cput(rtdb, 'task:theory', 1, 'scf')
+      status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
 
       if (.not. task_energy(rtdb)) then
          errmsg = 'task_energy/scf failed'
@@ -209,6 +224,7 @@ C     symmetry/mass/autoz state and NaN integrals.
       endif
 
       n3 = 3 * n_atoms
+      status = rtdb_cput(rtdb, 'task:operation', 1, 'gradient')
       if (.not. task_gradient(rtdb)) then
          errmsg = 'task_gradient failed'
          return

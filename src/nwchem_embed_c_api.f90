@@ -29,6 +29,7 @@ module nwchem_embed_c_api
   character(len=64), save :: cfg_basis = 'sto-3g'
   character(len=64), save :: cfg_theory = 'scf'
   character(len=64), save :: cfg_scf = 'rhf'
+  character(len=4096), save :: cfg_input_blocks = ' '
   integer, save :: cfg_charge = 0
   integer, save :: cfg_mult = 1
 
@@ -48,11 +49,14 @@ module nwchem_embed_c_api
     end subroutine nwchem_legacy_set_config
 
     subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang, atmnrs, &
-        basis_name, charge, mult, energy_h, grad_h_bohr, errmsg, ok)
+        basis_name, theory_name, scf_type, input_blocks, charge, mult, &
+        energy_h, grad_h_bohr, errmsg, ok)
       integer, intent(in) :: rtdb, n_atoms
       real(kind=8), intent(in) :: pos_ang(*)
       integer, intent(in) :: atmnrs(*)
       character(len=64), intent(in) :: basis_name
+      character(len=64), intent(in) :: theory_name, scf_type
+      character(len=4096), intent(in) :: input_blocks
       integer, intent(in) :: charge, mult
       real(kind=8), intent(out) :: energy_h
       real(kind=8), intent(out) :: grad_h_bohr(*)
@@ -93,7 +97,7 @@ contains
 
   !> Apply method options from C strings (lengths explicit for C interop).
   function nwchemc_embed_set_config(basis, basis_len, theory, theory_len, &
-      scf_type, scf_len, charge, mult) result(rc) &
+      scf_type, scf_len, charge, mult, input_blocks, input_len) result(rc) &
       bind(C, name='nwchemc_embed_set_config')
     character(kind=c_char), intent(in) :: basis(*)
     integer(c_int), intent(in), value :: basis_len
@@ -103,9 +107,12 @@ contains
     integer(c_int), intent(in), value :: scf_len
     integer(c_int), intent(in) :: charge
     integer(c_int), intent(in) :: mult
+    character(kind=c_char), intent(in) :: input_blocks(*)
+    integer(c_int), intent(in), value :: input_len
     integer(c_int) :: rc
     integer :: ok
     character(len=64) :: bstr, tstr, sstr
+    character(len=4096) :: iblocks
 
     rc = -1_c_int
     call nwchemc_embed_init()
@@ -114,6 +121,7 @@ contains
     call c_chars_to_f(basis, basis_len, bstr)
     call c_chars_to_f(theory, theory_len, tstr)
     call c_chars_to_f(scf_type, scf_len, sstr)
+    call c_chars_to_f(input_blocks, input_len, iblocks)
     if (len_trim(bstr) == 0) bstr = 'sto-3g'
     if (len_trim(tstr) == 0) tstr = 'scf'
     if (len_trim(sstr) == 0) sstr = 'rhf'
@@ -128,6 +136,7 @@ contains
     cfg_basis = bstr
     cfg_theory = tstr
     cfg_scf = sstr
+    cfg_input_blocks = iblocks
     cfg_charge = int(charge)
     cfg_mult = max(1, int(mult))
 
@@ -183,7 +192,8 @@ contains
     end do
 
     call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cfg_basis, &
-        int(charge), max(1, int(mult)), energy_h, grad, msg, ok)
+        cfg_theory, cfg_scf, cfg_input_blocks, int(charge), &
+        max(1, int(mult)), energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
       grad_h_bohr(i) = real(grad(i), kind=c_double)
