@@ -226,10 +226,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       end
 
       subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang,
-     $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
-     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, psp_count, psp_elements, psp_types,
-     $     psp_names, hessian_h_bohr2, errmsg, ok)
+     $     atmnrs, cell_ang, has_cell, basis_name, theory_name,
+     $     scf_type, input_blocks, charge, mult, dft_direct,
+     $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
+     $     psp_count, psp_elements, psp_types, psp_names,
+     $     hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -238,9 +239,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 #include "errquit.fh"
 #include "inp.fh"
       integer rtdb, n_atoms, charge, mult, ok
+      integer has_cell
       integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       double precision pos_ang(*)
+      double precision cell_ang(*)
       integer atmnrs(*)
       integer psp_types(*)
       character*64 basis_name
@@ -279,8 +282,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          hessian_h_bohr2(i) = 0.0d0
       enddo
 
-      call nwchemc_store_geometry(rtdb, n_atoms, pos_ang, atmnrs,
-     $     errmsg, status)
+      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, errmsg, status)
       if (.not. status) return
       call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
      $     basis_name, errmsg, status)

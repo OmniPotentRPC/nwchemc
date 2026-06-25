@@ -166,6 +166,24 @@ NWChemCResult nwchemc_session_calculate_forces(
     size_t forces_len);
 
 /**
+ * @brief Compute a Cartesian Hessian for one Cap'n Proto `ForceInput` step.
+ *
+ * The session keeps persistent `NWChemParams` method state while the step
+ * message supplies positions, atomic numbers, and optional 3x3 cell vectors.
+ * The dense row-major Hessian is returned in Hartree/Bohr^2.
+ *
+ * @param session Persistent session created from `NWChemParams`.
+ * @param force_input_capnp Pointer to an unpacked flat `ForceInput` message.
+ * @param force_input_capnp_size_bytes Size of `force_input_capnp` in bytes.
+ * @param hessian_h_bohr2 Output Hessian buffer in Hartree/Bohr^2.
+ * @param hessian_len Number of doubles available in `hessian_h_bohr2`.
+ */
+NWChemCResult nwchemc_session_calculate_hessian(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,
+    size_t hessian_len);
+
+/**
  * @brief Compute Hessian using a persistent session.
  */
 NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,

@@ -48,6 +48,11 @@ extern int nwchemc_embed_hessian(const int *n_atoms,
                                  const int *multiplicity,
                                  double *hessian_h_bohr2, char *errmsg,
                                  int errmsg_len);
+extern int nwchemc_embed_hessian_cell(
+    const int *n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const double *cell_ang, const int *has_cell, const int *charge,
+    const int *multiplicity, double *hessian_h_bohr2, char *errmsg,
+    int errmsg_len);
 extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
@@ -670,10 +675,11 @@ NWChemCResult nwchemc_session_calculate_forces(
   return r;
 }
 
-NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
-                                      const double *positions_ang,
-                                      const int *atomic_numbers,
-                                      double *hessian_h_bohr2) {
+static NWChemCResult session_hessian_cell(NWChemCSession *session, int n_atoms,
+                                          const double *positions_ang,
+                                          const int *atomic_numbers,
+                                          const double *cell_ang, int has_cell,
+                                          double *hessian_h_bohr2) {
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
@@ -694,9 +700,13 @@ NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
   int ch = 0;
   int mult = 1;
   session_charge_multiplicity(session, &ch, &mult);
-  int rc = nwchemc_embed_hessian(&n, positions_ang, atomic_numbers, &ch, &mult,
-                                 hessian_h_bohr2, errmsg,
-                                 (int)sizeof(errmsg) - 1);
+  int cell_flag = has_cell ? 1 : 0;
+  double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0};
+  const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  int rc = nwchemc_embed_hessian_cell(
+      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
+      hessian_h_bohr2, errmsg, (int)sizeof(errmsg) - 1);
   if (rc != 0) {
     snprintf(r.message, sizeof(r.message), "%s",
              errmsg[0] ? errmsg : "nwchem embed hessian failed");
@@ -705,6 +715,71 @@ NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
   r.ok = 1;
   snprintf(r.message, sizeof(r.message), "ok");
   return r;
+}
+
+NWChemCResult nwchemc_session_calculate_hessian(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,
+    size_t hessian_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !hessian_h_bohr2) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || n_atoms > SIZE_MAX / 3u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  size_t ndof = n_atoms * 3u;
+  if (ndof > SIZE_MAX / ndof || hessian_len < ndof * ndof) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  return session_hessian_cell(session, (int)n_atoms, session->step_positions_ang,
+                              session->step_atomic_numbers, cell_ang, has_cell,
+                              hessian_h_bohr2);
+}
+
+NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
+                                      const double *positions_ang,
+                                      const int *atomic_numbers,
+                                      double *hessian_h_bohr2) {
+  return session_hessian_cell(session, n_atoms, positions_ang, atomic_numbers,
+                              NULL, 0, hessian_h_bohr2);
 }
 
 const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
@@ -874,6 +949,18 @@ NWChemCResult nwchemc_session_calculate_forces(
   (void)force_input_capnp_size_bytes;
   (void)forces_h_bohr;
   (void)forces_len;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_hessian(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,
+    size_t hessian_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)hessian_h_bohr2;
+  (void)hessian_len;
   return no_nwchem_fail();
 }
 

@@ -159,6 +159,18 @@ NWChemCResult nwchemc_session_calculate_forces(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_hessian(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,
+    size_t hessian_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)hessian_h_bohr2;
+  (void)hessian_len;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
                                       const double *positions_ang,
                                       const int *atomic_numbers,

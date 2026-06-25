@@ -7,11 +7,6 @@
 
 #include <cmocka.h>
 
-NWChemCResult nwchemc_session_calculate_hessian(
-    NWChemCSession *session, const void *force_input_capnp,
-    size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,
-    size_t hessian_len);
-
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
   assert_int_equal(nwchemc_available(), 0);

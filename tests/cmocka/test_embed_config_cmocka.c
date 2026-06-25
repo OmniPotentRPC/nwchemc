@@ -10,11 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-NWChemCResult nwchemc_session_calculate_hessian(
-    NWChemCSession *session, const void *force_input_capnp,
-    size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,
-    size_t hessian_len);
-
 static const char *g_params_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
