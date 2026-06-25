@@ -35,7 +35,11 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
 
 int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
                                          int *has_options, int *maxiter,
-                                         int *tolerance_mode);
+                                         int *tolerance_mode,
+                                         double *gmax_tol,
+                                         double *grms_tol,
+                                         double *xmax_tol,
+                                         double *xrms_tol);
 
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,

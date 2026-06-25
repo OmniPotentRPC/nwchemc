@@ -111,8 +111,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
      $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
      $     driver_has_options, driver_maxiter, driver_tolerance_mode,
-     $     psp_count, psp_elements, psp_types, psp_names, energy_h,
-     $     grad_h_bohr, errmsg, ok)
+     $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
+     $     driver_xrms_tol, psp_count, psp_elements, psp_types,
+     $     psp_names, energy_h, grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -139,6 +140,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*256 psp_names(*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
+      double precision driver_gmax_tol, driver_grms_tol
+      double precision driver_xmax_tol, driver_xrms_tol
       double precision energy_h
       double precision grad_h_bohr(*)
       character*(*) errmsg
@@ -185,7 +188,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
      $     scf_thresh, scf_tol2e, driver_has_options,
-     $     driver_maxiter, driver_tolerance_mode, status)
+     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -239,8 +243,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
      $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
      $     driver_has_options, driver_maxiter, driver_tolerance_mode,
-     $     psp_count, psp_elements, psp_types, psp_names,
-     $     hessian_h_bohr2, errmsg, ok)
+     $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
+     $     driver_xrms_tol, psp_count, psp_elements, psp_types,
+     $     psp_names, hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -267,6 +272,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*256 psp_names(*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
+      double precision driver_gmax_tol, driver_grms_tol
+      double precision driver_xmax_tol, driver_xrms_tol
       double precision hessian_h_bohr2(*)
       character*(*) errmsg
       integer n3, i, j
@@ -317,7 +324,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
      $     scf_thresh, scf_tol2e, driver_has_options,
-     $     driver_maxiter, driver_tolerance_mode, status)
+     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -367,7 +375,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
      $     scf_thresh, scf_tol2e, driver_has_options,
-     $     driver_maxiter, driver_tolerance_mode, ok)
+     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, ok)
       implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
@@ -376,6 +385,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
       integer driver_tolerance_mode
+      double precision driver_gmax_tol, driver_grms_tol
+      double precision driver_xmax_tol, driver_xrms_tol
       character*64 theory_name
       character*64 scf_type
       double precision dft_smear_sigma
@@ -411,6 +422,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       if (driver_tolerance_mode .eq. 1 .or.
      $    driver_tolerance_mode .eq. 2) then
+         if (driver_gmax_tol .gt. 0.0d0) gmax_tol = driver_gmax_tol
+         if (driver_grms_tol .gt. 0.0d0) grms_tol = driver_grms_tol
+         if (driver_xmax_tol .gt. 0.0d0) xmax_tol = driver_xmax_tol
+         if (driver_xrms_tol .gt. 0.0d0) xrms_tol = driver_xrms_tol
          call nwchemc_rtdb_put_dbl(rtdb, 'driver:gmax_tol',
      $      gmax_tol, status)
          ok = ok .and. status
@@ -423,6 +438,29 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          call nwchemc_rtdb_put_dbl(rtdb, 'driver:xmax_tol',
      $      xmax_tol, status)
          ok = ok .and. status
+      endif
+      if (driver_tolerance_mode .ne. 1 .and.
+     $    driver_tolerance_mode .ne. 2) then
+         if (driver_gmax_tol .gt. 0.0d0) then
+            call nwchemc_rtdb_put_dbl(rtdb, 'driver:gmax_tol',
+     $         driver_gmax_tol, status)
+            ok = ok .and. status
+         endif
+         if (driver_grms_tol .gt. 0.0d0) then
+            call nwchemc_rtdb_put_dbl(rtdb, 'driver:grms_tol',
+     $         driver_grms_tol, status)
+            ok = ok .and. status
+         endif
+         if (driver_xrms_tol .gt. 0.0d0) then
+            call nwchemc_rtdb_put_dbl(rtdb, 'driver:xrms_tol',
+     $         driver_xrms_tol, status)
+            ok = ok .and. status
+         endif
+         if (driver_xmax_tol .gt. 0.0d0) then
+            call nwchemc_rtdb_put_dbl(rtdb, 'driver:xmax_tol',
+     $         driver_xmax_tol, status)
+            ok = ok .and. status
+         endif
       endif
       vectors_in = 'atomic'
       if (theory_name(1:3) .eq. 'dft') then

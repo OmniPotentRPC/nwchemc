@@ -28,7 +28,9 @@ extern int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
 extern int nwchemc_embed_set_scf_direct(int has_options, int maxiter,
                                         double thresh, double tol2e);
 extern int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
-                                           int tolerance_mode);
+                                           int tolerance_mode,
+                                           double gmax_tol, double grms_tol,
+                                           double xmax_tol, double xrms_tol);
 extern int nwchemc_embed_set_pseudopotentials(const char *elements,
                                               const int *library_types,
                                               const char *library_names,
@@ -178,9 +180,16 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   int driver_has_options = 0;
   int driver_maxiter = 0;
   int driver_tolerance_mode = NWCHEMC_DRIVER_TOLERANCE_NONE;
+  double driver_gmax_tol = 0.0;
+  double driver_grms_tol = 0.0;
+  double driver_xmax_tol = 0.0;
+  double driver_xrms_tol = 0.0;
   if (nwchemc_params_extract_direct_driver(params_root, &driver_has_options,
                                            &driver_maxiter,
-                                           &driver_tolerance_mode) != 0)
+                                           &driver_tolerance_mode,
+                                           &driver_gmax_tol, &driver_grms_tol,
+                                           &driver_xmax_tol,
+                                           &driver_xrms_tol) != 0)
     return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
@@ -227,7 +236,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                    scf_tol2e) != 0)
     return -1;
   if (nwchemc_embed_set_driver_direct(driver_has_options, driver_maxiter,
-                                      driver_tolerance_mode) != 0)
+                                      driver_tolerance_mode, driver_gmax_tol,
+                                      driver_grms_tol, driver_xmax_tol,
+                                      driver_xrms_tol) != 0)
     return -1;
   return nwchemc_embed_set_dft_direct(
       dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,

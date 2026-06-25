@@ -55,6 +55,10 @@ module nwchem_embed_c_api
   integer, save :: cfg_driver_has_options = 0
   integer, save :: cfg_driver_maxiter = 0
   integer, save :: cfg_driver_tolerance_mode = 0
+  real(real64), save :: cfg_driver_gmax_tol = 0.0_real64
+  real(real64), save :: cfg_driver_grms_tol = 0.0_real64
+  real(real64), save :: cfg_driver_xmax_tol = 0.0_real64
+  real(real64), save :: cfg_driver_xrms_tol = 0.0_real64
   integer, parameter :: max_embed_atoms = 64
   integer, parameter :: max_embed_pseudopotentials = 64
   integer, parameter :: psp_element_len = 16
@@ -83,8 +87,9 @@ module nwchem_embed_c_api
         charge, mult, dft_direct, dft_smear_on, dft_smear_sigma, &
         dft_smear_spinset, scf_has_options, scf_maxiter, scf_thresh, &
         scf_tol2e, driver_has_options, driver_maxiter, &
-        driver_tolerance_mode, psp_count, psp_elements, psp_types, psp_names, &
-        energy_h, grad_h_bohr, errmsg, ok)
+        driver_tolerance_mode, driver_gmax_tol, driver_grms_tol, &
+        driver_xmax_tol, driver_xrms_tol, psp_count, psp_elements, &
+        psp_types, psp_names, energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -99,6 +104,8 @@ module nwchem_embed_c_api
       integer, intent(in) :: scf_has_options, scf_maxiter
       integer, intent(in) :: driver_has_options, driver_maxiter
       integer, intent(in) :: driver_tolerance_mode
+      real(real64), intent(in) :: driver_gmax_tol, driver_grms_tol
+      real(real64), intent(in) :: driver_xmax_tol, driver_xrms_tol
       integer, intent(in) :: psp_count
       character(len=16), intent(in) :: psp_elements(*)
       integer, intent(in) :: psp_types(*)
@@ -116,7 +123,8 @@ module nwchem_embed_c_api
         charge, mult, dft_direct, dft_smear_on, dft_smear_sigma, &
         dft_smear_spinset, scf_has_options, scf_maxiter, scf_thresh, &
         scf_tol2e, driver_has_options, driver_maxiter, &
-        driver_tolerance_mode, psp_count, psp_elements, psp_types, &
+        driver_tolerance_mode, driver_gmax_tol, driver_grms_tol, &
+        driver_xmax_tol, driver_xrms_tol, psp_count, psp_elements, psp_types, &
         psp_names, hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -132,6 +140,8 @@ module nwchem_embed_c_api
       integer, intent(in) :: scf_has_options, scf_maxiter
       integer, intent(in) :: driver_has_options, driver_maxiter
       integer, intent(in) :: driver_tolerance_mode
+      real(real64), intent(in) :: driver_gmax_tol, driver_grms_tol
+      real(real64), intent(in) :: driver_xmax_tol, driver_xrms_tol
       integer, intent(in) :: psp_count
       character(len=16), intent(in) :: psp_elements(*)
       integer, intent(in) :: psp_types(*)
@@ -283,16 +293,24 @@ contains
 
   !> Store structured driver scalar controls extracted from Cap'n Proto.
   function nwchemc_embed_set_driver_direct(has_options, maxiter, &
-      tolerance_mode) result(rc) &
+      tolerance_mode, gmax_tol, grms_tol, xmax_tol, xrms_tol) result(rc) &
       bind(C, name='nwchemc_embed_set_driver_direct')
     integer(c_int), intent(in), value :: has_options
     integer(c_int), intent(in), value :: maxiter
     integer(c_int), intent(in), value :: tolerance_mode
+    real(c_double), intent(in), value :: gmax_tol
+    real(c_double), intent(in), value :: grms_tol
+    real(c_double), intent(in), value :: xmax_tol
+    real(c_double), intent(in), value :: xrms_tol
     integer(c_int) :: rc
 
     cfg_driver_has_options = int(has_options)
     cfg_driver_maxiter = int(maxiter)
     cfg_driver_tolerance_mode = int(tolerance_mode)
+    cfg_driver_gmax_tol = real(gmax_tol, real64)
+    cfg_driver_grms_tol = real(grms_tol, real64)
+    cfg_driver_xmax_tol = real(xmax_tol, real64)
+    cfg_driver_xrms_tol = real(xrms_tol, real64)
     rc = 0_c_int
   end function nwchemc_embed_set_driver_direct
 
@@ -430,8 +448,10 @@ contains
         cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
         cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_psp_count, cfg_psp_elements, &
-        cfg_psp_types, cfg_psp_names, energy_h, grad, msg, ok)
+        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
+        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
+        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
+        energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
       grad_h_bohr(i) = real(grad(i), kind=c_double)
@@ -543,8 +563,10 @@ contains
         cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
         cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_psp_count, cfg_psp_elements, &
-        cfg_psp_types, cfg_psp_names, hess, msg, ok)
+        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
+        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
+        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
+        hess, msg, ok)
 
     do i = 1, n2
       hessian_h_bohr2(i) = real(hess(i), kind=c_double)

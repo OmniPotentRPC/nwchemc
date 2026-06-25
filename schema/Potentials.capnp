@@ -214,6 +214,10 @@ struct NWChemDriverStanza {
   loose      @2 :Bool = false;  # Loose convergence; embed writes RTDB directly.
   xyz        @3 :Text = "";     # Emit "xyz <path>" when non-empty.
   directives @4 :List(NWChemDirective);
+  gmaxTol    @5 :Float64 = 0;   # Emit "gmax"; embed writes driver:gmax_tol.
+  grmsTol    @6 :Float64 = 0;   # Emit "grms"; embed writes driver:grms_tol.
+  xmaxTol    @7 :Float64 = 0;   # Emit "xmax"; embed writes driver:xmax_tol.
+  xrmsTol    @8 :Float64 = 0;   # Emit "xrms"; embed writes driver:xrms_tol.
 }
 
 # @struct NWChemPropertyStanza

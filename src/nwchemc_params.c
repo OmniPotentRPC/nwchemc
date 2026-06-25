@@ -690,7 +690,9 @@ static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(driver.directives);
   if (has_directives < 0)
     return -1;
-  int has_promoted = driver.maxiter > 0 || driver.tight || driver.loose;
+  int has_promoted = driver.maxiter > 0 || driver.tight || driver.loose ||
+                     driver.gmaxTol > 0.0 || driver.grmsTol > 0.0 ||
+                     driver.xmaxTol > 0.0 || driver.xrmsTol > 0.0;
   int has_remaining = driver.xyz.len > 0 || has_directives ||
                       (include_direct_promoted && has_promoted);
   if (!has_remaining)
@@ -705,6 +707,22 @@ static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
     return -1;
   if (include_direct_promoted && driver.loose &&
       append_format(block, sizeof(block), "  loose\n") != 0)
+    return -1;
+  if (include_direct_promoted && driver.gmaxTol > 0.0 &&
+      append_format(block, sizeof(block), "  gmax %.15g\n",
+                    driver.gmaxTol) != 0)
+    return -1;
+  if (include_direct_promoted && driver.grmsTol > 0.0 &&
+      append_format(block, sizeof(block), "  grms %.15g\n",
+                    driver.grmsTol) != 0)
+    return -1;
+  if (include_direct_promoted && driver.xmaxTol > 0.0 &&
+      append_format(block, sizeof(block), "  xmax %.15g\n",
+                    driver.xmaxTol) != 0)
+    return -1;
+  if (include_direct_promoted && driver.xrmsTol > 0.0 &&
+      append_format(block, sizeof(block), "  xrms %.15g\n",
+                    driver.xrmsTol) != 0)
     return -1;
   if (driver.xyz.len > 0) {
     if (append_format(block, sizeof(block), "  xyz ") != 0 ||
@@ -1018,14 +1036,22 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
 
 int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
                                          int *has_options, int *maxiter,
-                                         int *tolerance_mode) {
+                                         int *tolerance_mode,
+                                         double *gmax_tol,
+                                         double *grms_tol,
+                                         double *xmax_tol,
+                                         double *xrms_tol) {
   if (params.p.type == CAPN_NULL || !has_options || !maxiter ||
-      !tolerance_mode)
+      !tolerance_mode || !gmax_tol || !grms_tol || !xmax_tol || !xrms_tol)
     return -1;
 
   *has_options = 0;
   *maxiter = 0;
   *tolerance_mode = NWCHEMC_DRIVER_TOLERANCE_NONE;
+  *gmax_tol = 0.0;
+  *grms_tol = 0.0;
+  *xmax_tol = 0.0;
+  *xrms_tol = 0.0;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -1053,6 +1079,22 @@ int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
     if (driver.loose) {
       *has_options = 1;
       *tolerance_mode = NWCHEMC_DRIVER_TOLERANCE_LOOSE;
+    }
+    if (driver.gmaxTol > 0.0) {
+      *has_options = 1;
+      *gmax_tol = driver.gmaxTol;
+    }
+    if (driver.grmsTol > 0.0) {
+      *has_options = 1;
+      *grms_tol = driver.grmsTol;
+    }
+    if (driver.xmaxTol > 0.0) {
+      *has_options = 1;
+      *xmax_tol = driver.xmaxTol;
+    }
+    if (driver.xrmsTol > 0.0) {
+      *has_options = 1;
+      *xrms_tol = driver.xrmsTol;
     }
   }
 
