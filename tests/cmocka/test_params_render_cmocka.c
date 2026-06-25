@@ -79,6 +79,10 @@ static void test_render_config_options_stanzas(void **state) {
   assert_render_contains(blocks, "driver\n");
   assert_render_contains(blocks, "maxiter 40");
   assert_render_contains(blocks, "tight");
+  assert_render_contains(blocks, "gmax 2.5e-05");
+  assert_render_contains(blocks, "grms 1.5e-05");
+  assert_render_contains(blocks, "xmax 7.5e-05");
+  assert_render_contains(blocks, "xrms 5.5e-05");
   assert_render_contains(blocks, "property\n");
   assert_render_contains(blocks, "dipole");
   assert_render_contains(blocks, "mulliken");
@@ -103,13 +107,26 @@ static void test_render_config_options_stanzas(void **state) {
   int has_driver = 0;
   int driver_maxiter = 0;
   int driver_tolerance_mode = 0;
+  double driver_gmax_tol = 0.0;
+  double driver_grms_tol = 0.0;
+  double driver_xmax_tol = 0.0;
+  double driver_xrms_tol = 0.0;
   assert_int_equal(nwchemc_params_extract_direct_driver(
                        params_root, &has_driver, &driver_maxiter,
-                       &driver_tolerance_mode),
+                       &driver_tolerance_mode, &driver_gmax_tol,
+                       &driver_grms_tol, &driver_xmax_tol, &driver_xrms_tol),
                    0);
   assert_int_equal(has_driver, 1);
   assert_int_equal(driver_maxiter, 40);
   assert_int_equal(driver_tolerance_mode, NWCHEMC_DRIVER_TOLERANCE_TIGHT);
+  assert_true(driver_gmax_tol > 2.499e-5);
+  assert_true(driver_gmax_tol < 2.501e-5);
+  assert_true(driver_grms_tol > 1.499e-5);
+  assert_true(driver_grms_tol < 1.501e-5);
+  assert_true(driver_xmax_tol > 7.499e-5);
+  assert_true(driver_xmax_tol < 7.501e-5);
+  assert_true(driver_xrms_tol > 5.499e-5);
+  assert_true(driver_xrms_tol < 5.501e-5);
 
   char embed_blocks[NWCHEMC_BLOCKS];
   assert_int_equal(nwchemc_params_render_embed_input_blocks(
@@ -122,6 +139,10 @@ static void test_render_config_options_stanzas(void **state) {
   assert_null(strstr(embed_blocks, "driver\n"));
   assert_null(strstr(embed_blocks, "maxiter 40"));
   assert_null(strstr(embed_blocks, "tight"));
+  assert_null(strstr(embed_blocks, "gmax 2.5e-05"));
+  assert_null(strstr(embed_blocks, "grms 1.5e-05"));
+  assert_null(strstr(embed_blocks, "xmax 7.5e-05"));
+  assert_null(strstr(embed_blocks, "xrms 5.5e-05"));
 
   nwchemc_params_release(&arena);
   free(message);

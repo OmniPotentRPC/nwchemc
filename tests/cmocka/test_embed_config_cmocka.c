@@ -41,6 +41,10 @@ static double g_scf_tol2e = 0.0;
 static int g_driver_has_options = 0;
 static int g_driver_maxiter = 0;
 static int g_driver_tolerance_mode = 0;
+static double g_driver_gmax_tol = 0.0;
+static double g_driver_grms_tol = 0.0;
+static double g_driver_xmax_tol = 0.0;
+static double g_driver_xrms_tol = 0.0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
@@ -140,11 +144,17 @@ int nwchemc_embed_set_scf_direct(int has_options, int maxiter, double thresh,
 }
 
 int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
-                                    int tolerance_mode) {
+                                    int tolerance_mode, double gmax_tol,
+                                    double grms_tol, double xmax_tol,
+                                    double xrms_tol) {
   ++g_set_driver_direct_calls;
   g_driver_has_options = has_options;
   g_driver_maxiter = maxiter;
   g_driver_tolerance_mode = tolerance_mode;
+  g_driver_gmax_tol = gmax_tol;
+  g_driver_grms_tol = grms_tol;
+  g_driver_xmax_tol = xmax_tol;
+  g_driver_xrms_tol = xrms_tol;
   return 0;
 }
 
@@ -314,6 +324,10 @@ static void reset_embed_captures(void) {
   g_driver_has_options = 0;
   g_driver_maxiter = 0;
   g_driver_tolerance_mode = 0;
+  g_driver_gmax_tol = 0.0;
+  g_driver_grms_tol = 0.0;
+  g_driver_xmax_tol = 0.0;
+  g_driver_xrms_tol = 0.0;
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
@@ -440,12 +454,20 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_int_equal(g_driver_has_options, 1);
   assert_int_equal(g_driver_maxiter, 40);
   assert_int_equal(g_driver_tolerance_mode, NWCHEMC_DRIVER_TOLERANCE_TIGHT);
+  assert_close(g_driver_gmax_tol, 2.5e-5, 1.0e-12);
+  assert_close(g_driver_grms_tol, 1.5e-5, 1.0e-12);
+  assert_close(g_driver_xmax_tol, 7.5e-5, 1.0e-12);
+  assert_close(g_driver_xrms_tol, 5.5e-5, 1.0e-12);
   assert_null(strstr(g_input_blocks, "scf\n"));
   assert_null(strstr(g_input_blocks, "maxiter 50"));
   assert_null(strstr(g_input_blocks, "tol2e 1e-09"));
   assert_null(strstr(g_input_blocks, "driver\n"));
   assert_null(strstr(g_input_blocks, "maxiter 40"));
   assert_null(strstr(g_input_blocks, "tight"));
+  assert_null(strstr(g_input_blocks, "gmax 2.5e-05"));
+  assert_null(strstr(g_input_blocks, "grms 1.5e-05"));
+  assert_null(strstr(g_input_blocks, "xmax 7.5e-05"));
+  assert_null(strstr(g_input_blocks, "xrms 5.5e-05"));
 
   free(message);
 }

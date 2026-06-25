@@ -27,7 +27,11 @@
       kind = driver,
       driver = (
         maxiter = 40,
-        tight = true
+        tight = true,
+        gmaxTol = 2.5e-5,
+        grmsTol = 1.5e-5,
+        xmaxTol = 7.5e-5,
+        xrmsTol = 5.5e-5
       )
     ),
     (
