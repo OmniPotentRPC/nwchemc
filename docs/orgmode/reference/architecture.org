@@ -5,13 +5,13 @@
 ~nwchemc~ is deliberately small:
 
 - ~include/nwchemc.h~ exposes the stable C ABI.
-- ~schema/Potentials.capnp~ defines ~NWChemParams~ and the structured NWChem
-  input stanzas.
+- ~schema/Potentials.capnp~ defines ~NWChemParams~, per-step ~ForceInput~,
+  and the structured NWChem input stanzas.
 - ~subprojects/c-capnproto~ provides the ~capnp-c~ runtime and compiler plugin.
-- ~src/nwchemc_params.c~ opens a serialized Cap'n Proto message and returns the
-  generated ~NWChemParams_ptr~ root.
-- ~src/nwchemc.c~ applies those parameters to the embed bridge and calls the
-  energy/gradient or Hessian entry point.
+- ~src/nwchemc_params.c~ opens serialized Cap'n Proto messages and returns the
+  generated ~NWChemParams_ptr~ or ~ForceInput_ptr~ roots.
+- ~src/nwchemc.c~ applies persistent session parameters to the embed bridge and
+  calls the energy/gradient, force, or Hessian entry point.
 - ~src/nwchem_embed_c_api.f90~ owns the ISO C binding layer and saved NWChem
   runtime configuration.
 - ~src/nwchem_embed_legacy.F~ calls the fixed-form NWChem routines that set up
@@ -23,14 +23,34 @@ The ABI receives a byte pointer and byte count.
 ~capn_init_mem()~ opens the flat message, ~capn_getp(capn_root(...))~ obtains
 the generated ~NWChemParams_ptr~, and generated ~read_NWChemParams()~ calls are
 used only as short-lived C views while the arena is alive.
+Session force calls use the same pattern for generated ~ForceInput_ptr~ roots.
 
 There is no persistent copy of the Cap'n Proto parameter tree in the C runtime.
 The embed bridge stores the small Fortran strings and scalar values it needs to
-evaluate later calls.
+evaluate repeated calls.
 Coordinates, atomic numbers, charge, multiplicity, method, task state, and the
 selected library basis are written through NWChem RTDB-facing APIs.
 NWChem input parsing is reserved for caller-provided free-form stanzas whose
 grammar is intentionally upstream NWChem input text.
+
+* Long-Running Sessions
+~nwchemc_session_create()~ applies an ~NWChemParams~ message once and keeps the
+NWChem runtime state inside the session. ~nwchemc_session_calculate_forces()~
+accepts a serialized ~ForceInput~ message for each step, so molecular dynamics,
+optimizers, and socket-style drivers can update coordinates and the periodic
+cell without rebuilding the full configuration carrier.
+
+The C layer keeps reusable numeric scratch for per-step positions and atomic
+numbers. It does not introduce a second configuration struct. ~ForceInput.pos~
+and ~ForceInput.box~ are copied from the Cap'n Proto message into contiguous C
+arrays with explicit unit conversion, then handed to the Fortran bridge.
+
+The Fortran bridge stores geometry through NWChem geometry routines. When
+~ForceInput.box~ is present, the row-major 3x3 cell vectors are converted to
+Bohr and applied with ~geom_amatrix_set~, ~geom_isystype_set(3)~, and
+~geom_P1_set~ before the task call. That keeps the structured path numeric for
+geometry and cell data while leaving free-form text available for NWChem grammar
+that lacks a stable direct entry point.
 
 * MPI And Finalization
 The embed layer records whether it owns the MPI/GA runtime.

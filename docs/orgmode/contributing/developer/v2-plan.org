@@ -10,6 +10,14 @@ directly. The public calculation entry points are:
 - ~nwchemc_energy_gradient~
 - ~nwchemc_energy_forces~
 - ~nwchemc_hessian~
+- ~nwchemc_session_create~
+- ~nwchemc_session_set_params~
+- ~nwchemc_session_destroy~
+- ~nwchemc_session_energy~
+- ~nwchemc_session_energy_gradient~
+- ~nwchemc_session_energy_forces~
+- ~nwchemc_session_calculate_forces~
+- ~nwchemc_session_hessian~
 - ~nwchemc_available~
 - ~nwchemc_version~
 - ~nwchemc_finalize~
@@ -17,12 +25,17 @@ directly. The public calculation entry points are:
 The parser uses ~capnp-c~ and keeps Cap'n Proto as the language-neutral
 configuration carrier. The runtime does not copy the parameter tree into a
 second public configuration struct.
+Long-running callers can keep one ~NWChemParams~ configuration in a session and
+send per-step ~ForceInput~ Cap'n Proto messages for coordinates, atomic
+numbers, length units, and optional cell vectors.
 
 * RTDB Path
 The embedded Fortran layer writes numeric geometry through NWChem geometry APIs
-and writes Gaussian library basis data through NWChem basis APIs. It then stores
-charge, multiplicity, method, and task state through RTDB-facing calls before
-calling ~task_energy~, ~task_gradient~, or ~task_hessian~.
+and writes Gaussian library basis data through NWChem basis APIs. Session
+~ForceInput.box~ values are applied as numeric 3x3 cells through
+~geom_amatrix_set~, ~geom_isystype_set(3)~, and ~geom_P1_set~. The bridge then
+stores charge, multiplicity, method, and task state through RTDB-facing calls
+before calling ~task_energy~, ~task_gradient~, or ~task_hessian~.
 
 NWChem modules read and mutate RTDB entries inside task routines and module
 input handlers. Direct RTDB writes must therefore preserve this order:
@@ -47,12 +60,30 @@ The schema contains typed stanzas for:
 - raw NWChem fragments
 - module blocks backed by the ~NWChemModuleName~ enum
 - ~nwpw~ pseudopotential blocks with library, PSPW, PAW, CPI, and Teter entries
+- per-step ~ForceInput~ messages with atoms, coordinates, length units, and
+  optional row-major 3x3 cells
+- the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
+  ~PotentialResult~
 
 The feature inventory in ~schema/inventory/nwchem_features.json~ interns every
 schema field, stanza kind, module enum value, and ABI entry point. The cmocka
 feature tests verify the generated inventory lookup table and ABI coverage.
 
 * Pickup Tasks
+** Long-Running Force Steps
+~nwchemc_session_calculate_forces~ is the C ABI entry point for socket-style and
+optimizer-style callers. It takes the session's persistent ~NWChemParams~ and a
+per-call serialized ~ForceInput~ message, validates atom counts and output
+buffer size, converts coordinates and cells to the C ABI units, calls the embed
+bridge, and returns energy plus forces in NWChem native units.
+
+The session path writes geometry and cell data numerically. Maintain that shape
+for coordinates, atom numbers, and cell vectors. Text input is acceptable only
+for NWChem grammar that does not have a confirmed direct API or RTDB key.
+
+Result-carrier task: add a writer for the Cap'n Proto ~PotentialResult~ message
+while keeping the native C force buffer ABI available for low-overhead callers.
+
 ** DONE (partial) Direct DFT promotion
 ~nwchemc_params_extract_direct_dft~ pulls ~xc~, ~direct~, and smearing from the
 typed ~NWChemDftStanza~ values. ~apply_config_to_embed~ uses
