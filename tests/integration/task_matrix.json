@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "description": "Integration / CLI compare task matrix for nwchemc vs pixi nwchem",
+  "tolerances": {
+    "energy_ha_abs": 1.0e-5,
+    "gradient_ha_bohr_abs": 1.0e-4
+  },
+  "tasks": [
+    {
+      "id": "h2_scf_energy",
+      "nw_input": "tests/integration/nw/h2_scf_energy.nw",
+      "quantities": ["energy"],
+      "embed_meson_test": "nwchem-energy-gradient",
+      "notes": "CLI energy from task scf energy; embed uses energy/gradient ABI when SDK available"
+    },
+    {
+      "id": "h2_scf_gradient",
+      "nw_input": "tests/integration/nw/h2_scf_gradient.nw",
+      "quantities": ["energy", "gradient"],
+      "embed_meson_test": "nwchem-energy-gradient",
+      "notes": "CLI gradient task; compare energy; gradient norms when both available"
+    }
+  ]
+}

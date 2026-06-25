@@ -7,13 +7,16 @@
  *   params     - load Cap'n Proto fixture and drive nwchemc_params_* parser/render
  *   validate   - inventory + all module enum ids interned
  *   all        - validate + stub-abi (+ params if NWCHEMC_PARSER_FIXTURE set)
+ *   crash-test - install debug handlers and abort (backtrace smoke; not for CI)
  *
  * Params mode requires argv[2] or env NWCHEMC_PARSER_FIXTURE pointing at an
  * unpacked flat NWChemParams message (same fixture as test_capnp_parser).
+ * Set NWCHEMC_DEBUG=1 to install signal handlers on any mode.
  */
 #include "nwchemc.h"
 #include "nwchemc_features.h"
 #include "nwchemc_params.h"
+#include "nwchemc_debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -184,6 +187,17 @@ static int run_validate(void) {
 int main(int argc, char **argv) {
   const char *mode = (argc > 1) ? argv[1] : "inventory";
   const char *fixture = (argc > 2) ? argv[2] : getenv("NWCHEMC_PARSER_FIXTURE");
+  const char *dbg = getenv("NWCHEMC_DEBUG");
+
+  if (dbg && dbg[0] == '1')
+    nwchemc_debug_install_handlers();
+
+  if (strcmp(mode, "crash-test") == 0) {
+    nwchemc_debug_install_handlers();
+    fprintf(stderr, "nwchemc_feature_driver: crash-test aborting on purpose\n");
+    nwchemc_debug_print_backtrace("before abort");
+    abort();
+  }
 
   if (strcmp(mode, "inventory") == 0)
     return run_inventory();

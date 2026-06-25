@@ -56,7 +56,22 @@ pixi run prek-validate  # validate prek.toml
 pixi run prek           # all hooks: baseline + Fortran fprettify + lychee + inventory
 pixi run fortran-lint   # fprettify check on src/*.f90 and src/*.F
 pixi run lychee         # link check README + docs/orgmode + newsfragments
+pixi run test-integration-matrix   # validate tests/integration/task_matrix.json
+pixi run debug-backtrace-smoke     # feature driver debug handlers + crash-test backtrace
+# CLI integration vs conda-forge nwchem (NOT embed SDK; linux-64 pixi env):
+pixi run -e nwchem-runtime test-nwchem-compare
+# Embed integration (separate NWChem *build tree* with PIC libs):
+#   meson setup build-nwchem -Dwith_nwchem=true -Dnwchem_root=$NWCHEM_TOP -Dwith_tests=true
+#   meson test -C build-nwchem nwchem-energy-gradient nwchem-energy-forces nwchem-hessian
 ```
+
+Debug: `tools/nwchemc_debug.c` installs `SIGSEGV`/`SIGABRT`/`SIGFPE` handlers and
+prints `backtrace(3)` frames. Enable on any driver mode with `NWCHEMC_DEBUG=1`, or
+run `./build/nwchemc_feature_driver crash-test` for a deliberate abort smoke test.
+
+Integration/CI: `tests/integration/task_matrix.json` lists CLI `.nw` tasks under
+`tests/integration/nw/`. `.github/workflows/ci.yml` runs stub/cmocka always and
+optional `nwchem-runtime` CLI compare (embed SDK is not on GHA by default).
 
 Lint hooks live in `prek.toml` (`prek install` for commit hooks). Lychee scope is
 controlled by `.lychee.toml`. Coverage is tracked for instrumentable in-tree C

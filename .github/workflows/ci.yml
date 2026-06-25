@@ -1,0 +1,46 @@
+# CI: stub/cmocka always; optional pixi nwchem CLI integration compare.
+# Embed/NWChem SDK jobs are not run here (needs private build-tree artifacts).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  stub-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.8.3
+        with:
+          pixi-version: latest
+          cache: true
+      - name: Stub / parser / cmocka
+        run: pixi run test-stub
+      - name: Cmocka suite
+        run: pixi run test-cmocka
+      - name: Inventory
+        run: pixi run inventory-check
+
+  nwchem-cli-compare:
+    runs-on: ubuntu-latest
+    # conda-forge nwchem is large; allow job to be non-blocking on fork matrix gaps.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.8.3
+        with:
+          pixi-version: latest
+          cache: true
+          environments: nwchem-runtime
+      - name: NWChem CLI reference tasks
+        run: pixi run -e nwchem-runtime test-nwchem-compare
+      - name: Upload compare artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nwchem-cli-ref
+          path: build/nwchem-cli-ref/
+          if-no-files-found: ignore
