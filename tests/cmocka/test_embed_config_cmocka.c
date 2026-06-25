@@ -10,9 +10,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+NWChemCResult nwchemc_session_calculate_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
 static const char *g_params_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
+static const char *g_force_step_ev_path = NULL;
 
 static char g_basis[64];
 static char g_theory[64];
@@ -295,6 +302,31 @@ static void assert_close(double actual, double expected, double tolerance) {
   assert_true(actual < expected + tolerance);
 }
 
+static void assert_potential_result(const unsigned char *message,
+                                    size_t message_size,
+                                    double expected_energy,
+                                    const double *expected_forces,
+                                    size_t expected_force_count,
+                                    double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, tolerance);
+  capn_resolve(&result.forces.p);
+  assert_int_equal(result.forces.p.type, CAPN_LIST);
+  assert_int_equal(result.forces.p.datasz, 8);
+  assert_int_equal(result.forces.p.len, (int)expected_force_count);
+  for (size_t i = 0; i < expected_force_count; ++i) {
+    double actual = capn_to_f64(capn_get64(result.forces, (int)i));
+    assert_close(actual, expected_forces[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
 static void test_embed_config_uses_direct_dft_values(void **state) {
   (void)state;
   reset_embed_captures();
@@ -528,21 +560,87 @@ static void test_session_calculate_hessian_accepts_force_input_step(
   free(message);
 }
 
+static void test_session_calculate_result_writes_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_ev_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_ev = read_file(g_force_step_ev_path, &step_ev_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_ev);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  unsigned char result_bytes[256];
+  size_t result_size = 0;
+  NWChemCResult native = nwchemc_session_calculate_result(
+      session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(native.ok, 1);
+  assert_close(native.energy_h, -1.0, 1.0e-12);
+  assert_true(result_size > 0);
+  assert_true(result_size < sizeof(result_bytes));
+  const double native_forces[6] = {-1.0, -2.0, -3.0, -4.0, -5.0, -6.0};
+  assert_potential_result(result_bytes, result_size, -1.0, native_forces, 6,
+                          1.0e-12);
+  assert_int_equal(g_energy_grad_calls, 1);
+
+  unsigned char short_result[79];
+  size_t required_size = 0;
+  NWChemCResult short_output = nwchemc_session_calculate_result(
+      session, step_a, step_a_size, short_result, sizeof(short_result),
+      &required_size);
+  assert_int_equal(short_output.ok, 0);
+  assert_int_equal(required_size, result_size);
+  assert_int_equal(g_energy_grad_calls, 1);
+
+  result_size = 0;
+  NWChemCResult ev = nwchemc_session_calculate_result(
+      session, step_ev, step_ev_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(ev.ok, 1);
+  assert_close(ev.energy_h, -1.0, 1.0e-12);
+  const double hartree_to_ev = 27.211386245988;
+  const double bohr_to_angstrom = 0.529177210903;
+  double ev_forces[6];
+  for (int i = 0; i < 6; ++i)
+    ev_forces[i] = native_forces[i] * hartree_to_ev / bohr_to_angstrom;
+  assert_potential_result(result_bytes, result_size, -hartree_to_ev, ev_forces,
+                          6, 1.0e-10);
+  assert_int_equal(g_energy_grad_calls, 2);
+
+  nwchemc_session_destroy(session);
+  free(step_ev);
+  free(step_a);
+  free(message);
+}
+
 int main(int argc, char **argv) {
-  if (argc != 4) {
-    fprintf(stderr, "usage: %s PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN\n",
+  if (argc != 5) {
+    fprintf(stderr,
+            "usage: %s PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
+            "FORCE_STEP_EV_BIN\n",
             argv[0]);
     return 2;
   }
   g_params_path = argv[1];
   g_force_step_a_path = argv[2];
   g_force_step_b_path = argv[3];
+  g_force_step_ev_path = argv[4];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_calculate_forces_accepts_force_input_steps),
       cmocka_unit_test(test_session_calculate_hessian_accepts_force_input_step),
+      cmocka_unit_test(test_session_calculate_result_writes_potential_result),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }
