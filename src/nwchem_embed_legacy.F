@@ -109,6 +109,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     atmnrs, cell_ang, has_cell, basis_name, theory_name,
      $     scf_type, input_blocks, charge, mult, dft_direct,
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
+     $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
      $     psp_count, psp_elements, psp_types, psp_names, energy_h,
      $     grad_h_bohr, errmsg, ok)
       implicit none
@@ -122,6 +123,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer has_cell
       integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
+      integer scf_has_options, scf_maxiter
       double precision pos_ang(*)
       double precision cell_ang(*)
       integer atmnrs(*)
@@ -133,6 +135,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*16 psp_elements(*)
       character*256 psp_names(*)
       double precision dft_smear_sigma
+      double precision scf_thresh, scf_tol2e
       double precision energy_h
       double precision grad_h_bohr(*)
       character*(*) errmsg
@@ -177,7 +180,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, status)
+     $     dft_smear_spinset, scf_has_options, scf_maxiter,
+     $     scf_thresh, scf_tol2e, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -229,6 +233,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     atmnrs, cell_ang, has_cell, basis_name, theory_name,
      $     scf_type, input_blocks, charge, mult, dft_direct,
      $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
+     $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
      $     psp_count, psp_elements, psp_types, psp_names,
      $     hessian_h_bohr2, errmsg, ok)
       implicit none
@@ -242,6 +247,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer has_cell
       integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
+      integer scf_has_options, scf_maxiter
       double precision pos_ang(*)
       double precision cell_ang(*)
       integer atmnrs(*)
@@ -253,6 +259,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*16 psp_elements(*)
       character*256 psp_names(*)
       double precision dft_smear_sigma
+      double precision scf_thresh, scf_tol2e
       double precision hessian_h_bohr2(*)
       character*(*) errmsg
       integer n3, i, j
@@ -301,7 +308,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, status)
+     $     dft_smear_spinset, scf_has_options, scf_maxiter,
+     $     scf_thresh, scf_tol2e, status)
       if (.not. status) then
          errmsg = 'method RTDB setup failed'
          return
@@ -349,15 +357,18 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 
       subroutine nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, ok)
+     $     dft_smear_spinset, scf_has_options, scf_maxiter,
+     $     scf_thresh, scf_tol2e, ok)
       implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
       integer rtdb, charge, mult
       integer dft_direct, dft_smear_on, dft_smear_spinset
+      integer scf_has_options, scf_maxiter
       character*64 theory_name
       character*64 scf_type
       double precision dft_smear_sigma
+      double precision scf_thresh, scf_tol2e
       logical ok
       logical status, lval
       integer nopen, ival
@@ -400,11 +411,45 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             status = rtdb_put(rtdb, 'dft:spinset', mt_log, 1, lval)
             ok = ok .and. status
          endif
+         if (scf_has_options .ne. 0) then
+            if (scf_maxiter .gt. 0) then
+               call nwchemc_rtdb_put_int(rtdb, 'dft:iterations',
+     $            scf_maxiter, status)
+               ok = ok .and. status
+            endif
+            if (scf_thresh .gt. 0.0d0) then
+               call nwchemc_rtdb_put_dbl(rtdb, 'scf:thresh',
+     $            scf_thresh, status)
+               ok = ok .and. status
+            endif
+            if (scf_tol2e .gt. 0.0d0) then
+               call nwchemc_rtdb_put_dbl(rtdb, 'dft:tol2e',
+     $            scf_tol2e, status)
+               ok = ok .and. status
+            endif
+         endif
       else
          status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
          ok = ok .and. status
+         if (scf_has_options .ne. 0) then
+            if (scf_maxiter .gt. 0) then
+               call nwchemc_rtdb_put_int(rtdb, 'scf:maxiter',
+     $            scf_maxiter, status)
+               ok = ok .and. status
+            endif
+            if (scf_thresh .gt. 0.0d0) then
+               call nwchemc_rtdb_put_dbl(rtdb, 'scf:thresh',
+     $            scf_thresh, status)
+               ok = ok .and. status
+            endif
+            if (scf_tol2e .gt. 0.0d0) then
+               call nwchemc_rtdb_put_dbl(rtdb, 'scf:tol2e',
+     $            scf_tol2e, status)
+               ok = ok .and. status
+            endif
+         endif
       endif
       return
       end

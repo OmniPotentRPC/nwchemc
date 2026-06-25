@@ -25,6 +25,8 @@ extern int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
                                         int smearing_enabled,
                                         double smear_sigma_hartree,
                                         int smearing_spinset);
+extern int nwchemc_embed_set_scf_direct(int has_options, int maxiter,
+                                        double thresh, double tol2e);
 extern int nwchemc_embed_set_pseudopotentials(const char *elements,
                                               const int *library_types,
                                               const char *library_names,
@@ -163,6 +165,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                         &dft_smear_on, &dft_smear_sigma,
                                         &dft_smear_spinset) != 0)
     return -1;
+  int scf_has_options = 0;
+  int scf_maxiter = 0;
+  double scf_thresh = 0.0;
+  double scf_tol2e = 0.0;
+  if (nwchemc_params_extract_direct_scf(params_root, &scf_has_options,
+                                        &scf_maxiter, &scf_thresh,
+                                        &scf_tol2e) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -203,6 +213,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_embed_set_pseudopotentials(
           packed_psp_elements, psp_types, packed_psp_names, (int)psp_count) !=
       0)
+    return -1;
+  if (nwchemc_embed_set_scf_direct(scf_has_options, scf_maxiter, scf_thresh,
+                                   scf_tol2e) != 0)
     return -1;
   return nwchemc_embed_set_dft_direct(
       dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,

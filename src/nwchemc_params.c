@@ -603,7 +603,7 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
 }
 
 static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
-                             size_t dst_size) {
+                             size_t dst_size, int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
     return 0;
 
@@ -611,6 +611,15 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
   char block[4096];
   block[0] = '\0';
   read_NWChemScfStanza(&scf, ptr);
+  int has_directives = directives_have_keywords(scf.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_promoted = scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0;
+  int has_remaining = scf.vectorsInput.len > 0 || scf.vectorsOutput.len > 0 ||
+                      scf.noprint || has_directives ||
+                      (include_direct_promoted && has_promoted);
+  if (!has_remaining)
+    return 0;
   if (append_format(block, sizeof(block), "scf\n") != 0)
     return -1;
   if (scf.vectorsInput.len > 0) {
@@ -625,13 +634,13 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
-  if (scf.maxiter > 0 &&
+  if (include_direct_promoted && scf.maxiter > 0 &&
       append_format(block, sizeof(block), "  maxiter %d\n", scf.maxiter) != 0)
     return -1;
-  if (scf.thresh > 0.0 &&
+  if (include_direct_promoted && scf.thresh > 0.0 &&
       append_format(block, sizeof(block), "  thresh %.12g\n", scf.thresh) != 0)
     return -1;
-  if (scf.tol2e > 0.0 &&
+  if (include_direct_promoted && scf.tol2e > 0.0 &&
       append_format(block, sizeof(block), "  tol2e %.12g\n", scf.tol2e) != 0)
     return -1;
   if (scf.noprint && append_format(block, sizeof(block), "  noprint\n") != 0)
@@ -798,6 +807,7 @@ static int render_geometry_stanza(NWChemGeometryStanza_ptr ptr, char *dst,
 static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 size_t dst_size,
                                 int include_direct_promoted_dft,
+                                int include_direct_promoted_scf,
                                 int include_direct_pseudopotentials) {
   int n = struct_list_len(&stanzas.p);
   if (n < 0)
@@ -831,7 +841,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
         return -1;
       break;
     case NWChemInputStanza_Kind_scf:
-      if (render_scf_stanza(stanza.scf, dst, dst_size) != 0)
+      if (render_scf_stanza(stanza.scf, dst, dst_size,
+                            include_direct_promoted_scf) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_task:
@@ -884,7 +895,7 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -896,7 +907,7 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -945,6 +956,50 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
       }
     }
   }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
+                                      int *maxiter, double *thresh,
+                                      double *tol2e) {
+  if (params.p.type == CAPN_NULL || !has_options || !maxiter || !thresh ||
+      !tol2e)
+    return -1;
+
+  *has_options = 0;
+  *maxiter = 0;
+  *thresh = 0.0;
+  *tol2e = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_scf ||
+        stanza.scf.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemScfStanza scf;
+    read_NWChemScfStanza(&scf, stanza.scf);
+    if (scf.maxiter > 0) {
+      *has_options = 1;
+      *maxiter = scf.maxiter;
+    }
+    if (scf.thresh > 0.0) {
+      *has_options = 1;
+      *thresh = scf.thresh;
+    }
+    if (scf.tol2e > 0.0) {
+      *has_options = 1;
+      *tol2e = scf.tol2e;
+    }
+  }
+
   return 0;
 }
 
