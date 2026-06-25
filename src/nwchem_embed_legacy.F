@@ -103,35 +103,8 @@ C     RTDB in permanent/scratch via util_file_name (needs dirs above).
       return
       end
 
-      subroutine nwchem_legacy_set_config(rtdb, basis, theory,
-     $     scf_type, charge, mult, ok)
-      implicit none
-#include "mafdecls.fh"
-#include "rtdb.fh"
-      integer rtdb, charge, mult, ok
-      character*(*) basis, theory, scf_type
-      logical status
-      double precision chg
-      ok = -1
-      if (rtdb .lt. 0) return
-      status = rtdb_cput(rtdb, 'task:theory', 1, theory)
-      status = rtdb_cput(rtdb, 'basis:name', 1, basis)
-      if (theory(1:3) .eq. 'dft') then
-         status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
-         call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
-      else
-         status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
-      endif
-      chg = dble(charge)
-      call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
-      call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
-      ok = 0
-      return
-      end
-
-C     Direct embed: build geom+basis via NWChem embed API nw_inp_from_character
-C     (same path as NWChemWrap/geninterface; internal util_file_name temp only),
-C     then task_energy/gradient. No user-facing .nw files; coords from C ABI.
+C     Direct embed: numeric geometry and library basis are stored through
+C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang,
      $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
      $     charge, mult, energy_h, grad_h_bohr, errmsg, ok)
@@ -152,16 +125,13 @@ C     then task_energy/gradient. No user-facing .nw files; coords from C ABI.
       double precision energy_h
       double precision grad_h_bohr(*)
       character*(*) errmsg
-      integer iat, n3, i, ipos, lb
+      integer n3, i
       integer l_grad, k_grad
       integer maxat
       parameter (maxat = 64)
       logical status
       double precision chg
-      character*16 tag
       character*16 vectors_in
-      character*8192 blk
-      character*128 line
       external task_energy, task_gradient
       logical task_energy, task_gradient
       external nw_inp_from_character
@@ -179,43 +149,12 @@ C     then task_energy/gradient. No user-facing .nw files; coords from C ABI.
          return
       endif
 
-C     Geometry (Angstrom from C) + library basis - one embed directive block.
-C     Proven to yield finite SCF; thin geom_cent_set path leaves incomplete
-C     symmetry/mass/autoz state and NaN integrals.
-      blk = 'geometry units angstrom' // char(10)
-      ipos = inp_strlen(blk) + 1
-      do iat = 1, n_atoms
-         call nwchemc_z_to_elem(atmnrs(iat), tag)
-         write (line, '(1x,a2,1x,3f20.12)') tag(1:2),
-     $        pos_ang(3 * (iat - 1) + 1),
-     $        pos_ang(3 * (iat - 1) + 2),
-     $        pos_ang(3 * (iat - 1) + 3)
-         lb = inp_strlen(line)
-         if (ipos + lb + 1 .gt. len(blk)) then
-            errmsg = 'embed directive block overflow'
-            return
-         endif
-         blk(ipos:ipos + lb - 1) = line(1:lb)
-         ipos = ipos + lb
-         blk(ipos:ipos) = char(10)
-         ipos = ipos + 1
-      enddo
-      blk(ipos:ipos + 3) = 'end' // char(10)
-      ipos = ipos + 4
-      write (line, '(''basis; * library '',a,'' ; end'')')
-     $     basis_name(1:inp_strlen(basis_name))
-      lb = inp_strlen(line)
-      if (ipos + lb + 1 .gt. len(blk)) then
-         errmsg = 'embed directive block overflow (basis)'
-         return
-      endif
-      blk(ipos:ipos + lb - 1) = line(1:lb)
-      ipos = ipos + lb
-      blk(ipos:ipos) = char(10)
-      if (.not. nw_inp_from_character(rtdb, blk(1:ipos))) then
-         errmsg = 'nw_inp_from_character geom/basis failed'
-         return
-      endif
+      call nwchemc_store_geometry(rtdb, n_atoms, pos_ang, atmnrs,
+     $     errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, errmsg, status)
+      if (.not. status) return
       if (inp_strlen(input_blocks) .gt. 0) then
          if (.not. nw_inp_from_character(rtdb,
      $        input_blocks(1:inp_strlen(input_blocks)))) then
@@ -297,15 +236,12 @@ C     symmetry/mass/autoz state and NaN integrals.
       character*4096 input_blocks
       double precision hessian_h_bohr2(*)
       character*(*) errmsg
-      integer iat, n3, i, j, ipos, lb
+      integer n3, i, j
       integer maxat, idxij, idxji
       parameter (maxat = 64)
       logical status
       double precision chg, hval
-      character*16 tag
       character*16 vectors_in
-      character*8192 blk
-      character*128 line
       character*255 filehess
       external task_hessian, util_file_name
       logical task_hessian
@@ -328,40 +264,12 @@ C     symmetry/mass/autoz state and NaN integrals.
          hessian_h_bohr2(i) = 0.0d0
       enddo
 
-      blk = 'geometry units angstrom' // char(10)
-      ipos = inp_strlen(blk) + 1
-      do iat = 1, n_atoms
-         call nwchemc_z_to_elem(atmnrs(iat), tag)
-         write (line, '(1x,a2,1x,3f20.12)') tag(1:2),
-     $        pos_ang(3 * (iat - 1) + 1),
-     $        pos_ang(3 * (iat - 1) + 2),
-     $        pos_ang(3 * (iat - 1) + 3)
-         lb = inp_strlen(line)
-         if (ipos + lb + 1 .gt. len(blk)) then
-            errmsg = 'embed directive block overflow'
-            return
-         endif
-         blk(ipos:ipos + lb - 1) = line(1:lb)
-         ipos = ipos + lb
-         blk(ipos:ipos) = char(10)
-         ipos = ipos + 1
-      enddo
-      blk(ipos:ipos + 3) = 'end' // char(10)
-      ipos = ipos + 4
-      write (line, '(''basis; * library '',a,'' ; end'')')
-     $     basis_name(1:inp_strlen(basis_name))
-      lb = inp_strlen(line)
-      if (ipos + lb + 1 .gt. len(blk)) then
-         errmsg = 'embed directive block overflow (basis)'
-         return
-      endif
-      blk(ipos:ipos + lb - 1) = line(1:lb)
-      ipos = ipos + lb
-      blk(ipos:ipos) = char(10)
-      if (.not. nw_inp_from_character(rtdb, blk(1:ipos))) then
-         errmsg = 'nw_inp_from_character geom/basis failed'
-         return
-      endif
+      call nwchemc_store_geometry(rtdb, n_atoms, pos_ang, atmnrs,
+     $     errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, errmsg, status)
+      if (.not. status) return
       if (inp_strlen(input_blocks) .gt. 0) then
          if (.not. nw_inp_from_character(rtdb,
      $        input_blocks(1:inp_strlen(input_blocks)))) then
@@ -419,6 +327,183 @@ C     symmetry/mass/autoz state and NaN integrals.
  920  continue
       close(unit=69, status='keep')
       errmsg = 'unexpected EOF reading hessian file'
+      return
+      end
+
+      subroutine nwchemc_store_geometry(rtdb, n_atoms, pos_ang,
+     $     atmnrs, errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+#include "stdio.fh"
+      integer rtdb, n_atoms
+      double precision pos_ang(*)
+      integer atmnrs(*)
+      character*(*) errmsg
+      logical ok
+      integer iat, geom, maxat
+      parameter (maxat = 64)
+      double precision coords(3,maxat)
+      double precision charge(maxat)
+      double precision mass(maxat)
+      double precision scale
+      character*16 tags(maxat)
+      logical status
+      external geom_create, geom_destroy, geom_set_user_units
+      external geom_get_user_scale, geom_cart_set, geom_masses_set
+      external geom_rtdb_store, geom_atn_to_default_mass
+      logical geom_create, geom_destroy, geom_set_user_units
+      logical geom_get_user_scale, geom_cart_set, geom_masses_set
+      logical geom_rtdb_store, geom_atn_to_default_mass
+
+      ok = .false.
+      if (n_atoms .le. 0 .or. n_atoms .gt. maxat) then
+         errmsg = 'invalid geometry atom count'
+         return
+      endif
+      if (.not. geom_create(geom, 'geometry')) then
+         errmsg = 'geom_create failed'
+         return
+      endif
+      if (.not. geom_set_user_units(geom, 'angstroms')) then
+         errmsg = 'geom_set_user_units failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      if (.not. geom_get_user_scale(geom, scale)) then
+         errmsg = 'geom_get_user_scale failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      do iat = 1, n_atoms
+         call nwchemc_z_to_elem(atmnrs(iat), tags(iat))
+         coords(1,iat) = pos_ang(3 * (iat - 1) + 1) * scale
+         coords(2,iat) = pos_ang(3 * (iat - 1) + 2) * scale
+         coords(3,iat) = pos_ang(3 * (iat - 1) + 3) * scale
+         charge(iat) = dble(atmnrs(iat))
+         if (.not. geom_atn_to_default_mass(atmnrs(iat), mass(iat)))
+     $      mass(iat) = 0.0d0
+      enddo
+      if (.not. geom_cart_set(geom, n_atoms, tags, coords, charge)) then
+         errmsg = 'geom_cart_set failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      if (.not. geom_masses_set(geom, n_atoms, mass)) then
+         errmsg = 'geom_masses_set failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      call geom_compute_values(geom)
+      if (.not. geom_rtdb_store(rtdb, geom, 'geometry')) then
+         errmsg = 'geom_rtdb_store failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      if (.not. geom_destroy(geom)) then
+         errmsg = 'geom_destroy failed'
+         return
+      endif
+      ok = .true.
+      return
+      end
+
+      subroutine nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+#include "stdio.fh"
+#include "baslibraryP.fh"
+#include "inp.fh"
+      integer rtdb, n_atoms
+      integer atmnrs(*)
+      character*(*) basis_name
+      character*(*) errmsg
+      logical ok
+      integer iat, j, nlib, ntags, basis, maxat
+      parameter (maxat = 64)
+      character*16 tags(maxat)
+      character*16 tag
+      character*255 mydir
+      character*255 standard
+      character*255 filename
+      logical seen
+      logical status
+      logical osegment, oshell_is_rel, read_sphere
+      external bas_create, bas_tag_lib, bas_rtdb_store
+      external bas_do_destroy, bas_set_library_name
+      external bas_add_ucnt_init, bas_add_ucnt_tidy
+      external bas_set_spherical, bas_set_upcase
+      logical bas_create, bas_rtdb_store, bas_do_destroy
+      logical bas_add_ucnt_init, bas_add_ucnt_tidy
+      logical bas_set_spherical, bas_set_upcase
+
+      ok = .false.
+      if (n_atoms .le. 0 .or. n_atoms .gt. maxat) then
+         errmsg = 'invalid basis atom count'
+         return
+      endif
+      mydir = ' '
+      call bas_set_library_name(mydir)
+      if (.not. bas_create(basis, 'ao basis')) then
+         errmsg = 'bas_create failed'
+         return
+      endif
+      if (.not. bas_add_ucnt_init(basis)) then
+         errmsg = 'bas_add_ucnt_init failed'
+         status = bas_do_destroy(basis)
+         return
+      endif
+      if (.not. bas_set_spherical(basis, .false.)) then
+         errmsg = 'bas_set_spherical failed'
+         status = bas_do_destroy(basis)
+         return
+      endif
+      if (.not. bas_set_upcase(basis, .false.)) then
+         errmsg = 'bas_set_upcase failed'
+         status = bas_do_destroy(basis)
+         return
+      endif
+      ntags = 0
+      osegment = .true.
+      oshell_is_rel = .false.
+      read_sphere = .false.
+      nlib = inp_strlen(user_library_name)
+      if (nlib .ge. 15) then
+         if (user_library_name(nlib - 14:nlib) .eq.
+     $      '/libraries.bse/') read_sphere = .true.
+      endif
+      do iat = 1, n_atoms
+         call nwchemc_z_to_elem(atmnrs(iat), tag)
+         seen = .false.
+         do j = 1, ntags
+            if (tags(j) .eq. tag) seen = .true.
+         enddo
+         if (.not. seen) then
+            ntags = ntags + 1
+            tags(ntags) = tag
+            standard = basis_name
+            filename = user_library_name
+            call bas_tag_lib(basis, osegment, tag, tag, standard,
+     $           filename, oshell_is_rel, read_sphere)
+         endif
+      enddo
+      if (.not. bas_rtdb_store(rtdb, 'ao basis', basis)) then
+         errmsg = 'bas_rtdb_store failed'
+         status = bas_do_destroy(basis)
+         return
+      endif
+      if (.not. bas_add_ucnt_tidy(basis)) then
+         errmsg = 'bas_add_ucnt_tidy failed'
+         status = bas_do_destroy(basis)
+         return
+      endif
+      if (.not. bas_do_destroy(basis)) then
+         errmsg = 'bas_do_destroy failed'
+         return
+      endif
+      ok = .true.
       return
       end
 

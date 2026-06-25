@@ -15,7 +15,8 @@
 - ~src/nwchem_embed_c_api.f90~ owns the ISO C binding layer and saved NWChem
   runtime configuration.
 - ~src/nwchem_embed_legacy.F~ calls the fixed-form NWChem routines that set up
-  RTDB, geometry, basis, gradients, and Hessians.
+  RTDB, store numeric geometry and library basis records, and evaluate
+  gradients and Hessians.
 
 * Parameter Flow
 The ABI receives a byte pointer and byte count.
@@ -26,6 +27,10 @@ used only as short-lived C views while the arena is alive.
 There is no persistent copy of the Cap'n Proto parameter tree in the C runtime.
 The embed bridge stores the small Fortran strings and scalar values it needs to
 evaluate later calls.
+Coordinates, atomic numbers, charge, multiplicity, method, task state, and the
+selected library basis are written through NWChem RTDB-facing APIs.
+NWChem input parsing is reserved for caller-provided free-form stanzas whose
+grammar is intentionally upstream NWChem input text.
 
 * MPI And Finalization
 The embed layer records whether it owns the MPI/GA runtime.

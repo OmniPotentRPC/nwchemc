@@ -10,8 +10,8 @@
 
 module nwchem_embed_c_api
   use, intrinsic :: iso_c_binding, only: &
-      c_char, c_double, c_int, c_null_char, c_ptr, c_f_pointer
-  use, intrinsic :: iso_fortran_env, only: error_unit, int32, real64
+      c_char, c_double, c_int, c_null_char
+  use, intrinsic :: iso_fortran_env, only: real64
   implicit none
   private
 
@@ -36,6 +36,7 @@ module nwchem_embed_c_api
   character(len=4096), save :: cfg_input_blocks = ' '
   integer, save :: cfg_charge = 0
   integer, save :: cfg_mult = 1
+  integer, parameter :: max_embed_atoms = 64
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
@@ -51,26 +52,19 @@ module nwchem_embed_c_api
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_finalize
 
-    subroutine nwchem_legacy_set_config(rtdb, basis, theory, scf_type, &
-        charge, mult, ok)
-      integer, intent(in) :: rtdb
-      character(len=*), intent(in) :: basis, theory, scf_type
-      integer, intent(in) :: charge, mult
-      integer, intent(out) :: ok
-    end subroutine nwchem_legacy_set_config
-
     subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang, atmnrs, &
         basis_name, theory_name, scf_type, input_blocks, charge, mult, &
         energy_h, grad_h_bohr, errmsg, ok)
+      import :: real64
       integer, intent(in) :: rtdb, n_atoms
-      real(kind=8), intent(in) :: pos_ang(*)
+      real(real64), intent(in) :: pos_ang(*)
       integer, intent(in) :: atmnrs(*)
       character(len=64), intent(in) :: basis_name
       character(len=64), intent(in) :: theory_name, scf_type
       character(len=4096), intent(in) :: input_blocks
       integer, intent(in) :: charge, mult
-      real(kind=8), intent(out) :: energy_h
-      real(kind=8), intent(out) :: grad_h_bohr(*)
+      real(real64), intent(out) :: energy_h
+      real(real64), intent(out) :: grad_h_bohr(*)
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_energy_grad
@@ -78,14 +72,15 @@ module nwchem_embed_c_api
     subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang, atmnrs, &
         basis_name, theory_name, scf_type, input_blocks, charge, mult, &
         hessian_h_bohr2, errmsg, ok)
+      import :: real64
       integer, intent(in) :: rtdb, n_atoms
-      real(kind=8), intent(in) :: pos_ang(*)
+      real(real64), intent(in) :: pos_ang(*)
       integer, intent(in) :: atmnrs(*)
       character(len=64), intent(in) :: basis_name
       character(len=64), intent(in) :: theory_name, scf_type
       character(len=4096), intent(in) :: input_blocks
       integer, intent(in) :: charge, mult
-      real(kind=8), intent(out) :: hessian_h_bohr2(*)
+      real(real64), intent(out) :: hessian_h_bohr2(*)
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_hessian
@@ -152,7 +147,6 @@ contains
     character(kind=c_char), intent(in) :: input_blocks(*)
     integer(c_int), intent(in), value :: input_len
     integer(c_int) :: rc
-    integer :: ok
     character(len=64) :: bstr, tstr, sstr
     character(len=4096) :: iblocks
 
@@ -182,10 +176,7 @@ contains
     cfg_charge = int(charge)
     cfg_mult = max(1, int(mult))
 
-    call nwchem_legacy_set_config(rtdb_handle, trim(cfg_basis), &
-        trim(cfg_theory), trim(cfg_scf), cfg_charge, cfg_mult, ok)
-    ! Best-effort: energy_grad rebuilds geometry; do not fail the C path on
-    ! partial rtdb_put failures (legacy NWChem can be finicky on empty RTDB).
+    ! Evaluation calls write method state after numeric geometry setup.
     rc = 0_c_int
   end function nwchemc_embed_set_config
 
@@ -221,6 +212,10 @@ contains
     n = int(n_atoms)
     if (n <= 0) then
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
+      return
+    end if
+    if (n > max_embed_atoms) then
+      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
       return
     end if
 
@@ -275,6 +270,10 @@ contains
     n = int(n_atoms)
     if (n <= 0) then
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
+      return
+    end if
+    if (n > max_embed_atoms) then
+      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
       return
     end if
 
@@ -333,6 +332,7 @@ contains
     integer(c_int), intent(in) :: errmsg_len
     character(len=*), intent(in) :: msg
     integer :: i, n, m
+    if (errmsg_len <= 0_c_int) return
     call clear_c_errmsg(errmsg, errmsg_len)
     n = max(0, int(errmsg_len) - 1)
     m = min(len_trim(msg), n)
