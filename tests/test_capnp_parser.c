@@ -93,6 +93,49 @@ static void test_parser_renders_structured_input(void **state) {
   free(message);
 }
 
+static void test_parser_extracts_direct_dft_options(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  capn_text xc = {0};
+  int direct_enabled = 0;
+  int smearing_enabled = 0;
+  double smear_sigma_hartree = 0.0;
+  int smearing_spinset = 0;
+  assert_int_equal(nwchemc_params_extract_direct_dft(
+                       params_root, &xc, &direct_enabled, &smearing_enabled,
+                       &smear_sigma_hartree, &smearing_spinset),
+                   0);
+  assert_true(text_equals(xc, "pbe0"));
+  assert_int_equal(direct_enabled, 1);
+  assert_int_equal(smearing_enabled, 1);
+  assert_true(smear_sigma_hartree > 0.000999);
+  assert_true(smear_sigma_hartree < 0.001001);
+  assert_int_equal(smearing_spinset, 1);
+
+  char input_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, input_blocks, sizeof(input_blocks)),
+                   0);
+  assert_null(strstr(input_blocks, "smear 0.001"));
+  assert_null(strstr(input_blocks, "xc pbe0"));
+  assert_null(strstr(input_blocks, "  direct"));
+  assert_non_null(strstr(input_blocks, "dft"));
+  assert_non_null(strstr(input_blocks, "iterations 40"));
+  assert_non_null(strstr(input_blocks, "set int:acc_std 1e-8"));
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc != 2) {
     fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
@@ -101,6 +144,7 @@ int main(int argc, char **argv) {
   g_params_path = argv[1];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
+      cmocka_unit_test(test_parser_extracts_direct_dft_options),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }
