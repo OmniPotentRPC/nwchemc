@@ -128,13 +128,14 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_energy_gradient", "include/nwchemc.h::nwchemc_session_energy_gradient", "stub=fails ok==0; embed=runs session energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy", "include/nwchemc.h::nwchemc_session_energy", "stub=fails ok==0; embed=runs session energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy_forces", "include/nwchemc.h::nwchemc_session_energy_forces", "stub=fails ok==0; embed=runs session energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_forces", "include/nwchemc.h::nwchemc_session_calculate_forces", "stub=fails ok==0; embed=runs session ForceInput energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_hessian", "include/nwchemc.h::nwchemc_session_hessian", "stub=fails ok==0; embed=runs session Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_available", "include/nwchemc.h::nwchemc_available", "stub=returns 0; embed=returns 1", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_version", "include/nwchemc.h::nwchemc_version", "stub=contains stub; embed=library version", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 129;
+static const size_t k_feature_count = 130;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

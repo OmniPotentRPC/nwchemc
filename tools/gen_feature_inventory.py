@@ -208,6 +208,11 @@ def main() -> int:
                 "embed": "runs session energy/forces",
             },
             {
+                "name": "nwchemc_session_calculate_forces",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput energy/forces",
+            },
+            {
                 "name": "nwchemc_session_hessian",
                 "stub": "fails ok==0",
                 "embed": "runs session Cartesian Hessian",
