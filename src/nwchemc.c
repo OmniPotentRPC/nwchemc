@@ -18,6 +18,11 @@ extern int nwchemc_embed_set_config(const char *basis, int basis_len,
                                     const int *charge, const int *mult,
                                     const char *input_blocks,
                                     int input_blocks_len);
+extern int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
+                                        int direct_enabled,
+                                        int smearing_enabled,
+                                        double smear_sigma_hartree,
+                                        int smearing_spinset);
 extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers,
@@ -82,17 +87,39 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   char input_blocks[NWCHEMC_BLOCKS];
   const char *scf_type = NULL;
   const char *theory = selected_theory(params, &scf_type);
-  if (nwchemc_params_render_input_blocks(params_root, input_blocks,
-                                         sizeof(input_blocks)) != 0)
+  /* Embed path: strip promoted DFT fields from text; apply via RTDB/direct API. */
+  if (nwchemc_params_render_embed_input_blocks(params_root, input_blocks,
+                                               sizeof(input_blocks)) != 0)
     return -1;
+
+  capn_text dft_xc = {0};
+  int dft_direct = 0;
+  int dft_smear_on = 0;
+  double dft_smear_sigma = 0.0;
+  int dft_smear_spinset = 1;
+  if (nwchemc_params_extract_direct_dft(params_root, &dft_xc, &dft_direct,
+                                        &dft_smear_on, &dft_smear_sigma,
+                                        &dft_smear_spinset) != 0)
+    return -1;
+  if (dft_xc.len > 0 && dft_xc.str) {
+    scf_type = dft_xc.str;
+    if (strncmp(theory, "dft", 3) != 0 && strncmp(theory, "blyp", 4) != 0 &&
+        strncmp(theory, "b3lyp", 5) != 0 && strncmp(theory, "pbe", 3) != 0)
+      theory = "dft";
+  }
+
   apply_env_hints(params);
   ensure_init();
   int ch = params->charge;
   int mult = params->multiplicity > 0 ? params->multiplicity : 1;
   const char *basis = nwchemc_params_text_or(params->basis, "sto-3g");
-  return nwchemc_embed_set_config(
-      basis, cstr_len(basis), theory, cstr_len(theory), scf_type,
-      cstr_len(scf_type), &ch, &mult, input_blocks, cstr_len(input_blocks));
+  if (nwchemc_embed_set_config(basis, cstr_len(basis), theory, cstr_len(theory),
+                               scf_type, cstr_len(scf_type), &ch, &mult,
+                               input_blocks, cstr_len(input_blocks)) != 0)
+    return -1;
+  return nwchemc_embed_set_dft_direct(
+      dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,
+      dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset);
 }
 
 int nwchemc_set_params(const void *params_capnp,
@@ -160,6 +187,30 @@ NWChemCResult nwchemc_energy_gradient(
   r.ok = 1;
   r.energy_h = eh;
   snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
+NWChemCResult nwchemc_energy(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes) {
+  /* Energy-only public ABI; uses gradient path internally, discards grad. */
+  double *scratch = NULL;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (n_atoms <= 0 || !positions_ang || !atomic_numbers) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  scratch = (double *)calloc((size_t)n_atoms * 3u, sizeof(double));
+  if (!scratch) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  r = nwchemc_energy_gradient(n_atoms, positions_ang, atomic_numbers,
+                              params_capnp, params_capnp_size_bytes, scratch);
+  free(scratch);
   return r;
 }
 
@@ -260,6 +311,21 @@ NWChemCResult nwchemc_energy_gradient(
   (void)params_capnp;
   (void)params_capnp_size_bytes;
   (void)grad_h_bohr;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
+  return r;
+}
+
+NWChemCResult nwchemc_energy(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;

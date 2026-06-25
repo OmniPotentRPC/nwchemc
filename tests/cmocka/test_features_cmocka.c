@@ -71,7 +71,7 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 12);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)abis, 7);
+  assert_int_equal((int)abis, 8);
   assert_int_equal((int)(mods + stanzas + fields + abis),
                    (int)nwchemc_feature_count());
 }
@@ -117,6 +117,7 @@ static void test_abi_entrypoints_interned(void **state) {
   static const char *ids[] = {
       "abi.nwchemc_set_params",
       "abi.nwchemc_energy_gradient",
+      "abi.nwchemc_energy",
       "abi.nwchemc_energy_forces",
       "abi.nwchemc_hessian",
       "abi.nwchemc_available",

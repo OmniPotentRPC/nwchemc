@@ -55,6 +55,17 @@ NWChemCResult nwchemc_energy_gradient(
     double *grad_h_bohr);
 
 /**
+ * @brief Compute total energy only (no gradient/forces allocation).
+ *
+ * Same configuration carrier as gradient/hessian entry points. Prefer this
+ * when callers only need the scalar energy for sampling or acceptance tests.
+ */
+NWChemCResult nwchemc_energy(int n_atoms, const double *positions_ang,
+                             const int *atomic_numbers,
+                             const void *params_capnp,
+                             size_t params_capnp_size_bytes);
+
+/**
  * @brief Compute energy and nuclear forces for an atomic configuration.
  *
  * Forces are the negative of the Cartesian nuclear gradient (Hartree/Bohr).

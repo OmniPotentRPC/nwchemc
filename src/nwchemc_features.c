@@ -119,6 +119,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"params.inputStanzas", "NWChemParams.inputStanzas", "Structured input stanzas", NWCHEMC_FEATURE_PARAMS_FIELD, 13, 1, 1},
     {"abi.nwchemc_set_params", "include/nwchemc.h::nwchemc_set_params", "stub=fails non-zero; embed=applies Cap'n Proto params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy_gradient", "include/nwchemc.h::nwchemc_energy_gradient", "stub=fails ok==0; embed=runs energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_energy", "include/nwchemc.h::nwchemc_energy", "stub=fails ok==0; embed=runs energy-only (no grad output)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy_forces", "include/nwchemc.h::nwchemc_energy_forces", "stub=fails ok==0; embed=runs energy/forces (negated gradient)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_hessian", "include/nwchemc.h::nwchemc_hessian", "stub=fails ok==0; embed=runs Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_available", "include/nwchemc.h::nwchemc_available", "stub=returns 0; embed=returns 1", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -126,7 +127,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 121;
+static const size_t k_feature_count = 122;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

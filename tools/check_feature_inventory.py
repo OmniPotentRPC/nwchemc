@@ -71,6 +71,7 @@ def main() -> int:
     for abi in (
         "nwchemc_set_params",
         "nwchemc_energy_gradient",
+        "nwchemc_energy",
         "nwchemc_energy_forces",
         "nwchemc_hessian",
         "nwchemc_available",

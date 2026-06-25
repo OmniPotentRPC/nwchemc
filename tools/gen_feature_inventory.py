@@ -163,6 +163,11 @@ def main() -> int:
                 "embed": "runs energy/gradient",
             },
             {
+                "name": "nwchemc_energy",
+                "stub": "fails ok==0",
+                "embed": "runs energy-only (no grad output)",
+            },
+            {
                 "name": "nwchemc_energy_forces",
                 "stub": "fails ok==0",
                 "embed": "runs energy/forces (negated gradient)",

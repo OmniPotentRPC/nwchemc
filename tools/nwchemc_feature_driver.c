@@ -60,7 +60,7 @@ static int run_inventory(void) {
   printf("nwchemc_feature_driver inventory\n");
   printf("  total=%zu modules=%zu stanzas=%zu params_fields=%zu abi=%zu\n",
          total, mods, stanzas, fields, abis);
-  if (mods < 88 || stanzas < 12 || fields < 14 || abis < 7) {
+  if (mods < 88 || stanzas < 12 || fields < 14 || abis < 8) {
     fprintf(stderr, "inventory counts below expected floor\n");
     return 1;
   }
@@ -90,16 +90,17 @@ static int run_stub_abi(void) {
     fprintf(stderr, "set_params should fail on stub\n");
     return 1;
   }
+  NWChemCResult e = nwchemc_energy(0, NULL, NULL, NULL, 0);
   NWChemCResult g = nwchemc_energy_gradient(0, NULL, NULL, NULL, 0, NULL);
   NWChemCResult f = nwchemc_energy_forces(0, NULL, NULL, NULL, 0, NULL);
   NWChemCResult h = nwchemc_hessian(0, NULL, NULL, NULL, 0, NULL);
-  if (g.ok != 0 || f.ok != 0 || h.ok != 0) {
-    fprintf(stderr, "gradient/forces/hessian should fail on stub\n");
+  if (e.ok != 0 || g.ok != 0 || f.ok != 0 || h.ok != 0) {
+    fprintf(stderr, "energy/gradient/forces/hessian should fail on stub\n");
     return 1;
   }
   nwchemc_finalize();
-  printf("  stub ABI ok (grad_msg=%s forces_msg=%s hess_msg=%s)\n", g.message,
-         f.message, h.message);
+  printf("  stub ABI ok (energy_msg=%s grad_msg=%s forces_msg=%s hess_msg=%s)\n",
+         e.message, g.message, f.message, h.message);
   return 0;
 }
 

@@ -354,6 +354,29 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     DEPENDS "${NWCHEMC_PARSER_PARAMS_BIN}"
   )
 
+  set(NWCHEMC_DIRECT_DFT_PARAMS_BIN
+    "${CMAKE_CURRENT_BINARY_DIR}/nwchem_params_direct_dft.bin"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CAPNP_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "NWChemParams"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/nwchem_params_direct_dft.capnp.txt"
+      "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/nwchem_params_direct_dft.capnp.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+    VERBATIM
+  )
+  add_custom_target(nwchem_direct_dft_params_bin
+    DEPENDS "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
+  )
+
   add_executable(test_capnp_parser tests/test_capnp_parser.c)
   target_link_libraries(test_capnp_parser PRIVATE
     nwchemc_params
@@ -363,6 +386,25 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   add_dependencies(test_capnp_parser nwchem_parser_params_bin)
   add_test(NAME capnp-parser
     COMMAND test_capnp_parser "${NWCHEMC_PARSER_PARAMS_BIN}"
+  )
+
+  add_executable(test_embed_config_cmocka
+    tests/cmocka/test_embed_config_cmocka.c
+    src/nwchemc.c
+  )
+  target_link_libraries(test_embed_config_cmocka PRIVATE
+    nwchemc_params
+    PkgConfig::CMOCKA
+  )
+  target_compile_definitions(test_embed_config_cmocka PRIVATE
+    NWCHEMC_HAS_NWCHEM=1
+  )
+  target_compile_options(test_embed_config_cmocka PRIVATE
+    ${NWCHEMC_COMMON_C_WARNINGS}
+  )
+  add_dependencies(test_embed_config_cmocka nwchem_direct_dft_params_bin)
+  add_test(NAME embed-config-cmocka
+    COMMAND test_embed_config_cmocka "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
   )
 
   if(NWCHEMC_WITH_NWCHEM)

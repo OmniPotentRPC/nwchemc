@@ -1,0 +1,24 @@
+(
+  basis = "sto-3g",
+  theory = "dft",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "gradient",
+  inputBlocks = [
+    "set int:acc_std 1e-8"
+  ],
+  inputStanzas = [
+    (
+      kind = dft,
+      dft = (
+        direct = true,
+        xc = "pbe0",
+        smearing = (sigmaHartree = 0.001, mode = nofixsz),
+        directives = [
+          (keyword = "iterations", args = ["40"])
+        ]
+      )
+    )
+  ]
+)

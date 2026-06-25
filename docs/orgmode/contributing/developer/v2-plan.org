@@ -6,6 +6,7 @@
 directly. The public calculation entry points are:
 
 - ~nwchemc_set_params~
+- ~nwchemc_energy~
 - ~nwchemc_energy_gradient~
 - ~nwchemc_energy_forces~
 - ~nwchemc_hessian~
@@ -52,11 +53,22 @@ schema field, stanza kind, module enum value, and ABI entry point. The cmocka
 feature tests verify the generated inventory lookup table and ABI coverage.
 
 * Pickup Tasks
+** DONE (partial) Direct DFT promotion
+~nwchemc_params_extract_direct_dft~ pulls ~xc~, ~direct~, and smearing from the
+first ~NWChemDftStanza~. ~apply_config_to_embed~ uses
+~nwchemc_params_render_embed_input_blocks~ (omits promoted DFT text) and
+~nwchemc_embed_set_dft_direct~ to apply xc via ~cfg_scf~/~dft:xc~ and append
+~set dft:direct~ / ~set dft:smear*~ fragments. Parser test:
+~test_parser_extracts_direct_dft_options~ in ~tests/test_capnp_parser.c~.
+
+Remaining: migrate more scalars (task theory/operation overrides, SCF maxiter,
+driver maxiter) only where RTDB keys are confirmed; add embed regression that
+asserts direct path matches text-path energies when NWChem embed is available.
+
 ** Expand Direct RTDB Settings
-Move scalar options that have stable NWChem RTDB keys out of rendered text
-stanzas. Good candidates are charge, multiplicity, SCF type, DFT XC, task
-operation, task theory, Fermi smearing keys, convergence thresholds, and common
-driver controls.
+Move additional scalar options that have stable NWChem RTDB keys out of rendered
+text stanzas. Good remaining candidates are task operation/theory overrides
+beyond embed defaults, SCF convergence thresholds, and common driver controls.
 
 Each migrated option needs a cmocka parser test, a real NWChem test that proves
 the direct path still computes finite outputs, and a reference to the upstream

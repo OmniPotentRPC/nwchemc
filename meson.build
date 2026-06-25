@@ -230,6 +230,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_direct_dft_params_bin = custom_target(
+    'nwchem_direct_dft_params_bin',
+    input: 'tests/nwchem_params_direct_dft.capnp.txt',
+    output: 'nwchem_params_direct_dft.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   test(
     'feature-driver',
     executable(
@@ -291,6 +305,18 @@ if get_option('with_tests')
       c_args: common_c_args,
     ),
     args: [nwchem_parser_params_bin],
+  )
+  test(
+    'embed-config-cmocka',
+    executable(
+      'test_embed_config_cmocka',
+      ['tests/cmocka/test_embed_config_cmocka.c', 'src/nwchemc.c'] + nwchemc_params_sources,
+      include_directories: [inc] + nwchemc_params_includes,
+      dependencies: nwchemc_params_deps + [cmocka_dep],
+      c_args: common_c_args + ['-DNWCHEMC_HAS_NWCHEM=1'],
+    ),
+    args: [nwchem_direct_dft_params_bin],
+    suite: ['cmocka', 'parser'],
   )
   if has_nwchem
     test_scratch_dir = meson.current_build_dir() / 'nwchem-test-scratch'

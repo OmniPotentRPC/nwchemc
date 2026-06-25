@@ -19,6 +19,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_init
   public :: nwchemc_embed_available
   public :: nwchemc_embed_set_config
+  public :: nwchemc_embed_set_dft_direct
   public :: nwchemc_embed_energy_grad
   public :: nwchemc_embed_hessian
   public :: nwchemc_embed_finalize
@@ -36,6 +37,12 @@ module nwchem_embed_c_api
   character(len=4096), save :: cfg_input_blocks = ' '
   integer, save :: cfg_charge = 0
   integer, save :: cfg_mult = 1
+  ! Direct DFT knobs (Cap'n Proto stanza; applied via RTDB in legacy eval path).
+  character(len=64), save :: cfg_dft_xc = ' '
+  integer, save :: cfg_dft_direct = 0
+  integer, save :: cfg_dft_smear_on = 0
+  real(real64), save :: cfg_dft_smear_sigma = 0.0_real64
+  integer, save :: cfg_dft_smear_spinset = 1
   integer, parameter :: max_embed_atoms = 64
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
@@ -179,6 +186,58 @@ contains
     ! Evaluation calls write method state after numeric geometry setup.
     rc = 0_c_int
   end function nwchemc_embed_set_config
+
+  !> Store direct DFT options extracted from Cap'n Proto (xc/direct/smear).
+  !> Promoted xc overrides cfg_scf when non-empty; extra knobs are appended as
+  !> NWChem set/input fragments so the legacy eval path does not re-render them.
+  function nwchemc_embed_set_dft_direct(xc, xc_len, direct_enabled, &
+      smearing_enabled, smear_sigma_hartree, smearing_spinset) result(rc) &
+      bind(C, name='nwchemc_embed_set_dft_direct')
+    character(kind=c_char), intent(in) :: xc(*)
+    integer(c_int), intent(in), value :: xc_len
+    integer(c_int), intent(in), value :: direct_enabled
+    integer(c_int), intent(in), value :: smearing_enabled
+    real(c_double), intent(in), value :: smear_sigma_hartree
+    integer(c_int), intent(in), value :: smearing_spinset
+    integer(c_int) :: rc
+    character(len=64) :: xcstr
+    character(len=256) :: extra
+    character(len=32) :: sigma_txt
+
+    rc = 0_c_int
+    call c_chars_to_f(xc, xc_len, xcstr)
+    if (len_trim(xcstr) > 0) then
+      cfg_dft_xc = xcstr
+      cfg_scf = xcstr
+      if (cfg_theory(1:3) /= 'dft') cfg_theory = 'dft'
+    end if
+    cfg_dft_direct = int(direct_enabled)
+    cfg_dft_smear_on = int(smearing_enabled)
+    cfg_dft_smear_sigma = real(smear_sigma_hartree, real64)
+    cfg_dft_smear_spinset = int(smearing_spinset)
+
+    extra = ' '
+    if (cfg_dft_direct /= 0) then
+      extra = trim(extra) // new_line('a') // 'set dft:direct .true.'
+    end if
+    if (cfg_dft_smear_on /= 0 .and. cfg_dft_smear_sigma > 0.0_real64) then
+      write (sigma_txt, '(es16.8)') cfg_dft_smear_sigma
+      extra = trim(extra) // new_line('a') // 'set dft:smear ' // &
+          adjustl(trim(sigma_txt))
+      if (cfg_dft_smear_spinset == 0) then
+        extra = trim(extra) // new_line('a') // 'set dft:smear_fixsz .false.'
+      else
+        extra = trim(extra) // new_line('a') // 'set dft:smear_fixsz .true.'
+      end if
+    end if
+    if (len_trim(extra) > 0) then
+      if (len_trim(cfg_input_blocks) == 0) then
+        cfg_input_blocks = adjustl(trim(extra))
+      else
+        cfg_input_blocks = trim(cfg_input_blocks) // trim(extra)
+      end if
+    end if
+  end function nwchemc_embed_set_dft_direct
 
   !> Energy (Hartree) + nuclear gradient (Hartree/Bohr) for current config.
   function nwchemc_embed_energy_grad(n_atoms, positions_ang, &
