@@ -47,6 +47,14 @@ if has_nwchem
   ga_config = find_program(nwchem_root / 'src/tools/install/bin/ga-config')
   ga_ldflags = run_command(ga_config, '--ldflags', check: true).stdout().strip().split()
   ga_libs = run_command(ga_config, '--libs', check: true).stdout().strip().split()
+  mpi_libdirs = run_command(
+    python,
+    [
+      '-c',
+      'import pathlib; dirs = ["/usr/lib", "/usr/lib64", "/usr/local/lib"]; print(" ".join("-L" + d for d in dirs if any(pathlib.Path(d).glob("libmpi.so*"))))',
+    ],
+    check: true,
+  ).stdout().strip().split()
   nwchem_c_args = common_c_args + [
     '-DNWCHEMC_HAS_NWCHEM=1',
     '-DGFORTRAN=1',
@@ -82,7 +90,7 @@ if has_nwchem
     '-L' + nwchem_root + '/lib/' + nwchem_target,
     '-L' + nwchem_root + '/src/tools/install/lib',
     '-L' + nwchem_root + '/src/libext/lib',
-  ] + ga_ldflags + [
+  ] + ga_ldflags + mpi_libdirs + [
     '-Wl,--start-group',
     nwchem_root + '/src/stubs.o',
     '-lnwctask',
@@ -112,7 +120,7 @@ if has_nwchem
     )
     if nwchem_link_probe.returncode() != 0
       message(nwchem_link_probe.stderr().strip())
-      error('NWChem archives cannot link into libnwchemc.so; rebuild NWChem with position-independent code for ' + nwchem_target)
+      error('NWChem archives and link dependencies cannot form libnwchemc.so for ' + nwchem_target)
     endif
   endif
   nwchemc = shared_library(
