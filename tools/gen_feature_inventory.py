@@ -213,6 +213,11 @@ def main() -> int:
                 "embed": "runs session ForceInput energy/forces",
             },
             {
+                "name": "nwchemc_session_calculate_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput energy/forces into PotentialResult",
+            },
+            {
                 "name": "nwchemc_session_calculate_hessian",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput Hessian",

@@ -24,17 +24,23 @@ binding that writes the standard flat stream format.
 * Session Step Calls
 Callers that drive multiple geometry steps can keep the NWChem configuration in
 a session and pass a serialized ~ForceInput~ message for each step. The same
-step carrier works for force and Hessian entry points.
+step carrier works for force, serialized result, and Hessian entry points.
 
 #+begin_src c
 NWChemCSession *session = nwchemc_session_create(params_bytes, params_size);
 
 if (session != NULL) {
   double forces_h_bohr[n_atoms * 3];
+  unsigned char potential_result_bytes[1024];
+  size_t potential_result_size = 0;
   double hessian_h_bohr2[(n_atoms * 3) * (n_atoms * 3)];
   NWChemCResult step = nwchemc_session_calculate_forces(
       session, force_input_bytes, force_input_size, forces_h_bohr,
       n_atoms * 3);
+  NWChemCResult rpc_step = nwchemc_session_calculate_result(
+      session, force_input_bytes, force_input_size,
+      potential_result_bytes, sizeof(potential_result_bytes),
+      &potential_result_size);
   NWChemCResult curvature = nwchemc_session_calculate_hessian(
       session, force_input_bytes, force_input_size, hessian_h_bohr2,
       (n_atoms * 3) * (n_atoms * 3));
@@ -47,8 +53,13 @@ the atom count, atomic numbers, flat coordinate array, optional row-major 3x3
 cell, and coordinate length unit. Coordinates and cell vectors are converted to
 the Angstrom values used by the C ABI boundary before the Fortran bridge stores
 them in NWChem geometry state. The energy in ~NWChemCResult.energy_h~ is in
-Hartree, ~forces_h_bohr~ is filled in Hartree per Bohr, and
-~hessian_h_bohr2~ is filled in Hartree per Bohr squared.
+Hartree. ~forces_h_bohr~ is filled in Hartree per Bohr for low-overhead native
+callers. ~nwchemc_session_calculate_result~ fills an unpacked flat
+~PotentialResult~ Cap'n Proto message: ~energy~ uses ~ForceInput.energyUnit~,
+and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~. If the output
+buffer is too small, the call reports the required byte count through
+~potential_result_size~ and does not evaluate NWChem. ~hessian_h_bohr2~ is
+filled in Hartree per Bohr squared.
 
 * Parameter Ownership
 ~nwchemc~ reads the message with generated ~capnp-c~ bindings.
@@ -64,6 +75,9 @@ The energy returned by ~nwchemc_energy_gradient()~ is in Hartree.
 The gradient buffer is filled with nuclear gradients in Hartree per Bohr.
 ~nwchemc_energy_forces()~ and ~nwchemc_session_calculate_forces()~ return forces
 as negative gradients in Hartree per Bohr.
+~nwchemc_session_calculate_result()~ writes ~PotentialResult.energy~ and
+~PotentialResult.forces~ in the units requested by ~ForceInput.energyUnit~ and
+~ForceInput.lengthUnit~, while ~NWChemCResult.energy_h~ remains Hartree.
 ~nwchemc_hessian()~ and ~nwchemc_session_calculate_hessian()~ fill a dense
 row-major Cartesian Hessian in Hartree per Bohr squared, with length
 ~(natoms * 3) * (natoms * 3)~.

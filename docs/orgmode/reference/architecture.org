@@ -37,16 +37,23 @@ grammar is intentionally upstream NWChem input text.
 * Long-Running Sessions
 ~nwchemc_session_create()~ applies an ~NWChemParams~ message once and keeps the
 NWChem runtime state inside the session.
-~nwchemc_session_calculate_forces()~ and
+~nwchemc_session_calculate_forces()~,
+~nwchemc_session_calculate_result()~, and
 ~nwchemc_session_calculate_hessian()~ accept serialized ~ForceInput~ messages,
 so molecular dynamics, optimizers, vibrational workflows, and socket-style
 drivers can update coordinates and the periodic cell without rebuilding the
-full configuration carrier.
+full configuration carrier. The result-carrier entry point writes an unpacked
+flat ~PotentialResult~ message for RPC callers and reports the exact byte count
+required before an NWChem evaluation when the caller's buffer is too small.
 
 The C layer keeps reusable numeric scratch for per-step positions and atomic
 numbers. It does not introduce a second configuration struct. ~ForceInput.pos~
 and ~ForceInput.box~ are copied from the Cap'n Proto message into contiguous C
 arrays with explicit unit conversion, then handed to the Fortran bridge.
+~PotentialResult.energy~ and ~PotentialResult.forces~ are converted to the
+caller units named by ~ForceInput.energyUnit~ and ~ForceInput.lengthUnit~.
+Native C buffers keep NWChem units for callers that want direct numerical
+storage.
 
 The Fortran bridge stores geometry through NWChem geometry routines. When
 ~ForceInput.box~ is present, the row-major 3x3 cell vectors are converted to

@@ -17,6 +17,7 @@ directly. The public calculation entry points are:
 - ~nwchemc_session_energy_gradient~
 - ~nwchemc_session_energy_forces~
 - ~nwchemc_session_calculate_forces~
+- ~nwchemc_session_calculate_result~
 - ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_hessian~
 - ~nwchemc_available~
@@ -28,7 +29,8 @@ configuration carrier. The runtime does not copy the parameter tree into a
 second public configuration struct.
 Long-running callers can keep one ~NWChemParams~ configuration in a session and
 send per-step ~ForceInput~ Cap'n Proto messages for coordinates, atomic
-numbers, length units, and optional cell vectors.
+numbers, length units, optional cell vectors, and unit-aware
+~PotentialResult~ output.
 
 * RTDB Path
 The embedded Fortran layer writes numeric geometry through NWChem geometry APIs
@@ -72,19 +74,22 @@ feature tests verify the generated inventory lookup table and ABI coverage.
 
 * Pickup Tasks
 ** Long-Running Step Calls
-~nwchemc_session_calculate_forces~ and
+~nwchemc_session_calculate_forces~,
+~nwchemc_session_calculate_result~, and
 ~nwchemc_session_calculate_hessian~ are C ABI entry points for socket-style,
 optimizer-style, and vibrational callers. They take the session's persistent
 ~NWChemParams~ and a per-call serialized ~ForceInput~ message, validate atom
 counts and output buffer sizes, convert coordinates and cells to the C ABI
-units, call the embed bridge, and return native NWChem buffers.
+units, call the embed bridge, and return either native NWChem buffers or a
+serialized ~PotentialResult~ in the caller's requested units.
 
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only
 for NWChem grammar that does not have a confirmed direct API or RTDB key.
 
-Result-carrier task: add a writer for the Cap'n Proto ~PotentialResult~ message
-while keeping the native C force buffer ABI available for low-overhead callers.
+The result-carrier path keeps the native C force buffer ABI available for
+low-overhead callers and gives RPC-style callers the same ~PotentialResult~
+message used by rgpot.
 
 ** DONE (partial) Direct DFT promotion
 ~nwchemc_params_extract_direct_dft~ pulls ~xc~, ~direct~, and smearing from the
