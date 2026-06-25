@@ -1,0 +1,109 @@
+#+TITLE: V2 Embed Plan
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
+
+* Current State
+~nwchemc~ exposes a C ABI that accepts the Cap'n Proto ~NWChemParams~ message
+directly. The public calculation entry points are:
+
+- ~nwchemc_set_params~
+- ~nwchemc_energy_gradient~
+- ~nwchemc_energy_forces~
+- ~nwchemc_hessian~
+- ~nwchemc_available~
+- ~nwchemc_version~
+- ~nwchemc_finalize~
+
+The parser uses ~capnp-c~ and keeps Cap'n Proto as the language-neutral
+configuration carrier. The runtime does not copy the parameter tree into a
+second public configuration struct.
+
+* RTDB Path
+The embedded Fortran layer writes numeric geometry through NWChem geometry APIs
+and writes Gaussian library basis data through NWChem basis APIs. It then stores
+charge, multiplicity, method, and task state through RTDB-facing calls before
+calling ~task_energy~, ~task_gradient~, or ~task_hessian~.
+
+NWChem modules read and mutate RTDB entries inside task routines and module
+input handlers. Direct RTDB writes must therefore preserve this order:
+
+1. Initialize GA/MA/RTDB and file-directory state.
+2. Store numeric geometry and basis records.
+3. Apply caller-provided structured or raw NWChem stanzas.
+4. Store scalar method/task keys.
+5. Call the NWChem task routine.
+6. Read task output from RTDB or the NWChem task output file.
+
+~nw_inp_from_character~ remains reserved for caller-provided NWChem stanzas.
+Geometry coordinates and library basis selection are not routed through text
+input.
+
+* Structured Coverage
+The schema contains typed stanzas for:
+
+- generic module blocks
+- ~dft~ blocks including ~xc~, ~direct~, and Fermi smearing syntax
+- ~set~ directives
+- raw NWChem fragments
+- module blocks backed by the ~NWChemModuleName~ enum
+- ~nwpw~ pseudopotential blocks with library, PSPW, PAW, CPI, and Teter entries
+
+The feature inventory in ~schema/inventory/nwchem_features.json~ interns every
+schema field, stanza kind, module enum value, and ABI entry point. The cmocka
+feature tests verify the generated inventory lookup table and ABI coverage.
+
+* Pickup Tasks
+** Expand Direct RTDB Settings
+Move scalar options that have stable NWChem RTDB keys out of rendered text
+stanzas. Good candidates are charge, multiplicity, SCF type, DFT XC, task
+operation, task theory, Fermi smearing keys, convergence thresholds, and common
+driver controls.
+
+Each migrated option needs a cmocka parser test, a real NWChem test that proves
+the direct path still computes finite outputs, and a reference to the upstream
+NWChem input routine or RTDB key being matched.
+
+** Pseudopotential Direct Path
+Keep the structured pseudopotential Cap'n Proto stanza. Replace the rendered
+~nwpw~ pseudopotential block only where NWChem exposes a direct API or stable
+RTDB representation that exactly matches the input handler. Pseudopotentials are
+used by PSPW/NWPW and related rgpot potential workflows, so preserve library
+type semantics instead of collapsing them to free-form strings.
+
+** Atom And Geometry Limits
+The fixed-form embed helper currently caps direct geometry and basis setup at 64
+atoms and maps element symbols through krypton. Increase this only by matching
+NWChem geometry/basis allocation behavior, not by widening local arrays alone.
+
+** ABI Surface
+Keep adding calculation entry points around the same ~NWChemParams~ carrier:
+energy-only, properties, dipoles, optimized geometries, vibrational analysis,
+and any rgpot-relevant potential/force forms. Avoid parallel option structs.
+
+** Build Model
+The embed build consumes an NWChem build tree because it needs source headers,
+private module headers, static archives, ~stubs.o~, and GA config metadata. A
+conda-forge runtime package is useful only if it exposes equivalent embed
+artifacts and link metadata.
+
+** Verification Matrix
+Use the workspace build scratch path for all temporary output:
+
+#+begin_src bash
+env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-red \
+  meson test -C /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-red \
+  stub-abi capnp-parser features-cmocka feature-inventory-check --print-errorlogs
+
+env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-real-red \
+  meson test -C /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-real-red \
+  nwchem-energy-gradient nwchem-energy-gradient-input-blocks \
+  nwchem-energy-gradient-structured nwchem-energy-forces nwchem-hessian \
+  --print-errorlogs
+
+env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-cmake \
+  ctest --test-dir /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-cmake \
+  -R '^(stub-abi|capnp-parser|nwchem-energy-gradient|nwchem-energy-gradient-input-blocks|nwchem-energy-gradient-structured|nwchem-energy-forces|nwchem-hessian)$' \
+  --output-on-failure
+#+end_src
+
+MPI tests exercise host MPI transport setup as well as the ABI. Run them on a
+host where PMIx can create/select an interface.

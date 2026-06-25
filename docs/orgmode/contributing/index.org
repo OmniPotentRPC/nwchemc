@@ -30,4 +30,5 @@ pixi run -e docs docbld
    :maxdepth: 2
 
    developer/release
+   developer/v2-plan
 #+end_export
