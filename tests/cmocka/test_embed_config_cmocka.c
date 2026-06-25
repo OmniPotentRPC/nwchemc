@@ -22,6 +22,7 @@ static int g_dft_direct_enabled = 0;
 static int g_dft_smearing_enabled = 0;
 static double g_dft_smear_sigma_hartree = 0.0;
 static int g_dft_smearing_spinset = 0;
+static int g_energy_grad_calls = 0;
 
 static void copy_span(char *dst, size_t dst_size, const char *src, int len) {
   size_t n = len > 0 ? (size_t)len : 0;
@@ -116,6 +117,7 @@ int nwchemc_embed_energy_grad(const int *n_atoms, const double *positions_ang,
                               const int *multiplicity, double *energy_h,
                               double *grad_h_bohr, char *errmsg,
                               int errmsg_len) {
+  ++g_energy_grad_calls;
   (void)positions_ang;
   (void)atomic_numbers;
   (void)charge;
@@ -143,8 +145,24 @@ int nwchemc_embed_hessian(const int *n_atoms, const double *positions_ang,
 
 void nwchemc_embed_finalize(void) {}
 
+static void reset_embed_captures(void) {
+  g_basis[0] = '\0';
+  g_theory[0] = '\0';
+  g_scf_type[0] = '\0';
+  g_dft_xc[0] = '\0';
+  g_input_blocks[0] = '\0';
+  g_set_config_calls = 0;
+  g_set_dft_direct_calls = 0;
+  g_dft_direct_enabled = 0;
+  g_dft_smearing_enabled = 0;
+  g_dft_smear_sigma_hartree = 0.0;
+  g_dft_smearing_spinset = 0;
+  g_energy_grad_calls = 0;
+}
+
 static void test_embed_config_uses_direct_dft_values(void **state) {
   (void)state;
+  reset_embed_captures();
   size_t message_size = 0;
   unsigned char *message = read_file(g_params_path, &message_size);
   assert_non_null(message);
@@ -176,6 +194,39 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   free(message);
 }
 
+static void test_session_reuses_config_across_geometry_steps(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  NWChemCSession *session =
+      nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_set_dft_direct_calls, 1);
+
+  double pos_a[3] = {0.0, 0.0, 0.0};
+  double pos_b[3] = {0.0, 0.0, 0.1};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+
+  NWChemCResult first =
+      nwchemc_session_energy_gradient(session, 1, pos_a, z, grad);
+  NWChemCResult second =
+      nwchemc_session_energy_gradient(session, 1, pos_b, z, grad);
+
+  assert_int_equal(first.ok, 1);
+  assert_int_equal(second.ok, 1);
+  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_set_dft_direct_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc != 2) {
     fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
@@ -184,6 +235,7 @@ int main(int argc, char **argv) {
   g_params_path = argv[1];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
+      cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

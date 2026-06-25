@@ -93,11 +93,27 @@ static int run_stub_abi(void) {
     fprintf(stderr, "set_params should fail on stub\n");
     return 1;
   }
+  if (nwchemc_session_create(NULL, 0) != NULL) {
+    fprintf(stderr, "session_create should fail on stub\n");
+    return 1;
+  }
+  if (nwchemc_session_set_params(NULL, NULL, 0) == 0) {
+    fprintf(stderr, "session_set_params should fail on stub\n");
+    return 1;
+  }
+  nwchemc_session_destroy(NULL);
   NWChemCResult e = nwchemc_energy(0, NULL, NULL, NULL, 0);
   NWChemCResult g = nwchemc_energy_gradient(0, NULL, NULL, NULL, 0, NULL);
   NWChemCResult f = nwchemc_energy_forces(0, NULL, NULL, NULL, 0, NULL);
   NWChemCResult h = nwchemc_hessian(0, NULL, NULL, NULL, 0, NULL);
-  if (e.ok != 0 || g.ok != 0 || f.ok != 0 || h.ok != 0) {
+  NWChemCResult se = nwchemc_session_energy(NULL, 0, NULL, NULL);
+  NWChemCResult sg =
+      nwchemc_session_energy_gradient(NULL, 0, NULL, NULL, NULL);
+  NWChemCResult sf =
+      nwchemc_session_energy_forces(NULL, 0, NULL, NULL, NULL);
+  NWChemCResult sh = nwchemc_session_hessian(NULL, 0, NULL, NULL, NULL);
+  if (e.ok != 0 || g.ok != 0 || f.ok != 0 || h.ok != 0 || se.ok != 0 ||
+      sg.ok != 0 || sf.ok != 0 || sh.ok != 0) {
     fprintf(stderr, "energy/gradient/forces/hessian should fail on stub\n");
     return 1;
   }

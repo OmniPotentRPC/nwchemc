@@ -26,6 +26,9 @@ typedef struct NWChemCResult {
   char message[512];
 } NWChemCResult;
 
+/** Opaque handle for repeated evaluations with one Cap'n Proto parameter set. */
+typedef struct NWChemCSession NWChemCSession;
+
 /**
  * @brief Apply NWChem method parameters from a Cap'n Proto message.
  *
@@ -94,6 +97,61 @@ NWChemCResult nwchemc_hessian(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *hessian_h_bohr2);
+
+/**
+ * @brief Create a persistent evaluation session from a Cap'n Proto message.
+ *
+ * The session owns a copy of the serialized message so callers may pass a
+ * buffer produced by pycapnp, capnp-c, or mmap-backed storage and release it
+ * after this call returns.
+ */
+NWChemCSession *nwchemc_session_create(const void *params_capnp,
+                                       size_t params_capnp_size_bytes);
+
+/**
+ * @brief Replace the Cap'n Proto parameter message for an existing session.
+ */
+int nwchemc_session_set_params(NWChemCSession *session,
+                               const void *params_capnp,
+                               size_t params_capnp_size_bytes);
+
+/**
+ * @brief Release a persistent evaluation session.
+ */
+void nwchemc_session_destroy(NWChemCSession *session);
+
+/**
+ * @brief Compute energy and gradient using a persistent session.
+ */
+NWChemCResult
+nwchemc_session_energy_gradient(NWChemCSession *session, int n_atoms,
+                                const double *positions_ang,
+                                const int *atomic_numbers,
+                                double *grad_h_bohr);
+
+/**
+ * @brief Compute energy using a persistent session.
+ */
+NWChemCResult nwchemc_session_energy(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers);
+
+/**
+ * @brief Compute energy and forces using a persistent session.
+ */
+NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
+                                            int n_atoms,
+                                            const double *positions_ang,
+                                            const int *atomic_numbers,
+                                            double *forces_h_bohr);
+
+/**
+ * @brief Compute Hessian using a persistent session.
+ */
+NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
+                                      const double *positions_ang,
+                                      const int *atomic_numbers,
+                                      double *hessian_h_bohr2);
 
 /**
  * @brief Return the compiled library version string.
