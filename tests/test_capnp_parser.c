@@ -86,7 +86,10 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "acc_std"));
   assert_non_null(strstr(input_blocks, "pseudopotentials"));
   assert_non_null(strstr(input_blocks, "Si library sg15"));
+  assert_non_null(strstr(input_blocks, "H pspw_library hgh_lda"));
   assert_non_null(strstr(input_blocks, "O paw_library paw_default"));
+  assert_non_null(strstr(input_blocks, "C cpi C.cpi"));
+  assert_non_null(strstr(input_blocks, "N teter N.teter"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
 
   nwchemc_params_release(&arena);
@@ -128,9 +131,63 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "smear 0.001"));
   assert_null(strstr(input_blocks, "xc pbe0"));
   assert_null(strstr(input_blocks, "  direct"));
+  assert_null(strstr(input_blocks, "pseudopotentials"));
+  assert_null(strstr(input_blocks, "Si library sg15"));
+  assert_null(strstr(input_blocks, "H pspw_library hgh_lda"));
+  assert_null(strstr(input_blocks, "O paw_library paw_default"));
+  assert_null(strstr(input_blocks, "C cpi C.cpi"));
+  assert_null(strstr(input_blocks, "N teter N.teter"));
+  assert_non_null(strstr(input_blocks, "nwpw"));
+  assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
   assert_non_null(strstr(input_blocks, "iterations 40"));
   assert_non_null(strstr(input_blocks, "set int:acc_std 1e-8"));
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
+static void test_parser_extracts_direct_pseudopotentials(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  capn_text elements[8];
+  capn_text names[8];
+  int types[8];
+  size_t count = 0;
+  assert_int_equal(nwchemc_params_extract_direct_pseudopotentials(
+                       params_root, elements, types, names, 8, &count),
+                   0);
+  assert_int_equal((int)count, 5);
+  assert_true(text_equals(elements[0], "Si"));
+  assert_int_equal(types[0], NWChemPseudopotentialEntry_LibraryType_library);
+  assert_true(text_equals(names[0], "sg15"));
+  assert_true(text_equals(elements[1], "H"));
+  assert_int_equal(types[1],
+                   NWChemPseudopotentialEntry_LibraryType_pspwLibrary);
+  assert_true(text_equals(names[1], "hgh_lda"));
+  assert_true(text_equals(elements[2], "O"));
+  assert_int_equal(types[2],
+                   NWChemPseudopotentialEntry_LibraryType_pawLibrary);
+  assert_true(text_equals(names[2], "paw_default"));
+  assert_true(text_equals(elements[3], "C"));
+  assert_int_equal(types[3], NWChemPseudopotentialEntry_LibraryType_cpi);
+  assert_true(text_equals(names[3], "C.cpi"));
+  assert_true(text_equals(elements[4], "N"));
+  assert_int_equal(types[4], NWChemPseudopotentialEntry_LibraryType_teter);
+  assert_true(text_equals(names[4], "N.teter"));
+
+  assert_int_equal(nwchemc_params_extract_direct_pseudopotentials(
+                       params_root, elements, types, names, 4, &count),
+                   -1);
 
   nwchemc_params_release(&arena);
   free(message);
@@ -145,6 +202,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
+      cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

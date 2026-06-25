@@ -25,3 +25,7 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
                                       int *smearing_enabled,
                                       double *smear_sigma_hartree,
                                       int *smearing_spinset);
+
+int nwchemc_params_extract_direct_pseudopotentials(
+    NWChemParams_ptr params, capn_text *elements, int *library_types,
+    capn_text *library_names, size_t capacity, size_t *count);

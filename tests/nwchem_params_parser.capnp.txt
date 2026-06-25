@@ -49,7 +49,10 @@
       pseudopotential = (
         entries = [
           (element = "Si", libraryType = library, libraryName = "sg15"),
-          (element = "O", libraryType = pawLibrary, libraryName = "paw_default")
+          (element = "H", libraryType = pspwLibrary, libraryName = "hgh_lda"),
+          (element = "O", libraryType = pawLibrary, libraryName = "paw_default"),
+          (element = "C", libraryType = cpi, libraryName = "C.cpi"),
+          (element = "N", libraryType = teter, libraryName = "N.teter")
         ],
         directives = [
           (keyword = "pspspin", args = ["off"])
