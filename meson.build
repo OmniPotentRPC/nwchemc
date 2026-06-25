@@ -424,6 +424,22 @@ if get_option('with_tests')
       is_parallel: false,
     )
     test(
+      'nwchem-energy-forces',
+      executable(
+        'test_nwchem_energy_forces',
+        'tests/test_nwchem_energy_forces.c',
+        include_directories: inc,
+        dependencies: [math_dep, cmocka_dep],
+        link_with: nwchemc,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      ),
+      args: [nwchem_params_bin],
+      is_parallel: false,
+    )
+    test(
       'nwchem-hessian',
       executable(
         'test_nwchem_hessian',

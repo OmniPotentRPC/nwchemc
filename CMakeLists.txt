@@ -435,6 +435,23 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "${nwchem_params_structured_BIN}"
     )
 
+    add_executable(nwchem-energy-forces tests/test_nwchem_energy_forces.c)
+    target_link_libraries(nwchem-energy-forces PRIVATE nwchemc PkgConfig::CMOCKA)
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-energy-forces PRIVATE "${NWCHEMC_M_LIBRARY}")
+    endif()
+    target_compile_options(nwchem-energy-forces PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
+    target_compile_definitions(nwchem-energy-forces PRIVATE
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-energy-forces nwchem_params_bin)
+    add_test(
+      NAME nwchem-energy-forces
+      COMMAND nwchem-energy-forces "${nwchem_params_BIN}"
+    )
+    set_tests_properties(nwchem-energy-forces PROPERTIES RUN_SERIAL TRUE)
+
     add_executable(nwchem-hessian tests/test_nwchem_hessian.c)
     target_link_libraries(nwchem-hessian PRIVATE nwchemc PkgConfig::CMOCKA)
     if(NWCHEMC_M_LIBRARY)
