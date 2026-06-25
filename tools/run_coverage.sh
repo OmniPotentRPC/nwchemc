@@ -32,24 +32,23 @@ else
   echo "lcov not installed; meson coverage-html only" | tee "${OUT_DIR}/coverage_summary.txt"
 fi
 
-echo "--- gap notes (instrumentable in-tree C target) ---"
-cat <<'GAPS'
-Covered by stub/parser/cmocka suites (typical): nwchemc_params.c, nwchemc_features.c, nwchemc_stub.c
-Excepted / embed-only (needs NWCHEM embed link): nwchemc.c NWCHEMC_HAS_NWCHEM path, nwchem_embed_*.f90/.F, rtdb helpers
-Excepted / vendored: subprojects/c-capnproto, generated schema/Potentials.capnp.c
-GAPS
+GAPS_FILE="${OUT_DIR}/coverage_gaps.txt"
 if [[ -n "$SCRATCH" ]]; then
-  cat >> "$SCRATCH/coverage_gaps.txt" <<'GAPS2'
-file/unit	status	notes
-src/nwchemc_params.c	covered	parser/render/extract cmocka+capnp-parser
-src/nwchemc_features.c	covered	features-cmocka intern tests
-src/nwchemc_stub.c	covered	stub-abi + feature-driver
-src/nwchemc.c (stub #else)	covered	compiled without NWCHEMC_HAS_NWCHEM in default build
-src/nwchemc.c (embed #ifdef)	excepted-embed	requires build-nwchem + real NWChem
-src/nwchem_embed_c_api.f90	excepted-embed	Fortran embed only
-src/nwchem_embed_legacy.F	excepted-embed	Fortran embed only
-src/nwchem_rtdb_put_*.F	excepted-embed	Fortran embed only
-subprojects/*	excepted-vendor	third_party
-schema/Potentials.capnp.c	excepted-generated	capnpc-c output
-GAPS2
+  GAPS_FILE="${SCRATCH}/coverage_gaps.txt"
 fi
+{
+  echo "file/unit	status	line_rate_note	rationale"
+  echo "src/nwchemc_features.c	covered	~100% in stub suite	features-cmocka intern tests"
+  echo "src/nwchemc_stub.c	covered	~100% in stub suite	stub-abi + feature-driver"
+  echo "src/nwchemc_params.c	partial	see lcov list (render/extract exercised by params-render-cmocka + capnp-parser; module/pseudo/generic arms still lower if unused in fixtures)"
+  echo "src/nwchemc.c (stub #else / test embed-config with HAS_NWCHEM define)	partial	see lcov; embed-config-cmocka covers apply_config_to_embed path under -DNWCHEMC_HAS_NWCHEM=1 without real NWChem link"
+  echo "src/nwchemc.c (real embed link)	excepted-embed	requires build-nwchem + NWChem SDK"
+  echo "src/nwchem_embed_c_api.f90	excepted-embed	Fortran embed only"
+  echo "src/nwchem_embed_legacy.F	excepted-embed	Fortran embed only"
+  echo "src/nwchem_rtdb_put_*.F	excepted-embed	Fortran embed only"
+  echo "subprojects/*	excepted-vendor	third_party"
+  echo "schema/Potentials.capnp.c	excepted-generated	capnpc-c output"
+  echo "tools/nwchemc_feature_driver.c	partial	driver modes in feature-driver test; unused CLI branches may remain"
+  echo "tests/*	test-only	not product coverage target"
+} | tee "$GAPS_FILE"
+echo "--- see ${OUT_DIR}/coverage_summary.txt for current lcov rates ---"
