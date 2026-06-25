@@ -108,7 +108,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang,
      $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, energy_h, grad_h_bohr, errmsg, ok)
+     $     dft_smear_spinset, psp_count, psp_elements, psp_types,
+     $     psp_names, energy_h, grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -117,13 +118,17 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 #include "errquit.fh"
 #include "inp.fh"
       integer rtdb, n_atoms, charge, mult, ok
+      integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       double precision pos_ang(*)
       integer atmnrs(*)
+      integer psp_types(*)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
       character*4096 input_blocks
+      character*16 psp_elements(*)
+      character*256 psp_names(*)
       double precision dft_smear_sigma
       double precision energy_h
       double precision grad_h_bohr(*)
@@ -155,6 +160,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       if (.not. status) return
       call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
      $     basis_name, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_pseudopotentials(rtdb, psp_count, psp_elements,
+     $     psp_types, psp_names, errmsg, status)
       if (.not. status) return
       if (inp_strlen(input_blocks) .gt. 0) then
          if (.not. nw_inp_from_character(rtdb,
@@ -217,7 +225,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang,
      $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, hessian_h_bohr2, errmsg, ok)
+     $     dft_smear_spinset, psp_count, psp_elements, psp_types,
+     $     psp_names, hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -226,13 +235,17 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 #include "errquit.fh"
 #include "inp.fh"
       integer rtdb, n_atoms, charge, mult, ok
+      integer psp_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       double precision pos_ang(*)
       integer atmnrs(*)
+      integer psp_types(*)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
       character*4096 input_blocks
+      character*16 psp_elements(*)
+      character*256 psp_names(*)
       double precision dft_smear_sigma
       double precision hessian_h_bohr2(*)
       character*(*) errmsg
@@ -268,6 +281,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       if (.not. status) return
       call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
      $     basis_name, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_pseudopotentials(rtdb, psp_count, psp_elements,
+     $     psp_types, psp_names, errmsg, status)
       if (.not. status) return
       if (inp_strlen(input_blocks) .gt. 0) then
          if (.not. nw_inp_from_character(rtdb,
@@ -384,6 +400,79 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
          ok = ok .and. status
       endif
+      return
+      end
+
+      subroutine nwchemc_store_pseudopotentials(rtdb, psp_count,
+     $     psp_elements, psp_types, psp_names, errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "btdb.fh"
+#include "inp.fh"
+      integer rtdb, psp_count
+      character*16 psp_elements(*)
+      integer psp_types(*)
+      character*256 psp_names(*)
+      character*(*) errmsg
+      logical ok
+      integer i, l_elem, l_name, psp_type, stored_type
+      integer maxpsp
+      parameter (maxpsp = 64)
+      character*255 rtdb_name
+      logical lval
+
+      ok = .false.
+      if (psp_count .lt. 0 .or. psp_count .gt. maxpsp) then
+         errmsg = 'invalid pseudopotential count'
+         return
+      endif
+      do i = 1, psp_count
+         l_elem = inp_strlen(psp_elements(i))
+         l_name = inp_strlen(psp_names(i))
+         if (l_elem .le. 0 .or. l_name .le. 0) then
+            errmsg = 'empty pseudopotential entry'
+            return
+         endif
+         psp_type = psp_types(i)
+         if (psp_type .eq. 2) then
+            rtdb_name = psp_elements(i)(1:l_elem)//':paw_library'
+            if (.not. btdb_cput(rtdb, rtdb_name, 1,
+     $           psp_names(i)(1:l_name))) then
+               errmsg = 'pseudopotential paw_library write failed'
+               return
+            endif
+         else
+            rtdb_name = psp_elements(i)(1:l_elem)//':pspw_library'
+            if (.not. btdb_cput(rtdb, rtdb_name, 1,
+     $           psp_names(i)(1:l_name))) then
+               errmsg = 'pseudopotential pspw_library write failed'
+               return
+            endif
+            if (psp_type .eq. 0 .or. psp_type .eq. 1) then
+               stored_type = 0
+            else if (psp_type .eq. 3) then
+               stored_type = 2
+            else if (psp_type .eq. 4) then
+               stored_type = 3
+            else
+               errmsg = 'unknown pseudopotential library type'
+               return
+            endif
+            rtdb_name = psp_elements(i)(1:l_elem)//':pspw_library_type'
+            if (.not. btdb_put(rtdb, rtdb_name, mt_int, 1,
+     $           stored_type)) then
+               errmsg = 'pseudopotential library type write failed'
+               return
+            endif
+         endif
+         lval = .true.
+         rtdb_name = psp_elements(i)(1:l_elem)//':psp_reset'
+         if (.not. btdb_put(rtdb, rtdb_name, mt_log, 1, lval)) then
+            errmsg = 'pseudopotential reset write failed'
+            return
+         endif
+      enddo
+      ok = .true.
       return
       end
 

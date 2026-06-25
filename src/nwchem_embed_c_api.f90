@@ -20,6 +20,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_available
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_set_dft_direct
+  public :: nwchemc_embed_set_pseudopotentials
   public :: nwchemc_embed_energy_grad
   public :: nwchemc_embed_hessian
   public :: nwchemc_embed_finalize
@@ -44,6 +45,13 @@ module nwchem_embed_c_api
   real(real64), save :: cfg_dft_smear_sigma = 0.0_real64
   integer, save :: cfg_dft_smear_spinset = 1
   integer, parameter :: max_embed_atoms = 64
+  integer, parameter :: max_embed_pseudopotentials = 64
+  integer, parameter :: psp_element_len = 16
+  integer, parameter :: psp_name_len = 256
+  integer, save :: cfg_psp_count = 0
+  character(len=psp_element_len), save :: cfg_psp_elements(max_embed_pseudopotentials) = ' '
+  character(len=psp_name_len), save :: cfg_psp_names(max_embed_pseudopotentials) = ' '
+  integer, save :: cfg_psp_types(max_embed_pseudopotentials) = 0
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
@@ -62,6 +70,7 @@ module nwchem_embed_c_api
     subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang, atmnrs, &
         basis_name, theory_name, scf_type, input_blocks, charge, mult, &
         dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset, &
+        psp_count, psp_elements, psp_types, psp_names, &
         energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -72,6 +81,10 @@ module nwchem_embed_c_api
       character(len=4096), intent(in) :: input_blocks
       integer, intent(in) :: charge, mult
       integer, intent(in) :: dft_direct, dft_smear_on, dft_smear_spinset
+      integer, intent(in) :: psp_count
+      character(len=16), intent(in) :: psp_elements(*)
+      integer, intent(in) :: psp_types(*)
+      character(len=256), intent(in) :: psp_names(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(out) :: energy_h
       real(real64), intent(out) :: grad_h_bohr(*)
@@ -82,6 +95,7 @@ module nwchem_embed_c_api
     subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang, atmnrs, &
         basis_name, theory_name, scf_type, input_blocks, charge, mult, &
         dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset, &
+        psp_count, psp_elements, psp_types, psp_names, &
         hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -92,6 +106,10 @@ module nwchem_embed_c_api
       character(len=4096), intent(in) :: input_blocks
       integer, intent(in) :: charge, mult
       integer, intent(in) :: dft_direct, dft_smear_on, dft_smear_spinset
+      integer, intent(in) :: psp_count
+      character(len=16), intent(in) :: psp_elements(*)
+      integer, intent(in) :: psp_types(*)
+      character(len=256), intent(in) :: psp_names(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(out) :: hessian_h_bohr2(*)
       character(len=*), intent(out) :: errmsg
@@ -220,6 +238,35 @@ contains
     cfg_dft_smear_spinset = int(smearing_spinset)
   end function nwchemc_embed_set_dft_direct
 
+  !> Store direct NWPW pseudopotential library entries extracted from Cap'n Proto.
+  function nwchemc_embed_set_pseudopotentials(elements, library_types, &
+      library_names, count) result(rc) &
+      bind(C, name='nwchemc_embed_set_pseudopotentials')
+    character(kind=c_char), intent(in) :: elements(*)
+    integer(c_int), intent(in) :: library_types(*)
+    character(kind=c_char), intent(in) :: library_names(*)
+    integer(c_int), intent(in), value :: count
+    integer(c_int) :: rc
+    integer :: i, n
+
+    rc = -1_c_int
+    n = int(count)
+    if (n < 0 .or. n > max_embed_pseudopotentials) return
+
+    cfg_psp_count = n
+    cfg_psp_elements = ' '
+    cfg_psp_names = ' '
+    cfg_psp_types = 0
+    do i = 1, n
+      call c_chars_to_f(elements((i - 1) * psp_element_len + 1), &
+          int(psp_element_len, c_int), cfg_psp_elements(i))
+      call c_chars_to_f(library_names((i - 1) * psp_name_len + 1), &
+          int(psp_name_len, c_int), cfg_psp_names(i))
+      cfg_psp_types(i) = int(library_types(i))
+    end do
+    rc = 0_c_int
+  end function nwchemc_embed_set_pseudopotentials
+
   !> Energy (Hartree) + nuclear gradient (Hartree/Bohr) for current config.
   function nwchemc_embed_energy_grad(n_atoms, positions_ang, &
       atomic_numbers, charge, mult, energy_h, grad_h_bohr, errmsg, &
@@ -271,7 +318,8 @@ contains
     call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cfg_basis, &
         cfg_theory, cfg_scf, cfg_input_blocks, int(charge), &
         max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, energy_h, grad, msg, ok)
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_psp_count, &
+        cfg_psp_elements, cfg_psp_types, cfg_psp_names, energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
       grad_h_bohr(i) = real(grad(i), kind=c_double)
@@ -333,7 +381,8 @@ contains
     call nwchem_legacy_hessian(rtdb_handle, n, pos, z, cfg_basis, &
         cfg_theory, cfg_scf, cfg_input_blocks, int(charge), &
         max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, hess, msg, ok)
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_psp_count, &
+        cfg_psp_elements, cfg_psp_types, cfg_psp_names, hess, msg, ok)
 
     do i = 1, n2
       hessian_h_bohr2(i) = real(hess(i), kind=c_double)

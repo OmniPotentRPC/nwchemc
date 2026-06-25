@@ -23,6 +23,10 @@ extern int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
                                         int smearing_enabled,
                                         double smear_sigma_hartree,
                                         int smearing_spinset);
+extern int nwchemc_embed_set_pseudopotentials(const char *elements,
+                                              const int *library_types,
+                                              const char *library_names,
+                                              int count);
 extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers,
@@ -68,6 +72,17 @@ static const char *text_or_with_len(capn_text text, const char *fallback,
 static int span_starts_with(const char *s, int len, const char *prefix) {
   int prefix_len = cstr_len(prefix);
   return s && len >= prefix_len && memcmp(s, prefix, (size_t)prefix_len) == 0;
+}
+
+static void copy_text_record(char *dst, size_t dst_size, capn_text text) {
+  size_t n = 0;
+  memset(dst, 0, dst_size);
+  if (!text.str || text.len <= 0 || dst_size == 0)
+    return;
+  n = (size_t)text.len;
+  if (n >= dst_size)
+    n = dst_size - 1;
+  memcpy(dst, text.str, n);
 }
 
 static void finalize_at_exit(void) { nwchemc_finalize(); }
@@ -133,6 +148,21 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                         &dft_smear_on, &dft_smear_sigma,
                                         &dft_smear_spinset) != 0)
     return -1;
+  capn_text psp_elements[64];
+  capn_text psp_names[64];
+  int psp_types[64];
+  size_t psp_count = 0;
+  char packed_psp_elements[64 * 16];
+  char packed_psp_names[64 * 256];
+  if (nwchemc_params_extract_direct_pseudopotentials(
+          params_root, psp_elements, psp_types, psp_names, 64, &psp_count) != 0)
+    return -1;
+  memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
+  memset(packed_psp_names, 0, sizeof(packed_psp_names));
+  for (size_t i = 0; i < psp_count; ++i) {
+    copy_text_record(packed_psp_elements + i * 16, 16, psp_elements[i]);
+    copy_text_record(packed_psp_names + i * 256, 256, psp_names[i]);
+  }
   if (dft_xc.len > 0 && dft_xc.str) {
     scf_type = dft_xc.str;
     scf_len = (int)dft_xc.len;
@@ -154,6 +184,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_embed_set_config(basis, basis_len, theory, theory_len, scf_type,
                                scf_len, &ch, &mult, input_blocks,
                                cstr_len(input_blocks)) != 0)
+    return -1;
+  if (nwchemc_embed_set_pseudopotentials(
+          packed_psp_elements, psp_types, packed_psp_names, (int)psp_count) !=
+      0)
     return -1;
   return nwchemc_embed_set_dft_direct(
       dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,

@@ -195,6 +195,7 @@ if(NWCHEMC_WITH_NWCHEM)
   set(NWCHEM_EMBED_INCLUDES
     "${NWCHEMC_NWCHEM_ROOT}/src/basis"
     "${NWCHEMC_NWCHEM_ROOT}/src/include"
+    "${NWCHEMC_NWCHEM_ROOT}/src/nwpw/nwpwlib/utilities"
     "${NWCHEMC_NWCHEM_ROOT}/src/util"
     "${NWCHEMC_NWCHEM_ROOT}/src/tools/install/include"
   )
@@ -211,6 +212,7 @@ if(NWCHEMC_WITH_NWCHEM)
     src/nwchem_embed_legacy.F
     src/nwchem_rtdb_put_dbl.F
     src/nwchem_rtdb_put_int.F
+    "${NWCHEMC_NWCHEM_ROOT}/src/nwpw/nwpwlib/utilities/btdb.F"
   )
   set_target_properties(nwchemc_legacy PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_include_directories(nwchemc_legacy PRIVATE ${NWCHEM_EMBED_INCLUDES})
