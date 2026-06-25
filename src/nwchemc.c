@@ -783,6 +783,32 @@ NWChemCResult nwchemc_session_calculate_result(
   return r;
 }
 
+size_t nwchemc_potential_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0)
+    return 0;
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || n_atoms > SIZE_MAX / 3u) {
+    nwchemc_params_release(&arena);
+    return 0;
+  }
+  (void)has_cell;
+  size_t force_count = n_atoms * 3u;
+  if (force_count > (size_t)INT_MAX) {
+    nwchemc_params_release(&arena);
+    return 0;
+  }
+  size_t result_size = nwchemc_potential_result_flat_size(force_count);
+  nwchemc_params_release(&arena);
+  return result_size;
+}
+
 static NWChemCResult session_hessian_cell(NWChemCSession *session, int n_atoms,
                                           const double *positions_ang,
                                           const int *atomic_numbers,
@@ -1072,6 +1098,13 @@ NWChemCResult nwchemc_session_calculate_result(
   (void)potential_result_capnp_capacity_bytes;
   (void)potential_result_capnp_size_bytes;
   return no_nwchem_fail();
+}
+
+size_t nwchemc_potential_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return 0;
 }
 
 NWChemCResult nwchemc_session_calculate_hessian(

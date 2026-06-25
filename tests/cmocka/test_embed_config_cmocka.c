@@ -619,12 +619,15 @@ static void test_session_calculate_result_writes_potential_result(
 
   unsigned char result_bytes[256];
   size_t result_size = 0;
+  size_t expected_step_a_size =
+      nwchemc_potential_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_step_a_size > 0);
   NWChemCResult native = nwchemc_session_calculate_result(
       session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
       &result_size);
   assert_int_equal(native.ok, 1);
   assert_close(native.energy_h, -1.0, 1.0e-12);
-  assert_true(result_size > 0);
+  assert_int_equal(result_size, expected_step_a_size);
   assert_true(result_size < sizeof(result_bytes));
   const double native_forces[6] = {-1.0, -2.0, -3.0, -4.0, -5.0, -6.0};
   const double bohr_to_angstrom = 0.529177210903;
@@ -638,6 +641,9 @@ static void test_session_calculate_result_writes_potential_result(
   assert_int_equal(g_set_config_calls, 1);
 
   size_t bohr_result_size = 0;
+  size_t expected_step_b_size =
+      nwchemc_potential_result_size_for_force_input(step_b, step_b_size);
+  assert_int_equal(expected_step_b_size, expected_step_a_size);
   NWChemCResult bohr = nwchemc_session_calculate_result(
       session, step_b, step_b_size, result_bytes, sizeof(result_bytes),
       &bohr_result_size);

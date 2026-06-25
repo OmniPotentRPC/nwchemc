@@ -186,6 +186,18 @@ NWChemCResult nwchemc_session_calculate_result(
     size_t *potential_result_capnp_size_bytes);
 
 /**
+ * @brief Return the byte count needed for a `PotentialResult` step output.
+ *
+ * This parses the serialized `ForceInput` geometry and returns the size of the
+ * unpacked flat `PotentialResult` message that
+ * `nwchemc_session_calculate_result()` writes for the same step. The function
+ * does not initialize or evaluate NWChem. It returns 0 when the `ForceInput`
+ * message is invalid or too large for the C ABI.
+ */
+size_t nwchemc_potential_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
  * @brief Compute a Cartesian Hessian for one Cap'n Proto `ForceInput` step.
  *
  * The session keeps persistent `NWChemParams` method state while the step
