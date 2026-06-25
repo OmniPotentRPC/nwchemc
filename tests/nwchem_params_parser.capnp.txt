@@ -1,0 +1,38 @@
+(
+  basis = "def2-svp",
+  theory = "dft",
+  scfType = "pbe0",
+  charge = -1,
+  multiplicity = 3,
+  nwchemRoot = "/opt/nwchem",
+  task = "gradient",
+  title = "parser fixture",
+  memoryMb = 1024,
+  scratchDir = "/scratch/nw",
+  permanentDir = "/perm/nw",
+  inputBlocks = [
+    "set int:acc_std 1e-8"
+  ],
+  inputStanzas = [
+    (
+      kind = dft,
+      dft = (
+        direct = true,
+        xc = "pbe0",
+        smearing = (sigmaHartree = 0.001, mode = fixsz),
+        directives = [
+          (keyword = "iterations", args = ["40"])
+        ]
+      )
+    ),
+    (
+      kind = generic,
+      generic = (
+        name = "driver",
+        directives = [
+          (keyword = "maxiter", args = ["20"])
+        ]
+      )
+    )
+  ]
+)

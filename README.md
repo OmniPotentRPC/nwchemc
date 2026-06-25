@@ -20,7 +20,8 @@ NWChemCResult nwchemc_energy_gradient(
 `params_capnp` is an unpacked flat Cap'n Proto message whose root is
 `NWChemParams` from `schema/Potentials.capnp`. It can be produced by pycapnp,
 rgpot, mmap-backed readers, or another Cap'n Proto binding that writes the
-standard flat stream format.
+standard flat stream format. `nwchemc` reads that message through generated
+`capnp-c` bindings; it does not define a parallel user configuration format.
 
 ## Build
 
@@ -54,10 +55,9 @@ The resulting shared library exports `nwchemc_*` symbols. Downstream projects
 load it with `dlopen()` and pass the serialized `NWChemParams` message bytes
 directly.
 
-## Rust
+## Cap'n Proto C
 
-Rust plus `cbindgen` is a viable internal implementation option if this project
-needs richer Cap'n Proto validation and schema handling than the C parser. The
-ABI remains the checked-in C header either way. The current scaffold keeps the
-build C/Fortran-first so the NWChem embed link is explicit and does not require
-Cargo for users who only need the C shim.
+The build vendors the MIT-licensed `capnp-c` runtime and compiler plugin. Meson
+builds `capnpc-c`, generates C bindings for `schema/Potentials.capnp`, and
+compiles those generated readers into `nwchemc`. The public ABI remains the
+checked-in C header and serialized Cap'n Proto bytes.

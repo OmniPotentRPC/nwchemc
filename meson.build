@@ -13,10 +13,26 @@ inc = include_directories('include', 'src')
 nwchem_root = get_option('nwchem_root')
 nwchem_target = get_option('nwchem_target')
 has_nwchem = get_option('with_nwchem') and nwchem_root != ''
+need_capnp_c = get_option('with_tests') or has_nwchem
 
 common_c_args = []
 if cc.get_id() != 'msvc'
   common_c_args += ['-Wall', '-Wextra', '-Wpedantic']
+endif
+
+nwchemc_params_sources = []
+nwchemc_params_deps = []
+nwchemc_params_includes = []
+if need_capnp_c
+  capnp = find_program('capnp')
+  capnp_c_project = subproject('c-capnproto')
+  capnp_c_dep = capnp_c_project.get_variable('capnp_c_dep')
+  capnpc_c = capnp_c_project.get_variable('capnpc_c')
+  subdir('schema')
+  potentials_capnp_c_dep = declare_dependency(sources: potentials_capnp_c)
+  nwchemc_params_sources = ['src/nwchemc_params.c', potentials_capnp_c_src]
+  nwchemc_params_deps = [capnp_c_dep, potentials_capnp_c_dep]
+  nwchemc_params_includes = [include_directories('schema')]
 endif
 
 nwchemc_stub = static_library(
@@ -129,8 +145,9 @@ if has_nwchem
   endif
   nwchemc = shared_library(
     'nwchemc',
-    ['src/nwchemc.c', 'src/nwchemc_params.c', 'src/nwchem_embed_c_api.f90'],
-    include_directories: inc,
+    ['src/nwchemc.c', 'src/nwchem_embed_c_api.f90'] + nwchemc_params_sources,
+    include_directories: [inc] + nwchemc_params_includes,
+    dependencies: nwchemc_params_deps,
     c_args: nwchem_c_args,
     fortran_args: nwchem_f90_args,
     link_with: nwchemc_legacy,
@@ -154,13 +171,29 @@ if get_option('with_tests')
     'capnp-parser',
     executable(
       'test_capnp_parser',
-      ['tests/test_capnp_parser.c', 'src/nwchemc_params.c'],
-      include_directories: inc,
+      ['tests/test_capnp_parser.c'] + nwchemc_params_sources,
+      include_directories: [inc] + nwchemc_params_includes,
+      dependencies: nwchemc_params_deps,
       c_args: common_c_args,
     ),
+    args: [
+      custom_target(
+        'nwchem_parser_params_bin',
+        input: 'tests/nwchem_params_parser.capnp.txt',
+        output: 'nwchem_params_parser.bin',
+        command: [
+          python,
+          meson.current_source_dir() / 'tests/encode_capnp.py',
+          capnp,
+          meson.current_source_dir() / 'schema/Potentials.capnp',
+          'NWChemParams',
+          '@INPUT@',
+          '@OUTPUT@',
+        ],
+      ),
+    ],
   )
   if has_nwchem
-    capnp = find_program('capnp')
     test_scratch_dir = meson.current_build_dir() / 'nwchem-test-scratch'
     test_permanent_dir = meson.current_build_dir() / 'nwchem-test-permanent'
     params_conf = configuration_data()

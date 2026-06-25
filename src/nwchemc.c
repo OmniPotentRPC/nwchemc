@@ -29,7 +29,9 @@ extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
 static int g_atexit_registered = 0;
-static NWChemCParams g_params;
+static int g_params_loaded = 0;
+static struct capn g_params_arena;
+static struct NWChemParams g_params;
 
 static int cstr_len(const char *s) { return s ? (int)strlen(s) : 0; }
 
@@ -38,7 +40,6 @@ static void finalize_at_exit(void) { nwchemc_finalize(); }
 static void ensure_init(void) {
   if (!g_initialized) {
     nwchemc_embed_init();
-    nwchemc_params_default(&g_params);
     g_initialized = 1;
     if (!g_atexit_registered) {
       atexit(finalize_at_exit);
@@ -47,49 +48,72 @@ static void ensure_init(void) {
   }
 }
 
-static void normalize_params(NWChemCParams *params) {
-  if (strncmp(params->theory, "blyp", 4) == 0 ||
-      strncmp(params->theory, "b3lyp", 5) == 0 ||
-      strncmp(params->theory, "pbe", 3) == 0) {
-    snprintf(params->scf_type, sizeof(params->scf_type), "%s", params->theory);
-    snprintf(params->theory, sizeof(params->theory), "%s", "dft");
+static void release_stored_params(void) {
+  if (g_params_loaded) {
+    nwchemc_params_release(&g_params_arena);
+    memset(&g_params, 0, sizeof(g_params));
+    g_params_loaded = 0;
   }
 }
 
-static void apply_env_hints(const NWChemCParams *params) {
+static const char *selected_theory(const struct NWChemParams *params,
+                                   const char **scf_type) {
+  const char *theory = nwchemc_params_text_or(params->theory, "scf");
+  *scf_type = nwchemc_params_text_or(params->scfType, "rhf");
+  if (strncmp(theory, "blyp", 4) == 0 || strncmp(theory, "b3lyp", 5) == 0 ||
+      strncmp(theory, "pbe", 3) == 0) {
+    *scf_type = theory;
+    return "dft";
+  }
+  return theory;
+}
+
+static void apply_env_hints(const struct NWChemParams *params) {
 #if !defined(_WIN32)
-  if (params->nwchem_root[0])
-    setenv("NWCHEM_TOP", params->nwchem_root, 1);
-  if (params->scratch_dir[0])
-    setenv("NWCHEM_SCRATCH_DIR", params->scratch_dir, 1);
-  if (params->permanent_dir[0])
-    setenv("NWCHEM_PERMANENT_DIR", params->permanent_dir, 1);
+  if (params->nwchemRoot.len > 0)
+    setenv("NWCHEM_TOP", params->nwchemRoot.str, 1);
+  if (params->scratchDir.len > 0)
+    setenv("NWCHEM_SCRATCH_DIR", params->scratchDir.str, 1);
+  if (params->permanentDir.len > 0)
+    setenv("NWCHEM_PERMANENT_DIR", params->permanentDir.str, 1);
 #else
   (void)params;
 #endif
 }
 
-static int apply_config_to_embed(const NWChemCParams *params) {
-  NWChemCParams p = *params;
-  normalize_params(&p);
-  apply_env_hints(&p);
+static int apply_config_to_embed(const struct NWChemParams *params) {
+  char input_blocks[NWCHEMC_BLOCKS];
+  const char *scf_type = NULL;
+  const char *theory = selected_theory(params, &scf_type);
+  if (nwchemc_params_render_input_blocks(params, input_blocks,
+                                         sizeof(input_blocks)) != 0)
+    return -1;
+  apply_env_hints(params);
   ensure_init();
-  int ch = p.charge;
-  int mult = p.multiplicity > 0 ? p.multiplicity : 1;
-  return nwchemc_embed_set_config(p.basis, cstr_len(p.basis), p.theory,
-                                  cstr_len(p.theory), p.scf_type,
-                                  cstr_len(p.scf_type), &ch, &mult,
-                                  p.input_blocks, cstr_len(p.input_blocks));
+  int ch = params->charge;
+  int mult = params->multiplicity > 0 ? params->multiplicity : 1;
+  const char *basis = nwchemc_params_text_or(params->basis, "sto-3g");
+  return nwchemc_embed_set_config(
+      basis, cstr_len(basis), theory, cstr_len(theory), scf_type,
+      cstr_len(scf_type), &ch, &mult, input_blocks, cstr_len(input_blocks));
 }
 
 int nwchemc_set_params(const void *params_capnp,
                        size_t params_capnp_size_bytes) {
-  NWChemCParams parsed;
-  if (nwchemc_params_parse_flat(params_capnp, params_capnp_size_bytes,
-                                &parsed) != 0)
+  struct capn arena;
+  struct NWChemParams parsed;
+  if (nwchemc_params_read(params_capnp, params_capnp_size_bytes, &arena,
+                          &parsed) != 0)
     return -1;
+  if (apply_config_to_embed(&parsed) != 0) {
+    nwchemc_params_release(&arena);
+    return -1;
+  }
+  release_stored_params();
+  g_params_arena = arena;
   g_params = parsed;
-  return apply_config_to_embed(&g_params);
+  g_params_loaded = 1;
+  return 0;
 }
 
 NWChemCResult nwchemc_energy_gradient(
@@ -106,15 +130,16 @@ NWChemCResult nwchemc_energy_gradient(
     return r;
   }
 
-  NWChemCParams parsed;
-  if (nwchemc_params_parse_flat(params_capnp, params_capnp_size_bytes,
-                                &parsed) != 0) {
+  struct capn arena;
+  struct NWChemParams parsed;
+  if (nwchemc_params_read(params_capnp, params_capnp_size_bytes, &arena,
+                          &parsed) != 0) {
     snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
     return r;
   }
-  g_params = parsed;
 
-  if (apply_config_to_embed(&g_params) != 0) {
+  if (apply_config_to_embed(&parsed) != 0) {
+    nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
   }
@@ -122,12 +147,13 @@ NWChemCResult nwchemc_energy_gradient(
   char errmsg[512];
   memset(errmsg, 0, sizeof(errmsg));
   int n = n_atoms;
-  int ch = g_params.charge;
-  int mult = g_params.multiplicity > 0 ? g_params.multiplicity : 1;
+  int ch = parsed.charge;
+  int mult = parsed.multiplicity > 0 ? parsed.multiplicity : 1;
   double eh = 0.0;
   int rc = nwchemc_embed_energy_grad(&n, positions_ang, atomic_numbers, &ch,
                                      &mult, &eh, grad_h_bohr, errmsg,
                                      (int)sizeof(errmsg) - 1);
+  nwchemc_params_release(&arena);
   if (rc != 0) {
     snprintf(r.message, sizeof(r.message), "%s",
              errmsg[0] ? errmsg : "nwchem embed energy/grad failed");
@@ -150,7 +176,7 @@ void nwchemc_finalize(void) {
   if (!g_initialized)
     return;
   nwchemc_embed_finalize();
-  nwchemc_params_default(&g_params);
+  release_stored_params();
   g_initialized = 0;
 }
 
