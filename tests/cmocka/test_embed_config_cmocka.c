@@ -1,4 +1,5 @@
 #include "nwchemc.h"
+#include "nwchemc_params.h"
 
 #include <cmocka.h>
 #include <errno.h>
@@ -16,8 +17,13 @@ static char g_theory[64];
 static char g_scf_type[64];
 static char g_dft_xc[64];
 static char g_input_blocks[8192];
+static char g_psp_elements[8][17];
+static char g_psp_names[8][257];
+static int g_psp_types[8];
+static int g_psp_count = 0;
 static int g_set_config_calls = 0;
 static int g_set_dft_direct_calls = 0;
+static int g_set_pseudopotential_calls = 0;
 static int g_dft_direct_enabled = 0;
 static int g_dft_smearing_enabled = 0;
 static double g_dft_smear_sigma_hartree = 0.0;
@@ -98,6 +104,23 @@ int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
   return 0;
 }
 
+int nwchemc_embed_set_pseudopotentials(const char *elements,
+                                       const int *library_types,
+                                       const char *library_names, int count) {
+  ++g_set_pseudopotential_calls;
+  g_psp_count = count;
+  if (count > 8)
+    count = 8;
+  for (int i = 0; i < count; ++i) {
+    copy_span(g_psp_elements[i], sizeof(g_psp_elements[i]), elements + i * 16,
+              16);
+    copy_span(g_psp_names[i], sizeof(g_psp_names[i]),
+              library_names + i * 256, 256);
+    g_psp_types[i] = library_types[i];
+  }
+  return 0;
+}
+
 int nwchemc_embed_energy_only(const int *n_atoms, const double *positions_ang,
                               const int *atomic_numbers, const int *charge,
                               const int *multiplicity, double *energy_h,
@@ -151,8 +174,15 @@ static void reset_embed_captures(void) {
   g_scf_type[0] = '\0';
   g_dft_xc[0] = '\0';
   g_input_blocks[0] = '\0';
+  for (int i = 0; i < 8; ++i) {
+    g_psp_elements[i][0] = '\0';
+    g_psp_names[i][0] = '\0';
+    g_psp_types[i] = -1;
+  }
+  g_psp_count = 0;
   g_set_config_calls = 0;
   g_set_dft_direct_calls = 0;
+  g_set_pseudopotential_calls = 0;
   g_dft_direct_enabled = 0;
   g_dft_smearing_enabled = 0;
   g_dft_smear_sigma_hartree = 0.0;
@@ -188,8 +218,37 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "smear 0.001"));
   assert_null(strstr(g_input_blocks, "xc pbe0"));
   assert_null(strstr(g_input_blocks, "  direct"));
+  assert_null(strstr(g_input_blocks, "pseudopotentials"));
+  assert_null(strstr(g_input_blocks, "Si library sg15"));
+  assert_null(strstr(g_input_blocks, "H pspw_library hgh_lda"));
+  assert_null(strstr(g_input_blocks, "O paw_library paw_default"));
+  assert_null(strstr(g_input_blocks, "C cpi C.cpi"));
+  assert_null(strstr(g_input_blocks, "N teter N.teter"));
+  assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
+  assert_int_equal(g_set_pseudopotential_calls, 1);
+  assert_int_equal(g_psp_count, 5);
+  assert_string_equal(g_psp_elements[0], "Si");
+  assert_int_equal(g_psp_types[0],
+                   NWChemPseudopotentialEntry_LibraryType_library);
+  assert_string_equal(g_psp_names[0], "sg15");
+  assert_string_equal(g_psp_elements[1], "H");
+  assert_int_equal(g_psp_types[1],
+                   NWChemPseudopotentialEntry_LibraryType_pspwLibrary);
+  assert_string_equal(g_psp_names[1], "hgh_lda");
+  assert_string_equal(g_psp_elements[2], "O");
+  assert_int_equal(g_psp_types[2],
+                   NWChemPseudopotentialEntry_LibraryType_pawLibrary);
+  assert_string_equal(g_psp_names[2], "paw_default");
+  assert_string_equal(g_psp_elements[3], "C");
+  assert_int_equal(g_psp_types[3],
+                   NWChemPseudopotentialEntry_LibraryType_cpi);
+  assert_string_equal(g_psp_names[3], "C.cpi");
+  assert_string_equal(g_psp_elements[4], "N");
+  assert_int_equal(g_psp_types[4],
+                   NWChemPseudopotentialEntry_LibraryType_teter);
+  assert_string_equal(g_psp_names[4], "N.teter");
 
   free(message);
 }
@@ -206,6 +265,7 @@ static void test_session_reuses_config_across_geometry_steps(void **state) {
   assert_non_null(session);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_set_dft_direct_calls, 1);
+  assert_int_equal(g_set_pseudopotential_calls, 1);
 
   double pos_a[3] = {0.0, 0.0, 0.0};
   double pos_b[3] = {0.0, 0.0, 0.1};
