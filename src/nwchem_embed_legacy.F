@@ -118,13 +118,13 @@ C     RTDB in permanent/scratch via util_file_name (needs dirs above).
       status = rtdb_cput(rtdb, 'basis:name', 1, basis)
       if (theory(1:3) .eq. 'dft') then
          status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
-         status = rtdb_put(rtdb, 'dft:mult', mt_int, 1, mult)
+         call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
       else
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
       endif
       chg = dble(charge)
-      status = rtdb_put(rtdb, 'charge', mt_dbl, 1, chg)
-      status = rtdb_put(rtdb, 'spin mult', mt_int, 1, mult)
+      call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
+      call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
       ok = 0
       return
       end
@@ -225,12 +225,12 @@ C     symmetry/mass/autoz state and NaN integrals.
       endif
 
       chg = dble(charge)
-      status = rtdb_put(rtdb, 'charge', mt_dbl, 1, chg)
-      status = rtdb_put(rtdb, 'spin mult', mt_int, 1, mult)
+      call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
+      call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
       vectors_in = 'atomic'
       if (theory_name(1:3) .eq. 'dft') then
          status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
-         status = rtdb_put(rtdb, 'dft:mult', mt_int, 1, mult)
+         call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
       else
          status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)

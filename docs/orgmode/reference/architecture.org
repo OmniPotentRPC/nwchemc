@@ -35,5 +35,7 @@ same ABI call works under ~mpirun -np 2~.
 
 * Build Systems
 Meson is the primary build.
-The release metadata keeps Meson, CMake, and changelog versions in lockstep
-when CMake support is present.
+CMake builds the same capnp-c generation path, stub/parser tests, optional
+NWChem shared library, install targets, and CTest serial/MPI gradient checks.
+The release metadata keeps Meson, CMake, pixi, and changelog versions in
+lockstep.

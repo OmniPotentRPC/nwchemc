@@ -34,12 +34,35 @@ The NWChem archives must be linkable into a shared object.
 On ELF targets that usually means building the NWChem object code with
 position-independent code flags.
 
+* CMake Build
+The CMake build exposes the same stub/parser path and the real NWChem embed
+path.
+
+#+begin_src bash
+cmake -S . -B .build-tmp/cmake-stub -DNWCHEMC_BUILD_TESTS=ON
+cmake --build .build-tmp/cmake-stub --parallel 4
+ctest --test-dir .build-tmp/cmake-stub --output-on-failure
+#+end_src
+
+For a real NWChem build:
+
+#+begin_src bash
+cmake -S . -B .build-tmp/cmake-nwchem \
+  -DNWCHEMC_BUILD_TESTS=ON \
+  -DNWCHEMC_WITH_NWCHEM=ON \
+  -DNWCHEMC_NWCHEM_ROOT="$NWCHEM_TOP" \
+  -DNWCHEMC_NWCHEM_TARGET=LINUX64
+cmake --build .build-tmp/cmake-nwchem --parallel 4
+ctest --test-dir .build-tmp/cmake-nwchem --output-on-failure
+#+end_src
+
 * MPI Test
-When ~mpirun~ is available, Meson registers an MPI test that runs the same C ABI
-energy/gradient executable under two ranks:
+When ~mpirun~ is available, the build registers an MPI test that runs the same
+C ABI energy/gradient executable under two ranks:
 
 #+begin_src bash
 meson test -C build-nwchem --suite mpi --print-errorlogs
+ctest --test-dir .build-tmp/cmake-nwchem -L mpi --output-on-failure
 #+end_src
 
 The embedded runtime initializes and finalizes the MPI/GA state only when it

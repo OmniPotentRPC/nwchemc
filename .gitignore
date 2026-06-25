@@ -104,6 +104,7 @@ build/
 Build/
 build-*/
 .build-tmp/
+subprojects/.wraplock
 
 # CMake generated files
 CMakeFiles/

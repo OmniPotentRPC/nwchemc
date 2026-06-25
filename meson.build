@@ -94,6 +94,7 @@ if has_nwchem
     '-DLINUX64',
     '-DEXT_INT',
     '-DOPENBLAS',
+    '-Wno-unused-parameter',
   ]
   nwchem_utility_libs = [
     '-lperfm',
@@ -101,7 +102,11 @@ if has_nwchem
   ]
   nwchemc_legacy = static_library(
     'nwchemc_legacy',
-    'src/nwchem_embed_legacy.F',
+    [
+      'src/nwchem_embed_legacy.F',
+      'src/nwchem_rtdb_put_dbl.F',
+      'src/nwchem_rtdb_put_int.F',
+    ],
     include_directories: inc,
     fortran_args: nwchem_legacy_args,
     install: false,
