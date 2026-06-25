@@ -3,7 +3,7 @@ C     Called from nwchem_embed_c_api.f90 (bind(C)). Fixed-form required for
 C     NWChem #include headers. MA sizes come from NWChem Memory_Defaults
 C     (env / .nwchemrc), not embed-local constants.
 
-      subroutine nwchem_legacy_init(rtdb, ok)
+      subroutine nwchem_legacy_init(rtdb, ok, owns_mpi)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -11,7 +11,7 @@ C     (env / .nwchemrc), not embed-local constants.
 #include "stdio.fh"
 #include "errquit.fh"
 #include "cfileprefix.fh"
-      integer rtdb, ok
+      integer rtdb, ok, owns_mpi
       logical status
       character*256 rtdb_name
       integer stack, heap, global, total
@@ -26,10 +26,11 @@ C     (env / .nwchemrc), not embed-local constants.
       data g_init /0/
       ok = -1
       rtdb = -1
+      owns_mpi = 0
       if (g_init .eq. 0) then
 C        Host may already have MPI_Init (C driver / mpirun). Only start MPI
 C        from Fortran when embed owns the process (matches in-process embed).
-         call nwchemc_mpi_start_if_needed()
+         call nwchemc_mpi_start_if_needed(owns_mpi)
 C        Same path as nwchem.F when no input "memory" directive: defaults
 C        from environment / .nwchemrc / compiled-in limits.
          tsrc = 'N'
@@ -73,6 +74,32 @@ C     RTDB in permanent/scratch via util_file_name (needs dirs above).
       call geom_hnd_parallel(.true.)
       call nxtask_init(rtdb)
       ok = 0
+      return
+      end
+
+      subroutine nwchem_legacy_finalize(rtdb, owns_mpi, ok)
+      implicit none
+#include "global.fh"
+#include "rtdb.fh"
+      integer rtdb, owns_mpi, ok
+      integer*4 ierr4, flag4
+      logical status
+      ok = 0
+      if (rtdb .ge. 0) then
+         status = rtdb_close(rtdb, 'delete')
+         if (.not. status) ok = -1
+         rtdb = -1
+      endif
+      if (ga_initialized()) then
+         call ga_sync()
+         call ga_terminate()
+      endif
+      if (owns_mpi .ne. 0) then
+         flag4 = 0
+         ierr4 = 0
+         call mpi_finalized(flag4, ierr4)
+         if (flag4 .eq. 0) call mpi_finalize(ierr4)
+      endif
       return
       end
 
@@ -270,18 +297,20 @@ C     Left-align element symbol in character*16 (matches geom_input tags).
       return
       end
 
-C     Call pbeginf only when MPI is not already initialized (C/MPI host).
 C     Open MPI Fortran bindings use default INTEGER (not necessarily
 C     -fdefault-integer-8); force integer*4 for mpi_initialized args.
-      subroutine nwchemc_mpi_start_if_needed()
+      subroutine nwchemc_mpi_start_if_needed(owns_mpi)
       implicit none
       integer*4 ierr4, flag4
-      external mpi_initialized, pbeginf
+      integer owns_mpi
+      integer tcgready
+      external mpi_initialized, pbeginf, tcgready
+      owns_mpi = 0
+      if (tcgready() .ne. 0) return
       flag4 = 0
       ierr4 = 0
       call mpi_initialized(flag4, ierr4)
-      if (flag4 .eq. 0) then
-         call pbeginf()
-      endif
+      if (flag4 .eq. 0) owns_mpi = 1
+      call pbeginf()
       return
       end

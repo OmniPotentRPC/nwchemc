@@ -200,5 +200,28 @@ if get_option('with_tests')
       ),
       args: [nwchem_params_bin],
     )
+    mpirun = find_program('mpirun', required: false)
+    if mpirun.found()
+      nwchem_mpi_test = executable(
+        'test_nwchem_energy_gradient_mpi',
+        'tests/test_nwchem_energy_gradient.c',
+        include_directories: inc,
+        link_with: nwchemc,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      )
+      test(
+        'nwchem-energy-gradient-mpi',
+        mpirun,
+        args: ['-np', '2', nwchem_mpi_test, nwchem_params_bin],
+        protocol: 'exitcode',
+        suite: 'mpi',
+        depends: nwchem_params_bin,
+        workdir: meson.current_build_dir(),
+        env: ['OMPI_MCA_prte_create_session_dirs=true'],
+      )
+    endif
   endif
 endif

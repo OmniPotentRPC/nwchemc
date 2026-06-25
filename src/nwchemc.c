@@ -25,17 +25,25 @@ extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const int *multiplicity,
                                      double *energy_h, double *grad_h_bohr,
                                      char *errmsg, int errmsg_len);
+extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
+static int g_atexit_registered = 0;
 static NWChemCParams g_params;
 
 static int cstr_len(const char *s) { return s ? (int)strlen(s) : 0; }
+
+static void finalize_at_exit(void) { nwchemc_finalize(); }
 
 static void ensure_init(void) {
   if (!g_initialized) {
     nwchemc_embed_init();
     nwchemc_params_default(&g_params);
     g_initialized = 1;
+    if (!g_atexit_registered) {
+      atexit(finalize_at_exit);
+      g_atexit_registered = 1;
+    }
   }
 }
 
@@ -138,6 +146,14 @@ int nwchemc_available(void) {
   return nwchemc_embed_available() ? 1 : 0;
 }
 
+void nwchemc_finalize(void) {
+  if (!g_initialized)
+    return;
+  nwchemc_embed_finalize();
+  nwchemc_params_default(&g_params);
+  g_initialized = 0;
+}
+
 #else
 
 int nwchemc_set_params(const void *params_capnp,
@@ -167,5 +183,7 @@ NWChemCResult nwchemc_energy_gradient(
 const char *nwchemc_version(void) { return "nwchemc/unavailable"; }
 
 int nwchemc_available(void) { return 0; }
+
+void nwchemc_finalize(void) {}
 
 #endif

@@ -24,6 +24,8 @@ const char *nwchemc_version(void);
 
 int nwchemc_available(void);
 
+void nwchemc_finalize(void);
+
 #ifdef __cplusplus
 }
 #endif

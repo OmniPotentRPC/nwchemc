@@ -20,11 +20,14 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_available
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_energy_grad
+  public :: nwchemc_embed_finalize
 
   ! Module state (saved across C calls).
   ! Note: NWChem RTDB handles may be 0 on success; never use handle==0 as failure.
   logical, save :: ga_ready = .false.
   logical, save :: rtdb_ready = .false.
+  logical, save :: owns_mpi_runtime = .false.
+  logical, save :: runtime_finalized = .false.
   integer, save :: rtdb_handle = -1
   character(len=64), save :: cfg_basis = 'sto-3g'
   character(len=64), save :: cfg_theory = 'scf'
@@ -35,10 +38,17 @@ module nwchem_embed_c_api
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
-    subroutine nwchem_legacy_init(rtdb, ok)
+    subroutine nwchem_legacy_init(rtdb, ok, owns_mpi)
       integer, intent(out) :: rtdb
       integer, intent(out) :: ok
+      integer, intent(out) :: owns_mpi
     end subroutine nwchem_legacy_init
+
+    subroutine nwchem_legacy_finalize(rtdb, owns_mpi, ok)
+      integer, intent(inout) :: rtdb
+      integer, intent(in) :: owns_mpi
+      integer, intent(out) :: ok
+    end subroutine nwchem_legacy_finalize
 
     subroutine nwchem_legacy_set_config(rtdb, basis, theory, scf_type, &
         charge, mult, ok)
@@ -69,19 +79,35 @@ contains
 
   !> Ensure GA/MA/RTDB once; safe to call repeatedly from C.
   subroutine nwchemc_embed_init() bind(C, name='nwchemc_embed_init')
-    integer :: ok
+    integer :: ok, owns_mpi
     if (rtdb_ready) return
+    if (runtime_finalized) return
     if (.not. ga_ready) then
-      call nwchem_legacy_init(rtdb_handle, ok)
+      call nwchem_legacy_init(rtdb_handle, ok, owns_mpi)
       if (ok /= 0) then
         rtdb_handle = -1
         rtdb_ready = .false.
         return
       end if
+      owns_mpi_runtime = owns_mpi /= 0
       ga_ready = .true.
       rtdb_ready = .true.
     end if
   end subroutine nwchemc_embed_init
+
+  !> Tear down the owned in-process NWChem runtime.
+  subroutine nwchemc_embed_finalize() bind(C, name='nwchemc_embed_finalize')
+    integer :: ok, owns_mpi
+    if (.not. ga_ready .and. .not. rtdb_ready) return
+    owns_mpi = 0
+    if (owns_mpi_runtime) owns_mpi = 1
+    call nwchem_legacy_finalize(rtdb_handle, owns_mpi, ok)
+    ga_ready = .false.
+    rtdb_ready = .false.
+    owns_mpi_runtime = .false.
+    runtime_finalized = .true.
+    rtdb_handle = -1
+  end subroutine nwchemc_embed_finalize
 
   !> 1 if embed RTDB is usable, else 0.
   function nwchemc_embed_available() result(avail) &
