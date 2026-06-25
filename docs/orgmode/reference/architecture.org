@@ -1,0 +1,39 @@
+#+TITLE: Architecture
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
+
+* Layers
+~nwchemc~ is deliberately small:
+
+- ~include/nwchemc.h~ exposes the stable C ABI.
+- ~schema/Potentials.capnp~ defines ~NWChemParams~ and the structured NWChem
+  input stanzas.
+- ~subprojects/c-capnproto~ provides the ~capnp-c~ runtime and compiler plugin.
+- ~src/nwchemc_params.c~ opens a serialized Cap'n Proto message and returns the
+  generated ~NWChemParams_ptr~ root.
+- ~src/nwchemc.c~ applies those parameters to the embed bridge and calls the
+  energy/gradient entry point.
+- ~src/nwchem_embed_c_api.f90~ owns the ISO C binding layer and saved NWChem
+  runtime configuration.
+- ~src/nwchem_embed_legacy.F~ calls the fixed-form NWChem routines that set up
+  RTDB, geometry, basis, and gradients.
+
+* Parameter Flow
+The ABI receives a byte pointer and byte count.
+~capn_init_mem()~ opens the flat message, ~capn_getp(capn_root(...))~ obtains
+the generated ~NWChemParams_ptr~, and generated ~read_NWChemParams()~ calls are
+used only as short-lived C views while the arena is alive.
+
+There is no persistent copy of the Cap'n Proto parameter tree in the C runtime.
+The embed bridge stores the small Fortran strings and scalar values it needs to
+evaluate later calls.
+
+* MPI And Finalization
+The embed layer records whether it owns the MPI/GA runtime.
+~nwchemc_finalize()~ tears down that owned runtime through the legacy bridge.
+When the process already runs under MPI, the MPI test path verifies that the
+same ABI call works under ~mpirun -np 2~.
+
+* Build Systems
+Meson is the primary build.
+The release metadata keeps Meson, CMake, and changelog versions in lockstep
+when CMake support is present.

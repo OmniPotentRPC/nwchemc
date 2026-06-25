@@ -1,0 +1,28 @@
+#+TITLE: Release Process
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
+
+* Version Checks
+Release metadata is checked with:
+
+#+begin_src bash
+python3 scripts/release_assert.py
+#+end_src
+
+When ~CMakeLists.txt~ exists, the same check includes its project version.
+
+* Changelog
+User-facing changes use Towncrier fragments in ~docs/newsfragments~.
+The changelog file is ~CHANGELOG.md~ and uses the marker configured in
+~towncrier.toml~.
+
+#+begin_src bash
+uvx towncrier build --draft
+#+end_src
+
+* Bump
+~cog~ owns version replacement, changelog generation, and the release commit
+shape configured in ~cog.toml~.
+
+#+begin_src bash
+cog bump --auto --dry-run
+#+end_src

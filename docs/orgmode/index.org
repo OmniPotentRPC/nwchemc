@@ -1,0 +1,53 @@
+#+TITLE: nwchemc
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
+
+* Overview
+~nwchemc~ provides a stable C ABI for in-process NWChem calculations.
+Callers pass an unpacked flat Cap'n Proto message whose root is
+~NWChemParams~.
+The runtime reads that message through generated ~capnp-c~ bindings and
+applies the resulting method configuration to a Fortran bridge around NWChem's
+RTDB, geometry, basis, energy, and gradient entry points.
+
+#+begin_src bash
+git clone https://github.com/OmniPotentRPC/nwchemc.git
+cd nwchemc
+meson setup build -Dwith_tests=true
+meson test -C build --print-errorlogs
+#+end_src
+
+#+begin_export rst
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
+   tutorials/quickstart
+
+.. toctree::
+   :maxdepth: 2
+   :caption: How-To Guides
+
+   howto/embedding
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   reference/architecture
+   reference/nwchem-options
+   api/index
+   changelog
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Development
+
+   contributing/index
+
+#+end_export
+
+* License
+~nwchemc~ is MIT licensed.
+The linked NWChem distribution has its own upstream license and build
+requirements.

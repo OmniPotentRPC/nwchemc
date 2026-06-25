@@ -1,0 +1,56 @@
+#+TITLE: NWChem Option Mapping
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
+
+* Contract
+~NWChemParams~ is the user-facing parameter carrier.
+Every caller sends the same Cap'n Proto schema to the C ABI.
+The schema provides typed fields for common runtime controls and structured
+stanzas for NWChem input blocks.
+
+* Top-Level Fields
+| Field | NWChem role |
+|-------+-------------|
+| ~basis~ | Basis name passed to the embed bridge, for example ~sto-3g~ or ~def2-svp~. |
+| ~theory~ | Main task family, for example ~scf~ or ~dft~. Short aliases such as ~blyp~ select DFT. |
+| ~scfType~ | SCF type or DFT exchange-correlation keyword used by the bridge. |
+| ~charge~ | Molecular charge. |
+| ~multiplicity~ | Spin multiplicity, with values below one normalized to singlet for the embed call. |
+| ~task~ | User task label, normally ~gradient~ for the current ABI call. |
+| ~title~ | Optional NWChem title/start prefix. |
+| ~memoryMb~ | Memory request in MiB; zero keeps the NWChem/runtime default. |
+| ~nwchemRoot~ | Optional runtime root hint exported as ~NWCHEM_TOP~. |
+| ~scratchDir~ | Optional scratch directory exported as ~NWCHEM_SCRATCH_DIR~. |
+| ~permanentDir~ | Optional permanent directory exported as ~NWCHEM_PERMANENT_DIR~. |
+| ~inputStanzas~ | Structured NWChem input blocks. |
+| ~inputBlocks~ | Raw NWChem input text applied after structured stanzas. |
+
+* Structured Stanzas
+| Stanza | Cap'n Proto type | NWChem text emitted |
+|--------+------------------+---------------------|
+| Generic block | ~NWChemGenericStanza~ | ~name~, one directive per line, then ~end~. |
+| Directive | ~NWChemDirective~ | ~keyword arg0 arg1 ...~ inside a block. |
+| RTDB set | ~NWChemSetDirective~ | ~set key value~. |
+| DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
+| Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
+
+* DFT Controls
+~NWChemDftStanza~ provides typed fields for common DFT setup:
+
+| Field | NWChem text |
+|-------+-------------|
+| ~xc~ | ~xc <value>~ |
+| ~direct~ | ~direct~ |
+| ~smearing.sigmaHartree~ | ~smear <sigma> fixsz~ or ~smear <sigma> nofixsz~ |
+| ~directives~ | Extra tokenized DFT directives. |
+
+Fermi smearing and related occupancy controls can also be expressed with
+~NWChemSetDirective~, for example RTDB keys under ~dft:*~, or with explicit DFT
+directives when the NWChem input syntax requires them.
+
+* Coverage Model
+Typed fields cover the ABI-critical method, charge, multiplicity, directory,
+and DFT smearing controls.
+The generic stanza and directive model represents arbitrary named NWChem blocks
+without requiring a raw string.
+The raw block is kept for exact upstream syntax, generated inputs, and NWChem
+keywords whose grammar is better preserved as literal input.

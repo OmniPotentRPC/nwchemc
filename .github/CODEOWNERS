@@ -1,0 +1,9 @@
+# Release and public interface surfaces.
+/include/                  @HaoZeke
+/schema/                   @HaoZeke
+/meson.build               @HaoZeke
+/CMakeLists.txt            @HaoZeke
+/towncrier.toml            @HaoZeke
+/cog.toml                  @HaoZeke
+/CHANGELOG.md              @HaoZeke
+/docs/                     @HaoZeke

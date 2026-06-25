@@ -1,0 +1,42 @@
+#+TITLE: Embedding nwchemc
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
+
+* C ABI
+Include ~nwchemc.h~ and pass the serialized ~NWChemParams~ message bytes to the
+ABI functions.
+
+#+begin_src c
+#include <nwchemc.h>
+
+int rc = nwchemc_set_params(params_bytes, params_size);
+NWChemCResult result = nwchemc_energy_gradient(
+    n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
+    gradient_h_bohr);
+#+end_src
+
+~params_bytes~ is an unpacked flat Cap'n Proto message.
+It can come from pycapnp, a memory mapped file, rgpot, or another Cap'n Proto
+binding that writes the standard flat stream format.
+
+* Parameter Ownership
+~nwchemc~ reads the message with generated ~capnp-c~ bindings.
+The public ABI does not require a C++ runtime and does not define a second
+configuration structure.
+Callers own the serialized bytes.
+The library copies only the C strings needed by the Fortran bridge when it
+applies the active NWChem configuration.
+
+* Result Units
+The energy returned by ~nwchemc_energy_gradient()~ is in Hartree.
+The gradient buffer is filled with nuclear gradients in Hartree per Bohr.
+Input coordinates are Angstrom values in a flat ~[natoms * 3]~ array.
+
+* Language Bindings
+A binding only needs to produce the Cap'n Proto message and call the C ABI.
+For Python, a typical path is:
+
+1. Load ~schema/Potentials.capnp~ with pycapnp.
+2. Fill an ~NWChemParams~ message.
+3. Write the message as an unpacked flat byte stream.
+4. Pass the byte pointer and length through ~ctypes~, ~cffi~, or a native
+   extension module.

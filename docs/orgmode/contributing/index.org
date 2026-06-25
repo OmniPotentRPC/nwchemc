@@ -1,0 +1,33 @@
+#+TITLE: Contributing
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
+
+* Development Checks
+Run the default parser and stub checks before changing the ABI or schema:
+
+#+begin_src bash
+meson setup build -Dwith_tests=true
+meson test -C build --print-errorlogs
+#+end_src
+
+For a configured NWChem tree, also run the serial and MPI embed checks:
+
+#+begin_src bash
+meson test -C build-nwchem --print-errorlogs
+#+end_src
+
+* Documentation
+Documentation source lives under ~docs/orgmode~.
+The docs build exports orgmode to RST, runs Doxygen over the C/Fortran surface,
+converts XML through doxyrest, and builds Sphinx HTML.
+
+#+begin_src bash
+pixi run -e docs docbld
+#+end_src
+
+* Release Process
+#+begin_export rst
+.. toctree::
+   :maxdepth: 2
+
+   developer/release
+#+end_export
