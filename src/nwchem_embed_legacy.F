@@ -107,7 +107,8 @@ C     Direct embed: numeric geometry and library basis are stored through
 C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang,
      $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
-     $     charge, mult, energy_h, grad_h_bohr, errmsg, ok)
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, energy_h, grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -116,12 +117,14 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 #include "errquit.fh"
 #include "inp.fh"
       integer rtdb, n_atoms, charge, mult, ok
+      integer dft_direct, dft_smear_on, dft_smear_spinset
       double precision pos_ang(*)
       integer atmnrs(*)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
       character*4096 input_blocks
+      double precision dft_smear_sigma
       double precision energy_h
       double precision grad_h_bohr(*)
       character*(*) errmsg
@@ -130,8 +133,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer maxat
       parameter (maxat = 64)
       logical status
-      double precision chg
-      character*16 vectors_in
       external task_energy, task_gradient
       logical task_energy, task_gradient
       external nw_inp_from_character
@@ -163,16 +164,12 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          endif
       endif
 
-      chg = dble(charge)
-      call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
-      call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
-      vectors_in = 'atomic'
-      if (theory_name(1:3) .eq. 'dft') then
-         status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
-         call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
-      else
-         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-         status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
+      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, status)
+      if (.not. status) then
+         errmsg = 'method RTDB setup failed'
+         return
       endif
       status = rtdb_cput(rtdb, 'task:operation', 1, 'energy')
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
@@ -219,7 +216,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 
       subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang,
      $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
-     $     charge, mult, hessian_h_bohr2, errmsg, ok)
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -228,20 +226,21 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 #include "errquit.fh"
 #include "inp.fh"
       integer rtdb, n_atoms, charge, mult, ok
+      integer dft_direct, dft_smear_on, dft_smear_spinset
       double precision pos_ang(*)
       integer atmnrs(*)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
       character*4096 input_blocks
+      double precision dft_smear_sigma
       double precision hessian_h_bohr2(*)
       character*(*) errmsg
       integer n3, i, j
       integer maxat, idxij, idxji
       parameter (maxat = 64)
       logical status
-      double precision chg, hval
-      character*16 vectors_in
+      double precision hval
       character*255 filehess
       external task_hessian, util_file_name
       logical task_hessian
@@ -278,16 +277,12 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          endif
       endif
 
-      chg = dble(charge)
-      call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
-      call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
-      vectors_in = 'atomic'
-      if (theory_name(1:3) .eq. 'dft') then
-         status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
-         call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
-      else
-         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-         status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
+      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, status)
+      if (.not. status) then
+         errmsg = 'method RTDB setup failed'
+         return
       endif
       status = rtdb_cput(rtdb, 'task:operation', 1, 'hessian')
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
@@ -327,6 +322,68 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
  920  continue
       close(unit=69, status='keep')
       errmsg = 'unexpected EOF reading hessian file'
+      return
+      end
+
+      subroutine nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+      integer rtdb, charge, mult
+      integer dft_direct, dft_smear_on, dft_smear_spinset
+      character*64 theory_name
+      character*64 scf_type
+      double precision dft_smear_sigma
+      logical ok
+      logical status, lval
+      integer nopen, ival
+      double precision chg
+      character*16 vectors_in
+
+      ok = .true.
+      chg = dble(charge)
+      call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
+      ok = ok .and. status
+      call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
+      ok = ok .and. status
+      vectors_in = 'atomic'
+      if (theory_name(1:3) .eq. 'dft') then
+         status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
+         ok = ok .and. status
+         call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
+         ok = ok .and. status
+         nopen = mult - 1
+         call nwchemc_rtdb_put_int(rtdb, 'dft:nopen', nopen, status)
+         ok = ok .and. status
+         if (dft_direct .ne. 0) then
+            lval = .true.
+            status = rtdb_put(rtdb, 'dft:direct', mt_log, 1, lval)
+            ok = ok .and. status
+            ival = -1
+            call nwchemc_rtdb_put_int(rtdb, 'int2e:filesize',
+     $         ival, status)
+            ok = ok .and. status
+            call nwchemc_rtdb_put_int(rtdb, 'int2e:memsize',
+     $         ival, status)
+            ok = ok .and. status
+         endif
+         if (dft_smear_on .ne. 0 .and. dft_smear_sigma .gt. 0.0d0)
+     $      then
+            call nwchemc_rtdb_put_dbl(rtdb, 'dft:smear_sigma',
+     $         dft_smear_sigma, status)
+            ok = ok .and. status
+            lval = dft_smear_spinset .ne. 0
+            status = rtdb_put(rtdb, 'dft:spinset', mt_log, 1, lval)
+            ok = ok .and. status
+         endif
+      else
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+         ok = ok .and. status
+         status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
+         ok = ok .and. status
+      endif
       return
       end
 

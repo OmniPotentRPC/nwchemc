@@ -61,6 +61,7 @@ module nwchem_embed_c_api
 
     subroutine nwchem_legacy_energy_grad(rtdb, n_atoms, pos_ang, atmnrs, &
         basis_name, theory_name, scf_type, input_blocks, charge, mult, &
+        dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset, &
         energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -70,6 +71,8 @@ module nwchem_embed_c_api
       character(len=64), intent(in) :: theory_name, scf_type
       character(len=4096), intent(in) :: input_blocks
       integer, intent(in) :: charge, mult
+      integer, intent(in) :: dft_direct, dft_smear_on, dft_smear_spinset
+      real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(out) :: energy_h
       real(real64), intent(out) :: grad_h_bohr(*)
       character(len=*), intent(out) :: errmsg
@@ -78,6 +81,7 @@ module nwchem_embed_c_api
 
     subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang, atmnrs, &
         basis_name, theory_name, scf_type, input_blocks, charge, mult, &
+        dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset, &
         hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -87,6 +91,8 @@ module nwchem_embed_c_api
       character(len=64), intent(in) :: theory_name, scf_type
       character(len=4096), intent(in) :: input_blocks
       integer, intent(in) :: charge, mult
+      integer, intent(in) :: dft_direct, dft_smear_on, dft_smear_spinset
+      real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(out) :: hessian_h_bohr2(*)
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
@@ -188,8 +194,7 @@ contains
   end function nwchemc_embed_set_config
 
   !> Store direct DFT options extracted from Cap'n Proto (xc/direct/smear).
-  !> Promoted xc overrides cfg_scf when non-empty; extra knobs are appended as
-  !> NWChem set/input fragments so the legacy eval path does not re-render them.
+  !> Promoted xc updates cfg_scf; numeric DFT knobs are applied through RTDB.
   function nwchemc_embed_set_dft_direct(xc, xc_len, direct_enabled, &
       smearing_enabled, smear_sigma_hartree, smearing_spinset) result(rc) &
       bind(C, name='nwchemc_embed_set_dft_direct')
@@ -201,8 +206,6 @@ contains
     integer(c_int), intent(in), value :: smearing_spinset
     integer(c_int) :: rc
     character(len=64) :: xcstr
-    character(len=256) :: extra
-    character(len=32) :: sigma_txt
 
     rc = 0_c_int
     call c_chars_to_f(xc, xc_len, xcstr)
@@ -215,28 +218,6 @@ contains
     cfg_dft_smear_on = int(smearing_enabled)
     cfg_dft_smear_sigma = real(smear_sigma_hartree, real64)
     cfg_dft_smear_spinset = int(smearing_spinset)
-
-    extra = ' '
-    if (cfg_dft_direct /= 0) then
-      extra = trim(extra) // new_line('a') // 'set dft:direct .true.'
-    end if
-    if (cfg_dft_smear_on /= 0 .and. cfg_dft_smear_sigma > 0.0_real64) then
-      write (sigma_txt, '(es16.8)') cfg_dft_smear_sigma
-      extra = trim(extra) // new_line('a') // 'set dft:smear ' // &
-          adjustl(trim(sigma_txt))
-      if (cfg_dft_smear_spinset == 0) then
-        extra = trim(extra) // new_line('a') // 'set dft:smear_fixsz .false.'
-      else
-        extra = trim(extra) // new_line('a') // 'set dft:smear_fixsz .true.'
-      end if
-    end if
-    if (len_trim(extra) > 0) then
-      if (len_trim(cfg_input_blocks) == 0) then
-        cfg_input_blocks = adjustl(trim(extra))
-      else
-        cfg_input_blocks = trim(cfg_input_blocks) // trim(extra)
-      end if
-    end if
   end function nwchemc_embed_set_dft_direct
 
   !> Energy (Hartree) + nuclear gradient (Hartree/Bohr) for current config.
@@ -289,7 +270,8 @@ contains
 
     call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cfg_basis, &
         cfg_theory, cfg_scf, cfg_input_blocks, int(charge), &
-        max(1, int(mult)), energy_h, grad, msg, ok)
+        max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
       grad_h_bohr(i) = real(grad(i), kind=c_double)
@@ -350,7 +332,8 @@ contains
 
     call nwchem_legacy_hessian(rtdb_handle, n, pos, z, cfg_basis, &
         cfg_theory, cfg_scf, cfg_input_blocks, int(charge), &
-        max(1, int(mult)), hess, msg, ok)
+        max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, hess, msg, ok)
 
     do i = 1, n2
       hessian_h_bohr2(i) = real(hess(i), kind=c_double)
