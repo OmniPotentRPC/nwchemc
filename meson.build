@@ -215,16 +215,30 @@ if get_option('with_tests')
     ),
     suite: ['cmocka', 'inventory'],
   )
+  nwchem_parser_params_bin = custom_target(
+    'nwchem_parser_params_bin',
+    input: 'tests/nwchem_params_parser.capnp.txt',
+    output: 'nwchem_params_parser.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   test(
     'feature-driver',
     executable(
       'nwchemc_feature_driver',
-      ['tools/nwchemc_feature_driver.c'],
-      dependencies: [nwchemc_features_dep, nwchemc_stub_dep],
-      include_directories: inc,
+      ['tools/nwchemc_feature_driver.c'] + nwchemc_params_sources,
+      dependencies: [nwchemc_features_dep, nwchemc_stub_dep] + nwchemc_params_deps,
+      include_directories: [inc] + nwchemc_params_includes,
       c_args: common_c_args,
     ),
-    args: ['all'],
+    args: ['all', nwchem_parser_params_bin],
     suite: ['cmocka', 'inventory', 'drivers'],
   )
   test(
@@ -275,22 +289,7 @@ if get_option('with_tests')
       dependencies: nwchemc_params_deps + [cmocka_dep],
       c_args: common_c_args,
     ),
-    args: [
-      custom_target(
-        'nwchem_parser_params_bin',
-        input: 'tests/nwchem_params_parser.capnp.txt',
-        output: 'nwchem_params_parser.bin',
-        command: [
-          python,
-          meson.current_source_dir() / 'tests/encode_capnp.py',
-          capnp,
-          meson.current_source_dir() / 'schema/Potentials.capnp',
-          'NWChemParams',
-          '@INPUT@',
-          '@OUTPUT@',
-        ],
-      ),
-    ],
+    args: [nwchem_parser_params_bin],
   )
   if has_nwchem
     test_scratch_dir = meson.current_build_dir() / 'nwchem-test-scratch'

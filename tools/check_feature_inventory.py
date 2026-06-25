@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-check schema/inventory/nwchem_features.json against Potentials.capnp."""
+"""Cross-check intern inventory vs schema, C table, and options doc."""
 from __future__ import annotations
 
 import json
@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / "schema" / "Potentials.capnp"
 INVENTORY = ROOT / "schema" / "inventory" / "nwchem_features.json"
 FEATURES_C = ROOT / "src" / "nwchemc_features.c"
+OPTIONS_DOC = ROOT / "docs" / "orgmode" / "reference" / "nwchem-options.org"
 
 
 def parse_module_enums(text: str) -> set[str]:
@@ -38,6 +39,7 @@ def main() -> int:
     schema = SCHEMA.read_text(encoding="utf-8")
     inv = json.loads(INVENTORY.read_text(encoding="utf-8"))
     features_c = FEATURES_C.read_text(encoding="utf-8")
+    options_doc = OPTIONS_DOC.read_text(encoding="utf-8") if OPTIONS_DOC.exists() else ""
 
     schema_mods = parse_module_enums(schema)
     inv_mods = {m["camel"] for m in inv["modules"]}
@@ -66,10 +68,35 @@ def main() -> int:
     for name in sorted(schema_fields):
         if f'"params.{name}"' not in features_c:
             errors.append(f"C intern table missing params.{name}")
-    for abi in ("nwchemc_set_params", "nwchemc_energy_gradient", "nwchemc_hessian",
-                "nwchemc_available", "nwchemc_version", "nwchemc_finalize"):
+    for abi in (
+        "nwchemc_set_params",
+        "nwchemc_energy_gradient",
+        "nwchemc_hessian",
+        "nwchemc_available",
+        "nwchemc_version",
+        "nwchemc_finalize",
+    ):
         if f'"abi.{abi}"' not in features_c:
             errors.append(f"C intern table missing abi.{abi}")
+
+    # Options doc must document intern/inventory and each top-level field.
+    if OPTIONS_DOC.exists():
+        if "schema/inventory/nwchem_features.json" not in options_doc:
+            errors.append("options.org missing feature inventory path")
+        if "nwchemc_features" not in options_doc and "Feature Inventory" not in options_doc:
+            errors.append("options.org missing feature inventory section/reference")
+        for name in sorted(schema_fields):
+            if f"~{name}~" not in options_doc and f"| ~{name}~" not in options_doc:
+                # enginePath may be embed-only; still require intern row (checked above)
+                if name == "enginePath":
+                    continue
+                errors.append(f"options.org missing documented field ~{name}~")
+        for kind in sorted(schema_stanzas):
+            # stanza kinds appear as section titles or intern ids
+            if kind not in options_doc and f"stanza.{kind}" not in options_doc:
+                if kind == "pseudopotential" and "Pseudopotential" in options_doc:
+                    continue
+                errors.append(f"options.org missing stanza coverage for {kind}")
 
     print(
         f"modules={len(schema_mods)} fields={len(schema_fields)} "
