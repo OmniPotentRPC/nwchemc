@@ -39,3 +39,14 @@ CMake builds the same capnp-c generation path, stub/parser tests, optional
 NWChem shared library, install targets, and CTest serial/MPI gradient checks.
 The release metadata keeps Meson, CMake, pixi, and changelog versions in
 lockstep.
+
+* NWChem Root Model
+Embed mode links NWChem in-process and therefore validates the root path as a
+build-tree layout. The required artifacts include ~src/config/nwchem_config.h~,
+~src/tools/install/bin/ga-config~, ~src/stubs.o~, the source include
+directories, Global Arrays install directories, and ~lib/$NWCHEM_TARGET~.
+
+A package-manager runtime prefix with ~bin/nwchem~, ~lib~, and
+~share/nwchem~ is a different shape. It can support an executable backend, but
+it does not provide the metadata and object files that the direct C ABI uses for
+the shared embed library.

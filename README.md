@@ -33,7 +33,7 @@ meson compile -C build
 meson test -C build --print-errorlogs
 ```
 
-Embed build against an NWChem source/install tree:
+Embed build against an NWChem source/build tree:
 
 ```bash
 export NWCHEM_TOP=/path/to/nwchem
@@ -45,11 +45,17 @@ meson setup build-nwchem \
 meson compile -C build-nwchem
 ```
 
-`libnwchemc.so` links NWChem into a shared library, so static NWChem archives
-must be built as position-independent code. If Meson fails during the NWChem
-link probe with `relocation R_X86_64_PC32 ... can not be used when making a
-shared object`, rebuild the NWChem archives with PIC flags for the selected
-target.
+`libnwchemc.so` links NWChem into a shared library, so `nwchem_root` must point
+at the NWChem build-tree layout containing `src/config/nwchem_config.h`,
+`src/tools/install/bin/ga-config`, `src/stubs.o`, source include directories,
+and `lib/$NWCHEM_TARGET`. The conda-forge `nwchem` package is useful as an
+executable/runtime package, but it is not the embed SDK shape required by this
+in-process ABI.
+
+Static NWChem archives must be built as position-independent code. If Meson
+fails during the NWChem link probe with `relocation R_X86_64_PC32 ... can not
+be used when making a shared object`, rebuild the NWChem archives with PIC
+flags for the selected target.
 
 The resulting shared library exports `nwchemc_*` symbols. Downstream projects
 load it with `dlopen()` and pass the serialized `NWChemParams` message bytes

@@ -16,8 +16,9 @@ runtime, generates C readers for ~schema/Potentials.capnp~, and runs the parser
 test against a normal Cap'n Proto text fixture encoded by the ~capnp~ CLI.
 
 * NWChem Embed Build
-The real embed build needs a source or install tree with the NWChem archives,
-Global Arrays tools, and target-specific configuration files.
+The real embed build needs a source/build tree with the NWChem archives, Global
+Arrays tools, source headers, ~src/stubs.o~, and target-specific configuration
+files.
 
 #+begin_src bash
 export NWCHEM_TOP=/path/to/nwchem
@@ -33,6 +34,13 @@ meson test -C build-nwchem --print-errorlogs
 The NWChem archives must be linkable into a shared object.
 On ELF targets that usually means building the NWChem object code with
 position-independent code flags.
+
+The conda-forge ~nwchem~ package provides an executable/runtime prefix. That is
+not the same shape as the embed build tree: the in-process ABI needs NWChem
+build metadata such as ~src/config/nwchem_config.h~ and
+~src/tools/install/bin/ga-config~. Conda-forge compiler packages may also pull a
+Linux sysroot into a development environment; that sysroot is compiler ABI
+plumbing and is not an NWChem root.
 
 * CMake Build
 The CMake build exposes the same stub/parser path and the real NWChem embed
