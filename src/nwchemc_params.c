@@ -391,6 +391,65 @@ static int render_module_stanza(NWChemModuleStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static const char *pseudopotential_library_type_literal(
+    enum NWChemPseudopotentialEntry_LibraryType library_type) {
+  switch (library_type) {
+  case NWChemPseudopotentialEntry_LibraryType_pspwLibrary:
+    return "pspw_library";
+  case NWChemPseudopotentialEntry_LibraryType_pawLibrary:
+    return "paw_library";
+  case NWChemPseudopotentialEntry_LibraryType_cpi:
+    return "cpi";
+  case NWChemPseudopotentialEntry_LibraryType_teter:
+    return "teter";
+  case NWChemPseudopotentialEntry_LibraryType_library:
+  default:
+    return "library";
+  }
+}
+
+static int render_pseudopotential_entries(
+    NWChemPseudopotentialEntry_list entries, char *dst, size_t dst_size) {
+  int n = struct_list_len(&entries.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemPseudopotentialEntry entry;
+    get_NWChemPseudopotentialEntry(&entry, entries, i);
+    if (entry.element.len <= 0 || entry.libraryName.len <= 0)
+      continue;
+    if (append_format(dst, dst_size, "    ") != 0 ||
+        append_text(dst, dst_size, entry.element) != 0 ||
+        append_format(dst, dst_size, " %s ",
+                      pseudopotential_library_type_literal(
+                          entry.libraryType)) != 0 ||
+        append_text(dst, dst_size, entry.libraryName) != 0 ||
+        append_format(dst, dst_size, "\n") != 0)
+      return -1;
+  }
+  return 0;
+}
+
+static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
+                                         char *dst, size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemPseudopotentialStanza pseudopotential;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemPseudopotentialStanza(&pseudopotential, ptr);
+  if (append_format(block, sizeof(block), "nwpw\n  pseudopotentials\n") != 0 ||
+      render_pseudopotential_entries(pseudopotential.entries, block,
+                                     sizeof(block)) != 0 ||
+      append_format(block, sizeof(block), "  end\n") != 0 ||
+      render_directives(pseudopotential.directives, block, sizeof(block),
+                        "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 size_t dst_size) {
   int n = struct_list_len(&stanzas.p);
@@ -415,6 +474,11 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_module:
       if (render_module_stanza(stanza._module, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_pseudopotential:
+      if (render_pseudopotential_stanza(stanza.pseudopotential, dst,
+                                        dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

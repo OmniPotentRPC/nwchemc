@@ -11,11 +11,11 @@
 - ~src/nwchemc_params.c~ opens a serialized Cap'n Proto message and returns the
   generated ~NWChemParams_ptr~ root.
 - ~src/nwchemc.c~ applies those parameters to the embed bridge and calls the
-  energy/gradient entry point.
+  energy/gradient or Hessian entry point.
 - ~src/nwchem_embed_c_api.f90~ owns the ISO C binding layer and saved NWChem
   runtime configuration.
 - ~src/nwchem_embed_legacy.F~ calls the fixed-form NWChem routines that set up
-  RTDB, geometry, basis, and gradients.
+  RTDB, geometry, basis, gradients, and Hessians.
 
 * Parameter Flow
 The ABI receives a byte pointer and byte count.
@@ -36,7 +36,8 @@ same ABI call works under ~mpirun -np 2~.
 * Build Systems
 Meson is the primary build.
 CMake builds the same capnp-c generation path, stub/parser tests, optional
-NWChem shared library, install targets, and CTest serial/MPI gradient checks.
+NWChem shared library, install targets, cmocka C tests, and CTest
+serial/MPI gradient plus serial Hessian checks.
 The release metadata keeps Meson, CMake, pixi, and changelog versions in
 lockstep.
 

@@ -13,7 +13,11 @@ meson test -C build --print-errorlogs
 
 This configuration builds the stub library, compiles the vendored ~capnp-c~
 runtime, generates C readers for ~schema/Potentials.capnp~, and runs the parser
-test against a normal Cap'n Proto text fixture encoded by the ~capnp~ CLI.
+and stub ABI tests with cmocka. The parser test uses a normal Cap'n Proto text
+fixture encoded by the ~capnp~ CLI.
+
+cmocka is resolved through pkg-config. The pixi environment installs cmocka
+alongside Meson, CMake, Cap'n Proto, and the compilers.
 
 * NWChem Embed Build
 The real embed build needs a source/build tree with the NWChem archives, Global
@@ -30,6 +34,9 @@ meson setup build-nwchem \
 meson compile -C build-nwchem
 meson test -C build-nwchem --print-errorlogs
 #+end_src
+
+The embed test suite exercises energy/gradient calls and the
+~nwchemc_hessian()~ ABI against the same ~NWChemParams~ Cap'n Proto carrier.
 
 The NWChem archives must be linkable into a shared object.
 On ELF targets that usually means building the NWChem object code with

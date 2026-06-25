@@ -12,11 +12,16 @@ set(NWCHEMC_NWCHEM_ROOT "" CACHE PATH "NWChem source/build tree root")
 set(NWCHEMC_NWCHEM_TARGET "LINUX64" CACHE STRING "NWChem target library directory")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+if(NWCHEMC_BUILD_TESTS)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(CMOCKA REQUIRED IMPORTED_TARGET cmocka)
+endif()
 
 set(NWCHEMC_COMMON_C_WARNINGS)
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
   list(APPEND NWCHEMC_COMMON_C_WARNINGS -Wall -Wextra -Wpedantic)
 endif()
+find_library(NWCHEMC_M_LIBRARY m)
 
 set(NWCHEMC_INCLUDE_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -321,7 +326,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   endif()
 
   add_executable(test_stub_abi tests/test_stub_abi.c)
-  target_link_libraries(test_stub_abi PRIVATE nwchemc_stub)
+  target_link_libraries(test_stub_abi PRIVATE nwchemc_stub PkgConfig::CMOCKA)
   target_compile_options(test_stub_abi PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
   add_test(NAME stub-abi COMMAND test_stub_abi)
 
@@ -349,7 +354,10 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   )
 
   add_executable(test_capnp_parser tests/test_capnp_parser.c)
-  target_link_libraries(test_capnp_parser PRIVATE nwchemc_params)
+  target_link_libraries(test_capnp_parser PRIVATE
+    nwchemc_params
+    PkgConfig::CMOCKA
+  )
   target_compile_options(test_capnp_parser PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
   add_dependencies(test_capnp_parser nwchem_parser_params_bin)
   add_test(NAME capnp-parser
@@ -395,10 +403,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     nwchemc_configure_params(nwchem_params nwchem_params)
     nwchemc_configure_params(nwchem_params_input_blocks nwchem_params_input_blocks)
     nwchemc_configure_params(nwchem_params_structured nwchem_params_structured)
+    nwchemc_configure_params(nwchem_params_hessian nwchem_params_hessian)
 
     function(nwchemc_add_gradient_test target_name params_bin_target params_bin)
       add_executable("${target_name}" tests/test_nwchem_energy_gradient.c)
-      target_link_libraries("${target_name}" PRIVATE nwchemc)
+      target_link_libraries("${target_name}" PRIVATE nwchemc PkgConfig::CMOCKA)
       target_compile_options("${target_name}" PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
       target_compile_definitions("${target_name}" PRIVATE
         "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
@@ -425,12 +434,32 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "${nwchem_params_structured_BIN}"
     )
 
+    add_executable(nwchem-hessian tests/test_nwchem_hessian.c)
+    target_link_libraries(nwchem-hessian PRIVATE nwchemc PkgConfig::CMOCKA)
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-hessian PRIVATE "${NWCHEMC_M_LIBRARY}")
+    endif()
+    target_compile_options(nwchem-hessian PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
+    target_compile_definitions(nwchem-hessian PRIVATE
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-hessian nwchem_params_hessian_bin)
+    add_test(
+      NAME nwchem-hessian
+      COMMAND nwchem-hessian "${nwchem_params_hessian_BIN}"
+    )
+    set_tests_properties(nwchem-hessian PROPERTIES RUN_SERIAL TRUE)
+
     find_program(MPIRUN_EXECUTABLE mpirun)
     if(MPIRUN_EXECUTABLE)
       add_executable(nwchem-energy-gradient-mpi
         tests/test_nwchem_energy_gradient.c
       )
       target_link_libraries(nwchem-energy-gradient-mpi PRIVATE nwchemc)
+      target_link_libraries(nwchem-energy-gradient-mpi PRIVATE
+        PkgConfig::CMOCKA
+      )
       target_compile_options(nwchem-energy-gradient-mpi PRIVATE
         ${NWCHEMC_COMMON_C_WARNINGS}
       )

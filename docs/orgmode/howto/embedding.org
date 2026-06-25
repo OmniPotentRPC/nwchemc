@@ -12,6 +12,9 @@ int rc = nwchemc_set_params(params_bytes, params_size);
 NWChemCResult result = nwchemc_energy_gradient(
     n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
     gradient_h_bohr);
+NWChemCResult hessian = nwchemc_hessian(
+    n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
+    hessian_h_bohr2);
 #+end_src
 
 ~params_bytes~ is an unpacked flat Cap'n Proto message.
@@ -29,6 +32,8 @@ applies the active NWChem configuration.
 * Result Units
 The energy returned by ~nwchemc_energy_gradient()~ is in Hartree.
 The gradient buffer is filled with nuclear gradients in Hartree per Bohr.
+~nwchemc_hessian()~ fills a dense row-major Cartesian Hessian in
+Hartree per Bohr squared, with length ~(natoms * 3) * (natoms * 3)~.
 Input coordinates are Angstrom values in a flat ~[natoms * 3]~ array.
 
 * Language Bindings

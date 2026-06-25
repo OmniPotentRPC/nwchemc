@@ -8,7 +8,7 @@ Callers pass an unpacked flat Cap'n Proto message whose root is
 ~NWChemParams~.
 The runtime reads that message through generated ~capnp-c~ bindings and
 applies the resulting method configuration to a Fortran bridge around NWChem's
-RTDB, geometry, basis, energy, and gradient entry points.
+RTDB, geometry, basis, energy, gradient, and Hessian entry points.
 
 #+begin_src bash
 git clone https://github.com/OmniPotentRPC/nwchemc.git

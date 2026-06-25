@@ -164,20 +164,41 @@ struct NWChemModuleStanza {
   directives @2 :List(NWChemDirective);      # Structured block body.
 }
 
+struct NWChemPseudopotentialEntry {
+  element     @0 :Text;             # Element symbol, e.g. "Si".
+  libraryType @1 :LibraryType = library;
+  libraryName @2 :Text;             # NWPW library name or file token.
+
+  enum LibraryType {
+    library     @0; # NWChem "library" / PSPW library entry.
+    pspwLibrary @1; # Explicit "pspw_library" entry.
+    pawLibrary  @2; # PAW library entry.
+    cpi         @3; # CPI pseudopotential file entry.
+    teter       @4; # Teter pseudopotential file entry.
+  }
+}
+
+struct NWChemPseudopotentialStanza {
+  entries    @0 :List(NWChemPseudopotentialEntry);
+  directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
+}
+
 struct NWChemInputStanza {
-  kind    @0 :Kind = generic;
-  generic @1 :NWChemGenericStanza;
-  dft     @2 :NWChemDftStanza;
-  set     @3 :NWChemSetDirective;
-  raw     @4 :Text;
-  module  @5 :NWChemModuleStanza;
+  kind            @0 :Kind = generic;
+  generic         @1 :NWChemGenericStanza;
+  dft             @2 :NWChemDftStanza;
+  set             @3 :NWChemSetDirective;
+  raw             @4 :Text;
+  module          @5 :NWChemModuleStanza;
+  pseudopotential @6 :NWChemPseudopotentialStanza;
 
   enum Kind {
-    generic @0;
-    dft     @1;
-    set     @2;
-    raw     @3;
-    module  @4;
+    generic         @0;
+    dft             @1;
+    set             @2;
+    raw             @3;
+    module          @4;
+    pseudopotential @5;
   }
 }
 

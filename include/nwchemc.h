@@ -55,6 +55,24 @@ NWChemCResult nwchemc_energy_gradient(
     double *grad_h_bohr);
 
 /**
+ * @brief Compute a Cartesian nuclear Hessian for an atomic configuration.
+ *
+ * @param n_atoms Number of atoms.
+ * @param positions_ang Flat Cartesian coordinate array in Angstrom, length
+ *        `n_atoms * 3`.
+ * @param atomic_numbers Atomic number array, length `n_atoms`.
+ * @param params_capnp Pointer to an unpacked flat `NWChemParams` message.
+ * @param params_capnp_size_bytes Size of `params_capnp` in bytes.
+ * @param hessian_h_bohr2 Output dense row-major Hessian in Hartree/Bohr^2,
+ *        length `(n_atoms * 3) * (n_atoms * 3)`.
+ * @return Calculation result and status message.
+ */
+NWChemCResult nwchemc_hessian(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *hessian_h_bohr2);
+
+/**
  * @brief Return the compiled library version string.
  */
 const char *nwchemc_version(void);

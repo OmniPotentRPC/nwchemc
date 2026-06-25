@@ -278,6 +278,150 @@ C     symmetry/mass/autoz state and NaN integrals.
       return
       end
 
+      subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang,
+     $     atmnrs, basis_name, theory_name, scf_type, input_blocks,
+     $     charge, mult, hessian_h_bohr2, errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "global.fh"
+#include "rtdb.fh"
+#include "stdio.fh"
+#include "errquit.fh"
+#include "inp.fh"
+      integer rtdb, n_atoms, charge, mult, ok
+      double precision pos_ang(*)
+      integer atmnrs(*)
+      character*64 basis_name
+      character*64 theory_name
+      character*64 scf_type
+      character*4096 input_blocks
+      double precision hessian_h_bohr2(*)
+      character*(*) errmsg
+      integer iat, n3, i, j, ipos, lb
+      integer maxat, idxij, idxji
+      parameter (maxat = 64)
+      logical status
+      double precision chg, hval
+      character*16 tag
+      character*16 vectors_in
+      character*8192 blk
+      character*128 line
+      character*255 filehess
+      external task_hessian, util_file_name
+      logical task_hessian
+      external nw_inp_from_character
+      logical nw_inp_from_character
+
+      ok = -1
+      errmsg = ' '
+      if (rtdb .lt. 0 .or. n_atoms .le. 0) then
+         errmsg = 'invalid rtdb or n_atoms'
+         return
+      endif
+      if (n_atoms .gt. maxat) then
+         errmsg = 'n_atoms exceeds embed maxat=64'
+         return
+      endif
+
+      n3 = 3 * n_atoms
+      do i = 1, n3 * n3
+         hessian_h_bohr2(i) = 0.0d0
+      enddo
+
+      blk = 'geometry units angstrom' // char(10)
+      ipos = inp_strlen(blk) + 1
+      do iat = 1, n_atoms
+         call nwchemc_z_to_elem(atmnrs(iat), tag)
+         write (line, '(1x,a2,1x,3f20.12)') tag(1:2),
+     $        pos_ang(3 * (iat - 1) + 1),
+     $        pos_ang(3 * (iat - 1) + 2),
+     $        pos_ang(3 * (iat - 1) + 3)
+         lb = inp_strlen(line)
+         if (ipos + lb + 1 .gt. len(blk)) then
+            errmsg = 'embed directive block overflow'
+            return
+         endif
+         blk(ipos:ipos + lb - 1) = line(1:lb)
+         ipos = ipos + lb
+         blk(ipos:ipos) = char(10)
+         ipos = ipos + 1
+      enddo
+      blk(ipos:ipos + 3) = 'end' // char(10)
+      ipos = ipos + 4
+      write (line, '(''basis; * library '',a,'' ; end'')')
+     $     basis_name(1:inp_strlen(basis_name))
+      lb = inp_strlen(line)
+      if (ipos + lb + 1 .gt. len(blk)) then
+         errmsg = 'embed directive block overflow (basis)'
+         return
+      endif
+      blk(ipos:ipos + lb - 1) = line(1:lb)
+      ipos = ipos + lb
+      blk(ipos:ipos) = char(10)
+      if (.not. nw_inp_from_character(rtdb, blk(1:ipos))) then
+         errmsg = 'nw_inp_from_character geom/basis failed'
+         return
+      endif
+      if (inp_strlen(input_blocks) .gt. 0) then
+         if (.not. nw_inp_from_character(rtdb,
+     $        input_blocks(1:inp_strlen(input_blocks)))) then
+            errmsg = 'nw_inp_from_character inputBlocks failed'
+            return
+         endif
+      endif
+
+      chg = dble(charge)
+      call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
+      call nwchemc_rtdb_put_int(rtdb, 'spin mult', mult, status)
+      vectors_in = 'atomic'
+      if (theory_name(1:3) .eq. 'dft') then
+         status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
+         call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
+      else
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+         status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
+      endif
+      status = rtdb_cput(rtdb, 'task:operation', 1, 'hessian')
+      status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
+
+      if (.not. task_hessian(rtdb)) then
+         errmsg = 'task_hessian failed'
+         return
+      endif
+      if (.not. rtdb_cget(rtdb, 'task:hessian file name', 1,
+     $     filehess)) then
+         call util_file_name('hess', .false., .false., filehess)
+      endif
+
+      open(unit=69, file=filehess, form='formatted', status='old',
+     $     access='sequential', err=900)
+      do i = 1, n3
+         do j = 1, i
+            read(69, *, err=910, end=920) hval
+            idxij = (i - 1) * n3 + j
+            idxji = (j - 1) * n3 + i
+            hessian_h_bohr2(idxij) = hval
+            hessian_h_bohr2(idxji) = hval
+         enddo
+      enddo
+      close(unit=69, status='keep')
+      errmsg = 'ok'
+      ok = 0
+      return
+
+ 900  continue
+      errmsg = 'error opening hessian file'
+      return
+ 910  continue
+      close(unit=69, status='keep')
+      errmsg = 'error reading hessian file'
+      return
+ 920  continue
+      close(unit=69, status='keep')
+      errmsg = 'unexpected EOF reading hessian file'
+      return
+      end
+
       subroutine nwchemc_z_to_elem(z, elem)
       implicit none
       integer z

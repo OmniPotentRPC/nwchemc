@@ -15,6 +15,10 @@ NWChemCResult nwchemc_energy_gradient(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *grad_h_bohr);
+NWChemCResult nwchemc_hessian(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *hessian_h_bohr2);
 ```
 
 `params_capnp` is an unpacked flat Cap'n Proto message whose root is
@@ -32,6 +36,9 @@ meson setup build -Dwith_tests=true
 meson compile -C build
 meson test -C build --print-errorlogs
 ```
+
+Tests use cmocka through pkg-config. The pixi environment includes the test
+dependency.
 
 Embed build against an NWChem source/build tree:
 
@@ -60,6 +67,10 @@ flags for the selected target.
 The resulting shared library exports `nwchemc_*` symbols. Downstream projects
 load it with `dlopen()` and pass the serialized `NWChemParams` message bytes
 directly.
+
+`nwchemc_hessian()` fills a dense row-major Cartesian Hessian in
+Hartree/Bohr^2. It accepts the same `NWChemParams` Cap'n Proto message as the
+energy/gradient call.
 
 ## Cap'n Proto C
 

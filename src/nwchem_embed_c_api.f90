@@ -20,6 +20,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_available
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_energy_grad
+  public :: nwchemc_embed_hessian
   public :: nwchemc_embed_finalize
 
   ! Module state (saved across C calls).
@@ -73,6 +74,21 @@ module nwchem_embed_c_api
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_energy_grad
+
+    subroutine nwchem_legacy_hessian(rtdb, n_atoms, pos_ang, atmnrs, &
+        basis_name, theory_name, scf_type, input_blocks, charge, mult, &
+        hessian_h_bohr2, errmsg, ok)
+      integer, intent(in) :: rtdb, n_atoms
+      real(kind=8), intent(in) :: pos_ang(*)
+      integer, intent(in) :: atmnrs(*)
+      character(len=64), intent(in) :: basis_name
+      character(len=64), intent(in) :: theory_name, scf_type
+      character(len=4096), intent(in) :: input_blocks
+      integer, intent(in) :: charge, mult
+      real(kind=8), intent(out) :: hessian_h_bohr2(*)
+      character(len=*), intent(out) :: errmsg
+      integer, intent(out) :: ok
+    end subroutine nwchem_legacy_hessian
   end interface
 
 contains
@@ -228,6 +244,63 @@ contains
     if (ok == 0) rc = 0_c_int
     deallocate (pos, grad, z)
   end function nwchemc_embed_energy_grad
+
+  !> Dense Cartesian Hessian (Hartree/Bohr**2) for current config.
+  function nwchemc_embed_hessian(n_atoms, positions_ang, &
+      atomic_numbers, charge, mult, hessian_h_bohr2, errmsg, &
+      errmsg_len) result(rc) bind(C, name='nwchemc_embed_hessian')
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: hessian_h_bohr2(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
+    integer :: ok, n, n2, i
+    character(len=512) :: msg
+    real(real64), allocatable :: pos(:), hess(:)
+    integer, allocatable :: z(:)
+
+    rc = -1_c_int
+    call clear_c_errmsg(errmsg, errmsg_len)
+
+    call nwchemc_embed_init()
+    if (.not. rtdb_ready) then
+      call set_c_errmsg(errmsg, errmsg_len, 'embed not initialized')
+      return
+    end if
+
+    n = int(n_atoms)
+    if (n <= 0) then
+      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
+      return
+    end if
+
+    n2 = (3 * n) * (3 * n)
+    allocate (pos(3 * n), hess(n2), z(n))
+    do i = 1, 3 * n
+      pos(i) = real(positions_ang(i), kind=real64)
+    end do
+    do i = 1, n2
+      hess(i) = 0.0_real64
+    end do
+    do i = 1, n
+      z(i) = int(atomic_numbers(i))
+    end do
+
+    call nwchem_legacy_hessian(rtdb_handle, n, pos, z, cfg_basis, &
+        cfg_theory, cfg_scf, cfg_input_blocks, int(charge), &
+        max(1, int(mult)), hess, msg, ok)
+
+    do i = 1, n2
+      hessian_h_bohr2(i) = real(hess(i), kind=c_double)
+    end do
+    call set_c_errmsg(errmsg, errmsg_len, trim(msg))
+    if (ok == 0) rc = 0_c_int
+    deallocate (pos, hess, z)
+  end function nwchemc_embed_hessian
 
   ! --- helpers (private) ---
 

@@ -43,6 +43,18 @@
           (keyword = "tol2e", args = ["1e-9"])
         ]
       )
+    ),
+    (
+      kind = pseudopotential,
+      pseudopotential = (
+        entries = [
+          (element = "Si", libraryType = library, libraryName = "sg15"),
+          (element = "O", libraryType = pawLibrary, libraryName = "paw_default")
+        ],
+        directives = [
+          (keyword = "pspspin", args = ["off"])
+        ]
+      )
     )
   ]
 )

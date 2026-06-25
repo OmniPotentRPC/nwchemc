@@ -11,6 +11,7 @@ docs = { features = ["docs"] }
 
 [dependencies]
 capnproto = ">=1.0.2,<2"
+cmocka = ">=1.1.7,<3"
 cmake = ">=3.30.4,<4"
 compilers = ">=1.8.0,<2"
 fortran-compiler = ">=1.8.0,<2"

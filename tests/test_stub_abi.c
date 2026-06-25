@@ -1,27 +1,31 @@
 #include "nwchemc.h"
 
-#include <stdio.h>
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <string.h>
 
-int main(void) {
-  if (nwchemc_available() != 0) {
-    fprintf(stderr, "stub should report unavailable\n");
-    return 1;
-  }
+#include <cmocka.h>
+
+static void test_stub_reports_unavailable(void **state) {
+  (void)state;
+  assert_int_equal(nwchemc_available(), 0);
   const char *version = nwchemc_version();
-  if (!version || strstr(version, "stub") == NULL) {
-    fprintf(stderr, "unexpected version: %s\n", version ? version : "(null)");
-    return 1;
-  }
-  if (nwchemc_set_params(NULL, 0) == 0) {
-    fprintf(stderr, "stub set_params should fail\n");
-    return 1;
-  }
+  assert_non_null(version);
+  assert_non_null(strstr(version, "stub"));
+  assert_int_not_equal(nwchemc_set_params(NULL, 0), 0);
   NWChemCResult result =
       nwchemc_energy_gradient(0, NULL, NULL, NULL, 0, NULL);
-  if (result.ok != 0) {
-    fprintf(stderr, "stub energy_gradient should fail\n");
-    return 1;
-  }
-  return 0;
+  assert_int_equal(result.ok, 0);
+  NWChemCResult hessian_result =
+      nwchemc_hessian(0, NULL, NULL, NULL, 0, NULL);
+  assert_int_equal(hessian_result.ok, 0);
+  nwchemc_finalize();
+}
+
+int main(void) {
+  const struct CMUnitTest tests[] = {
+      cmocka_unit_test(test_stub_reports_unavailable),
+  };
+  return cmocka_run_group_tests(tests, NULL, NULL);
 }

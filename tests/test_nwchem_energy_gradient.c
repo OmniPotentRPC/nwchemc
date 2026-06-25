@@ -3,10 +3,17 @@
 #include <errno.h>
 #include <math.h>
 #include <stdint.h>
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#include <cmocka.h>
+
+static const char *g_params_path = NULL;
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -46,25 +53,26 @@ static unsigned char *read_file(const char *path, size_t *size) {
   return buf;
 }
 
-int main(int argc, char **argv) {
-  if (argc != 2) {
-    fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
-    return 2;
-  }
-  if (ensure_dir(NWCHEMC_TEST_SCRATCH_DIR) != 0 ||
-      ensure_dir(NWCHEMC_TEST_PERMANENT_DIR) != 0)
+static int setup_nwchem_dirs(void **state) {
+  (void)state;
+  if (ensure_dir(NWCHEMC_TEST_SCRATCH_DIR) != 0)
     return 1;
+  return ensure_dir(NWCHEMC_TEST_PERMANENT_DIR);
+}
 
+static int teardown_nwchem(void **state) {
+  (void)state;
+  nwchemc_finalize();
+  return 0;
+}
+
+static void test_h2_energy_gradient(void **state) {
+  (void)state;
   size_t params_size = 0;
-  unsigned char *params = read_file(argv[1], &params_size);
-  if (!params)
-    return 1;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  assert_non_null(params);
 
-  if (!nwchemc_available()) {
-    fprintf(stderr, "nwchemc_available returned false\n");
-    free(params);
-    return 1;
-  }
+  assert_true(nwchemc_available());
 
   const int n_atoms = 2;
   const int atomic_numbers[2] = {1, 1};
@@ -75,21 +83,25 @@ int main(int argc, char **argv) {
       n_atoms, positions_ang, atomic_numbers, params, params_size, grad);
   free(params);
 
-  if (!result.ok) {
-    fprintf(stderr, "nwchemc_energy_gradient failed: %s\n", result.message);
-    return 1;
-  }
-  if (!isfinite(result.energy_h) || result.energy_h >= -0.5 ||
-      result.energy_h <= -2.0) {
-    fprintf(stderr, "unexpected H2 energy: %.16g (%s)\n", result.energy_h,
-            result.message);
-    return 1;
-  }
+  if (!result.ok)
+    fail_msg("nwchemc_energy_gradient failed: %s", result.message);
+  assert_true(isfinite(result.energy_h));
+  assert_true(result.energy_h < -0.5);
+  assert_true(result.energy_h > -2.0);
   for (int i = 0; i < 6; ++i) {
-    if (!isfinite(grad[i])) {
-      fprintf(stderr, "non-finite gradient[%d]\n", i);
-      return 1;
-    }
+    if (!isfinite(grad[i]))
+      fail_msg("non-finite gradient[%d]", i);
   }
-  return 0;
+}
+
+int main(int argc, char **argv) {
+  if (argc != 2) {
+    fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
+    return 2;
+  }
+  g_params_path = argv[1];
+  const struct CMUnitTest tests[] = {
+      cmocka_unit_test(test_h2_energy_gradient),
+  };
+  return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }

@@ -8,6 +8,8 @@ project(
 cc = meson.get_compiler('c')
 fc = meson.get_compiler('fortran')
 python = find_program('python3')
+math_dep = cc.find_library('m', required: false)
+cmocka_dep = dependency('cmocka', required: get_option('with_tests'))
 
 inc = include_directories('include', 'src')
 nwchem_root = get_option('nwchem_root')
@@ -217,7 +219,7 @@ if get_option('with_tests')
     executable(
       'test_stub_abi',
       'tests/test_stub_abi.c',
-      dependencies: [nwchemc_stub_dep],
+      dependencies: [nwchemc_stub_dep, cmocka_dep],
       include_directories: inc,
       c_args: common_c_args,
     ),
@@ -228,7 +230,7 @@ if get_option('with_tests')
       'test_capnp_parser',
       ['tests/test_capnp_parser.c'] + nwchemc_params_sources,
       include_directories: [inc] + nwchemc_params_includes,
-      dependencies: nwchemc_params_deps,
+      dependencies: nwchemc_params_deps + [cmocka_dep],
       c_args: common_c_args,
     ),
     args: [
@@ -312,12 +314,32 @@ if get_option('with_tests')
         '@OUTPUT@',
       ],
     )
+    nwchem_hessian_params_text = configure_file(
+      input: 'tests/nwchem_params_hessian.capnp.txt.in',
+      output: 'nwchem_params_hessian.capnp.txt',
+      configuration: params_conf,
+    )
+    nwchem_hessian_params_bin = custom_target(
+      'nwchem_hessian_params_bin',
+      input: nwchem_hessian_params_text,
+      output: 'nwchem_params_hessian.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     test(
       'nwchem-energy-gradient',
       executable(
         'test_nwchem_energy_gradient',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
+        dependencies: [cmocka_dep],
         link_with: nwchemc,
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
@@ -333,6 +355,7 @@ if get_option('with_tests')
         'test_nwchem_energy_gradient_input_blocks',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
+        dependencies: [cmocka_dep],
         link_with: nwchemc,
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
@@ -348,6 +371,7 @@ if get_option('with_tests')
         'test_nwchem_energy_gradient_structured',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
+        dependencies: [cmocka_dep],
         link_with: nwchemc,
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
@@ -357,12 +381,29 @@ if get_option('with_tests')
       args: [nwchem_structured_params_bin],
       is_parallel: false,
     )
+    test(
+      'nwchem-hessian',
+      executable(
+        'test_nwchem_hessian',
+        'tests/test_nwchem_hessian.c',
+        include_directories: inc,
+        dependencies: [math_dep, cmocka_dep],
+        link_with: nwchemc,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      ),
+      args: [nwchem_hessian_params_bin],
+      is_parallel: false,
+    )
     mpirun = find_program('mpirun', required: false)
     if mpirun.found()
       nwchem_mpi_test = executable(
         'test_nwchem_energy_gradient_mpi',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
+        dependencies: [cmocka_dep],
         link_with: nwchemc,
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',

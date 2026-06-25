@@ -32,6 +32,7 @@ stanzas for NWChem input blocks.
 | RTDB set | ~NWChemSetDirective~ | ~set key value~. |
 | DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
 | Known module | ~NWChemModuleStanza~ | A selected NWChem module block, tokenized directives, then ~end~. |
+| Pseudopotential | ~NWChemPseudopotentialStanza~ | ~nwpw~, ~pseudopotentials~, library entries, extra directives, then ~end~. |
 | Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
 
 * DFT Controls
@@ -60,9 +61,25 @@ available for NWChem modules not yet enumerated by the schema.
 ~tests/test_schema_module_coverage.py~ guards the enum against losing the
 handler names derived from the local NWChem source tree.
 
+* Pseudopotentials
+~NWChemPseudopotentialStanza~ provides a structured representation for NWPW
+pseudopotential selection:
+
+| Field | NWChem text |
+|-------+-------------|
+| ~entries[].element~ | Element symbol such as ~Si~ or ~O~. |
+| ~entries[].libraryType~ | ~library~, ~pspw_library~, ~paw_library~, ~cpi~, or ~teter~. |
+| ~entries[].libraryName~ | Library or file token used by NWChem. |
+| ~directives~ | Extra tokenized NWPW directives emitted after the pseudopotential block. |
+
+The renderer emits these entries inside an ~nwpw~ block with a nested
+~pseudopotentials~ section. For example, an entry with ~element = "Si"~,
+~libraryType = library~, and ~libraryName = "sg15"~ renders as
+~Si library sg15~.
+
 * Coverage Model
 Typed fields cover the ABI-critical method, charge, multiplicity, directory,
-and DFT smearing controls.
+DFT smearing controls, and NWPW pseudopotential library selection.
 Known module stanzas represent the normal NWChem block vocabulary with enum
 selection and tokenized directives.
 The generic stanza and directive model represents arbitrary named NWChem blocks

@@ -1,0 +1,13 @@
+(
+  basis = "sto-3g",
+  theory = "scf",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  nwchemRoot = "@NWCHEM_ROOT@",
+  task = "hessian",
+  title = "hessian fixture",
+  memoryMb = 512,
+  scratchDir = "@NWCHEMC_TEST_SCRATCH@",
+  permanentDir = "@NWCHEMC_TEST_PERMANENT@"
+)

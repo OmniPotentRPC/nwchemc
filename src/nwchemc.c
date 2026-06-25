@@ -25,6 +25,13 @@ extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const int *multiplicity,
                                      double *energy_h, double *grad_h_bohr,
                                      char *errmsg, int errmsg_len);
+extern int nwchemc_embed_hessian(const int *n_atoms,
+                                 const double *positions_ang,
+                                 const int *atomic_numbers,
+                                 const int *charge,
+                                 const int *multiplicity,
+                                 double *hessian_h_bohr2, char *errmsg,
+                                 int errmsg_len);
 extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
@@ -156,6 +163,55 @@ NWChemCResult nwchemc_energy_gradient(
   return r;
 }
 
+NWChemCResult nwchemc_hessian(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *hessian_h_bohr2) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+
+  if (n_atoms <= 0 || !positions_ang || !atomic_numbers || !hessian_h_bohr2) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                          &params_root) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
+    return r;
+  }
+
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
+  if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = params.charge;
+  int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  int rc = nwchemc_embed_hessian(&n, positions_ang, atomic_numbers, &ch, &mult,
+                                 hessian_h_bohr2, errmsg,
+                                 (int)sizeof(errmsg) - 1);
+  nwchemc_params_release(&arena);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed hessian failed");
+    return r;
+  }
+  r.ok = 1;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
 const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
 
 int nwchemc_available(void) {
@@ -189,6 +245,23 @@ NWChemCResult nwchemc_energy_gradient(
   (void)params_capnp;
   (void)params_capnp_size_bytes;
   (void)grad_h_bohr;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
+  return r;
+}
+
+NWChemCResult nwchemc_hessian(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *hessian_h_bohr2) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)hessian_h_bohr2;
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
