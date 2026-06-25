@@ -736,6 +736,54 @@ static void test_session_calculate_result_writes_potential_result(
   free(message);
 }
 
+static void test_calculate_result_one_shot_writes_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+
+  unsigned char result_bytes[256];
+  size_t result_size = 0;
+  size_t expected_size =
+      nwchemc_potential_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_size > 0);
+
+  NWChemCResult one_shot = nwchemc_calculate_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot.ok, 1);
+  assert_close(one_shot.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(result_size, expected_size);
+  const double native_forces[6] = {-1.0, -2.0, -3.0, -4.0, -5.0, -6.0};
+  const double bohr_to_angstrom = 0.529177210903;
+  double hartree_angstrom_forces[6];
+  for (int i = 0; i < 6; ++i)
+    hartree_angstrom_forces[i] = native_forces[i] / bohr_to_angstrom;
+  assert_potential_result(result_bytes, result_size, -1.0,
+                          hartree_angstrom_forces, 6, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+
+  reset_embed_captures();
+  unsigned char short_result[79];
+  size_t required_size = 0;
+  NWChemCResult short_output = nwchemc_calculate_result(
+      message, message_size, step_a, step_a_size, short_result,
+      sizeof(short_result), &required_size);
+  assert_int_equal(short_output.ok, 0);
+  assert_int_equal(required_size, expected_size);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_energy_grad_calls, 0);
+
+  free(step_a);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc != 6) {
     fprintf(stderr,
@@ -757,6 +805,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_calculate_forces_accepts_force_input_steps),
       cmocka_unit_test(test_session_calculate_hessian_accepts_force_input_step),
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
+      cmocka_unit_test(test_calculate_result_one_shot_writes_potential_result),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

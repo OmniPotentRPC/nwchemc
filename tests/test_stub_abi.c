@@ -43,6 +43,9 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_result =
       nwchemc_session_calculate_result(NULL, NULL, 0, NULL, 0, NULL);
   assert_int_equal(session_result.ok, 0);
+  NWChemCResult capnp_result =
+      nwchemc_calculate_result(NULL, 0, NULL, 0, NULL, 0, NULL);
+  assert_int_equal(capnp_result.ok, 0);
   assert_int_equal(nwchemc_potential_result_size_for_force_input(NULL, 0), 0);
   NWChemCResult session_step_hessian =
       nwchemc_session_calculate_hessian(NULL, NULL, 0, NULL, 0);
