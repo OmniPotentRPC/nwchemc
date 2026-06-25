@@ -227,6 +227,45 @@ static void test_session_reuses_config_across_geometry_steps(void **state) {
   free(message);
 }
 
+static void test_session_reapplies_after_one_shot_config(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+
+  NWChemCResult first =
+      nwchemc_session_energy_gradient(session, 1, pos, z, grad);
+  assert_int_equal(first.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+
+  NWChemCResult one_shot =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+  assert_int_equal(one_shot.ok, 1);
+  assert_int_equal(g_set_config_calls, 2);
+
+  NWChemCResult second =
+      nwchemc_session_energy_gradient(session, 1, pos, z, grad);
+  assert_int_equal(second.ok, 1);
+  assert_int_equal(g_set_config_calls, 3);
+
+  NWChemCResult third =
+      nwchemc_session_energy_gradient(session, 1, pos, z, grad);
+  assert_int_equal(third.ok, 1);
+  assert_int_equal(g_set_config_calls, 3);
+
+  nwchemc_session_destroy(session);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc != 2) {
     fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
@@ -236,6 +275,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
+      cmocka_unit_test(test_session_reapplies_after_one_shot_config),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }
