@@ -77,6 +77,7 @@ static void test_render_config_options_stanzas(void **state) {
   assert_render_contains(blocks, "thresh");
   assert_render_contains(blocks, "tol2e");
   assert_render_contains(blocks, "driver\n");
+  assert_render_contains(blocks, "maxiter 40");
   assert_render_contains(blocks, "tight");
   assert_render_contains(blocks, "property\n");
   assert_render_contains(blocks, "dipole");
@@ -99,6 +100,13 @@ static void test_render_config_options_stanzas(void **state) {
   assert_true(scf_thresh < 1.001e-6);
   assert_true(scf_tol2e > 0.999e-9);
   assert_true(scf_tol2e < 1.001e-9);
+  int has_driver = 0;
+  int driver_maxiter = 0;
+  assert_int_equal(nwchemc_params_extract_direct_driver(
+                       params_root, &has_driver, &driver_maxiter),
+                   0);
+  assert_int_equal(has_driver, 1);
+  assert_int_equal(driver_maxiter, 40);
 
   char embed_blocks[NWCHEMC_BLOCKS];
   assert_int_equal(nwchemc_params_render_embed_input_blocks(
@@ -108,6 +116,9 @@ static void test_render_config_options_stanzas(void **state) {
   assert_null(strstr(embed_blocks, "maxiter 50"));
   assert_null(strstr(embed_blocks, "thresh 1e-06"));
   assert_null(strstr(embed_blocks, "tol2e 1e-09"));
+  assert_render_contains(embed_blocks, "driver\n");
+  assert_null(strstr(embed_blocks, "maxiter 40"));
+  assert_render_contains(embed_blocks, "tight");
 
   nwchemc_params_release(&arena);
   free(message);
