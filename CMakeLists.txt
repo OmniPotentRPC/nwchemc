@@ -295,6 +295,26 @@ if(NWCHEMC_WITH_NWCHEM)
 endif()
 
 if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
+  add_test(
+    NAME nwchem-root-probe
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_nwchem_root_probe.py"
+  )
+  set_tests_properties(nwchem-root-probe PROPERTIES
+    ENVIRONMENT "TMPDIR=${CMAKE_CURRENT_BINARY_DIR};NWCHEMC_TEST_SCRATCH_ROOT=${CMAKE_CURRENT_BINARY_DIR}/probe-tests"
+  )
+
+  find_program(MESON_EXECUTABLE meson)
+  if(MESON_EXECUTABLE)
+    add_test(
+      NAME nwchem-build-root-probe
+      COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_build_embed_root_probe.py"
+    )
+    set_tests_properties(nwchem-build-root-probe PROPERTIES
+      ENVIRONMENT "TMPDIR=${CMAKE_CURRENT_BINARY_DIR};NWCHEMC_TEST_SCRATCH_ROOT=${CMAKE_CURRENT_BINARY_DIR}/probe-tests;CMAKE=${CMAKE_COMMAND};MESON=${MESON_EXECUTABLE}"
+      TIMEOUT 120
+    )
+  endif()
+
   add_executable(test_stub_abi tests/test_stub_abi.c)
   target_link_libraries(test_stub_abi PRIVATE nwchemc_stub)
   target_compile_options(test_stub_abi PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})

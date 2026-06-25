@@ -179,6 +179,32 @@ if has_nwchem
 endif
 
 if get_option('with_tests')
+  probe_test_env = [
+    'TMPDIR=' + meson.current_build_dir(),
+    'NWCHEMC_TEST_SCRATCH_ROOT=' + meson.current_build_dir() / 'probe-tests',
+  ]
+  test(
+    'nwchem-root-probe',
+    python,
+    args: [meson.current_source_dir() / 'tests/test_nwchem_root_probe.py'],
+    env: probe_test_env,
+  )
+  cmake_prog = find_program('cmake', required: false)
+  if cmake_prog.found()
+    meson_prog = find_program('meson')
+    test(
+      'nwchem-build-root-probe',
+      python,
+      args: [
+        meson.current_source_dir() / 'tests/test_build_embed_root_probe.py',
+      ],
+      env: probe_test_env + [
+        'CMAKE=' + cmake_prog.full_path(),
+        'MESON=' + meson_prog.full_path(),
+      ],
+      timeout: 120,
+    )
+  endif
   test(
     'stub-abi',
     executable(

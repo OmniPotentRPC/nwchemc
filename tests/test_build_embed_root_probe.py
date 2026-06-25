@@ -39,10 +39,11 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
             tmp = Path(tmp_name)
             root = self.runtime_prefix(tmp)
             build = tmp / "meson-build"
+            meson = os.environ.get("MESON", "meson")
 
             proc = subprocess.run(
                 [
-                    "meson",
+                    meson,
                     "setup",
                     str(build),
                     "-Dwith_nwchem=true",
@@ -65,10 +66,11 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
             tmp = Path(tmp_name)
             root = self.runtime_prefix(tmp)
             build = tmp / "cmake-build"
+            cmake = os.environ.get("CMAKE", "cmake")
 
             proc = subprocess.run(
                 [
-                    "cmake",
+                    cmake,
                     "-S",
                     str(ROOT),
                     "-B",
