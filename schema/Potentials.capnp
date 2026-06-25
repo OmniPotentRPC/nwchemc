@@ -183,6 +183,70 @@ struct NWChemPseudopotentialStanza {
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
 }
 
+# @struct NWChemScfStanza
+# @brief Typed SCF/HF block controls (vectors, convergence, thresh).
+# Extra directives cover the long tail of SCF options via NWChemDirective.
+struct NWChemScfStanza {
+  vectorsInput  @0 :Text = "";   # Emit "vectors input <path>" when non-empty.
+  vectorsOutput @1 :Text = "";   # Emit "vectors output <path>" when non-empty.
+  maxiter       @2 :Int32 = 0;   # Emit "maxiter N" when > 0.
+  thresh        @3 :Float64 = 0; # Emit "thresh <value>" when > 0.
+  tol2e         @4 :Float64 = 0; # Emit "tol2e <value>" when > 0.
+  noprint       @5 :Bool = false;# Emit "noprint".
+  directives    @6 :List(NWChemDirective);
+}
+
+# @struct NWChemTaskStanza
+# @brief Explicit NWChem "task <theory> <operation>" line.
+# Prefer top-level theory/task for embed defaults; use this stanza when emitting
+# a full input deck with multiple tasks or non-default theory/operation pairs.
+struct NWChemTaskStanza {
+  theory    @0 :Text = ""; # scf, dft, mp2, tce, ... (empty => caller omits theory token).
+  operation @1 :Text = ""; # energy, gradient, hessian, optimize, property, ...
+  ignore    @2 :Bool = false; # Emit "ignore" suffix when true.
+}
+
+# @struct NWChemDriverStanza
+# @brief Geometry optimization / driver block.
+struct NWChemDriverStanza {
+  maxiter    @0 :Int32 = 0;     # Emit "maxiter N" when > 0.
+  tight      @1 :Bool = false;  # Emit "tight".
+  loose      @2 :Bool = false;  # Emit "loose".
+  xyz        @3 :Text = "";     # Emit "xyz <path>" when non-empty.
+  directives @4 :List(NWChemDirective);
+}
+
+# @struct NWChemPropertyStanza
+# @brief Property evaluation block (dipole, mulliken, ...).
+struct NWChemPropertyStanza {
+  dipole     @0 :Bool = false;
+  mulliken   @1 :Bool = false;
+  quadrupol  @2 :Bool = false; # NWChem keyword "quadrupole" (typo preserved in field name only).
+  directives @3 :List(NWChemDirective);
+}
+
+# @struct NWChemBasisStanza
+# @brief Structured Gaussian basis / ECP block (complements top-level basis name).
+# Use when callers need spherical/cartesian, segment, or per-element library lines.
+struct NWChemBasisStanza {
+  spherical  @0 :Bool = false; # Emit "* library ... spherical" style when true.
+  segment    @1 :Text = "";    # Optional segment label for "* library <segment>".
+  ecp        @2 :Text = "";    # Optional ECP library/block name emitted as extra line.
+  directives @3 :List(NWChemDirective); # Per-element "H library 6-31g" etc.
+}
+
+# @struct NWChemGeometryStanza
+# @brief Geometry block metadata (units/symmetry/noautosym). Coordinates normally
+# come from the C ABI positions/atomic_numbers arrays, not this stanza.
+struct NWChemGeometryStanza {
+  units      @0 :Text = "";    # angstrom, bohr, au, nm, ...
+  symmetry   @1 :Text = "";    # c1, d2h, ... or empty.
+  noautosym  @2 :Bool = false;
+  noautoz    @3 :Bool = false;
+  center     @4 :Bool = false; # Emit "center".
+  directives @5 :List(NWChemDirective); # Extra geometry directives (not atom lines).
+}
+
 struct NWChemInputStanza {
   kind            @0 :Kind = generic;
   generic         @1 :NWChemGenericStanza;
@@ -191,6 +255,12 @@ struct NWChemInputStanza {
   raw             @4 :Text;
   module          @5 :NWChemModuleStanza;
   pseudopotential @6 :NWChemPseudopotentialStanza;
+  scf             @7 :NWChemScfStanza;
+  taskStanza      @8 :NWChemTaskStanza;
+  driver          @9 :NWChemDriverStanza;
+  property        @10 :NWChemPropertyStanza;
+  basisStanza     @11 :NWChemBasisStanza;
+  geometry        @12 :NWChemGeometryStanza;
 
   enum Kind {
     generic         @0;
@@ -199,6 +269,12 @@ struct NWChemInputStanza {
     raw             @3;
     module          @4;
     pseudopotential @5;
+    scf             @6;
+    task            @7; # NWChemInputStanza.taskStanza
+    driver          @8;
+    property        @9;
+    basis           @10; # NWChemInputStanza.basisStanza
+    geometry        @11;
   }
 }
 
@@ -217,6 +293,8 @@ struct NWChemParams {
   permanentDir @11 :Text = "";        # Optional NWChem permanent directory.
   inputBlocks  @12 :List(Text);       # Raw NWChem directive blocks applied before task.
   inputStanzas @13 :List(NWChemInputStanza); # Structured NWChem input stanzas.
+  # Long-tail / method-specific NWChem options not yet typed above: use
+  # NWChemInputStanza.raw, inputBlocks, NWChemSetDirective, or NWChemModuleStanza.custom.
 }
 
 # Future backend option structs (extend here, then add a PotentialConfig union arm):

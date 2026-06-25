@@ -1019,6 +1019,54 @@
       "nwchem_role": "Pseudopotential library/file entries block",
       "stub": true,
       "embed": true
+    },
+    {
+      "kind": "scf",
+      "schema_path": "NWChemInputStanza.scf",
+      "capnp_type": "NWChemScfStanza",
+      "nwchem_role": "Typed scf block (vectors/maxiter/thresh/directives)",
+      "stub": true,
+      "embed": true
+    },
+    {
+      "kind": "task",
+      "schema_path": "NWChemInputStanza.taskStanza",
+      "capnp_type": "NWChemTaskStanza",
+      "nwchem_role": "Explicit task theory operation [ignore] line",
+      "stub": true,
+      "embed": true
+    },
+    {
+      "kind": "driver",
+      "schema_path": "NWChemInputStanza.driver",
+      "capnp_type": "NWChemDriverStanza",
+      "nwchem_role": "Geometry optimization driver block",
+      "stub": true,
+      "embed": true
+    },
+    {
+      "kind": "property",
+      "schema_path": "NWChemInputStanza.property",
+      "capnp_type": "NWChemPropertyStanza",
+      "nwchem_role": "Property block (dipole/mulliken/quadrupole)",
+      "stub": true,
+      "embed": true
+    },
+    {
+      "kind": "basis",
+      "schema_path": "NWChemInputStanza.basisStanza",
+      "capnp_type": "NWChemBasisStanza",
+      "nwchem_role": "Structured basis/ECP block (complements top-level basis)",
+      "stub": true,
+      "embed": true
+    },
+    {
+      "kind": "geometry",
+      "schema_path": "NWChemInputStanza.geometry",
+      "capnp_type": "NWChemGeometryStanza",
+      "nwchem_role": "Geometry block metadata (units/symmetry; coords via ABI)",
+      "stub": true,
+      "embed": true
     }
   ],
   "params_fields": [

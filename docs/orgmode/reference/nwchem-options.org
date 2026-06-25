@@ -24,6 +24,25 @@ stanzas for NWChem input blocks.
 | ~inputStanzas~ | Structured NWChem input blocks. |
 | ~inputBlocks~ | Raw NWChem input text applied after structured stanzas. |
 
+* Configuration Model (typed vs escape hatch)
+NWChem has a very large input/RTDB surface. This project models configuration in
+layers inside a single Cap'n Proto schema (~schema/Potentials.capnp~ only—no
+parallel TOML/JSON/YAML config language):
+
+1. *Top-level ~NWChemParams~ fields* — embed/ABI-critical knobs consumed by
+   ~nwchemc_set_params~ / embed bridge (~basis~, ~theory~, ~charge~, dirs, ...).
+2. *Structured ~NWChemInputStanza~ kinds* — high-traffic input blocks with stable
+   NWChem syntax and dedicated renderers in ~src/nwchemc_params.c~.
+3. *Escape hatches* — everything else remains valid NWChem configuration via:
+   - ~NWChemInputStanza.raw~ / ~inputBlocks~ (literal input fragments),
+   - ~NWChemSetDirective~ (~set key value~ RTDB/input directives),
+   - ~NWChemModuleStanza~ with ~NWChemModuleName~ + directives, or ~customName~,
+   - ~NWChemGenericStanza~ for any ~name ... end~ block not yet specialized.
+
+The intern inventory (~schema/inventory/nwchem_features.json~) mirrors every
+module enum, stanza kind, top-level field, and public ABI symbol. Regenerate
+with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
+
 * Structured Stanzas
 | Stanza | Cap'n Proto type | NWChem text emitted |
 |--------+------------------+---------------------|
@@ -31,6 +50,12 @@ stanzas for NWChem input blocks.
 | Directive | ~NWChemDirective~ | ~keyword arg0 arg1 ...~ inside a block. |
 | RTDB set | ~NWChemSetDirective~ | ~set key value~. |
 | DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
+| SCF | ~NWChemScfStanza~ | ~scf~, vectors/maxiter/thresh/tol2e/noprint, directives, ~end~. |
+| Task line | ~NWChemTaskStanza~ | ~task [theory] [operation] [ignore]~ (explicit deck task). |
+| Driver | ~NWChemDriverStanza~ | ~driver~, maxiter/tight/loose/xyz, directives, ~end~. |
+| Property | ~NWChemPropertyStanza~ | ~property~, dipole/mulliken/quadrupole, directives, ~end~. |
+| Basis block | ~NWChemBasisStanza~ | ~basis [spherical]~, optional ~* library~, ECP line, directives, ~end~. |
+| Geometry meta | ~NWChemGeometryStanza~ | ~geometry~ header (units/symmetry/noautosym); atom coords via C ABI. |
 | Known module | ~NWChemModuleStanza~ | A selected NWChem module block, tokenized directives, then ~end~. |
 | Pseudopotential | ~NWChemPseudopotentialStanza~ | ~nwpw~, ~pseudopotentials~, library entries, extra directives, then ~end~. |
 | Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
@@ -60,6 +85,35 @@ construct NWChem input without concatenating block text. ~customName~ remains
 available for NWChem modules not yet enumerated by the schema.
 ~tests/test_schema_module_coverage.py~ guards the enum against losing the
 handler names derived from the local NWChem source tree.
+
+* SCF Controls
+~NWChemScfStanza~ covers common HF/SCF setup that complements top-level
+~scfType~ (rhf/uhf/...). Typed fields:
+
+| Field | NWChem text |
+|-------+-------------|
+| ~vectorsInput~ | ~vectors input <path>~ |
+| ~vectorsOutput~ | ~vectors output <path>~ |
+| ~maxiter~ | ~maxiter <n>~ when > 0 |
+| ~thresh~ | ~thresh <value>~ when > 0 |
+| ~tol2e~ | ~tol2e <value>~ when > 0 |
+| ~noprint~ | ~noprint~ |
+| ~directives~ | Extra SCF directives (convergence, semidirect, ...). |
+
+* Task / Driver / Property / Basis / Geometry Stanzas
+- *Task* (~NWChemTaskStanza~): emit an explicit ~task theory operation~ line when
+  building a multi-task deck. Embed callers usually rely on top-level ~theory~ +
+  ~task~ only; this stanza is for full-input generation.
+- *Driver* (~NWChemDriverStanza~): geometry optimization controls (~maxiter~,
+  ~tight~, ~loose~, ~xyz~ path, extra directives).
+- *Property* (~NWChemPropertyStanza~): common property keywords (~dipole~,
+  ~mulliken~, ~quadrupole~) plus extra directives.
+- *Basis* (~NWChemBasisStanza~): structured ~basis~ block when top-level ~basis~
+  string alone is insufficient (spherical, segment library line, ECP token,
+  per-element directives). Embed still applies top-level ~basis~ via the bridge.
+- *Geometry* (~NWChemGeometryStanza~): block *metadata only* (units, symmetry,
+  noautosym/noautoz/center). Nuclear coordinates always come from the C ABI
+  (~positions_ang~, ~atomic_numbers~), not Cap'n Proto atom lists.
 
 * Pseudopotentials
 ~NWChemPseudopotentialStanza~ provides a structured representation for NWPW
@@ -118,3 +172,16 @@ The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a
 documented intern row with stub vs embed applicability.
+
+* Upstream / Reference Coverage Boundary
+The curated ~NWChemModuleName~ enum tracks NWChem input-handler names (see
+~tests/test_schema_module_coverage.py~). Method-specific option dictionaries
+(every DFT grid keyword, every TCE flag, every NWPW PSPW/BAND/PAW knob) are
+*not* fully typed field-by-field; callers express them with:
+
+- ~NWChemDirective~ lists inside DFT/SCF/module/generic stanzas,
+- ~NWChemSetDirective~ for RTDB-style ~set~ lines,
+- ~raw~ / ~inputBlocks~ for verbatim NWChem input.
+
+This is intentional: the Cap'n Proto contract stays logical and maintainable
+while remaining complete for NWChem configuration via escape hatches.

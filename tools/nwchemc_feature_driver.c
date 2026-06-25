@@ -60,7 +60,7 @@ static int run_inventory(void) {
   printf("nwchemc_feature_driver inventory\n");
   printf("  total=%zu modules=%zu stanzas=%zu params_fields=%zu abi=%zu\n",
          total, mods, stanzas, fields, abis);
-  if (mods < 88 || stanzas < 6 || fields < 14 || abis < 7) {
+  if (mods < 88 || stanzas < 12 || fields < 14 || abis < 7) {
     fprintf(stderr, "inventory counts below expected floor\n");
     return 1;
   }
@@ -146,7 +146,8 @@ static int run_params(const char *fixture_path) {
    * may not emit every block, but render must succeed without buffer overflow. */
   printf("  fixture=%s bytes=%zu rendered_blocks_len=%zu\n", fixture_path, len,
          strlen(blocks));
-  printf("  interned stanza classes: generic/dft/set/raw/module/pseudopotential\n");
+  printf("  interned stanza classes: generic/dft/set/raw/module/pseudopotential/"
+         "scf/task/driver/property/basis/geometry\n");
   printf("  interned params.basis role: %s\n",
          nwchemc_feature_find("params.basis")->nwchem_text_or_role);
 

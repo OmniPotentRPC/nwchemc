@@ -75,6 +75,36 @@ def main() -> int:
             "NWChemModuleStanza",
             "Typed module block from NWChemModuleName",
         ),
+        "scf": (
+            "NWChemInputStanza.scf",
+            "NWChemScfStanza",
+            "Typed scf block (vectors/maxiter/thresh/directives)",
+        ),
+        "task": (
+            "NWChemInputStanza.taskStanza",
+            "NWChemTaskStanza",
+            "Explicit task theory operation [ignore] line",
+        ),
+        "driver": (
+            "NWChemInputStanza.driver",
+            "NWChemDriverStanza",
+            "Geometry optimization driver block",
+        ),
+        "property": (
+            "NWChemInputStanza.property",
+            "NWChemPropertyStanza",
+            "Property block (dipole/mulliken/quadrupole)",
+        ),
+        "basis": (
+            "NWChemInputStanza.basisStanza",
+            "NWChemBasisStanza",
+            "Structured basis/ECP block (complements top-level basis)",
+        ),
+        "geometry": (
+            "NWChemInputStanza.geometry",
+            "NWChemGeometryStanza",
+            "Geometry block metadata (units/symmetry; coords via ABI)",
+        ),
         "pseudopotential": (
             "NWChemInputStanza.pseudopotential",
             "NWChemPseudopotentialStanza",

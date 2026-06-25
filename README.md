@@ -27,6 +27,12 @@ rgpot, mmap-backed readers, or another Cap'n Proto binding that writes the
 standard flat stream format. `nwchemc` reads that message through generated
 `capnp-c` bindings; it does not define a parallel user configuration format.
 
+Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
+typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,
+geometry, module, pseudopotential, set, generic), and escape hatches (`raw`,
+`inputBlocks`, `set`, `custom` module) for the long NWChem option tail. See
+`docs/orgmode/reference/nwchem-options.org` for the full contract.
+
 ## Build
 
 Frontend/stub build without NWChem:

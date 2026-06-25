@@ -26,6 +26,8 @@ Every ~NWChemModuleName~, input stanza kind, top-level ~NWChemParams~ field, and
 public ABI entrypoint is interned in ~schema/inventory/nwchem_features.json~
 with a C query table (~include/nwchemc_features.h~, ~src/nwchemc_features.c~).
 Regenerate with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
+The configuration contract (typed stanzas vs ~raw~/~set~/~custom~ escape hatches)
+is documented in [[file:reference/nwchem-options.org][NWChem option mapping]].
 
 #+begin_src bash
 git clone https://github.com/OmniPotentRPC/nwchemc.git

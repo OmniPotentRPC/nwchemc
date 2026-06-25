@@ -1,0 +1,58 @@
+(
+  basis = "6-31g",
+  theory = "scf",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  inputStanzas = [
+    (
+      kind = geometry,
+      geometry = (
+        units = "angstrom",
+        symmetry = "c1",
+        noautosym = true
+      )
+    ),
+    (
+      kind = scf,
+      scf = (
+        maxiter = 50,
+        thresh = 1.0e-6,
+        noprint = false
+      )
+    ),
+    (
+      kind = driver,
+      driver = (
+        maxiter = 40,
+        tight = true
+      )
+    ),
+    (
+      kind = property,
+      property = (
+        dipole = true,
+        mulliken = true
+      )
+    ),
+    (
+      kind = task,
+      taskStanza = (
+        theory = "scf",
+        operation = "energy"
+      )
+    ),
+    (
+      kind = set,
+      set = (
+        key = "dft:grid",
+        value = "xfine"
+      )
+    ),
+    (
+      kind = raw,
+      raw = "print low"
+    )
+  ]
+)

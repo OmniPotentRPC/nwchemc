@@ -450,6 +450,199 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   return append_block(dst, dst_size, block);
 }
 
+static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
+                             size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemScfStanza scf;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemScfStanza(&scf, ptr);
+  if (append_format(block, sizeof(block), "scf\n") != 0)
+    return -1;
+  if (scf.vectorsInput.len > 0) {
+    if (append_format(block, sizeof(block), "  vectors input ") != 0 ||
+        append_text(block, sizeof(block), scf.vectorsInput) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (scf.vectorsOutput.len > 0) {
+    if (append_format(block, sizeof(block), "  vectors output ") != 0 ||
+        append_text(block, sizeof(block), scf.vectorsOutput) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (scf.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", scf.maxiter) != 0)
+    return -1;
+  if (scf.thresh > 0.0 &&
+      append_format(block, sizeof(block), "  thresh %.12g\n", scf.thresh) != 0)
+    return -1;
+  if (scf.tol2e > 0.0 &&
+      append_format(block, sizeof(block), "  tol2e %.12g\n", scf.tol2e) != 0)
+    return -1;
+  if (scf.noprint && append_format(block, sizeof(block), "  noprint\n") != 0)
+    return -1;
+  if (render_directives(scf.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_task_stanza(NWChemTaskStanza_ptr ptr, char *dst,
+                              size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemTaskStanza task;
+  char block[512];
+  block[0] = '\0';
+  read_NWChemTaskStanza(&task, ptr);
+  if (append_format(block, sizeof(block), "task") != 0)
+    return -1;
+  if (task.theory.len > 0) {
+    if (append_format(block, sizeof(block), " ") != 0 ||
+        append_text(block, sizeof(block), task.theory) != 0)
+      return -1;
+  }
+  if (task.operation.len > 0) {
+    if (append_format(block, sizeof(block), " ") != 0 ||
+        append_text(block, sizeof(block), task.operation) != 0)
+      return -1;
+  }
+  if (task.ignore && append_format(block, sizeof(block), " ignore") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
+                                size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemDriverStanza driver;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemDriverStanza(&driver, ptr);
+  if (append_format(block, sizeof(block), "driver\n") != 0)
+    return -1;
+  if (driver.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", driver.maxiter) != 0)
+    return -1;
+  if (driver.tight && append_format(block, sizeof(block), "  tight\n") != 0)
+    return -1;
+  if (driver.loose && append_format(block, sizeof(block), "  loose\n") != 0)
+    return -1;
+  if (driver.xyz.len > 0) {
+    if (append_format(block, sizeof(block), "  xyz ") != 0 ||
+        append_text(block, sizeof(block), driver.xyz) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (render_directives(driver.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_property_stanza(NWChemPropertyStanza_ptr ptr, char *dst,
+                                  size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemPropertyStanza property;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemPropertyStanza(&property, ptr);
+  if (append_format(block, sizeof(block), "property\n") != 0)
+    return -1;
+  if (property.dipole &&
+      append_format(block, sizeof(block), "  dipole\n") != 0)
+    return -1;
+  if (property.mulliken &&
+      append_format(block, sizeof(block), "  mulliken\n") != 0)
+    return -1;
+  if (property.quadrupol &&
+      append_format(block, sizeof(block), "  quadrupole\n") != 0)
+    return -1;
+  if (render_directives(property.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_basis_stanza(NWChemBasisStanza_ptr ptr, char *dst,
+                               size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemBasisStanza basis;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemBasisStanza(&basis, ptr);
+  if (append_format(block, sizeof(block), "basis") != 0)
+    return -1;
+  if (basis.spherical && append_format(block, sizeof(block), " spherical") != 0)
+    return -1;
+  if (append_format(block, sizeof(block), "\n") != 0)
+    return -1;
+  if (basis.segment.len > 0) {
+    if (append_format(block, sizeof(block), "  * library ") != 0 ||
+        append_text(block, sizeof(block), basis.segment) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (render_directives(basis.directives, block, sizeof(block), "  ") != 0)
+    return -1;
+  if (basis.ecp.len > 0) {
+    if (append_format(block, sizeof(block), "  ecp ") != 0 ||
+        append_text(block, sizeof(block), basis.ecp) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_geometry_stanza(NWChemGeometryStanza_ptr ptr, char *dst,
+                                  size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemGeometryStanza geometry;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemGeometryStanza(&geometry, ptr);
+  if (append_format(block, sizeof(block), "geometry") != 0)
+    return -1;
+  if (geometry.units.len > 0) {
+    if (append_format(block, sizeof(block), " units ") != 0 ||
+        append_text(block, sizeof(block), geometry.units) != 0)
+      return -1;
+  }
+  if (geometry.noautosym &&
+      append_format(block, sizeof(block), " noautosym") != 0)
+    return -1;
+  if (geometry.noautoz && append_format(block, sizeof(block), " noautoz") != 0)
+    return -1;
+  if (geometry.center && append_format(block, sizeof(block), " center") != 0)
+    return -1;
+  if (append_format(block, sizeof(block), "\n") != 0)
+    return -1;
+  if (geometry.symmetry.len > 0) {
+    if (append_format(block, sizeof(block), "  symmetry ") != 0 ||
+        append_text(block, sizeof(block), geometry.symmetry) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (render_directives(geometry.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 size_t dst_size) {
   int n = struct_list_len(&stanzas.p);
@@ -479,6 +672,30 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     case NWChemInputStanza_Kind_pseudopotential:
       if (render_pseudopotential_stanza(stanza.pseudopotential, dst,
                                         dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_scf:
+      if (render_scf_stanza(stanza.scf, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_task:
+      if (render_task_stanza(stanza.taskStanza, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_driver:
+      if (render_driver_stanza(stanza.driver, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_property:
+      if (render_property_stanza(stanza.property, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_basis:
+      if (render_basis_stanza(stanza.basisStanza, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_geometry:
+      if (render_geometry_stanza(stanza.geometry, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

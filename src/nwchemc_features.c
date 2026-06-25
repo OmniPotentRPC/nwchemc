@@ -97,6 +97,12 @@ static const NWChemCFeatureEntry k_features[] = {
     {"stanza.raw", "NWChemInputStanza.raw", "Literal NWChem input fragment", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.module", "NWChemInputStanza.module", "Typed module block from NWChemModuleName", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.pseudopotential", "NWChemInputStanza.pseudopotential", "Pseudopotential library/file entries block", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.scf", "NWChemInputStanza.scf", "Typed scf block (vectors/maxiter/thresh/directives)", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.task", "NWChemInputStanza.taskStanza", "Explicit task theory operation [ignore] line", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.driver", "NWChemInputStanza.driver", "Geometry optimization driver block", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.property", "NWChemInputStanza.property", "Property block (dipole/mulliken/quadrupole)", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.basis", "NWChemInputStanza.basisStanza", "Structured basis/ECP block (complements top-level basis)", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.geometry", "NWChemInputStanza.geometry", "Geometry block metadata (units/symmetry; coords via ABI)", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"params.basis", "NWChemParams.basis", "Gaussian basis set name", NWCHEMC_FEATURE_PARAMS_FIELD, 0, 1, 1},
     {"params.theory", "NWChemParams.theory", "Main theory/task family (scf/dft/...)", NWCHEMC_FEATURE_PARAMS_FIELD, 1, 1, 1},
     {"params.scfType", "NWChemParams.scfType", "SCF type or DFT XC keyword", NWCHEMC_FEATURE_PARAMS_FIELD, 2, 1, 1},
@@ -120,7 +126,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 115;
+static const size_t k_feature_count = 121;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
