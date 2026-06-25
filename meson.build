@@ -87,6 +87,7 @@ if has_nwchem
     nwchem_link_args += ['-Wl,--unresolved-symbols=ignore-all']
   endif
   if host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
+    message('Checking NWChem archives can link into libnwchemc.so')
     run_command(
       cc,
       [
@@ -96,6 +97,7 @@ if has_nwchem
         '-o',
         meson.current_build_dir() / 'nwchem-link-probe.so',
       ] + nwchem_link_args,
+      capture: false,
       check: true,
     )
   endif
