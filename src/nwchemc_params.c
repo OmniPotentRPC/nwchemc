@@ -449,7 +449,8 @@ static int render_pseudopotential_entries(
 }
 
 static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
-                                         char *dst, size_t dst_size) {
+                                         char *dst, size_t dst_size,
+                                         int include_direct_entries) {
   if (ptr.p.type == CAPN_NULL)
     return 0;
 
@@ -457,13 +458,22 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   char block[4096];
   block[0] = '\0';
   read_NWChemPseudopotentialStanza(&pseudopotential, ptr);
-  if (append_format(block, sizeof(block), "nwpw\n  pseudopotentials\n") != 0 ||
-      render_pseudopotential_entries(pseudopotential.entries, block,
-                                     sizeof(block)) != 0 ||
-      append_format(block, sizeof(block), "  end\n") != 0 ||
-      render_directives(pseudopotential.directives, block, sizeof(block),
-                        "  ") != 0 ||
-      append_format(block, sizeof(block), "end") != 0)
+  if (append_format(block, sizeof(block), "nwpw\n") != 0)
+    return -1;
+  if (include_direct_entries) {
+    if (append_format(block, sizeof(block), "  pseudopotentials\n") != 0 ||
+        render_pseudopotential_entries(pseudopotential.entries, block,
+                                       sizeof(block)) != 0 ||
+        append_format(block, sizeof(block), "  end\n") != 0)
+      return -1;
+  }
+  if (render_directives(pseudopotential.directives, block, sizeof(block),
+                        "  ") != 0)
+    return -1;
+  if (!include_direct_entries &&
+      strcmp(block, "nwpw\n") == 0)
+    return 0;
+  if (append_format(block, sizeof(block), "end") != 0)
     return -1;
   return append_block(dst, dst_size, block);
 }
@@ -663,7 +673,8 @@ static int render_geometry_stanza(NWChemGeometryStanza_ptr ptr, char *dst,
 
 static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 size_t dst_size,
-                                int include_direct_promoted_dft) {
+                                int include_direct_promoted_dft,
+                                int include_direct_pseudopotentials) {
   int n = struct_list_len(&stanzas.p);
   if (n < 0)
     return -1;
@@ -691,7 +702,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_pseudopotential:
       if (render_pseudopotential_stanza(stanza.pseudopotential, dst,
-                                        dst_size) != 0)
+                                        dst_size,
+                                        include_direct_pseudopotentials) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_scf:
@@ -748,7 +760,7 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -760,7 +772,7 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -807,6 +819,50 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
         *smearing_spinset =
             smearing.mode == NWChemDftSmearing_Mode_nofixsz ? 0 : 1;
       }
+    }
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_pseudopotentials(
+    NWChemParams_ptr params, capn_text *elements, int *library_types,
+    capn_text *library_names, size_t capacity, size_t *count) {
+  if (params.p.type == CAPN_NULL || !elements || !library_types ||
+      !library_names || !count)
+    return -1;
+
+  *count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int nstanzas = struct_list_len(&view.inputStanzas.p);
+  if (nstanzas < 0)
+    return -1;
+
+  for (int i = 0; i < nstanzas; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_pseudopotential ||
+        stanza.pseudopotential.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemPseudopotentialStanza pseudopotential;
+    read_NWChemPseudopotentialStanza(&pseudopotential,
+                                     stanza.pseudopotential);
+    int nentries = struct_list_len(&pseudopotential.entries.p);
+    if (nentries < 0)
+      return -1;
+    for (int j = 0; j < nentries; ++j) {
+      struct NWChemPseudopotentialEntry entry;
+      get_NWChemPseudopotentialEntry(&entry, pseudopotential.entries, j);
+      if (entry.element.len <= 0 || entry.libraryName.len <= 0)
+        continue;
+      if (*count >= capacity)
+        return -1;
+      elements[*count] = entry.element;
+      library_types[*count] = entry.libraryType;
+      library_names[*count] = entry.libraryName;
+      ++*count;
     }
   }
   return 0;
