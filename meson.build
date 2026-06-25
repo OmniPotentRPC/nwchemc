@@ -33,6 +33,20 @@ nwchemc_stub_dep = declare_dependency(
 )
 
 if has_nwchem
+  nwchem_config_h = nwchem_root / 'src/config/nwchem_config.h'
+  nwchem_module_libs_raw = run_command(
+    python,
+    [
+      '-c',
+      'import pathlib, re, sys; text = pathlib.Path(sys.argv[1]).read_text(); match = re.search(r"^NW_MODULE_LIBS\\s*=\\s*(.*)$", text, re.M); sys.exit(1) if not match else print(match.group(1))',
+      nwchem_config_h,
+    ],
+    check: true,
+  ).stdout().strip()
+  nwchem_module_libs = nwchem_module_libs_raw.split()
+  ga_config = find_program(nwchem_root / 'src/tools/install/bin/ga-config')
+  ga_ldflags = run_command(ga_config, '--ldflags', check: true).stdout().strip().split()
+  ga_libs = run_command(ga_config, '--libs', check: true).stdout().strip().split()
   nwchem_c_args = common_c_args + [
     '-DNWCHEMC_HAS_NWCHEM=1',
     '-DGFORTRAN=1',
@@ -68,24 +82,20 @@ if has_nwchem
     '-L' + nwchem_root + '/lib/' + nwchem_target,
     '-L' + nwchem_root + '/src/tools/install/lib',
     '-L' + nwchem_root + '/src/libext/lib',
+  ] + ga_ldflags + [
     '-Wl,--start-group',
+    nwchem_root + '/src/stubs.o',
     '-lnwctask',
-    '-lnwdft',
-    '-lddscf',
-    '-lgradients',
-    '-lnwints',
-    '-lnwcutil',
-    '-lga',
-    '-larmci',
+  ] + nwchem_module_libs + [
     '-lcomex',
-    '-lnwc_openblas',
+  ] + ga_libs + [
     '-Wl,--end-group',
     '-lgfortran',
     '-lpthread',
     '-lm',
   ]
-  if host_machine.system() == 'linux'
-    nwchem_link_args += ['-Wl,--unresolved-symbols=ignore-all']
+  if host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
+    nwchem_link_args += ['-Wl,-z,defs']
   endif
   if host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
     message('Checking NWChem archives can link into libnwchemc.so')
