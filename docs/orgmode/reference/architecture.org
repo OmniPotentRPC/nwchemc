@@ -23,7 +23,8 @@ The ABI receives a byte pointer and byte count.
 ~capn_init_mem()~ opens the flat message, ~capn_getp(capn_root(...))~ obtains
 the generated ~NWChemParams_ptr~, and generated ~read_NWChemParams()~ calls are
 used only as short-lived C views while the arena is alive.
-Session force calls use the same pattern for generated ~ForceInput_ptr~ roots.
+Session force and Hessian calls use the same pattern for generated
+~ForceInput_ptr~ roots.
 
 There is no persistent copy of the Cap'n Proto parameter tree in the C runtime.
 The embed bridge stores the small Fortran strings and scalar values it needs to
@@ -35,10 +36,12 @@ grammar is intentionally upstream NWChem input text.
 
 * Long-Running Sessions
 ~nwchemc_session_create()~ applies an ~NWChemParams~ message once and keeps the
-NWChem runtime state inside the session. ~nwchemc_session_calculate_forces()~
-accepts a serialized ~ForceInput~ message for each step, so molecular dynamics,
-optimizers, and socket-style drivers can update coordinates and the periodic
-cell without rebuilding the full configuration carrier.
+NWChem runtime state inside the session.
+~nwchemc_session_calculate_forces()~ and
+~nwchemc_session_calculate_hessian()~ accept serialized ~ForceInput~ messages,
+so molecular dynamics, optimizers, vibrational workflows, and socket-style
+drivers can update coordinates and the periodic cell without rebuilding the
+full configuration carrier.
 
 The C layer keeps reusable numeric scratch for per-step positions and atomic
 numbers. It does not introduce a second configuration struct. ~ForceInput.pos~

@@ -17,6 +17,7 @@ directly. The public calculation entry points are:
 - ~nwchemc_session_energy_gradient~
 - ~nwchemc_session_energy_forces~
 - ~nwchemc_session_calculate_forces~
+- ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_hessian~
 - ~nwchemc_available~
 - ~nwchemc_version~
@@ -70,12 +71,13 @@ schema field, stanza kind, module enum value, and ABI entry point. The cmocka
 feature tests verify the generated inventory lookup table and ABI coverage.
 
 * Pickup Tasks
-** Long-Running Force Steps
-~nwchemc_session_calculate_forces~ is the C ABI entry point for socket-style and
-optimizer-style callers. It takes the session's persistent ~NWChemParams~ and a
-per-call serialized ~ForceInput~ message, validates atom counts and output
-buffer size, converts coordinates and cells to the C ABI units, calls the embed
-bridge, and returns energy plus forces in NWChem native units.
+** Long-Running Step Calls
+~nwchemc_session_calculate_forces~ and
+~nwchemc_session_calculate_hessian~ are C ABI entry points for socket-style,
+optimizer-style, and vibrational callers. They take the session's persistent
+~NWChemParams~ and a per-call serialized ~ForceInput~ message, validate atom
+counts and output buffer sizes, convert coordinates and cells to the C ABI
+units, call the embed bridge, and return native NWChem buffers.
 
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only
