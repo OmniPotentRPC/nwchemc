@@ -379,6 +379,29 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     DEPENDS "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
   )
 
+  set(NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN
+    "${CMAKE_CURRENT_BINARY_DIR}/nwchem_params_config_options.bin"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CAPNP_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "NWChemParams"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/nwchem_params_config_options.capnp.txt"
+      "${NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN}"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/nwchem_params_config_options.capnp.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+    VERBATIM
+  )
+  add_custom_target(nwchem_config_options_params_bin
+    DEPENDS "${NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN}"
+  )
+
   set(NWCHEMC_FORCE_INPUT_STEP_A_BIN
     "${CMAKE_CURRENT_BINARY_DIR}/force_input_step_a.bin"
   )
@@ -475,6 +498,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   )
   add_dependencies(test_embed_config_cmocka
     nwchem_direct_dft_params_bin
+    nwchem_config_options_params_bin
     force_input_step_a_bin
     force_input_step_b_bin
     force_input_step_ev_bin
@@ -482,6 +506,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   add_test(NAME embed-config-cmocka
     COMMAND test_embed_config_cmocka
       "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
+      "${NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_EV_BIN}"

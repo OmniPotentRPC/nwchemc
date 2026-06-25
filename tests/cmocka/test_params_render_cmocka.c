@@ -75,6 +75,7 @@ static void test_render_config_options_stanzas(void **state) {
   assert_render_contains(blocks, "scf\n");
   assert_render_contains(blocks, "maxiter 50");
   assert_render_contains(blocks, "thresh");
+  assert_render_contains(blocks, "tol2e");
   assert_render_contains(blocks, "driver\n");
   assert_render_contains(blocks, "tight");
   assert_render_contains(blocks, "property\n");
@@ -83,6 +84,30 @@ static void test_render_config_options_stanzas(void **state) {
   assert_render_contains(blocks, "task scf energy");
   assert_render_contains(blocks, "set dft:grid xfine");
   assert_render_contains(blocks, "print low");
+
+  int scf_maxiter = 0;
+  double scf_thresh = 0.0;
+  double scf_tol2e = 0.0;
+  int has_scf = 0;
+  assert_int_equal(nwchemc_params_extract_direct_scf(
+                       params_root, &has_scf, &scf_maxiter, &scf_thresh,
+                       &scf_tol2e),
+                   0);
+  assert_int_equal(has_scf, 1);
+  assert_int_equal(scf_maxiter, 50);
+  assert_true(scf_thresh > 0.999e-6);
+  assert_true(scf_thresh < 1.001e-6);
+  assert_true(scf_tol2e > 0.999e-9);
+  assert_true(scf_tol2e < 1.001e-9);
+
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "scf\n"));
+  assert_null(strstr(embed_blocks, "maxiter 50"));
+  assert_null(strstr(embed_blocks, "thresh 1e-06"));
+  assert_null(strstr(embed_blocks, "tol2e 1e-09"));
 
   nwchemc_params_release(&arena);
   free(message);

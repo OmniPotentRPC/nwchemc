@@ -11,6 +11,7 @@
 #include <string.h>
 
 static const char *g_params_path = NULL;
+static const char *g_config_options_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
 static const char *g_force_step_ev_path = NULL;
@@ -26,11 +27,16 @@ static int g_psp_types[8];
 static int g_psp_count = 0;
 static int g_set_config_calls = 0;
 static int g_set_dft_direct_calls = 0;
+static int g_set_scf_direct_calls = 0;
 static int g_set_pseudopotential_calls = 0;
 static int g_dft_direct_enabled = 0;
 static int g_dft_smearing_enabled = 0;
 static double g_dft_smear_sigma_hartree = 0.0;
 static int g_dft_smearing_spinset = 0;
+static int g_scf_has_options = 0;
+static int g_scf_maxiter = 0;
+static double g_scf_thresh = 0.0;
+static double g_scf_tol2e = 0.0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
@@ -116,6 +122,16 @@ int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
   g_dft_smearing_enabled = smearing_enabled;
   g_dft_smear_sigma_hartree = smear_sigma_hartree;
   g_dft_smearing_spinset = smearing_spinset;
+  return 0;
+}
+
+int nwchemc_embed_set_scf_direct(int has_options, int maxiter, double thresh,
+                                 double tol2e) {
+  ++g_set_scf_direct_calls;
+  g_scf_has_options = has_options;
+  g_scf_maxiter = maxiter;
+  g_scf_thresh = thresh;
+  g_scf_tol2e = tol2e;
   return 0;
 }
 
@@ -271,11 +287,16 @@ static void reset_embed_captures(void) {
   g_psp_count = 0;
   g_set_config_calls = 0;
   g_set_dft_direct_calls = 0;
+  g_set_scf_direct_calls = 0;
   g_set_pseudopotential_calls = 0;
   g_dft_direct_enabled = 0;
   g_dft_smearing_enabled = 0;
   g_dft_smear_sigma_hartree = 0.0;
   g_dft_smearing_spinset = 0;
+  g_scf_has_options = 0;
+  g_scf_maxiter = 0;
+  g_scf_thresh = 0.0;
+  g_scf_tol2e = 0.0;
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
@@ -380,6 +401,27 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_int_equal(g_psp_types[4],
                    NWChemPseudopotentialEntry_LibraryType_teter);
   assert_string_equal(g_psp_names[4], "N.teter");
+
+  free(message);
+}
+
+static void test_embed_config_uses_direct_scf_values(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_config_options_path, &message_size);
+  assert_non_null(message);
+
+  assert_int_equal(nwchemc_set_params(message, message_size), 0);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_set_scf_direct_calls, 1);
+  assert_int_equal(g_scf_has_options, 1);
+  assert_int_equal(g_scf_maxiter, 50);
+  assert_close(g_scf_thresh, 1.0e-6, 1.0e-12);
+  assert_close(g_scf_tol2e, 1.0e-9, 1.0e-15);
+  assert_null(strstr(g_input_blocks, "scf\n"));
+  assert_null(strstr(g_input_blocks, "maxiter 50"));
+  assert_null(strstr(g_input_blocks, "tol2e 1e-09"));
 
   free(message);
 }
@@ -621,19 +663,21 @@ static void test_session_calculate_result_writes_potential_result(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 5) {
+  if (argc != 6) {
     fprintf(stderr,
-            "usage: %s PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
+            "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
             "FORCE_STEP_EV_BIN\n",
             argv[0]);
     return 2;
   }
   g_params_path = argv[1];
-  g_force_step_a_path = argv[2];
-  g_force_step_b_path = argv[3];
-  g_force_step_ev_path = argv[4];
+  g_config_options_path = argv[2];
+  g_force_step_a_path = argv[3];
+  g_force_step_b_path = argv[4];
+  g_force_step_ev_path = argv[5];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
+      cmocka_unit_test(test_embed_config_uses_direct_scf_values),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_calculate_forces_accepts_force_input_steps),

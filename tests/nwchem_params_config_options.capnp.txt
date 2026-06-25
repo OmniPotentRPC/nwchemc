@@ -19,6 +19,7 @@
       scf = (
         maxiter = 50,
         thresh = 1.0e-6,
+        tol2e = 1.0e-9,
         noprint = false
       )
     ),

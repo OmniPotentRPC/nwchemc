@@ -378,6 +378,7 @@ if get_option('with_tests')
     ),
     args: [
       nwchem_direct_dft_params_bin,
+      nwchem_config_options_params_bin,
       force_input_step_a_bin,
       force_input_step_b_bin,
       force_input_step_ev_bin,
