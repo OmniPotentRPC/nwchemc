@@ -102,11 +102,14 @@ static void test_render_config_options_stanzas(void **state) {
   assert_true(scf_tol2e < 1.001e-9);
   int has_driver = 0;
   int driver_maxiter = 0;
+  int driver_tolerance_mode = 0;
   assert_int_equal(nwchemc_params_extract_direct_driver(
-                       params_root, &has_driver, &driver_maxiter),
+                       params_root, &has_driver, &driver_maxiter,
+                       &driver_tolerance_mode),
                    0);
   assert_int_equal(has_driver, 1);
   assert_int_equal(driver_maxiter, 40);
+  assert_int_equal(driver_tolerance_mode, NWCHEMC_DRIVER_TOLERANCE_TIGHT);
 
   char embed_blocks[NWCHEMC_BLOCKS];
   assert_int_equal(nwchemc_params_render_embed_input_blocks(
@@ -116,9 +119,9 @@ static void test_render_config_options_stanzas(void **state) {
   assert_null(strstr(embed_blocks, "maxiter 50"));
   assert_null(strstr(embed_blocks, "thresh 1e-06"));
   assert_null(strstr(embed_blocks, "tol2e 1e-09"));
-  assert_render_contains(embed_blocks, "driver\n");
+  assert_null(strstr(embed_blocks, "driver\n"));
   assert_null(strstr(embed_blocks, "maxiter 40"));
-  assert_render_contains(embed_blocks, "tight");
+  assert_null(strstr(embed_blocks, "tight"));
 
   nwchemc_params_release(&arena);
   free(message);

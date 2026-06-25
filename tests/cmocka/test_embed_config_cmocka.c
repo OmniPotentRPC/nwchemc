@@ -40,6 +40,7 @@ static double g_scf_thresh = 0.0;
 static double g_scf_tol2e = 0.0;
 static int g_driver_has_options = 0;
 static int g_driver_maxiter = 0;
+static int g_driver_tolerance_mode = 0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
@@ -138,10 +139,12 @@ int nwchemc_embed_set_scf_direct(int has_options, int maxiter, double thresh,
   return 0;
 }
 
-int nwchemc_embed_set_driver_direct(int has_options, int maxiter) {
+int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
+                                    int tolerance_mode) {
   ++g_set_driver_direct_calls;
   g_driver_has_options = has_options;
   g_driver_maxiter = maxiter;
+  g_driver_tolerance_mode = tolerance_mode;
   return 0;
 }
 
@@ -310,6 +313,7 @@ static void reset_embed_captures(void) {
   g_scf_tol2e = 0.0;
   g_driver_has_options = 0;
   g_driver_maxiter = 0;
+  g_driver_tolerance_mode = 0;
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
@@ -435,12 +439,13 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_int_equal(g_set_driver_direct_calls, 1);
   assert_int_equal(g_driver_has_options, 1);
   assert_int_equal(g_driver_maxiter, 40);
+  assert_int_equal(g_driver_tolerance_mode, NWCHEMC_DRIVER_TOLERANCE_TIGHT);
   assert_null(strstr(g_input_blocks, "scf\n"));
   assert_null(strstr(g_input_blocks, "maxiter 50"));
   assert_null(strstr(g_input_blocks, "tol2e 1e-09"));
-  assert_non_null(strstr(g_input_blocks, "driver\n"));
+  assert_null(strstr(g_input_blocks, "driver\n"));
   assert_null(strstr(g_input_blocks, "maxiter 40"));
-  assert_non_null(strstr(g_input_blocks, "tight"));
+  assert_null(strstr(g_input_blocks, "tight"));
 
   free(message);
 }
