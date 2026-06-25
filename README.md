@@ -40,6 +40,26 @@ meson test -C build --print-errorlogs
 Tests use cmocka through pkg-config. The pixi environment includes the test
 dependency.
 
+```bash
+pixi run test-stub      # stub/parser Meson suite
+pixi run test-cmocka    # intern inventory + cmocka feature tests + driver
+pixi run inventory-check
+pixi run inventory-gen  # regenerate schema/inventory + C tables after schema edits
+```
+
+## Feature inventory and C driver
+
+Every `NWChemModuleName`, input stanza kind, top-level `NWChemParams` field, and
+public `nwchemc_*` ABI entrypoint is interned in
+`schema/inventory/nwchem_features.json` with C accessors in
+`include/nwchemc_features.h` / `src/nwchemc_features.c`. Regenerate with
+`pixi run inventory-gen`; cross-check with `pixi run inventory-check`.
+
+`tools/nwchemc_feature_driver.c` exercises interned classes through shipped
+entry points (inventory/validate/stub-abi/params/all). Meson registers it under
+the `cmocka` / `inventory` / `drivers` suites. Params mode needs a flat
+`NWChemParams` fixture (`NWCHEMC_PARSER_FIXTURE` or argv[2]).
+
 Embed build against an NWChem source/build tree:
 
 ```bash

@@ -55,6 +55,18 @@ NWChemCResult nwchemc_energy_gradient(
     double *grad_h_bohr);
 
 /**
+ * @brief Compute energy and nuclear forces for an atomic configuration.
+ *
+ * Forces are the negative of the Cartesian nuclear gradient (Hartree/Bohr).
+ * Output buffer layout matches `nwchemc_energy_gradient()`: length
+ * `n_atoms * 3`.
+ */
+NWChemCResult nwchemc_energy_forces(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *forces_h_bohr);
+
+/**
  * @brief Compute a Cartesian nuclear Hessian for an atomic configuration.
  *
  * @param n_atoms Number of atoms.

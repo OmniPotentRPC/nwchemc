@@ -133,6 +133,11 @@ def main() -> int:
                 "embed": "runs energy/gradient",
             },
             {
+                "name": "nwchemc_energy_forces",
+                "stub": "fails ok==0",
+                "embed": "runs energy/forces (negated gradient)",
+            },
+            {
                 "name": "nwchemc_hessian",
                 "stub": "fails ok==0",
                 "embed": "runs Cartesian Hessian",

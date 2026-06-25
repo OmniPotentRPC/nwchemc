@@ -82,6 +82,7 @@ The renderer emits these entries inside an ~nwpw~ block with a nested
 |--------+-----------+------+-------|
 | ~nwchemc_set_params~ | ~abi.nwchemc_set_params~ | fails | apply params |
 | ~nwchemc_energy_gradient~ | ~abi.nwchemc_energy_gradient~ | fails | energy/gradient |
+| ~nwchemc_energy_forces~ | ~abi.nwchemc_energy_forces~ | fails | energy/forces (-grad) |
 | ~nwchemc_hessian~ | ~abi.nwchemc_hessian~ | fails | Cartesian Hessian |
 | ~nwchemc_available~ | ~abi.nwchemc_available~ | 0 | 1 |
 | ~nwchemc_version~ | ~abi.nwchemc_version~ | stub marker | version string |

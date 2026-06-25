@@ -163,6 +163,21 @@ NWChemCResult nwchemc_energy_gradient(
   return r;
 }
 
+NWChemCResult nwchemc_energy_forces(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *forces_h_bohr) {
+  NWChemCResult r = nwchemc_energy_gradient(
+      n_atoms, positions_ang, atomic_numbers, params_capnp,
+      params_capnp_size_bytes, forces_h_bohr);
+  if (!r.ok || !forces_h_bohr || n_atoms <= 0)
+    return r;
+  int i;
+  for (i = 0; i < n_atoms * 3; ++i)
+    forces_h_bohr[i] = -forces_h_bohr[i];
+  return r;
+}
+
 NWChemCResult nwchemc_hessian(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -245,6 +260,23 @@ NWChemCResult nwchemc_energy_gradient(
   (void)params_capnp;
   (void)params_capnp_size_bytes;
   (void)grad_h_bohr;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
+  return r;
+}
+
+NWChemCResult nwchemc_energy_forces(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *forces_h_bohr) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)forces_h_bohr;
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
