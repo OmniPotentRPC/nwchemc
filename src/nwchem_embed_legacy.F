@@ -419,7 +419,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer maxpsp
       parameter (maxpsp = 64)
       character*255 rtdb_name
-      logical lval
+      logical status, lval
 
       ok = .false.
       if (psp_count .lt. 0 .or. psp_count .gt. maxpsp) then
@@ -459,15 +459,16 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
                return
             endif
             rtdb_name = psp_elements(i)(1:l_elem)//':pspw_library_type'
-            if (.not. btdb_put(rtdb, rtdb_name, mt_int, 1,
-     $           stored_type)) then
+            call nwchemc_rtdb_put_int(rtdb, rtdb_name, stored_type,
+     $         status)
+            if (.not. status) then
                errmsg = 'pseudopotential library type write failed'
                return
             endif
          endif
          lval = .true.
          rtdb_name = psp_elements(i)(1:l_elem)//':psp_reset'
-         if (.not. btdb_put(rtdb, rtdb_name, mt_log, 1, lval)) then
+         if (.not. rtdb_put(rtdb, rtdb_name, mt_log, 1, lval)) then
             errmsg = 'pseudopotential reset write failed'
             return
          endif
