@@ -50,17 +50,15 @@ directives when the NWChem input syntax requires them.
 
 * Module Coverage
 ~NWChemModuleStanza~ gives callers a typed module selector instead of a free
-text block name. It covers the common NWChem input modules exposed by the local
-input handlers:
-
-~basis~, ~bq~, ~ccsd~, ~cosmo~, ~dft~, ~dplot~, ~drdy~, ~driver~, ~esp~,
-~etrans~, ~geometry~, ~gw~, ~hessian~, ~mcscf~, ~md~, ~mm~, ~mp2~, ~ncc~,
-~nwpw~, ~property~, ~python~, ~qmd~, ~qmmm~, ~rimp2~, ~rism~, ~scf~, ~selci~,
-~smd~, ~tce~, ~vib~, ~vscf~, and ~xtb~.
+text block name. It covers the curated NWChem input-handler set represented in
+~NWChemModuleName~, including molecular, relativistic, DFT/TDDFT, NWPW/PSPW,
+optimization, property, solvation, task, utility, and XTB input handlers.
 
 Each module stanza carries ~NWChemDirective~ entries, so a language binding can
 construct NWChem input without concatenating block text. ~customName~ remains
 available for NWChem modules not yet enumerated by the schema.
+~tests/test_schema_module_coverage.py~ guards the enum against losing the
+handler names derived from the local NWChem source tree.
 
 * Coverage Model
 Typed fields cover the ABI-critical method, charge, multiplicity, directory,

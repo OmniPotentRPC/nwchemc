@@ -303,6 +303,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     ENVIRONMENT "TMPDIR=${CMAKE_CURRENT_BINARY_DIR};NWCHEMC_TEST_SCRATCH_ROOT=${CMAKE_CURRENT_BINARY_DIR}/probe-tests"
   )
 
+  add_test(
+    NAME schema-module-coverage
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_schema_module_coverage.py"
+  )
+
   find_program(MESON_EXECUTABLE meson)
   if(MESON_EXECUTABLE)
     add_test(

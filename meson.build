@@ -189,6 +189,13 @@ if get_option('with_tests')
     args: [meson.current_source_dir() / 'tests/test_nwchem_root_probe.py'],
     env: probe_test_env,
   )
+  test(
+    'schema-module-coverage',
+    python,
+    args: [
+      meson.current_source_dir() / 'tests/test_schema_module_coverage.py',
+    ],
+  )
   cmake_prog = find_program('cmake', required: false)
   if cmake_prog.found()
     meson_prog = find_program('meson')
