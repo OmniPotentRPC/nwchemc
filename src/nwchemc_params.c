@@ -2620,9 +2620,10 @@ int nwchemc_params_extract_direct_nwpw_nose(
 
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
-    int monkhorst_pack[3], int *max_kpoints_print) {
+    int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
+    size_t kvector_capacity, size_t *kvector_count) {
   if (params.p.type == CAPN_NULL || !has_options || !zone_name ||
-      !monkhorst_pack || !max_kpoints_print)
+      !monkhorst_pack || !max_kpoints_print || !kvector_count)
     return -1;
 
   *has_options = 0;
@@ -2631,6 +2632,7 @@ int nwchemc_params_extract_direct_brillouin_zone(
   monkhorst_pack[1] = 0;
   monkhorst_pack[2] = 0;
   *max_kpoints_print = 0;
+  *kvector_count = 0;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -2647,6 +2649,9 @@ int nwchemc_params_extract_direct_brillouin_zone(
 
     struct NWChemBrillouinZoneStanza zone;
     read_NWChemBrillouinZoneStanza(&zone, stanza.brillouinZone);
+    int nk = struct_list_len(&zone.kVectors.p);
+    if (nk < 0)
+      return -1;
     if (zone.zoneName.len > 0) {
       *has_options = 1;
       *zone_name = zone.zoneName;
@@ -2661,6 +2666,23 @@ int nwchemc_params_extract_direct_brillouin_zone(
     if (zone.maxKpointsPrint > 0) {
       *has_options = 1;
       *max_kpoints_print = zone.maxKpointsPrint;
+    }
+    if (nk > 0) {
+      *has_options = 1;
+      *kvector_count = (size_t)nk;
+      if (kvectors) {
+        if ((size_t)nk > kvector_capacity)
+          return -1;
+        for (int j = 0; j < nk; ++j) {
+          struct NWChemKVector kvector;
+          get_NWChemKVector(&kvector, zone.kVectors, j);
+          kvectors[4 * (size_t)j] = kvector.x;
+          kvectors[4 * (size_t)j + 1] = kvector.y;
+          kvectors[4 * (size_t)j + 2] = kvector.z;
+          kvectors[4 * (size_t)j + 3] =
+              kvector.weight != 0.0 ? kvector.weight : -1.0;
+        }
+      }
     }
   }
 

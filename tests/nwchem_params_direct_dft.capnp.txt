@@ -181,6 +181,10 @@
         monkhorstPackX = 3,
         monkhorstPackY = 4,
         monkhorstPackZ = -5,
+        kVectors = [
+          (x = 0.0, y = 0.0, z = 0.0, weight = 0.5),
+          (x = 0.5, y = 0.0, z = 0.0, weight = 0.5)
+        ],
         maxKpointsPrint = 12
       )
     ),

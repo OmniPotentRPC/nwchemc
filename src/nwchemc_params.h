@@ -107,7 +107,8 @@ int nwchemc_params_extract_direct_nwpw_nose(
 
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
-    int monkhorst_pack[3], int *max_kpoints_print);
+    int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
+    size_t kvector_capacity, size_t *kvector_count);
 
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,

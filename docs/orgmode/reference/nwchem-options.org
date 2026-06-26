@@ -373,12 +373,14 @@ Simple ~exchangeCorrelation~ names use the direct RTDB path. Use
 |-------+-------------+-------------------|
 | ~zoneName~ | trailing zone token in ~monkhorst-pack~ and nested ~zone_name~ | ~band:zone_name~ and key prefix ~<zone>:*~ |
 | ~monkhorstPackX~, ~monkhorstPackY~, ~monkhorstPackZ~ | ~monkhorst-pack <x> <y> <z> [zone]~ | ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:monkhorst-pack~ |
-| ~kVectors[]~ | nested ~brillouin_zone~ / ~kvector x y z weight~ entries | full-input text path |
+| ~kVectors[]~ | nested ~brillouin_zone~ / ~kvector x y z weight~ entries | ~<zone>:number_kvectors~, ~<zone>:kvectors~ |
 | ~maxKpointsPrint~ | nested ~max_kpoints_print <n>~ | ~<zone>:number_kvectors_print~ |
 | ~directives~ | Extra nested ~brillouin_zone~ directives | full-input text path |
 
 The embed path generates Monkhorst-Pack k-vectors directly from the numeric grid
-and stores the RTDB state read by NWChem's NWPW/BAND code. Negative grid
+and stores the RTDB state read by NWChem's NWPW/BAND code. Explicit
+~kVectors[]~ entries are also stored as numeric RTDB arrays. A zero
+~weight~ maps to NWChem's omitted-weight default of ~-1.0~. Negative grid
 dimensions select the NWChem no-time-reversal convention and store signed
 ~<zone>:monkhorst-pack~ dimensions.
 

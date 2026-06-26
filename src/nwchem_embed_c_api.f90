@@ -89,6 +89,8 @@ module nwchem_embed_c_api
   character(len=64), save :: cfg_brillouin_zone_name = 'zone_default'
   integer, save :: cfg_brillouin_monkhorst_pack(3) = 0
   integer, save :: cfg_brillouin_max_kpoints_print = 0
+  integer, save :: cfg_brillouin_kvector_count = 0
+  real(real64), allocatable, save :: cfg_brillouin_kvectors(:)
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
@@ -116,6 +118,7 @@ module nwchem_embed_c_api
         typed_set_value_counts, typed_set_values, &
         brillouin_has_options, brillouin_zone_name, &
         brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
+        brillouin_kvector_count, brillouin_kvectors, &
         energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -149,6 +152,8 @@ module nwchem_embed_c_api
       character(len=64), intent(in) :: brillouin_zone_name
       integer, intent(in) :: brillouin_monkhorst_pack(3)
       integer, intent(in) :: brillouin_max_kpoints_print
+      integer, intent(in) :: brillouin_kvector_count
+      real(real64), intent(in) :: brillouin_kvectors(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: energy_h
@@ -169,6 +174,7 @@ module nwchem_embed_c_api
         typed_set_value_counts, typed_set_values, &
         brillouin_has_options, brillouin_zone_name, &
         brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
+        brillouin_kvector_count, brillouin_kvectors, &
         energy_h, dipole_au, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -202,6 +208,8 @@ module nwchem_embed_c_api
       character(len=64), intent(in) :: brillouin_zone_name
       integer, intent(in) :: brillouin_monkhorst_pack(3)
       integer, intent(in) :: brillouin_max_kpoints_print
+      integer, intent(in) :: brillouin_kvector_count
+      real(real64), intent(in) :: brillouin_kvectors(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: energy_h
@@ -222,6 +230,7 @@ module nwchem_embed_c_api
         typed_set_value_counts, typed_set_values, &
         brillouin_has_options, brillouin_zone_name, &
         brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
+        brillouin_kvector_count, brillouin_kvectors, &
         hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -255,6 +264,8 @@ module nwchem_embed_c_api
       character(len=64), intent(in) :: brillouin_zone_name
       integer, intent(in) :: brillouin_monkhorst_pack(3)
       integer, intent(in) :: brillouin_max_kpoints_print
+      integer, intent(in) :: brillouin_kvector_count
+      real(real64), intent(in) :: brillouin_kvectors(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: hessian_h_bohr2(*)
@@ -447,7 +458,7 @@ contains
   !> Store structured Brillouin-zone controls for direct RTDB setup.
   function nwchemc_embed_set_brillouin_zone(has_options, zone_name, &
       zone_name_len, monkhorst_pack_x, monkhorst_pack_y, monkhorst_pack_z, &
-      max_kpoints_print) result(rc) &
+      max_kpoints_print, kvector_values, kvector_count) result(rc) &
       bind(C, name='nwchemc_embed_set_brillouin_zone')
     integer(c_int), intent(in), value :: has_options
     character(kind=c_char), intent(in) :: zone_name(*)
@@ -456,19 +467,32 @@ contains
     integer(c_int), intent(in), value :: monkhorst_pack_y
     integer(c_int), intent(in), value :: monkhorst_pack_z
     integer(c_int), intent(in), value :: max_kpoints_print
+    real(c_double), intent(in) :: kvector_values(*)
+    integer(c_int), intent(in), value :: kvector_count
     integer(c_int) :: rc
     character(len=64) :: zname
+    integer :: alloc_status, i, nvalues
 
     rc = -1_c_int
-    if (has_options < 0 .or. max_kpoints_print < 0) return
+    if (has_options < 0 .or. max_kpoints_print < 0 .or. &
+        kvector_count < 0) return
     call c_chars_to_f(zone_name, zone_name_len, zname)
     if (len_trim(zname) == 0) zname = 'zone_default'
+    if (allocated(cfg_brillouin_kvectors)) deallocate (cfg_brillouin_kvectors)
+    nvalues = 4 * int(kvector_count)
+    allocate (cfg_brillouin_kvectors(max(1, nvalues)), stat=alloc_status)
+    if (alloc_status /= 0) return
+    cfg_brillouin_kvectors = 0.0_real64
+    do i = 1, nvalues
+      cfg_brillouin_kvectors(i) = real(kvector_values(i), real64)
+    end do
     cfg_brillouin_has_options = int(has_options)
     cfg_brillouin_zone_name = zname
     cfg_brillouin_monkhorst_pack(1) = int(monkhorst_pack_x)
     cfg_brillouin_monkhorst_pack(2) = int(monkhorst_pack_y)
     cfg_brillouin_monkhorst_pack(3) = int(monkhorst_pack_z)
     cfg_brillouin_max_kpoints_print = int(max_kpoints_print)
+    cfg_brillouin_kvector_count = int(kvector_count)
     rc = 0_c_int
   end function nwchemc_embed_set_brillouin_zone
 
@@ -662,6 +686,10 @@ contains
       z(i) = int(atomic_numbers(i))
     end do
 
+    if (.not. ensure_brillouin_kvectors()) then
+      call set_c_errmsg(errmsg, errmsg_len, 'brillouin kvector allocation failed')
+      return
+    end if
     call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
@@ -676,6 +704,7 @@ contains
         cfg_typed_set_value_counts, cfg_typed_set_values, &
         cfg_brillouin_has_options, cfg_brillouin_zone_name, &
         cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
+        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
         energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
@@ -789,6 +818,10 @@ contains
       z(i) = int(atomic_numbers(i))
     end do
 
+    if (.not. ensure_brillouin_kvectors()) then
+      call set_c_errmsg(errmsg, errmsg_len, 'brillouin kvector allocation failed')
+      return
+    end if
     call nwchem_legacy_dipole(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
@@ -803,6 +836,7 @@ contains
         cfg_typed_set_value_counts, cfg_typed_set_values, &
         cfg_brillouin_has_options, cfg_brillouin_zone_name, &
         cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
+        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
         energy_h, dipole, msg, ok)
 
     do i = 1, 3
@@ -909,6 +943,10 @@ contains
       z(i) = int(atomic_numbers(i))
     end do
 
+    if (.not. ensure_brillouin_kvectors()) then
+      call set_c_errmsg(errmsg, errmsg_len, 'brillouin kvector allocation failed')
+      return
+    end if
     call nwchem_legacy_hessian(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
@@ -923,6 +961,7 @@ contains
         cfg_typed_set_value_counts, cfg_typed_set_values, &
         cfg_brillouin_has_options, cfg_brillouin_zone_name, &
         cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
+        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
         hess, msg, ok)
 
     do i = 1, n2
@@ -934,6 +973,18 @@ contains
   end function nwchemc_embed_hessian_impl
 
   ! --- helpers (private) ---
+
+  logical function ensure_brillouin_kvectors()
+    integer :: alloc_status
+    ensure_brillouin_kvectors = .true.
+    if (allocated(cfg_brillouin_kvectors)) return
+    allocate (cfg_brillouin_kvectors(1), stat=alloc_status)
+    if (alloc_status /= 0) then
+      ensure_brillouin_kvectors = .false.
+      return
+    end if
+    cfg_brillouin_kvectors = 0.0_real64
+  end function ensure_brillouin_kvectors
 
   subroutine c_chars_to_f(cbuf, clen, fstr)
     character(kind=c_char), intent(in) :: cbuf(*)

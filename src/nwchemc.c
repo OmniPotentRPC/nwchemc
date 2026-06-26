@@ -38,7 +38,7 @@ extern int nwchemc_embed_set_nwpw_direct(int has_options,
 extern int nwchemc_embed_set_brillouin_zone(
     int has_options, const char *zone_name, int zone_name_len,
     int monkhorst_pack_x, int monkhorst_pack_y, int monkhorst_pack_z,
-    int max_kpoints_print);
+    int max_kpoints_print, const double *kvectors, int kvector_count);
 extern int nwchemc_embed_set_pseudopotentials(const char *elements,
                                               const int *library_types,
                                               const char *library_names,
@@ -864,9 +864,11 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
   int brillouin_max_kpoints_print = 0;
+  size_t brillouin_kvector_count = 0;
   if (nwchemc_params_extract_direct_brillouin_zone(
           params_root, &brillouin_has_options, &brillouin_zone_name,
-          brillouin_monkhorst_pack, &brillouin_max_kpoints_print) != 0)
+          brillouin_monkhorst_pack, &brillouin_max_kpoints_print, NULL, 0,
+          &brillouin_kvector_count) != 0)
     return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
@@ -1669,12 +1671,39 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   const char *brillouin_zone_name_text =
       text_or_with_len(brillouin_zone_name, "zone_default",
                        &brillouin_zone_name_len);
+  double no_brillouin_kvectors[1] = {0.0};
+  double *brillouin_kvectors = NULL;
+  const double *brillouin_kvectors_arg = no_brillouin_kvectors;
+  if (brillouin_kvector_count > 0) {
+    if (brillouin_kvector_count > (size_t)INT_MAX ||
+        brillouin_kvector_count > SIZE_MAX / (4 * sizeof(double)))
+      return -1;
+    brillouin_kvectors =
+        malloc(4 * brillouin_kvector_count * sizeof(*brillouin_kvectors));
+    if (!brillouin_kvectors)
+      return -1;
+    size_t filled_kvectors = 0;
+    if (nwchemc_params_extract_direct_brillouin_zone(
+            params_root, &brillouin_has_options, &brillouin_zone_name,
+            brillouin_monkhorst_pack, &brillouin_max_kpoints_print,
+            brillouin_kvectors, brillouin_kvector_count,
+            &filled_kvectors) != 0 ||
+        filled_kvectors != brillouin_kvector_count) {
+      free(brillouin_kvectors);
+      return -1;
+    }
+    brillouin_kvectors_arg = brillouin_kvectors;
+  }
   if (nwchemc_embed_set_brillouin_zone(
           brillouin_has_options, brillouin_zone_name_text,
           brillouin_zone_name_len, brillouin_monkhorst_pack[0],
           brillouin_monkhorst_pack[1], brillouin_monkhorst_pack[2],
-          brillouin_max_kpoints_print) != 0)
+          brillouin_max_kpoints_print, brillouin_kvectors_arg,
+          (int)brillouin_kvector_count) != 0) {
+    free(brillouin_kvectors);
     return -1;
+  }
+  free(brillouin_kvectors);
   if (nwchemc_embed_set_nwpw_direct(nwpw_has_options, nwpw_energy_cutoff,
                                     nwpw_wavefunction_cutoff,
                                     nwpw_ewald_rcut, nwpw_ewald_ncut) != 0)
