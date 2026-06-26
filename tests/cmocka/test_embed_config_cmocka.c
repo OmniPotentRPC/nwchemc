@@ -26,11 +26,11 @@ static char g_psp_elements[8][17];
 static char g_psp_names[8][257];
 static char g_set_keys[8][129];
 static char g_set_values[8][257];
-static char g_typed_set_keys[8][129];
-static char g_typed_set_values[8][4][257];
+static char g_typed_set_keys[64][129];
+static char g_typed_set_values[64][4][257];
 static int g_psp_types[8];
-static int g_typed_set_types[8];
-static int g_typed_set_value_counts[8];
+static int g_typed_set_types[64];
+static int g_typed_set_value_counts[64];
 static int g_psp_count = 0;
 static int g_set_string_count = 0;
 static int g_typed_set_count = 0;
@@ -249,8 +249,8 @@ int nwchemc_embed_set_rtdb_values(const char *keys, const int *value_types,
                                   const char *values, int count) {
   ++g_set_rtdb_values_calls;
   g_typed_set_count = count;
-  if (count > 8)
-    count = 8;
+  if (count > 64)
+    count = 64;
   for (int i = 0; i < count; ++i) {
     copy_span(g_typed_set_keys[i], sizeof(g_typed_set_keys[i]),
               keys + i * 128, 128);
@@ -449,10 +449,12 @@ static void reset_embed_captures(void) {
     g_psp_names[i][0] = '\0';
     g_set_keys[i][0] = '\0';
     g_set_values[i][0] = '\0';
+    g_psp_types[i] = -1;
+  }
+  for (int i = 0; i < 64; ++i) {
     g_typed_set_keys[i][0] = '\0';
     for (int j = 0; j < 4; ++j)
       g_typed_set_values[i][j][0] = '\0';
-    g_psp_types[i] = -1;
     g_typed_set_types[i] = -1;
     g_typed_set_value_counts[i] = 0;
   }
@@ -539,6 +541,45 @@ static void assert_potential_result(const unsigned char *message,
   capn_free(&arena);
 }
 
+static int find_typed_set_key(const char *key) {
+  for (int i = 0; i < g_typed_set_count && i < 64; ++i) {
+    if (strcmp(g_typed_set_keys[i], key) == 0)
+      return i;
+  }
+  return -1;
+}
+
+static void assert_typed_set_scalar(const char *key, int value_type,
+                                    const char *value) {
+  int index = find_typed_set_key(key);
+  assert_true(index >= 0);
+  assert_int_equal(g_typed_set_types[index], value_type);
+  assert_int_equal(g_typed_set_value_counts[index], 1);
+  assert_string_equal(g_typed_set_values[index][0], value);
+}
+
+static void assert_typed_set_pair(const char *key, int value_type,
+                                  const char *first, const char *second) {
+  int index = find_typed_set_key(key);
+  assert_true(index >= 0);
+  assert_int_equal(g_typed_set_types[index], value_type);
+  assert_int_equal(g_typed_set_value_counts[index], 2);
+  assert_string_equal(g_typed_set_values[index][0], first);
+  assert_string_equal(g_typed_set_values[index][1], second);
+}
+
+static void assert_typed_set_triple(const char *key, int value_type,
+                                    const char *first, const char *second,
+                                    const char *third) {
+  int index = find_typed_set_key(key);
+  assert_true(index >= 0);
+  assert_int_equal(g_typed_set_types[index], value_type);
+  assert_int_equal(g_typed_set_value_counts[index], 3);
+  assert_string_equal(g_typed_set_values[index][0], first);
+  assert_string_equal(g_typed_set_values[index][1], second);
+  assert_string_equal(g_typed_set_values[index][2], third);
+}
+
 static void test_embed_config_uses_direct_dft_values(void **state) {
   (void)state;
   reset_embed_captures();
@@ -578,9 +619,41 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "wavefunction_cutoff 6.25"));
   assert_null(strstr(g_input_blocks, "ewald_rcut 3.5"));
   assert_null(strstr(g_input_blocks, "ewald_ncut 9"));
+  assert_null(strstr(g_input_blocks, "cell_name cellA"));
+  assert_null(strstr(g_input_blocks, "input_wavefunction_filename psi.in"));
+  assert_null(strstr(g_input_blocks, "output_wavefunction_filename psi.out"));
+  assert_null(strstr(g_input_blocks, "fake_mass 2.5"));
+  assert_null(strstr(g_input_blocks, "time_step 4.5"));
+  assert_null(strstr(g_input_blocks, "loop 3 7"));
+  assert_null(strstr(g_input_blocks, "tolerances 0.125 0.25 0.5"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 36);
+  assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "12.5");
+  assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "6.25");
+  assert_typed_set_scalar("cpsd:rcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "3.5");
+  assert_typed_set_scalar("cpmd:ncut", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "9");
+  assert_typed_set_scalar("cgsd:cell_name", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "cellA");
+  assert_typed_set_scalar("pspw:input vectors", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "psi.in");
+  assert_typed_set_scalar("band:input vectors", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "psi.in");
+  assert_typed_set_scalar("band:output_wavefunction_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "psi.out");
+  assert_typed_set_scalar("cpsd:fake_mass", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "2.5");
+  assert_typed_set_scalar("band:time_step", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "4.5");
+  assert_typed_set_pair("cgsd:loop", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3",
+                        "7");
+  assert_typed_set_triple("band:tolerances", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "0.125", "0.25", "0.5");
   assert_int_equal(g_set_nwpw_direct_calls, 1);
   assert_int_equal(g_nwpw_has_options, 1);
   assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);
