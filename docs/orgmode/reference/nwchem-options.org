@@ -428,9 +428,12 @@ The renderer emits these entries inside an ~nwpw~ block with a nested
 ~pseudopotentials~ section. For example, an entry with ~element = "Si"~,
 ~libraryType = library~, and ~libraryName = "sg15"~ renders as
 ~Si library sg15~.
-When ~allElements~ is true, the renderer and embed direct path use NWChem's
-~*~ target, which maps to fallback RTDB keys such as ~*:pspw_library~,
-~*:pspw_library_type~, and ~*:paw_library~.
+The embed path walks the generated c-capnproto entry list through
+~nwchemc_params_for_each_direct_pseudopotential~ and only packs fixed-width
+records for the final C/Fortran call into NWChem. When ~allElements~ is true,
+the renderer and embed direct path use NWChem's ~*~ target, which maps to
+fallback RTDB keys such as ~*:pspw_library~, ~*:pspw_library_type~, and
+~*:paw_library~.
 ~pspSpin~ is structured so callers do not need a free-form directive for the
 common ~pspspin~ toggle; it remains in rendered text because this bridge does
 not have a confirmed stable RTDB key for that option.
