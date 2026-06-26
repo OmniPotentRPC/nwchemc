@@ -414,6 +414,7 @@ pseudopotential selection:
 | ~entries[].libraryType~ | ~library~, ~pspw_library~, ~paw_library~, ~cpi~, or ~teter~. |
 | ~entries[].libraryName~ | Library or file token used by NWChem. |
 | ~entries[].allElements~ | NWChem ~*~ default entry for every element. |
+| ~pspSpin~ | ~pspspin on~ or ~pspspin off~. |
 | ~directives~ | Extra tokenized NWPW directives emitted after the pseudopotential block. |
 
 The renderer emits these entries inside an ~nwpw~ block with a nested
@@ -423,6 +424,9 @@ The renderer emits these entries inside an ~nwpw~ block with a nested
 When ~allElements~ is true, the renderer and embed direct path use NWChem's
 ~*~ target, which maps to fallback RTDB keys such as ~*:pspw_library~,
 ~*:pspw_library_type~, and ~*:paw_library~.
+~pspSpin~ is structured so callers do not need a free-form directive for the
+common ~pspspin~ toggle; it remains in rendered text because this bridge does
+not have a confirmed stable RTDB key for that option.
 
 * ABI Entry Points
 | Symbol | Intern id | Stub | Embed |

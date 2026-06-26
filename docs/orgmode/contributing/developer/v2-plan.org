@@ -107,7 +107,7 @@ The schema contains typed stanzas for:
 - raw NWChem fragments
 - module blocks backed by the ~NWChemModuleName~ enum
 - ~nwpw~ pseudopotential blocks with library, PSPW, PAW, CPI, and Teter entries
-  plus structured ~allElements~ default entries
+  plus structured ~allElements~ default entries and ~pspspin~ mode
 - ~nwpw~ cutoff controls for energy, wavefunction, Ewald real-space, and Ewald
   reciprocal-space cutoffs
 - ~nwpw~ state controls and simple named exchange-correlation functionals
@@ -346,11 +346,12 @@ NWChem input routine or RTDB key being matched.
 
 ** DONE Pseudopotential Entry Direct Path
 ~NWChemPseudopotentialStanza~ carries ~library~, ~pspw_library~,
-~paw_library~, ~cpi~, ~teter~, and ~allElements~ entries. The C layer extracts
-those entries with ~nwchemc_params_extract_direct_pseudopotentials~ and passes
-them to ~nwchemc_embed_set_pseudopotentials~. Embed rendering omits the
-structured library entries and keeps only extra directives such as ~pspspin~ in
-text.
+~paw_library~, ~cpi~, ~teter~, ~allElements~ entries, and structured
+~pspSpin~. The C layer extracts library entries with
+~nwchemc_params_extract_direct_pseudopotentials~ and passes them to
+~nwchemc_embed_set_pseudopotentials~. Embed rendering omits the structured
+library entries and keeps ~pspSpin~ plus extra directives in text because no
+stable RTDB key is confirmed for ~pspspin~.
 
 The fixed-form bridge writes:
 
