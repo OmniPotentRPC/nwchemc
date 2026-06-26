@@ -138,6 +138,7 @@ state.
 | ~eomSolver~, ~hbarDimension~ | ~eomsol~, ~hbard~ | ~tce:eoms~, ~tce:hbard~ |
 | ~nroots~, ~target~, ~targetSymmetry~, ~symmetry~ | ~nroots~, ~target~, ~targetsym~, ~symmetry~ | ~tce:nroots~, ~tce:target~, ~tce:targetsym~, ~tce:symmetry~ |
 | ~densityMatrix~, ~densityMatrixFile~, ~left~ | ~densmat [file]~ | ~tce:densmat~, ~tce:file_densmat~, ~tce:left~ |
+| ~dipole~ | ~dipole~ | rendered input text |
 | ~multipole~, ~fragment~, ~recomputeFock~ | ~multipole~, ~fragment~, ~fock~ / ~nofock~ | ~tce:multipole~, ~tce:fragment~, ~tce:recompf~ |
 | ~activeOccupiedAlpha~, ~activeOccupiedBeta~ | ~active_oa~, ~active_ob~ | ~tce:active_oa~, ~tce:active_ob~ |
 | ~activeVirtualAlpha~, ~activeVirtualBeta~ | ~active_va~, ~active_vb~ | ~tce:active_va~, ~tce:active_vb~ |
@@ -275,6 +276,8 @@ keywords and method-specific cards that do not own a stable scalar RTDB key.
 Numeric freeze counts use the direct ~tce:frozen core~ / ~tce:frozen virtual~
 path. Symbolic atomic freeze modes use ~freezeMode~ and remain in rendered input
 text because they do not correspond to fixed scalar counts at the C ABI boundary.
+The ~dipole~ keyword is also rendered as input text, matching the TCE block
+keyword used for ground- and excited-state dipole moments.
 
 * MRCCDATA Controls
 ~NWChemMrccDataStanza~ covers the companion ~mrccdata~ block used by TCE MRCC
