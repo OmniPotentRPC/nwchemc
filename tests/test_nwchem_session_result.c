@@ -171,6 +171,56 @@ static void test_session_calculate_result_accepts_multiple_steps(void **state) {
   free(params);
 }
 
+static void test_calculate_hessian_and_dipole_one_shot(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  size_t step_eq_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  unsigned char *step_eq = read_file(g_step_eq_path, &step_eq_size);
+  assert_non_null(params);
+  assert_non_null(step_eq);
+
+  const int ncoord = 6;
+  double hessian[36];
+  memset(hessian, 0, sizeof(hessian));
+  NWChemCResult hessian_status = nwchemc_calculate_hessian(
+      params, params_size, step_eq, step_eq_size, hessian, 36);
+  if (!hessian_status.ok)
+    fail_msg("nwchemc_calculate_hessian failed: %s", hessian_status.message);
+
+  double max_abs = 0.0;
+  for (int i = 0; i < ncoord; ++i) {
+    for (int j = 0; j < ncoord; ++j) {
+      double hij = hessian[i * ncoord + j];
+      double hji = hessian[j * ncoord + i];
+      if (!isfinite(hij))
+        fail_msg("non-finite one-shot hessian[%d,%d]", i, j);
+      double scale = fmax(1.0, fmax(fabs(hij), fabs(hji)));
+      if (fabs(hij - hji) > 1e-7 * scale)
+        fail_msg("one-shot hessian symmetry mismatch at %d,%d", i, j);
+      max_abs = fmax(max_abs, fabs(hij));
+    }
+  }
+  assert_true(max_abs >= 1e-6);
+
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_status = nwchemc_calculate_dipole(
+      params, params_size, step_eq, step_eq_size, dipole, 3);
+  if (!dipole_status.ok)
+    fail_msg("nwchemc_calculate_dipole failed: %s", dipole_status.message);
+  assert_true(isfinite(dipole_status.energy_h));
+  for (int i = 0; i < 3; ++i) {
+    if (!isfinite(dipole[i]))
+      fail_msg("non-finite one-shot dipole[%d]", i);
+    assert_true(fabs(dipole[i]) < 1.0e-7);
+  }
+
+  free(step_eq);
+  free(params);
+}
+
 int main(int argc, char **argv) {
   if (argc != 4) {
     fprintf(stderr,
@@ -183,6 +233,7 @@ int main(int argc, char **argv) {
   g_step_stretched_path = argv[3];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_session_calculate_result_accepts_multiple_steps),
+      cmocka_unit_test(test_calculate_hessian_and_dipole_one_shot),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }
