@@ -85,7 +85,13 @@
         fractionalOrbitalsEnd = 6,
         smearTemperature = 0.02,
         smearAlpha = 0.7,
-        smearType = fermi
+        smearType = fermi,
+        virtualOrbitalsStart = 7,
+        virtualOrbitalsEnd = 8,
+        lcaoMode = skip,
+        ewaldGridX = 9,
+        ewaldGridY = 10,
+        ewaldGridZ = 11
       )
     ),
     (

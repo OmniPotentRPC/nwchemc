@@ -122,6 +122,9 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "fractional_orbitals 5 6"));
   assert_non_null(strstr(input_blocks,
                          "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
+  assert_non_null(strstr(input_blocks, "virtual_orbitals 7 8"));
+  assert_non_null(strstr(input_blocks, "lcao_skip"));
+  assert_non_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -199,6 +202,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "fractional_orbitals 5 6"));
   assert_null(strstr(input_blocks,
                      "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
+  assert_null(strstr(input_blocks, "virtual_orbitals 7 8"));
+  assert_null(strstr(input_blocks, "lcao_skip"));
+  assert_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -376,6 +382,27 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(smear_alpha > 0.699);
   assert_true(smear_alpha < 0.701);
   assert_int_equal(smear_type, NWChemNwpwSmearType_fermi);
+
+  int has_orbital_grid = 0;
+  int virtual_orbitals_start = 0;
+  int virtual_orbitals_end = 0;
+  int lcao_mode = 0;
+  int ewald_grid_x = 0;
+  int ewald_grid_y = 0;
+  int ewald_grid_z = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_orbital_grid(
+                       params_root, &has_orbital_grid,
+                       &virtual_orbitals_start, &virtual_orbitals_end,
+                       &lcao_mode, &ewald_grid_x, &ewald_grid_y,
+                       &ewald_grid_z),
+                   0);
+  assert_int_equal(has_orbital_grid, 1);
+  assert_int_equal(virtual_orbitals_start, 7);
+  assert_int_equal(virtual_orbitals_end, 8);
+  assert_int_equal(lcao_mode, NWChemNwpwLcaoMode_skip);
+  assert_int_equal(ewald_grid_x, 9);
+  assert_int_equal(ewald_grid_y, 10);
+  assert_int_equal(ewald_grid_z, 11);
 
   nwchemc_params_release(&arena);
   free(message);
