@@ -90,6 +90,8 @@ The schema contains typed stanzas for:
 - ~dft~ blocks including ~xc~, ~direct~, and Fermi smearing syntax
 - ~scf~ blocks including typed max-iteration, convergence-threshold, and
   two-electron tolerance scalars
+- classic ~ccsd~ scalar controls for max iterations, thresholds, DIIS,
+  frozen-orbital counts, disk use, and SCS scaling
 - ~driver~ blocks including direct max-iteration promotion and text fallback
   for other optimization controls
 - ~set~ directives
@@ -250,6 +252,16 @@ module prefix:
 | ~noseIonTemperature~ | ~Tr~ | ~cpmd~, ~nwpw~ |
 | ~noseElectronChainLength~ | ~Mchain~ | ~cpmd~, ~nwpw~ |
 | ~noseIonChainLength~ | ~Nchain~ | ~cpmd~, ~nwpw~ |
+| ~maxiter~ | ~maxiter~ | ~ccsd~ |
+| ~thresh~ | ~thresh~ | ~ccsd~ |
+| ~tol2e~ | ~tol2e~ | ~ccsd~ |
+| ~iprt~ | ~iprt~ | ~ccsd~ |
+| ~maxDiis~ | ~maxdiis~ | ~ccsd~ |
+| ~frozenCore~ | ~frozen core~ | ~ccsd~ |
+| ~frozenVirtual~ | ~frozen virtual~ | ~ccsd~ |
+| ~useDisk~ | ~usedisk~ | ~ccsd~ |
+| ~sameSpinScale~ | ~fss~ | ~ccsd~ |
+| ~oppositeSpinScale~ | ~fos~ | ~ccsd~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes

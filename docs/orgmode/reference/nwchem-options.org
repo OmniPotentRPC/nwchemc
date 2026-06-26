@@ -51,6 +51,7 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | RTDB set | ~NWChemSetDirective~ | ~set key [type] value...~. |
 | DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
 | SCF | ~NWChemScfStanza~ | ~scf~, vectors/maxiter/thresh/tol2e/noprint, directives, ~end~. |
+| CCSD | ~NWChemCcsdStanza~ | ~ccsd~, scalar controls and directives, then ~end~. |
 | Task line | ~NWChemTaskStanza~ | ~task [theory] [operation] [ignore]~ (explicit deck task). |
 | Driver | ~NWChemDriverStanza~ | ~driver~, maxiter/tight/loose/gmax/grms/xmax/xrms/xyz, directives, ~end~. |
 | Property | ~NWChemPropertyStanza~ | ~property~, dipole/mulliken/quadrupole, directives, ~end~. |
@@ -63,7 +64,8 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 
 * Direct embed apply
 When ~apply_config_to_embed~ runs (embed builds only), typed
-~NWChemDftStanza~, ~NWChemScfStanza~, ~NWChemDriverStanza~,
+~NWChemDftStanza~, ~NWChemScfStanza~, ~NWChemCcsdStanza~,
+~NWChemDriverStanza~,
 ~NWChemNwpwStanza~, ~NWChemPseudopotentialStanza~, and text-valued
 ~NWChemSetDirective~ fields are
 applied outside rendered text where the bridge has a direct RTDB/API path.
@@ -89,6 +91,23 @@ through ~rtdb_cput~ before method state is applied.
 ~value~ field remains valid for one text value. Literal NWChem text remains
 available for parser-specific ~set~ syntax that does not fit this typed value
 carrier.
+
+~nwchemc_params_extract_direct_ccsd~ reads classic ~NWChemCcsdStanza~ scalar
+controls. Full-deck rendering emits ~ccsd~ text lines; embed rendering omits
+the promoted lines and writes the same values as typed RTDB entries:
+
+| Field | NWChem text | Embed RTDB key |
+|-------+-------------+----------------|
+| ~maxiter~ | ~maxiter <n>~ | ~ccsd:maxiter~ |
+| ~thresh~ | ~thresh <value>~ | ~ccsd:thresh~ |
+| ~tol2e~ | ~tol2e <value>~ | ~ccsd:tol2e~ |
+| ~iprt~ | ~iprt <n>~ | ~ccsd:iprt~ |
+| ~maxDiis~ | ~diisbas <n>~ | ~ccsd:maxdiis~ |
+| ~frozenCore~ | first numeric value in ~freeze~ | ~ccsd:frozen core~ |
+| ~frozenVirtual~ | ~virtual <n>~ in ~freeze~ | ~ccsd:frozen virtual~ |
+| ~useDisk~ | ~nodisk~ when disabled | ~ccsd:usedisk~ |
+| ~sameSpinScale~ | ~fss <value>~ | ~ccsd:fss~ |
+| ~oppositeSpinScale~ | ~fos <value>~ | ~ccsd:fos~ |
 
 ~nwchemc_params_extract_direct_nwpw~ reads structured cutoff controls from
 ~NWChemNwpwStanza~. Full-deck rendering emits NWPW text lines, while embed
@@ -189,6 +208,28 @@ handler names derived from the local NWChem source tree.
 | ~tol2e~ | Full input emits ~tol2e <value>~; embed writes ~scf:tol2e~ or ~dft:tol2e~ directly. |
 | ~noprint~ | ~noprint~ |
 | ~directives~ | Extra SCF directives (convergence, semidirect, ...). |
+
+* CCSD Controls
+~NWChemCcsdStanza~ covers classic molecular CCSD scalar controls from
+~ccsd_input.F~:
+
+| Field | NWChem text |
+|-------+-------------|
+| ~maxiter~ | ~maxiter <n>~ |
+| ~thresh~ | ~thresh <value>~ |
+| ~tol2e~ | ~tol2e <value>~ |
+| ~iprt~ | ~iprt <n>~ |
+| ~maxDiis~ | ~diisbas <n>~ |
+| ~frozenCore~ | first numeric value in ~freeze~ |
+| ~frozenVirtual~ | ~virtual <n>~ in ~freeze~ |
+| ~useDisk~ | ~nodisk~ when disabled |
+| ~sameSpinScale~ | ~fss <value>~ |
+| ~oppositeSpinScale~ | ~fos <value>~ |
+| ~directives~ | Extra CCSD directives, including debug term switches. |
+
+TCE, EOM-CC, CR-EOMCC, MRCC, and atomic freeze controls are represented by
+generic/module stanzas or typed RTDB set values; their structured stanza slices
+are part of the v2 parity plan.
 
 * Task / Driver / Property / Basis / Geometry Stanzas
 - *Task* (~NWChemTaskStanza~): emit an explicit ~task theory operation~ line when
