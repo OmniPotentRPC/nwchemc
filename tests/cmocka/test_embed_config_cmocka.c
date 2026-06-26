@@ -87,6 +87,14 @@ extern NWChemCResult nwchemc_session_calculate_dipole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *dipole_au,
     size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_hessian(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_dipole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len) NWCHEMC_TEST_WEAK;
 
 static void copy_span(char *dst, size_t dst_size, const char *src, int len) {
   size_t n = len > 0 ? (size_t)len : 0;
@@ -1045,6 +1053,70 @@ static void test_calculate_result_one_shot_writes_potential_result(
   free(message);
 }
 
+static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_calculate_hessian != NULL);
+  assert_true(nwchemc_calculate_dipole != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+
+  double hessian[36] = {0.0};
+  NWChemCResult hessian_result = nwchemc_calculate_hessian(
+      message, message_size, step_a, step_a_size, hessian, 36);
+  assert_int_equal(hessian_result.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_hessian_calls, 1);
+  assert_int_equal(g_hessian_cell_calls, 1);
+  assert_int_equal(g_hessian_n_atoms[0], 2);
+  assert_int_equal(g_hessian_atomic_numbers[0][0], 1);
+  assert_int_equal(g_hessian_atomic_numbers[0][1], 8);
+  assert_close(g_hessian_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_hessian_has_cell[0], 1);
+  assert_close(hessian[0], 10.0, 1.0e-12);
+  assert_close(hessian[35], 45.0, 1.0e-12);
+
+  reset_embed_captures();
+  NWChemCResult short_hessian = nwchemc_calculate_hessian(
+      message, message_size, step_a, step_a_size, hessian, 35);
+  assert_int_equal(short_hessian.ok, 0);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_hessian_calls, 0);
+
+  reset_embed_captures();
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_result = nwchemc_calculate_dipole(
+      message, message_size, step_a, step_a_size, dipole, 3);
+  assert_int_equal(dipole_result.ok, 1);
+  assert_close(dipole_result.energy_h, -1.25, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_dipole_calls, 1);
+  assert_int_equal(g_dipole_cell_calls, 1);
+  assert_int_equal(g_dipole_n_atoms[0], 2);
+  assert_int_equal(g_dipole_atomic_numbers[0][0], 1);
+  assert_int_equal(g_dipole_atomic_numbers[0][1], 8);
+  assert_close(g_dipole_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_dipole_has_cell[0], 1);
+  assert_close(dipole[0], 0.25, 1.0e-12);
+  assert_close(dipole[1], 0.5, 1.0e-12);
+  assert_close(dipole[2], 0.75, 1.0e-12);
+
+  reset_embed_captures();
+  NWChemCResult short_dipole = nwchemc_calculate_dipole(
+      message, message_size, step_a, step_a_size, dipole, 2);
+  assert_int_equal(short_dipole.ok, 0);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_dipole_calls, 0);
+
+  free(step_a);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc != 7) {
     fprintf(stderr,
@@ -1069,6 +1141,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_calculate_dipole_accepts_force_input_step),
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
       cmocka_unit_test(test_calculate_result_one_shot_writes_potential_result),
+      cmocka_unit_test(
+          test_calculate_hessian_and_dipole_one_shot_accept_force_input),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

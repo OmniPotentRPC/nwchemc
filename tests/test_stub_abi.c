@@ -24,6 +24,14 @@ extern NWChemCResult nwchemc_session_calculate_dipole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *dipole_au,
     size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_hessian(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_dipole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len) NWCHEMC_TEST_WEAK;
 
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
@@ -77,10 +85,19 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_step_hessian =
       nwchemc_session_calculate_hessian(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step_hessian.ok, 0);
+  assert_true(nwchemc_calculate_hessian != NULL);
+  double hessian_h_bohr2[1] = {0.0};
+  NWChemCResult one_shot_hessian =
+      nwchemc_calculate_hessian(NULL, 0, NULL, 0, hessian_h_bohr2, 1);
+  assert_int_equal(one_shot_hessian.ok, 0);
   assert_true(nwchemc_session_calculate_dipole != NULL);
   NWChemCResult session_step_dipole =
       nwchemc_session_calculate_dipole(NULL, NULL, 0, dipole_au, 3);
   assert_int_equal(session_step_dipole.ok, 0);
+  assert_true(nwchemc_calculate_dipole != NULL);
+  NWChemCResult one_shot_dipole =
+      nwchemc_calculate_dipole(NULL, 0, NULL, 0, dipole_au, 3);
+  assert_int_equal(one_shot_dipole.ok, 0);
   NWChemCResult session_hessian =
       nwchemc_session_hessian(NULL, 0, NULL, NULL, NULL);
   assert_int_equal(session_hessian.ok, 0);
