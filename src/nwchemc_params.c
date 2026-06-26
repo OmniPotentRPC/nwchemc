@@ -615,6 +615,19 @@ static int render_pseudopotential_entries(
   return 0;
 }
 
+static const char *pseudopotential_spin_literal(
+    enum NWChemPseudopotentialSpinMode spin_mode) {
+  switch (spin_mode) {
+  case NWChemPseudopotentialSpinMode_enabled:
+    return "on";
+  case NWChemPseudopotentialSpinMode_disabled:
+    return "off";
+  case NWChemPseudopotentialSpinMode_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
                                          char *dst, size_t dst_size,
                                          int include_direct_entries) {
@@ -634,6 +647,10 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
         append_format(block, sizeof(block), "  end\n") != 0)
       return -1;
   }
+  const char *psp_spin = pseudopotential_spin_literal(pseudopotential.pspSpin);
+  if (psp_spin &&
+      append_format(block, sizeof(block), "  pspspin %s\n", psp_spin) != 0)
+    return -1;
   if (render_directives(pseudopotential.directives, block, sizeof(block),
                         "  ") != 0)
     return -1;
