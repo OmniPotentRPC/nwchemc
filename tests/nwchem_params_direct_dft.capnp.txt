@@ -36,7 +36,8 @@
         loopEnd = 7,
         toleranceEnergy = 0.125,
         toleranceDensity = 0.25,
-        toleranceGradient = 0.5
+        toleranceGradient = 0.5,
+        exchangeCorrelation = "pbe96"
       )
     ),
     (

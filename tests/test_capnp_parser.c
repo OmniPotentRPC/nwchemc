@@ -103,6 +103,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "time_step 4.5"));
   assert_non_null(strstr(input_blocks, "loop 3 7"));
   assert_non_null(strstr(input_blocks, "tolerances 0.125 0.25 0.5"));
+  assert_non_null(strstr(input_blocks, "exchange_correlation pbe96"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -161,6 +162,7 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "time_step 4.5"));
   assert_null(strstr(input_blocks, "loop 3 7"));
   assert_null(strstr(input_blocks, "tolerances 0.125 0.25 0.5"));
+  assert_null(strstr(input_blocks, "exchange_correlation pbe96"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -238,6 +240,14 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(tolerance_density < 0.2501);
   assert_true(tolerance_gradient > 0.4999);
   assert_true(tolerance_gradient < 0.5001);
+
+  int has_xc = 0;
+  capn_text exchange_correlation = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_xc(
+                       params_root, &has_xc, &exchange_correlation),
+                   0);
+  assert_int_equal(has_xc, 1);
+  assert_true(text_equals(exchange_correlation, "pbe96"));
 
   nwchemc_params_release(&arena);
   free(message);
