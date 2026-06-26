@@ -360,6 +360,22 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_params_extract_direct_nwpw_xc(
           params_root, &nwpw_has_xc, &nwpw_exchange_correlation) != 0)
     return -1;
+  int nwpw_bo_has_options = 0;
+  int nwpw_balance_mode = NWChemNwpwBalanceMode_unspecified;
+  int nwpw_bo_step_start = 0;
+  int nwpw_bo_step_end = 0;
+  double nwpw_bo_time_step = 0.0;
+  int nwpw_bo_algorithm = NWChemNwpwBoAlgorithm_unspecified;
+  double nwpw_bo_fake_mass = 0.0;
+  int nwpw_has_scaling = 0;
+  double nwpw_scaling_first = 0.0;
+  double nwpw_scaling_second = 0.0;
+  if (nwchemc_params_extract_direct_nwpw_bo(
+          params_root, &nwpw_bo_has_options, &nwpw_balance_mode,
+          &nwpw_bo_step_start, &nwpw_bo_step_end, &nwpw_bo_time_step,
+          &nwpw_bo_algorithm, &nwpw_bo_fake_mass, &nwpw_has_scaling,
+          &nwpw_scaling_first, &nwpw_scaling_second) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -612,6 +628,91 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "band:HFX_parameter",
             NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1") != 0)
+      return -1;
+  }
+  if (nwpw_bo_has_options &&
+      nwpw_balance_mode != NWChemNwpwBalanceMode_unspecified) {
+    const char *value =
+        nwpw_balance_mode == NWChemNwpwBalanceMode_balance ? "true" : "false";
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:balance",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (nwpw_bo_step_start > 0 && nwpw_bo_step_end > 0) {
+    char start_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char end_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[2] = {start_value, end_value};
+    snprintf(start_value, sizeof(start_value), "%d", nwpw_bo_step_start);
+    snprintf(end_value, sizeof(end_value), "%d", nwpw_bo_step_end);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:bo_steps",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 2) != 0)
+      return -1;
+  }
+  if (nwpw_bo_time_step > 0.0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(value, sizeof(value), "%.17g", nwpw_bo_time_step);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:bo_time_step",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+      return -1;
+  }
+  if (nwpw_bo_algorithm != NWChemNwpwBoAlgorithm_unspecified) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    int algorithm_value = 0;
+    if (nwpw_bo_algorithm == NWChemNwpwBoAlgorithm_velocityVerlet)
+      algorithm_value = 1;
+    else if (nwpw_bo_algorithm == NWChemNwpwBoAlgorithm_leapFrog)
+      algorithm_value = 2;
+    snprintf(value, sizeof(value), "%d", algorithm_value);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:bo_algorithm",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+      return -1;
+  }
+  if (nwpw_bo_fake_mass > 0.0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(value, sizeof(value), "%.17g", nwpw_bo_fake_mass);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:bo_fake_mass",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+      return -1;
+  }
+  if (nwpw_has_scaling) {
+    char first_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char second_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[2] = {first_value, second_value};
+    snprintf(first_value, sizeof(first_value), "%.17g", nwpw_scaling_first);
+    snprintf(second_value, sizeof(second_value), "%.17g", nwpw_scaling_second);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:scaling",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 2) != 0)
+      return -1;
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "cpmd:scaling",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 2) != 0)
       return -1;
   }
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));

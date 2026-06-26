@@ -959,6 +959,50 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  if (include_direct_promoted &&
+      nwpw.balanceMode == NWChemNwpwBalanceMode_balance &&
+      append_format(block, sizeof(block), "  balance\n") != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.balanceMode == NWChemNwpwBalanceMode_nobalance &&
+      append_format(block, sizeof(block), "  nobalance\n") != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.boStepStart > 0 &&
+      nwpw.boStepEnd > 0 &&
+      append_format(block, sizeof(block), "  bo_steps %d %d\n",
+                    nwpw.boStepStart, nwpw.boStepEnd) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.boTimeStep > 0.0 &&
+      append_format(block, sizeof(block), "  bo_time_step %.15g\n",
+                    nwpw.boTimeStep) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.boAlgorithm != NWChemNwpwBoAlgorithm_unspecified) {
+    const char *algorithm = NULL;
+    if (nwpw.boAlgorithm == NWChemNwpwBoAlgorithm_verlet)
+      algorithm = "verlet";
+    else if (nwpw.boAlgorithm == NWChemNwpwBoAlgorithm_velocityVerlet)
+      algorithm = "velocity-verlet";
+    else if (nwpw.boAlgorithm == NWChemNwpwBoAlgorithm_leapFrog)
+      algorithm = "leap-frog";
+    if (!algorithm ||
+        append_format(block, sizeof(block), "  bo_algorithm %s\n",
+                      algorithm) != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.boFakeMass > 0.0 &&
+      append_format(block, sizeof(block), "  bo_fake_mass %.15g\n",
+                    nwpw.boFakeMass) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      (nwpw.scalingFirst > 0.0 || nwpw.scalingSecond > 0.0)) {
+    double scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;
+    double scaling_second =
+        nwpw.scalingSecond > 0.0 ? nwpw.scalingSecond : scaling_first;
+    if (append_format(block, sizeof(block), "  scaling %.15g %.15g\n",
+                      scaling_first, scaling_second) != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -1412,6 +1456,75 @@ int nwchemc_params_extract_direct_nwpw_xc(NWChemParams_ptr params,
         !text_equals_ascii_ci(nwpw.exchangeCorrelation, "new")) {
       *has_options = 1;
       *exchange_correlation = nwpw.exchangeCorrelation;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_bo(
+    NWChemParams_ptr params, int *has_options, int *balance_mode,
+    int *bo_step_start, int *bo_step_end, double *bo_time_step,
+    int *bo_algorithm, double *bo_fake_mass, int *has_scaling,
+    double *scaling_first, double *scaling_second) {
+  if (params.p.type == CAPN_NULL || !has_options || !balance_mode ||
+      !bo_step_start || !bo_step_end || !bo_time_step || !bo_algorithm ||
+      !bo_fake_mass || !has_scaling || !scaling_first || !scaling_second)
+    return -1;
+
+  *has_options = 0;
+  *balance_mode = NWChemNwpwBalanceMode_unspecified;
+  *bo_step_start = 0;
+  *bo_step_end = 0;
+  *bo_time_step = 0.0;
+  *bo_algorithm = NWChemNwpwBoAlgorithm_unspecified;
+  *bo_fake_mass = 0.0;
+  *has_scaling = 0;
+  *scaling_first = 0.0;
+  *scaling_second = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.balanceMode != NWChemNwpwBalanceMode_unspecified) {
+      *has_options = 1;
+      *balance_mode = nwpw.balanceMode;
+    }
+    if (nwpw.boStepStart > 0 && nwpw.boStepEnd > 0) {
+      *has_options = 1;
+      *bo_step_start = nwpw.boStepStart;
+      *bo_step_end = nwpw.boStepEnd;
+    }
+    if (nwpw.boTimeStep > 0.0) {
+      *has_options = 1;
+      *bo_time_step = nwpw.boTimeStep;
+    }
+    if (nwpw.boAlgorithm != NWChemNwpwBoAlgorithm_unspecified) {
+      *has_options = 1;
+      *bo_algorithm = nwpw.boAlgorithm;
+    }
+    if (nwpw.boFakeMass > 0.0) {
+      *has_options = 1;
+      *bo_fake_mass = nwpw.boFakeMass;
+    }
+    if (nwpw.scalingFirst > 0.0 || nwpw.scalingSecond > 0.0) {
+      *has_options = 1;
+      *has_scaling = 1;
+      *scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;
+      *scaling_second =
+          nwpw.scalingSecond > 0.0 ? nwpw.scalingSecond : *scaling_first;
     }
   }
 

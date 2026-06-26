@@ -65,6 +65,12 @@ int nwchemc_params_extract_direct_nwpw_xc(NWChemParams_ptr params,
                                           int *has_options,
                                           capn_text *exchange_correlation);
 
+int nwchemc_params_extract_direct_nwpw_bo(
+    NWChemParams_ptr params, int *has_options, int *balance_mode,
+    int *bo_step_start, int *bo_step_end, double *bo_time_step,
+    int *bo_algorithm, double *bo_fake_mass, int *has_scaling,
+    double *scaling_first, double *scaling_second);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

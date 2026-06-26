@@ -194,6 +194,19 @@ struct NWChemPseudopotentialStanza {
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
 }
 
+enum NWChemNwpwBalanceMode {
+  unspecified @0; # Do not emit balance/nobalance.
+  balance     @1; # Emit/promote NWChem "balance".
+  nobalance   @2; # Emit/promote NWChem "nobalance".
+}
+
+enum NWChemNwpwBoAlgorithm {
+  unspecified    @0; # Do not emit bo_algorithm.
+  verlet         @1; # NWChem bo_algorithm verlet.
+  velocityVerlet @2; # NWChem bo_algorithm velocity-verlet.
+  leapFrog       @3; # NWChem bo_algorithm leap-frog.
+}
+
 struct NWChemNwpwStanza {
   energyCutoff       @0 :Float64 = 0.0; # Emit/promote NWPW energy_cutoff.
   wavefunctionCutoff @1 :Float64 = 0.0; # Emit/promote NWPW wavefunction_cutoff.
@@ -211,6 +224,14 @@ struct NWChemNwpwStanza {
   toleranceDensity            @13 :Float64 = 0.0; # Second NWPW tolerances value.
   toleranceGradient           @14 :Float64 = 0.0; # Third NWPW tolerances value.
   exchangeCorrelation         @15 :Text = "";      # Emit/promote NWPW exchange_correlation.
+  balanceMode                 @16 :NWChemNwpwBalanceMode = unspecified; # Emit/promote balance/nobalance.
+  boStepStart                 @17 :Int32 = 0;       # First NWPW bo_steps value.
+  boStepEnd                   @18 :Int32 = 0;       # Second NWPW bo_steps value.
+  boTimeStep                  @19 :Float64 = 0.0;   # Emit/promote NWPW bo_time_step.
+  boAlgorithm                 @20 :NWChemNwpwBoAlgorithm = unspecified; # Emit/promote NWPW bo_algorithm.
+  boFakeMass                  @21 :Float64 = 0.0;   # Emit/promote NWPW bo_fake_mass.
+  scalingFirst                @22 :Float64 = 0.0;   # First NWPW scaling value.
+  scalingSecond               @23 :Float64 = 0.0;   # Second NWPW scaling value.
 }
 
 # @struct NWChemScfStanza
