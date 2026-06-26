@@ -37,6 +37,8 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_quadrupole_cell
   public :: nwchemc_embed_optimize
   public :: nwchemc_embed_optimize_cell
+  public :: nwchemc_embed_frequencies
+  public :: nwchemc_embed_frequencies_cell
   public :: nwchemc_embed_finalize
 
   ! Module state (saved across C calls).
@@ -332,6 +334,62 @@ module nwchem_embed_c_api
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_hessian
+
+    subroutine nwchem_legacy_frequencies(rtdb, n_atoms, pos_ang, atmnrs, &
+        cell_ang, has_cell, basis_name, theory_name, scf_type, input_blocks, &
+        charge, mult, dft_direct, dft_smear_on, dft_smear_sigma, &
+        dft_smear_spinset, scf_has_options, scf_maxiter, scf_thresh, &
+        scf_tol2e, driver_has_options, driver_maxiter, &
+        driver_tolerance_mode, driver_gmax_tol, driver_grms_tol, &
+        driver_xmax_tol, driver_xrms_tol, psp_count, psp_elements, &
+        psp_types, psp_names, set_string_count, set_keys, set_values, &
+        typed_set_count, typed_set_keys, typed_set_types, &
+        typed_set_value_counts, typed_set_values, &
+        brillouin_has_options, brillouin_zone_name, &
+        brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
+        brillouin_kvector_count, brillouin_kvectors, &
+        frequencies_cm1, intensities_au, errmsg, ok)
+      import :: real64
+      integer, intent(in) :: rtdb, n_atoms
+      real(real64), intent(in) :: pos_ang(*)
+      integer, intent(in) :: atmnrs(*)
+      real(real64), intent(in) :: cell_ang(*)
+      integer, intent(in) :: has_cell
+      character(len=64), intent(in) :: basis_name
+      character(len=64), intent(in) :: theory_name, scf_type
+      character(len=4096), intent(in) :: input_blocks
+      integer, intent(in) :: charge, mult
+      integer, intent(in) :: dft_direct, dft_smear_on, dft_smear_spinset
+      integer, intent(in) :: scf_has_options, scf_maxiter
+      integer, intent(in) :: driver_has_options, driver_maxiter
+      integer, intent(in) :: driver_tolerance_mode
+      real(real64), intent(in) :: driver_gmax_tol, driver_grms_tol
+      real(real64), intent(in) :: driver_xmax_tol, driver_xrms_tol
+      integer, intent(in) :: psp_count
+      character(len=16), intent(in) :: psp_elements(*)
+      integer, intent(in) :: psp_types(*)
+      character(len=256), intent(in) :: psp_names(*)
+      integer, intent(in) :: set_string_count
+      character(len=128), intent(in) :: set_keys(*)
+      character(len=256), intent(in) :: set_values(*)
+      integer, intent(in) :: typed_set_count
+      character(len=128), intent(in) :: typed_set_keys(*)
+      integer, intent(in) :: typed_set_types(*)
+      integer, intent(in) :: typed_set_value_counts(*)
+      character(len=256), intent(in) :: typed_set_values(64,*)
+      integer, intent(in) :: brillouin_has_options
+      character(len=64), intent(in) :: brillouin_zone_name
+      integer, intent(in) :: brillouin_monkhorst_pack(3)
+      integer, intent(in) :: brillouin_max_kpoints_print
+      integer, intent(in) :: brillouin_kvector_count
+      real(real64), intent(in) :: brillouin_kvectors(*)
+      real(real64), intent(in) :: dft_smear_sigma
+      real(real64), intent(in) :: scf_thresh, scf_tol2e
+      real(real64), intent(out) :: frequencies_cm1(*)
+      real(real64), intent(out) :: intensities_au(*)
+      character(len=*), intent(out) :: errmsg
+      integer, intent(out) :: ok
+    end subroutine nwchem_legacy_frequencies
 
     subroutine nwchem_legacy_optimize(rtdb, n_atoms, pos_ang, atmnrs, &
         cell_ang, has_cell, basis_name, theory_name, scf_type, input_blocks, &
@@ -1226,6 +1284,139 @@ contains
     if (ok == 0) rc = 0_c_int
     deallocate (pos, optpos, cell, z)
   end function nwchemc_embed_optimize_impl
+
+  !> Harmonic vibrational frequencies in cm^-1 for current config.
+  function nwchemc_embed_frequencies(n_atoms, positions_ang, atomic_numbers, &
+      charge, mult, frequencies_cm1, intensities_au, errmsg, errmsg_len) &
+      result(rc) bind(C, name='nwchemc_embed_frequencies')
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: frequencies_cm1(*)
+    real(c_double), intent(out) :: intensities_au(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
+    real(c_double) :: empty_cell(9)
+    integer(c_int) :: no_cell
+
+    empty_cell = 0.0_c_double
+    no_cell = 0_c_int
+    rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+        atomic_numbers, empty_cell, no_cell, charge, mult, frequencies_cm1, &
+        intensities_au, errmsg, errmsg_len)
+  end function nwchemc_embed_frequencies
+
+  !> Harmonic vibrational frequencies with an optional 3x3 cell.
+  function nwchemc_embed_frequencies_cell(n_atoms, positions_ang, &
+      atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
+      intensities_au, errmsg, errmsg_len) result(rc) &
+      bind(C, name='nwchemc_embed_frequencies_cell')
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    real(c_double), intent(in) :: cell_ang(*)
+    integer(c_int), intent(in) :: has_cell
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: frequencies_cm1(*)
+    real(c_double), intent(out) :: intensities_au(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
+
+    rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+        atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
+        intensities_au, errmsg, errmsg_len)
+  end function nwchemc_embed_frequencies_cell
+
+  function nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+      atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
+      intensities_au, errmsg, errmsg_len) result(rc)
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    real(c_double), intent(in) :: cell_ang(*)
+    integer(c_int), intent(in) :: has_cell
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: frequencies_cm1(*)
+    real(c_double), intent(out) :: intensities_au(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
+    integer :: ok, n, ndof, i
+    character(len=512) :: msg
+    real(real64), allocatable :: pos(:), freq(:), intensity(:), cell(:)
+    integer, allocatable :: z(:)
+
+    rc = -1_c_int
+    call clear_c_errmsg(errmsg, errmsg_len)
+
+    call nwchemc_embed_init()
+    if (.not. rtdb_ready) then
+      call set_c_errmsg(errmsg, errmsg_len, 'embed not initialized')
+      return
+    end if
+
+    n = int(n_atoms)
+    if (n <= 0) then
+      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
+      return
+    end if
+    if (n > max_embed_atoms) then
+      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
+      return
+    end if
+
+    ndof = 3 * n
+    allocate (pos(ndof), freq(ndof), intensity(ndof), cell(9), z(n))
+    do i = 1, ndof
+      pos(i) = real(positions_ang(i), kind=real64)
+      freq(i) = 0.0_real64
+      intensity(i) = 0.0_real64
+      frequencies_cm1(i) = 0.0_c_double
+      intensities_au(i) = 0.0_c_double
+    end do
+    do i = 1, 9
+      cell(i) = real(cell_ang(i), kind=real64)
+    end do
+    do i = 1, n
+      z(i) = int(atomic_numbers(i))
+    end do
+
+    if (.not. ensure_brillouin_kvectors()) then
+      call set_c_errmsg(errmsg, errmsg_len, 'brillouin kvector allocation failed')
+      deallocate (pos, freq, intensity, cell, z)
+      return
+    end if
+    call nwchem_legacy_frequencies(rtdb_handle, n, pos, z, cell, &
+        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
+        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
+        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_driver_has_options, cfg_driver_maxiter, &
+        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
+        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
+        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
+        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
+        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
+        cfg_typed_set_value_counts, cfg_typed_set_values, &
+        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
+        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
+        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        freq, intensity, msg, ok)
+
+    do i = 1, ndof
+      frequencies_cm1(i) = real(freq(i), kind=c_double)
+      intensities_au(i) = real(intensity(i), kind=c_double)
+    end do
+    call set_c_errmsg(errmsg, errmsg_len, trim(msg))
+    if (ok == 0) rc = 0_c_int
+    deallocate (pos, freq, intensity, cell, z)
+  end function nwchemc_embed_frequencies_impl
 
   !> Dense Cartesian Hessian (Hartree/Bohr**2) for current config.
   function nwchemc_embed_hessian(n_atoms, positions_ang, &

@@ -805,6 +805,152 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       return
       end
 
+      subroutine nwchem_legacy_frequencies(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, basis_name, theory_name,
+     $     scf_type, input_blocks, charge, mult, dft_direct,
+     $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
+     $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
+     $     driver_has_options, driver_maxiter, driver_tolerance_mode,
+     $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
+     $     driver_xrms_tol, psp_count, psp_elements, psp_types,
+     $     psp_names, set_string_count, set_keys, set_values,
+     $     typed_set_count, typed_set_keys, typed_set_types,
+     $     typed_set_value_counts, typed_set_values,
+     $     brillouin_has_options, brillouin_zone_name,
+     $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
+     $     brillouin_kvector_count, brillouin_kvectors,
+     $     frequencies_cm1, intensities_au, errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "global.fh"
+#include "rtdb.fh"
+#include "stdio.fh"
+#include "errquit.fh"
+#include "inp.fh"
+      integer rtdb, n_atoms, charge, mult, ok
+      integer has_cell
+      integer psp_count
+      integer set_string_count
+      integer typed_set_count
+      integer brillouin_has_options, brillouin_max_kpoints_print
+      integer brillouin_kvector_count
+      integer dft_direct, dft_smear_on, dft_smear_spinset
+      integer scf_has_options, scf_maxiter
+      integer driver_has_options, driver_maxiter
+      integer driver_tolerance_mode
+      double precision pos_ang(*)
+      double precision cell_ang(*)
+      double precision brillouin_kvectors(*)
+      integer atmnrs(*)
+      integer psp_types(*)
+      integer typed_set_types(*)
+      integer typed_set_value_counts(*)
+      integer brillouin_monkhorst_pack(3)
+      character*64 basis_name
+      character*64 theory_name
+      character*64 scf_type
+      character*64 brillouin_zone_name
+      character*4096 input_blocks
+      character*16 psp_elements(*)
+      character*256 psp_names(*)
+      character*128 set_keys(*)
+      character*256 set_values(*)
+      character*128 typed_set_keys(*)
+      character*256 typed_set_values(64,*)
+      double precision dft_smear_sigma
+      double precision scf_thresh, scf_tol2e
+      double precision driver_gmax_tol, driver_grms_tol
+      double precision driver_xmax_tol, driver_xrms_tol
+      double precision frequencies_cm1(*)
+      double precision intensities_au(*)
+      character*(*) errmsg
+      integer n3, i
+      integer maxat
+      parameter (maxat = 64)
+      logical status, ignore
+      external task_freq
+      logical task_freq
+      external nw_inp_from_character
+      logical nw_inp_from_character
+
+      ok = -1
+      errmsg = ' '
+      if (rtdb .lt. 0 .or. n_atoms .le. 0) then
+         errmsg = 'invalid rtdb or n_atoms'
+         return
+      endif
+      if (n_atoms .gt. maxat) then
+         errmsg = 'n_atoms exceeds embed maxat=64'
+         return
+      endif
+
+      n3 = 3 * n_atoms
+      do i = 1, n3
+         frequencies_cm1(i) = 0.0d0
+         intensities_au(i) = 0.0d0
+      enddo
+
+      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_pseudopotentials(rtdb, psp_count, psp_elements,
+     $     psp_types, psp_names, errmsg, status)
+      if (.not. status) return
+      if (inp_strlen(input_blocks) .gt. 0) then
+         if (.not. nw_inp_from_character(rtdb,
+     $        input_blocks(1:inp_strlen(input_blocks)))) then
+            errmsg = 'nw_inp_from_character inputBlocks failed'
+            return
+         endif
+      endif
+      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
+     $     brillouin_zone_name, brillouin_monkhorst_pack,
+     $     brillouin_max_kpoints_print, brillouin_kvector_count,
+     $     brillouin_kvectors, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
+     $     set_keys, set_values, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_typed_sets(rtdb, typed_set_count,
+     $     typed_set_keys, typed_set_types, typed_set_value_counts,
+     $     typed_set_values, errmsg, status)
+      if (.not. status) return
+
+      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, scf_has_options, scf_maxiter,
+     $     scf_thresh, scf_tol2e, driver_has_options,
+     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
+      if (.not. status) then
+         errmsg = 'method RTDB setup failed'
+         return
+      endif
+      ignore = rtdb_delete(rtdb, 'vib:frequencies')
+      ignore = rtdb_delete(rtdb, 'vib:intensities')
+      status = rtdb_cput(rtdb, 'task:operation', 1, 'freq')
+      status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
+
+      if (.not. task_freq(rtdb)) then
+         errmsg = 'task_freq failed'
+         return
+      endif
+      if (.not. rtdb_get(rtdb, 'vib:frequencies', mt_dbl, n3,
+     $     frequencies_cm1)) then
+         errmsg = 'rtdb_get vib:frequencies failed'
+         return
+      endif
+      status = rtdb_get(rtdb, 'vib:intensities', mt_dbl, n3,
+     $     intensities_au)
+
+      errmsg = 'ok'
+      ok = 0
+      return
+      end
+
       subroutine nwchem_legacy_optimize(rtdb, n_atoms, pos_ang,
      $     atmnrs, cell_ang, has_cell, basis_name, theory_name,
      $     scf_type, input_blocks, charge, mult, dft_direct,
