@@ -374,9 +374,11 @@ The fixed-form bridge writes:
 | ~teter~ | ~<element>:pspw_library~, ~<element>:pspw_library_type~ = 3, ~<element>:psp_reset~ = true |
 | ~allElements~ | same keys with ~*~ as the element target |
 
-Pickup checks: compare direct and text pseudopotential paths on a real NWChem
-PSPW/BAND input, and add a Fortran-facing regression that observes the exact
-RTDB keys after ~nwchemc_store_pseudopotentials~ runs.
+The ~nwchem-pseudopotential-rtdb~ integration test initializes a real NWChem
+RTDB, calls ~nwchemc_store_pseudopotentials~ directly, and reads back the exact
+~pspw_library~, ~paw_library~, ~pspw_library_type~, and ~psp_reset~ keys. The
+test covers ~library~, ~pspw_library~, ~paw_library~, ~cpi~, ~teter~, and
+~allElements~ entries without routing through NWChem text input.
 
 ** Atom And Geometry Limits
 The fixed-form embed helper currently caps direct geometry and basis setup at 64
