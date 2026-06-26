@@ -75,6 +75,13 @@ int nwchemc_params_extract_direct_nwpw_execution(
     NWChemParams_ptr params, int *has_options, int *np_fft,
     int *np_orbital, int *np_kspace, int *spin_orbit, int *parallel_io);
 
+int nwchemc_params_extract_direct_nwpw_filenames(
+    NWChemParams_ptr params, int *has_options, capn_text *xyz_filename,
+    capn_text *ion_motion_filename, capn_text *electron_motion_filename,
+    capn_text *hamiltonian_motion_filename,
+    capn_text *orbital_motion_filename,
+    capn_text *eigenvalue_motion_filename);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

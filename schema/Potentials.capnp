@@ -243,6 +243,12 @@ struct NWChemNwpwStanza {
   npKspaceProcesses           @26 :Int32 = 0;       # Third NWPW np_dimensions value.
   spinOrbit                   @27 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW spin_orbit.
   parallelIo                  @28 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW parallel_io.
+  xyzFilename                 @29 :Text = "";       # Emit/promote NWPW xyz_filename.
+  ionMotionFilename           @30 :Text = "";       # Emit/promote NWPW ion_motion_filename.
+  electronMotionFilename      @31 :Text = "";       # Emit/promote NWPW emotion_filename.
+  hamiltonianMotionFilename   @32 :Text = "";       # Emit/promote NWPW hmotion_filename.
+  orbitalMotionFilename       @33 :Text = "";       # Emit/promote NWPW omotion_filename.
+  eigenvalueMotionFilename    @34 :Text = "";       # Emit/promote NWPW eigmotion_filename.
 }
 
 # @struct NWChemScfStanza

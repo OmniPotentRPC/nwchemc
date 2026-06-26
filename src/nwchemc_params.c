@@ -1028,6 +1028,43 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
     if (append_format(block, sizeof(block), "  parallel_io %s\n", value) != 0)
       return -1;
   }
+  if (include_direct_promoted && nwpw.xyzFilename.len > 0) {
+    if (append_format(block, sizeof(block), "  xyz_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.xyzFilename) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.ionMotionFilename.len > 0) {
+    if (append_format(block, sizeof(block), "  ion_motion_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.ionMotionFilename) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.electronMotionFilename.len > 0) {
+    if (append_format(block, sizeof(block), "  emotion_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.electronMotionFilename) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.hamiltonianMotionFilename.len > 0) {
+    if (append_format(block, sizeof(block), "  hmotion_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.hamiltonianMotionFilename) !=
+            0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.orbitalMotionFilename.len > 0) {
+    if (append_format(block, sizeof(block), "  omotion_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.orbitalMotionFilename) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.eigenvalueMotionFilename.len > 0) {
+    if (append_format(block, sizeof(block), "  eigmotion_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.eigenvalueMotionFilename) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -1600,6 +1637,70 @@ int nwchemc_params_extract_direct_nwpw_execution(
     if (nwpw.parallelIo != NWChemNwpwToggle_unspecified) {
       *has_options = 1;
       *parallel_io = nwpw.parallelIo;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_filenames(
+    NWChemParams_ptr params, int *has_options, capn_text *xyz_filename,
+    capn_text *ion_motion_filename, capn_text *electron_motion_filename,
+    capn_text *hamiltonian_motion_filename,
+    capn_text *orbital_motion_filename,
+    capn_text *eigenvalue_motion_filename) {
+  if (params.p.type == CAPN_NULL || !has_options || !xyz_filename ||
+      !ion_motion_filename || !electron_motion_filename ||
+      !hamiltonian_motion_filename || !orbital_motion_filename ||
+      !eigenvalue_motion_filename)
+    return -1;
+
+  *has_options = 0;
+  *xyz_filename = (capn_text){0};
+  *ion_motion_filename = (capn_text){0};
+  *electron_motion_filename = (capn_text){0};
+  *hamiltonian_motion_filename = (capn_text){0};
+  *orbital_motion_filename = (capn_text){0};
+  *eigenvalue_motion_filename = (capn_text){0};
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.xyzFilename.len > 0) {
+      *has_options = 1;
+      *xyz_filename = nwpw.xyzFilename;
+    }
+    if (nwpw.ionMotionFilename.len > 0) {
+      *has_options = 1;
+      *ion_motion_filename = nwpw.ionMotionFilename;
+    }
+    if (nwpw.electronMotionFilename.len > 0) {
+      *has_options = 1;
+      *electron_motion_filename = nwpw.electronMotionFilename;
+    }
+    if (nwpw.hamiltonianMotionFilename.len > 0) {
+      *has_options = 1;
+      *hamiltonian_motion_filename = nwpw.hamiltonianMotionFilename;
+    }
+    if (nwpw.orbitalMotionFilename.len > 0) {
+      *has_options = 1;
+      *orbital_motion_filename = nwpw.orbitalMotionFilename;
+    }
+    if (nwpw.eigenvalueMotionFilename.len > 0) {
+      *has_options = 1;
+      *eigenvalue_motion_filename = nwpw.eigenvalueMotionFilename;
     }
   }
 

@@ -105,7 +105,7 @@ struct NWChemCSession {
 static NWChemCSession *g_active_session = NULL;
 
 enum {
-  NWCHEMC_DIRECT_SET_MAX = 64,
+  NWCHEMC_DIRECT_SET_MAX = 128,
   NWCHEMC_DIRECT_SET_VALUE_MAX = 16,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
   NWCHEMC_DIRECT_SET_VALUE_LEN = 256,
@@ -386,6 +386,19 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_execution_has_options, &nwpw_np_fft,
           &nwpw_np_orbital, &nwpw_np_kspace, &nwpw_spin_orbit,
           &nwpw_parallel_io) != 0)
+    return -1;
+  int nwpw_filenames_has_options = 0;
+  capn_text nwpw_xyz_filename = {0};
+  capn_text nwpw_ion_motion_filename = {0};
+  capn_text nwpw_electron_motion_filename = {0};
+  capn_text nwpw_hamiltonian_motion_filename = {0};
+  capn_text nwpw_orbital_motion_filename = {0};
+  capn_text nwpw_eigenvalue_motion_filename = {0};
+  if (nwchemc_params_extract_direct_nwpw_filenames(
+          params_root, &nwpw_filenames_has_options, &nwpw_xyz_filename,
+          &nwpw_ion_motion_filename, &nwpw_electron_motion_filename,
+          &nwpw_hamiltonian_motion_filename, &nwpw_orbital_motion_filename,
+          &nwpw_eigenvalue_motion_filename) != 0)
     return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
@@ -767,6 +780,37 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:parallel_io",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
+  }
+  static const char *nwpw_cpmd_nwpw[] = {"cpmd", "nwpw"};
+  const struct {
+    capn_text text;
+    const char *suffix;
+  } nwpw_filename_keys[] = {
+      {nwpw_xyz_filename, "xyz_filename"},
+      {nwpw_ion_motion_filename, "ion_motion_filename"},
+      {nwpw_electron_motion_filename, "emotion_filename"},
+      {nwpw_hamiltonian_motion_filename, "hmotion_filename"},
+      {nwpw_orbital_motion_filename, "omotion_filename"},
+      {nwpw_eigenvalue_motion_filename, "eigmotion_filename"},
+  };
+  if (nwpw_filenames_has_options) {
+    for (size_t i = 0; i < sizeof(nwpw_filename_keys) /
+                               sizeof(nwpw_filename_keys[0]);
+         ++i) {
+      if (nwpw_filename_keys[i].text.len <= 0)
+        continue;
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *value_list[1] = {value};
+      copy_text_record(value, sizeof(value), nwpw_filename_keys[i].text);
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_cpmd_nwpw, 2,
+              nwpw_filename_keys[i].suffix, NWCHEMC_DIRECT_SET_VALUE_TEXT,
+              value_list, 1) != 0)
+        return -1;
+    }
   }
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
   memset(packed_psp_names, 0, sizeof(packed_psp_names));
