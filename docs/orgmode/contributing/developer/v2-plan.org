@@ -357,15 +357,16 @@ NWChem input routine or RTDB key being matched.
 ** DONE Pseudopotential Entry Direct Path
 ~NWChemPseudopotentialStanza~ carries ~library~, ~pspw_library~,
 ~paw_library~, ~cpi~, ~teter~, ~allElements~ entries, and structured
-~pspSpin~. The C layer walks library entries with
+~pspSpin~ / ~spinRules~. The C layer walks library entries with
 ~nwchemc_params_for_each_direct_pseudopotential~ and passes generated Cap'n
 Proto entry values through the embed setup path. Fixed-width records exist only
 at the final C/Fortran call into ~nwchemc_embed_set_pseudopotentials~. Embed
 rendering omits the structured library entries and promotes
 ~pspSpin = disabled~ to the direct ~nwpw:pspspin~ and
 ~nwpw:pspspin_count~ RTDB reset keys. Indexed ~pspspin up/down~ spin-scaling
-forms need explicit scale, angular-momentum, optional magnetic, and ion-list
-schema fields before promotion. Extra directives stay in text.
+rules are walked with ~nwchemc_params_for_each_direct_pseudopotential_spin_rule~
+as generated c-capnproto structs and promoted to typed RTDB values. Extra
+directives stay in text.
 
 The fixed-form bridge writes:
 
@@ -377,6 +378,7 @@ The fixed-form bridge writes:
 | ~teter~ | ~<element>:pspw_library~, ~<element>:pspw_library_type~ = 3, ~<element>:psp_reset~ = true |
 | ~allElements~ | same keys with ~*~ as the element target |
 | ~pspSpin = disabled~ | ~nwpw:pspspin~ = false, ~nwpw:pspspin_count~ = 0 |
+| ~spinRules[]~ | ~nwpw:pspspin~ = true, ~nwpw:pspspin_count~, ~nwpw:pspspin_iamup:_000001~, channel-specific ~scale~, ~l~, optional ~m~, and ~ions~ keys |
 
 The ~nwchem-pseudopotential-rtdb~ integration test initializes a real NWChem
 RTDB, calls ~nwchemc_store_pseudopotentials~ directly, and reads back the exact

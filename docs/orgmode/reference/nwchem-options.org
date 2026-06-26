@@ -422,6 +422,11 @@ pseudopotential selection:
 | ~entries[].libraryName~ | Library or file token used by NWChem. |
 | ~entries[].allElements~ | NWChem ~*~ default entry for every element. |
 | ~pspSpin~ | ~pspspin on~ or ~pspspin off~. |
+| ~spinRules[].channel~ | ~up~ or ~down~ channel for indexed ~pspspin~ rules. |
+| ~spinRules[].angularMomentum~ | ~s~, ~p~, ~d~, or ~f~ angular-momentum selector. |
+| ~spinRules[].scale~ | Numeric spin-scaling factor. |
+| ~spinRules[].ionIndices~ | One-based ion indices for the rule. |
+| ~spinRules[].hasMagneticQuantumNumber~, ~magneticQuantumNumber~ | Optional ~pspspin not_m <m>~ prefix. |
 | ~directives~ | Extra tokenized NWPW directives emitted after the pseudopotential block. |
 
 The renderer emits these entries inside an ~nwpw~ block with a nested
@@ -437,9 +442,25 @@ fallback RTDB keys such as ~*:pspw_library~, ~*:pspw_library_type~, and
 ~pspSpin~ is structured so callers do not need a free-form directive for the
 common ~pspspin~ reset. In embed mode, ~pspSpin = disabled~ writes
 ~nwpw:pspspin~ = false and ~nwpw:pspspin_count~ = 0 directly, matching
-~nwpw_input.F~. The indexed ~pspspin up/down~ spin-scaling grammar requires
-explicit scale, angular-momentum, optional magnetic, and ion-list fields before
-it can be promoted out of text directives.
+~nwpw_input.F~. ~spinRules~ cover the indexed ~pspspin up/down~ spin-scaling
+grammar without using free-form directives. Full-deck rendering emits lines
+such as ~pspspin up p 1.25 1 3~ and
+~pspspin not_m 0 down d 0.75 2~. Embed rendering omits those lines and writes
+~nwpw:pspspin~ = true, ~nwpw:pspspin_count~, and indexed RTDB entries with
+NWChem's ~_000001~ key suffix convention:
+
+| Rule field | Embed RTDB key pattern |
+|------------+------------------------|
+| channel | ~nwpw:pspspin_iamup:_000001~ |
+| scale | ~nwpw:pspspin_upscale:_000001~ or ~nwpw:pspspin_downscale:_000001~ |
+| angular momentum | ~nwpw:pspspin_upl:_000001~ or ~nwpw:pspspin_downl:_000001~ |
+| magnetic quantum number | ~nwpw:pspspin_upm:_000001~ or ~nwpw:pspspin_downm:_000001~ |
+| ion indices | ~nwpw:pspspin_upions:_000001~ or ~nwpw:pspspin_downions:_000001~ |
+
+The direct embed path walks generated c-capnproto rule structs through
+~nwchemc_params_for_each_direct_pseudopotential_spin_rule~. A stanza with
+~pspSpin = disabled~ keeps reset semantics in embed mode and is not promoted as
+spin-scaling rules.
 
 * ABI Entry Points
 | Symbol | Intern id | Stub | Embed |
