@@ -108,6 +108,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"stanza.tce", "NWChemInputStanza.tce", "tce stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.mrccData", "NWChemInputStanza.mrccData", "TCE MRCC data block", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.brillouinZone", "NWChemInputStanza.brillouinZone", "NWPW Brillouin-zone k-point controls", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.simulationCell", "NWChemInputStanza.simulationCell", "NWPW simulation-cell RTDB controls", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"params.basis", "NWChemParams.basis", "Gaussian basis set name", NWCHEMC_FEATURE_PARAMS_FIELD, 0, 1, 1},
     {"params.theory", "NWChemParams.theory", "Main theory/task family (scf/dft/...)", NWCHEMC_FEATURE_PARAMS_FIELD, 1, 1, 1},
     {"params.scfType", "NWChemParams.scfType", "SCF type or DFT XC keyword", NWCHEMC_FEATURE_PARAMS_FIELD, 2, 1, 1},
@@ -149,7 +150,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 144;
+static const size_t k_feature_count = 145;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

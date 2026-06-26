@@ -120,6 +120,11 @@ def main() -> int:
             "NWChemBrillouinZoneStanza",
             "NWPW Brillouin-zone k-point controls",
         ),
+        "simulationCell": (
+            "NWChemInputStanza.simulationCell",
+            "NWChemSimulationCellStanza",
+            "NWPW simulation-cell RTDB controls",
+        ),
     }
 
     stanzas = []

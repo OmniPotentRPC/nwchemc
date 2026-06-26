@@ -62,6 +62,7 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | Known module | ~NWChemModuleStanza~ | A selected NWChem module block, tokenized directives, then ~end~. |
 | NWPW cutoff | ~NWChemNwpwStanza~ | ~nwpw~, cutoff controls, extra directives, then ~end~. |
 | Brillouin zone | ~NWChemBrillouinZoneStanza~ / ~brillouinZone~ | ~nwpw~, ~monkhorst-pack~, optional ~brillouin_zone~, then ~end~. |
+| Simulation cell | ~NWChemSimulationCellStanza~ / ~simulationCell~ | ~nwpw~, nested ~simulation_cell~, then ~end~. |
 | Pseudopotential | ~NWChemPseudopotentialStanza~ | ~nwpw~, ~pseudopotentials~, library entries, extra directives, then ~end~. |
 | Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
 
@@ -70,8 +71,9 @@ When ~apply_config_to_embed~ runs (embed builds only), typed
 ~NWChemDftStanza~, ~NWChemScfStanza~, ~NWChemCcsdStanza~,
 ~NWChemTceStanza~, ~NWChemDriverStanza~,
 ~NWChemNwpwStanza~, ~NWChemBrillouinZoneStanza~,
-~NWChemPseudopotentialStanza~, and text-valued ~NWChemSetDirective~ fields are
-applied outside rendered text where the bridge has a direct RTDB/API path.
+~NWChemSimulationCellStanza~, ~NWChemPseudopotentialStanza~, and text-valued
+~NWChemSetDirective~ fields are applied outside rendered text where the bridge
+has a direct RTDB/API path.
 
 1. ~nwchemc_params_extract_direct_dft~ reads ~xc~, ~direct~, smearing.
 2. ~nwchemc_params_render_embed_input_blocks~ renders stanzas with promoted DFT
@@ -384,6 +386,25 @@ and stores the RTDB state read by NWChem's NWPW/BAND code. Explicit
 dimensions select the NWChem no-time-reversal convention and store signed
 ~<zone>:monkhorst-pack~ dimensions.
 
+~NWChemSimulationCellStanza~ covers NWPW simulation-cell controls:
+
+| Field | NWChem text | Embed RTDB key(s) |
+|-------+-------------+-------------------|
+| ~cellName~ | nested ~cell_name <name>~ | key prefix ~<cell>:*~; empty uses ~cell_default:*~ |
+| ~boundaryConditions~ | nested ~boundary_conditions <token>~ | ~<cell>:boundry~ |
+| ~latticeVectorsBohr[9]~ | nested ~lattice_vectors~ followed by three rows | ~<cell>:unita~ |
+| ~ngridX~, ~ngridY~, ~ngridZ~ | ~ngrid <x> <y> <z>~ | ~<cell>:ngrid~ |
+| ~ngridSmallX~, ~ngridSmallY~, ~ngridSmallZ~ | ~ngrid_small <x> <y> <z>~ | ~<cell>:ngrid_small~ |
+| ~boxDeltaBohr~ | ~box_delta <value>~ | ~<cell>:box_delta~ |
+| ~boxOrient~ | ~box_orient~ | ~<cell>:box_orient~ |
+| ~boxDifferentLengths~ | ~box_different_lengths~ | ~<cell>:box_type~ = 1 |
+| ~latticeKind~, ~latticeLengthBohr~ | ~sc~, ~fcc~, or ~bcc~ compact lattice line | full-input text path |
+| ~directives~ | Extra nested ~simulation_cell~ directives | full-input text path |
+
+The embed path writes numeric cell state through typed RTDB values and omits the
+promoted ~simulation_cell~ text block. ~latticeVectorsBohr~ is a flat 3x3 list
+in Bohr and must contain either zero values or exactly nine values.
+
 ~NWChemPseudopotentialStanza~ provides a structured representation for NWPW
 pseudopotential selection:
 
@@ -456,8 +477,9 @@ Known module stanzas represent the normal NWChem block vocabulary with enum
 selection and tokenized directives.
 The generic stanza and directive model represents arbitrary named NWChem blocks
 without requiring a raw string.
-The Brillouin-zone and pseudopotential stanzas cover k-point grids
-(~stanza.brillouinZone~) and library/file PSP entries
+The Brillouin-zone, simulation-cell, and pseudopotential stanzas cover k-point
+grids (~stanza.brillouinZone~), NWPW periodic cell state
+(~stanza.simulationCell~), and library/file PSP entries
 (~stanza.pseudopotential~).
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.

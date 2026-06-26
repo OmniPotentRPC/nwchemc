@@ -1107,6 +1107,14 @@
       "nwchem_role": "NWPW Brillouin-zone k-point controls",
       "stub": true,
       "embed": true
+    },
+    {
+      "kind": "simulationCell",
+      "schema_path": "NWChemInputStanza.simulationCell",
+      "capnp_type": "NWChemSimulationCellStanza",
+      "nwchem_role": "NWPW simulation-cell RTDB controls",
+      "stub": true,
+      "embed": true
     }
   ],
   "params_fields": [
