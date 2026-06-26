@@ -1003,6 +1003,31 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       scaling_first, scaling_second) != 0)
       return -1;
   }
+  if (include_direct_promoted &&
+      (nwpw.npFftProcesses > 0 || nwpw.npOrbitalProcesses > 0 ||
+       nwpw.npKspaceProcesses > 0)) {
+    int np_fft = nwpw.npFftProcesses > 0 ? nwpw.npFftProcesses : -1;
+    int np_orbital =
+        nwpw.npOrbitalProcesses > 0 ? nwpw.npOrbitalProcesses : -1;
+    int np_kspace = nwpw.npKspaceProcesses > 0 ? nwpw.npKspaceProcesses : -1;
+    if (append_format(block, sizeof(block), "  np_dimensions %d %d %d\n",
+                      np_fft, np_orbital, np_kspace) != 0)
+      return -1;
+  }
+  if (include_direct_promoted &&
+      nwpw.spinOrbit != NWChemNwpwToggle_unspecified) {
+    const char *value =
+        nwpw.spinOrbit == NWChemNwpwToggle_enabled ? "on" : "off";
+    if (append_format(block, sizeof(block), "  spin_orbit %s\n", value) != 0)
+      return -1;
+  }
+  if (include_direct_promoted &&
+      nwpw.parallelIo != NWChemNwpwToggle_unspecified) {
+    const char *value =
+        nwpw.parallelIo == NWChemNwpwToggle_enabled ? "on" : "off";
+    if (append_format(block, sizeof(block), "  parallel_io %s\n", value) != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -1525,6 +1550,56 @@ int nwchemc_params_extract_direct_nwpw_bo(
       *scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;
       *scaling_second =
           nwpw.scalingSecond > 0.0 ? nwpw.scalingSecond : *scaling_first;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_execution(
+    NWChemParams_ptr params, int *has_options, int *np_fft,
+    int *np_orbital, int *np_kspace, int *spin_orbit, int *parallel_io) {
+  if (params.p.type == CAPN_NULL || !has_options || !np_fft ||
+      !np_orbital || !np_kspace || !spin_orbit || !parallel_io)
+    return -1;
+
+  *has_options = 0;
+  *np_fft = 0;
+  *np_orbital = 0;
+  *np_kspace = 0;
+  *spin_orbit = NWChemNwpwToggle_unspecified;
+  *parallel_io = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.npFftProcesses > 0 || nwpw.npOrbitalProcesses > 0 ||
+        nwpw.npKspaceProcesses > 0) {
+      *has_options = 1;
+      *np_fft = nwpw.npFftProcesses > 0 ? nwpw.npFftProcesses : -1;
+      *np_orbital =
+          nwpw.npOrbitalProcesses > 0 ? nwpw.npOrbitalProcesses : -1;
+      *np_kspace = nwpw.npKspaceProcesses > 0 ? nwpw.npKspaceProcesses : -1;
+    }
+    if (nwpw.spinOrbit != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *spin_orbit = nwpw.spinOrbit;
+    }
+    if (nwpw.parallelIo != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *parallel_io = nwpw.parallelIo;
     }
   }
 

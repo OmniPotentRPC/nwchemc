@@ -376,6 +376,17 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_bo_algorithm, &nwpw_bo_fake_mass, &nwpw_has_scaling,
           &nwpw_scaling_first, &nwpw_scaling_second) != 0)
     return -1;
+  int nwpw_execution_has_options = 0;
+  int nwpw_np_fft = 0;
+  int nwpw_np_orbital = 0;
+  int nwpw_np_kspace = 0;
+  int nwpw_spin_orbit = NWChemNwpwToggle_unspecified;
+  int nwpw_parallel_io = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_execution(
+          params_root, &nwpw_execution_has_options, &nwpw_np_fft,
+          &nwpw_np_orbital, &nwpw_np_kspace, &nwpw_spin_orbit,
+          &nwpw_parallel_io) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -713,6 +724,48 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "cpmd:scaling",
             NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 2) != 0)
+      return -1;
+  }
+  if (nwpw_np_fft != 0 || nwpw_np_orbital != 0 || nwpw_np_kspace != 0) {
+    char fft_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char orbital_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char kspace_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[3] = {fft_value, orbital_value, kspace_value};
+    snprintf(fft_value, sizeof(fft_value), "%d", nwpw_np_fft);
+    snprintf(orbital_value, sizeof(orbital_value), "%d", nwpw_np_orbital);
+    snprintf(kspace_value, sizeof(kspace_value), "%d", nwpw_np_kspace);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:np_dimensions",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 3) != 0)
+      return -1;
+  }
+  if (nwpw_execution_has_options &&
+      nwpw_spin_orbit != NWChemNwpwToggle_unspecified) {
+    const char *value =
+        nwpw_spin_orbit == NWChemNwpwToggle_enabled ? "true" : "false";
+    static const char *spin_prefixes[] = {"nwpw", "pspw", "band"};
+    const char *value_list[1] = {value};
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, spin_prefixes, 3, "spin_orbit",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value_list, 1) != 0)
+      return -1;
+  }
+  if (nwpw_execution_has_options &&
+      nwpw_parallel_io != NWChemNwpwToggle_unspecified) {
+    const char *value =
+        nwpw_parallel_io == NWChemNwpwToggle_enabled ? "true" : "false";
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:parallel_io",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
   }
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));

@@ -207,6 +207,12 @@ enum NWChemNwpwBoAlgorithm {
   leapFrog       @3; # NWChem bo_algorithm leap-frog.
 }
 
+enum NWChemNwpwToggle {
+  unspecified @0; # Do not emit the option.
+  enabled     @1; # Emit/promote the option as enabled.
+  disabled    @2; # Emit/promote the option as disabled.
+}
+
 struct NWChemNwpwStanza {
   energyCutoff       @0 :Float64 = 0.0; # Emit/promote NWPW energy_cutoff.
   wavefunctionCutoff @1 :Float64 = 0.0; # Emit/promote NWPW wavefunction_cutoff.
@@ -232,6 +238,11 @@ struct NWChemNwpwStanza {
   boFakeMass                  @21 :Float64 = 0.0;   # Emit/promote NWPW bo_fake_mass.
   scalingFirst                @22 :Float64 = 0.0;   # First NWPW scaling value.
   scalingSecond               @23 :Float64 = 0.0;   # Second NWPW scaling value.
+  npFftProcesses              @24 :Int32 = 0;       # First NWPW np_dimensions value.
+  npOrbitalProcesses          @25 :Int32 = 0;       # Second NWPW np_dimensions value.
+  npKspaceProcesses           @26 :Int32 = 0;       # Third NWPW np_dimensions value.
+  spinOrbit                   @27 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW spin_orbit.
+  parallelIo                  @28 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW parallel_io.
 }
 
 # @struct NWChemScfStanza

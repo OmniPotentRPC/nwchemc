@@ -71,6 +71,10 @@ int nwchemc_params_extract_direct_nwpw_bo(
     int *bo_algorithm, double *bo_fake_mass, int *has_scaling,
     double *scaling_first, double *scaling_second);
 
+int nwchemc_params_extract_direct_nwpw_execution(
+    NWChemParams_ptr params, int *has_options, int *np_fft,
+    int *np_orbital, int *np_kspace, int *spin_orbit, int *parallel_io);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);
