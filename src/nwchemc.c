@@ -426,6 +426,22 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_lcao_mode, &nwpw_ewald_grid_x, &nwpw_ewald_grid_y,
           &nwpw_ewald_grid_z) != 0)
     return -1;
+  int nwpw_nose_has_options = 0;
+  int nwpw_nose_hoover = NWChemNwpwToggle_unspecified;
+  int nwpw_nose_restart = NWChemNwpwToggle_unspecified;
+  double nwpw_nose_electron_period = 0.0;
+  double nwpw_nose_electron_temperature = 0.0;
+  double nwpw_nose_ion_period = 0.0;
+  double nwpw_nose_ion_temperature = 0.0;
+  int nwpw_nose_electron_chain_length = 0;
+  int nwpw_nose_ion_chain_length = 0;
+  if (nwchemc_params_extract_direct_nwpw_nose(
+          params_root, &nwpw_nose_has_options, &nwpw_nose_hoover,
+          &nwpw_nose_restart, &nwpw_nose_electron_period,
+          &nwpw_nose_electron_temperature, &nwpw_nose_ion_period,
+          &nwpw_nose_ion_temperature, &nwpw_nose_electron_chain_length,
+          &nwpw_nose_ion_chain_length) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -944,6 +960,106 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:ewald_ngrid",
             NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 3) != 0)
       return -1;
+  }
+  if (nwpw_nose_has_options &&
+      nwpw_nose_hoover != NWChemNwpwToggle_unspecified) {
+    static const char *nwpw_nose_prefixes[] = {"cpmd", "nwpw"};
+    const char *nose_value =
+        nwpw_nose_hoover == NWChemNwpwToggle_enabled ? "true" : "false";
+    const char *nose_values[1] = {nose_value};
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_nose_prefixes, 2, "nose",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, nose_values, 1) != 0)
+      return -1;
+    if (nwpw_nose_hoover == NWChemNwpwToggle_enabled) {
+      const char *restart_value =
+          nwpw_nose_restart == NWChemNwpwToggle_disabled ? "false" : "true";
+      const char *restart_values[1] = {restart_value};
+      char electron_period_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char electron_temperature_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char ion_period_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char ion_temperature_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char electron_chain_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char ion_chain_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *electron_period_values[1] = {electron_period_value};
+      const char *electron_temperature_values[1] = {
+          electron_temperature_value};
+      const char *ion_period_values[1] = {ion_period_value};
+      const char *ion_temperature_values[1] = {ion_temperature_value};
+      const char *electron_chain_values[1] = {electron_chain_value};
+      const char *ion_chain_values[1] = {ion_chain_value};
+      snprintf(electron_period_value, sizeof(electron_period_value), "%.15g",
+               nwpw_nose_electron_period);
+      snprintf(electron_temperature_value, sizeof(electron_temperature_value),
+               "%.15g", nwpw_nose_electron_temperature);
+      snprintf(ion_period_value, sizeof(ion_period_value), "%.15g",
+               nwpw_nose_ion_period);
+      snprintf(ion_temperature_value, sizeof(ion_temperature_value), "%.15g",
+               nwpw_nose_ion_temperature);
+      snprintf(electron_chain_value, sizeof(electron_chain_value), "%d",
+               nwpw_nose_electron_chain_length);
+      snprintf(ion_chain_value, sizeof(ion_chain_value), "%d",
+               nwpw_nose_ion_chain_length);
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_nose_prefixes, 2,
+              "nose_restart", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+              restart_values, 1) != 0)
+        return -1;
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_nose_prefixes, 2,
+              "Pe", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, electron_period_values,
+              1) != 0)
+        return -1;
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_nose_prefixes, 2,
+              "Te", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+              electron_temperature_values, 1) != 0)
+        return -1;
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_nose_prefixes, 2,
+              "Pr", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, ion_period_values, 1) !=
+          0)
+        return -1;
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_nose_prefixes, 2,
+              "Tr", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, ion_temperature_values,
+              1) != 0)
+        return -1;
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_nose_prefixes, 2,
+              "Mchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+              electron_chain_values, 1) != 0)
+        return -1;
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_nose_prefixes, 2,
+              "Nchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER, ion_chain_values,
+              1) != 0)
+        return -1;
+    }
   }
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
   memset(packed_psp_names, 0, sizeof(packed_psp_names));

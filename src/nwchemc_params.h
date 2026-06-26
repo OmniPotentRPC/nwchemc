@@ -93,6 +93,12 @@ int nwchemc_params_extract_direct_nwpw_orbital_grid(
     int *virtual_orbitals_end, int *lcao_mode, int *ewald_grid_x,
     int *ewald_grid_y, int *ewald_grid_z);
 
+int nwchemc_params_extract_direct_nwpw_nose(
+    NWChemParams_ptr params, int *has_options, int *nose_hoover,
+    int *nose_restart, double *electron_period, double *electron_temperature,
+    double *ion_period, double *ion_temperature, int *electron_chain_length,
+    int *ion_chain_length);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

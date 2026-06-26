@@ -1131,6 +1131,41 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                                                ? nwpw.ewaldGridY
                                                : nwpw.ewaldGridX)) != 0)
     return -1;
+  if (include_direct_promoted &&
+      (nwpw.noseHoover != NWChemNwpwToggle_unspecified ||
+       nwpw.noseRestart != NWChemNwpwToggle_unspecified ||
+       nwpw.noseElectronPeriod > 0.0 ||
+       nwpw.noseElectronTemperature > 0.0 || nwpw.noseIonPeriod > 0.0 ||
+       nwpw.noseIonTemperature > 0.0 || nwpw.noseElectronChainLength > 0 ||
+       nwpw.noseIonChainLength > 0)) {
+    if (nwpw.noseHoover == NWChemNwpwToggle_disabled) {
+      if (append_format(block, sizeof(block), "  energy\n") != 0)
+        return -1;
+    } else {
+      double electron_period =
+          nwpw.noseElectronPeriod > 0.0 ? nwpw.noseElectronPeriod : 100.0;
+      double electron_temperature = nwpw.noseElectronTemperature > 0.0
+                                        ? nwpw.noseElectronTemperature
+                                        : 298.15;
+      double ion_period =
+          nwpw.noseIonPeriod > 0.0 ? nwpw.noseIonPeriod : 100.0;
+      double ion_temperature =
+          nwpw.noseIonTemperature > 0.0 ? nwpw.noseIonTemperature : 298.15;
+      int electron_chain_length = nwpw.noseElectronChainLength > 0
+                                      ? nwpw.noseElectronChainLength
+                                      : 1;
+      int ion_chain_length =
+          nwpw.noseIonChainLength > 0 ? nwpw.noseIonChainLength : 1;
+      const char *restart =
+          nwpw.noseRestart == NWChemNwpwToggle_disabled ? "start" : "restart";
+      if (append_format(block, sizeof(block),
+                        "  Nose-Hoover %.15g %.15g %.15g %.15g %s %d %d\n",
+                        electron_period, electron_temperature, ion_period,
+                        ion_temperature, restart, electron_chain_length,
+                        ion_chain_length) != 0)
+        return -1;
+    }
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -1877,6 +1912,83 @@ int nwchemc_params_extract_direct_nwpw_orbital_grid(
       *ewald_grid_z =
           nwpw.ewaldGridZ > 0 ? nwpw.ewaldGridZ : *ewald_grid_y;
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_nose(
+    NWChemParams_ptr params, int *has_options, int *nose_hoover,
+    int *nose_restart, double *electron_period, double *electron_temperature,
+    double *ion_period, double *ion_temperature, int *electron_chain_length,
+    int *ion_chain_length) {
+  if (params.p.type == CAPN_NULL || !has_options || !nose_hoover ||
+      !nose_restart || !electron_period || !electron_temperature ||
+      !ion_period || !ion_temperature || !electron_chain_length ||
+      !ion_chain_length)
+    return -1;
+
+  *has_options = 0;
+  *nose_hoover = NWChemNwpwToggle_unspecified;
+  *nose_restart = NWChemNwpwToggle_unspecified;
+  *electron_period = 0.0;
+  *electron_temperature = 0.0;
+  *ion_period = 0.0;
+  *ion_temperature = 0.0;
+  *electron_chain_length = 0;
+  *ion_chain_length = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.noseHoover == NWChemNwpwToggle_unspecified &&
+        nwpw.noseRestart == NWChemNwpwToggle_unspecified &&
+        nwpw.noseElectronPeriod <= 0.0 &&
+        nwpw.noseElectronTemperature <= 0.0 && nwpw.noseIonPeriod <= 0.0 &&
+        nwpw.noseIonTemperature <= 0.0 &&
+        nwpw.noseElectronChainLength <= 0 && nwpw.noseIonChainLength <= 0)
+      continue;
+
+    *has_options = 1;
+    *nose_hoover = nwpw.noseHoover == NWChemNwpwToggle_unspecified
+                       ? NWChemNwpwToggle_enabled
+                       : nwpw.noseHoover;
+    *nose_restart = nwpw.noseRestart == NWChemNwpwToggle_unspecified
+                        ? NWChemNwpwToggle_enabled
+                        : nwpw.noseRestart;
+    if (*nose_hoover == NWChemNwpwToggle_disabled) {
+      *electron_period = 0.0;
+      *electron_temperature = 0.0;
+      *ion_period = 0.0;
+      *ion_temperature = 0.0;
+      *electron_chain_length = 0;
+      *ion_chain_length = 0;
+      continue;
+    }
+    *electron_period =
+        nwpw.noseElectronPeriod > 0.0 ? nwpw.noseElectronPeriod : 100.0;
+    *electron_temperature = nwpw.noseElectronTemperature > 0.0
+                                ? nwpw.noseElectronTemperature
+                                : 298.15;
+    *ion_period = nwpw.noseIonPeriod > 0.0 ? nwpw.noseIonPeriod : 100.0;
+    *ion_temperature =
+        nwpw.noseIonTemperature > 0.0 ? nwpw.noseIonTemperature : 298.15;
+    *electron_chain_length =
+        nwpw.noseElectronChainLength > 0 ? nwpw.noseElectronChainLength : 1;
+    *ion_chain_length =
+        nwpw.noseIonChainLength > 0 ? nwpw.noseIonChainLength : 1;
   }
 
   return 0;

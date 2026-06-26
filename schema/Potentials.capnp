@@ -275,6 +275,14 @@ struct NWChemNwpwStanza {
   ewaldGridX                  @43 :Int32 = 0;       # First NWPW ewald_ngrid value.
   ewaldGridY                  @44 :Int32 = 0;       # Second NWPW ewald_ngrid value.
   ewaldGridZ                  @45 :Int32 = 0;       # Third NWPW ewald_ngrid value.
+  noseHoover                  @46 :NWChemNwpwToggle = unspecified; # Emit/promote Nose-Hoover or energy nose toggle.
+  noseRestart                 @47 :NWChemNwpwToggle = unspecified; # Emit/promote Nose-Hoover restart/start.
+  noseElectronPeriod          @48 :Float64 = 0.0;   # Nose-Hoover electron period Pe.
+  noseElectronTemperature     @49 :Float64 = 0.0;   # Nose-Hoover electron temperature Te.
+  noseIonPeriod               @50 :Float64 = 0.0;   # Nose-Hoover ion period Pr.
+  noseIonTemperature          @51 :Float64 = 0.0;   # Nose-Hoover ion temperature Tr.
+  noseElectronChainLength     @52 :Int32 = 0;       # Nose-Hoover Mchain value.
+  noseIonChainLength          @53 :Int32 = 0;       # Nose-Hoover Nchain value.
 }
 
 # @struct NWChemScfStanza
