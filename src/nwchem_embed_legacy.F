@@ -970,6 +970,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       subroutine nwchemc_store_brillouin_zone(rtdb, has_options,
      $     zone_name, monkhorst_pack, max_kpoints_print, errmsg, ok)
       implicit none
+#include "mafdecls.fh"
 #include "rtdb.fh"
 #include "inp.fh"
       integer rtdb, has_options, max_kpoints_print
@@ -977,10 +978,13 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*64 zone_name
       character*(*) errmsg
       logical ok
-      logical status
-      integer l, nx, ny, nz
+      logical status, timereverse
+      integer l, nx, ny, nz, nn(3), nks
+      integer i1, i2, i3, i, j, k, nks2
+      integer l_kvs, k_kvs
       character*255 rtdb_name
-      external monkhorst_pack_set
+      double precision kx, ky, kz, xx, yy, zz
+      double precision xxx, yyy, zzz, weight, norm
 
       ok = .false.
       if (has_options .eq. 0) then
@@ -1017,7 +1021,152 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          nx = monkhorst_pack(1)
          ny = monkhorst_pack(2)
          nz = monkhorst_pack(3)
-         call monkhorst_pack_set(rtdb, zone_name(1:l), nx, ny, nz)
+         timereverse = .true.
+         if (nx .lt. 0) then
+            nx = -nx
+            timereverse = .false.
+         endif
+         if (ny .lt. 0) then
+            ny = -ny
+            timereverse = .false.
+         endif
+         if (nz .lt. 0) then
+            nz = -nz
+            timereverse = .false.
+         endif
+         if (nx .le. 0 .or. ny .le. 0 .or. nz .le. 0) then
+            errmsg = 'invalid monkhorst-pack grid'
+            return
+         endif
+         nks = nx * ny * nz
+         if (nks .le. 0) then
+            errmsg = 'invalid monkhorst-pack k-vector count'
+            return
+         endif
+         if (.not. ma_push_get(mt_dbl, 4 * nks, 'nwchemc_kvs',
+     $      l_kvs, k_kvs)) then
+            errmsg = 'monkhorst-pack allocation failed'
+            return
+         endif
+
+         weight = 1.0d0 / dble(nks)
+         xxx = 1.0d0 / (2.0d0 * dble(nx))
+         yyy = 1.0d0 / (2.0d0 * dble(ny))
+         zzz = 1.0d0 / (2.0d0 * dble(nz))
+         k = 0
+         do i3 = 0, nz - 1
+            do i2 = 0, ny - 1
+               do i1 = 0, nx - 1
+                  xx = 1.0d0 + 2.0d0 * dble(i1) - dble(nx)
+                  yy = 1.0d0 + 2.0d0 * dble(i2) - dble(ny)
+                  zz = 1.0d0 + 2.0d0 * dble(i3) - dble(nz)
+                  dbl_mb(k_kvs + 4 * k) = xx * xxx
+                  dbl_mb(k_kvs + 4 * k + 1) = yy * yyy
+                  dbl_mb(k_kvs + 4 * k + 2) = zz * zzz
+                  dbl_mb(k_kvs + 4 * k + 3) = weight
+                  k = k + 1
+               enddo
+            enddo
+         enddo
+
+         if (timereverse) then
+            do i = 1, nks - 1
+               if (dbl_mb(k_kvs + 4 * (i - 1) + 3) .gt. 0.0d0)
+     $            then
+                  do j = i + 1, nks
+                     kx = dbl_mb(k_kvs + 4 * (i - 1)) +
+     $                  dbl_mb(k_kvs + 4 * (j - 1))
+                     ky = dbl_mb(k_kvs + 4 * (i - 1) + 1) +
+     $                  dbl_mb(k_kvs + 4 * (j - 1) + 1)
+                     kz = dbl_mb(k_kvs + 4 * (i - 1) + 2) +
+     $                  dbl_mb(k_kvs + 4 * (j - 1) + 2)
+                     if (dabs(kx) .lt. 1.0d-9 .and.
+     $                   dabs(ky) .lt. 1.0d-9 .and.
+     $                   dabs(kz) .lt. 1.0d-9) then
+                        dbl_mb(k_kvs + 4 * (i - 1) + 3) =
+     $                     dbl_mb(k_kvs + 4 * (i - 1) + 3) +
+     $                     dbl_mb(k_kvs + 4 * (j - 1) + 3)
+                        dbl_mb(k_kvs + 4 * (j - 1) + 3) = 0.0d0
+                     endif
+                  enddo
+               endif
+            enddo
+            nks2 = 0
+            do i = 1, nks
+               if (dbl_mb(k_kvs + 4 * (i - 1) + 3) .gt. 0.0d0)
+     $            nks2 = nks2 + 1
+            enddo
+            i = 1
+            do while (i .lt. nks2)
+               if (dbl_mb(k_kvs + 4 * (i - 1) + 3) .le. 0.0d0)
+     $            then
+                  do j = i + 1, nks
+                     dbl_mb(k_kvs + 4 * (j - 2)) =
+     $                  dbl_mb(k_kvs + 4 * (j - 1))
+                     dbl_mb(k_kvs + 4 * (j - 2) + 1) =
+     $                  dbl_mb(k_kvs + 4 * (j - 1) + 1)
+                     dbl_mb(k_kvs + 4 * (j - 2) + 2) =
+     $                  dbl_mb(k_kvs + 4 * (j - 1) + 2)
+                     dbl_mb(k_kvs + 4 * (j - 2) + 3) =
+     $                  dbl_mb(k_kvs + 4 * (j - 1) + 3)
+                  enddo
+               else
+                  i = i + 1
+               endif
+            enddo
+            do i = 1, nks2
+               norm = dbl_mb(k_kvs + 4 * (i - 1)) +
+     $            dbl_mb(k_kvs + 4 * (i - 1) + 1) +
+     $            dbl_mb(k_kvs + 4 * (i - 1) + 2)
+               if (norm .lt. 0.0d0) then
+                  dbl_mb(k_kvs + 4 * (i - 1)) =
+     $               -dbl_mb(k_kvs + 4 * (i - 1))
+                  dbl_mb(k_kvs + 4 * (i - 1) + 1) =
+     $               -dbl_mb(k_kvs + 4 * (i - 1) + 1)
+                  dbl_mb(k_kvs + 4 * (i - 1) + 2) =
+     $               -dbl_mb(k_kvs + 4 * (i - 1) + 2)
+               endif
+            enddo
+            nks = nks2
+         endif
+
+         rtdb_name = zone_name(1:l)//':number_kvectors'
+         call nwchemc_rtdb_put_int(rtdb, rtdb_name, nks, status)
+         if (.not. status) then
+            errmsg = 'monkhorst-pack k-vector count write failed'
+            status = ma_pop_stack(l_kvs)
+            return
+         endif
+         rtdb_name = zone_name(1:l)//':kvectors'
+         call nwchemc_rtdb_put_dbl_array(rtdb, rtdb_name, 4 * nks,
+     $      dbl_mb(k_kvs), status)
+         if (.not. status) then
+            errmsg = 'monkhorst-pack k-vector write failed'
+            status = ma_pop_stack(l_kvs)
+            return
+         endif
+         if (timereverse) then
+            nn(1) = nx
+            nn(2) = ny
+            nn(3) = nz
+         else
+            nn(1) = -nx
+            nn(2) = -ny
+            nn(3) = -nz
+         endif
+         rtdb_name = zone_name(1:l)//':monkhorst-pack'
+         call nwchemc_rtdb_put_int_array(rtdb, rtdb_name, 3, nn,
+     $      status)
+         if (.not. status) then
+            errmsg = 'monkhorst-pack grid write failed'
+            status = ma_pop_stack(l_kvs)
+            return
+         endif
+         status = ma_pop_stack(l_kvs)
+         if (.not. status) then
+            errmsg = 'monkhorst-pack allocation release failed'
+            return
+         endif
       endif
       ok = .true.
       return
