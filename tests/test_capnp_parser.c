@@ -149,6 +149,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "nodisk"));
   assert_non_null(strstr(input_blocks, "fss 1.2"));
   assert_non_null(strstr(input_blocks, "fos 0.8"));
+  assert_non_null(strstr(input_blocks, "print high reference"));
+  assert_non_null(strstr(input_blocks, "noprint byproduct energies"));
   assert_non_null(strstr(input_blocks, "tce\n  dft"));
   assert_non_null(strstr(input_blocks, "freeze 1 virtual 2"));
   assert_non_null(strstr(input_blocks, "2eorb"));
@@ -290,6 +292,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "ccsd\n  maxiter 20"));
   assert_null(strstr(input_blocks, "freeze 1 virtual 2"));
   assert_null(strstr(input_blocks, "nodisk"));
+  assert_non_null(
+      strstr(input_blocks,
+             "ccsd\n  print high reference\n  noprint byproduct energies\nend"));
   assert_null(strstr(input_blocks, "tce\n  dft"));
   assert_null(strstr(input_blocks, "cr-ccsd(t)"));
   assert_null(strstr(input_blocks, "lshift 0.01"));

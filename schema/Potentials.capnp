@@ -408,6 +408,9 @@ struct NWChemCcsdStanza {
   sameSpinScale     @8 :Float64 = 0.0; # Emit/promote ccsd:fss.
   oppositeSpinScale @9 :Float64 = 0.0; # Emit/promote ccsd:fos.
   directives        @10 :List(NWChemDirective);
+  printLevel        @11 :NWChemPrintLevel = unspecified; # Emit CCSD print level.
+  printItems        @12 :List(Text); # Extra CCSD print names after the level.
+  noPrintItems      @13 :List(Text); # CCSD noprint names.
 }
 
 # @struct NWChemTceStanza

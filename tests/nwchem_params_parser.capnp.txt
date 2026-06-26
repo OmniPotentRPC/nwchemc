@@ -56,7 +56,10 @@
         frozenVirtual = 2,
         useDisk = disabled,
         sameSpinScale = 1.2,
-        oppositeSpinScale = 0.8
+        oppositeSpinScale = 0.8,
+        printLevel = high,
+        printItems = ["reference"],
+        noPrintItems = ["byproduct", "energies"]
       )
     ),
     (
