@@ -517,10 +517,13 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   capn_text brillouin_zone_name = {0};
   int monkhorst_pack[3] = {0, 0, 0};
   int max_kpoints_print = 0;
+  double brillouin_kvectors[8] = {0.0};
+  size_t brillouin_kvector_count = 0;
   assert_int_equal(nwchemc_params_extract_direct_brillouin_zone(
                        params_root, &has_brillouin_zone,
                        &brillouin_zone_name, monkhorst_pack,
-                       &max_kpoints_print),
+                       &max_kpoints_print, brillouin_kvectors, 2,
+                       &brillouin_kvector_count),
                    0);
   assert_int_equal(has_brillouin_zone, 1);
   assert_true(text_equals(brillouin_zone_name, "zoneA"));
@@ -528,6 +531,23 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(monkhorst_pack[1], 4);
   assert_int_equal(monkhorst_pack[2], -5);
   assert_int_equal(max_kpoints_print, 12);
+  assert_int_equal((int)brillouin_kvector_count, 2);
+  assert_true(brillouin_kvectors[0] > -0.001);
+  assert_true(brillouin_kvectors[0] < 0.001);
+  assert_true(brillouin_kvectors[1] > -0.001);
+  assert_true(brillouin_kvectors[1] < 0.001);
+  assert_true(brillouin_kvectors[2] > -0.001);
+  assert_true(brillouin_kvectors[2] < 0.001);
+  assert_true(brillouin_kvectors[3] > 0.499);
+  assert_true(brillouin_kvectors[3] < 0.501);
+  assert_true(brillouin_kvectors[4] > 0.499);
+  assert_true(brillouin_kvectors[4] < 0.501);
+  assert_true(brillouin_kvectors[5] > -0.001);
+  assert_true(brillouin_kvectors[5] < 0.001);
+  assert_true(brillouin_kvectors[6] > -0.001);
+  assert_true(brillouin_kvectors[6] < 0.001);
+  assert_true(brillouin_kvectors[7] > 0.499);
+  assert_true(brillouin_kvectors[7] < 0.501);
 
   int has_ccsd = 0;
   int ccsd_maxiter = 0;

@@ -29,6 +29,7 @@ static char g_set_values[8][257];
 static char g_typed_set_keys[192][129];
 static char g_typed_set_values[192][4][257];
 static char g_brillouin_zone_name[64];
+static double g_brillouin_kvectors[8];
 static int g_psp_types[8];
 static int g_typed_set_types[192];
 static int g_typed_set_value_counts[192];
@@ -67,6 +68,7 @@ static int g_nwpw_ewald_ncut = 0;
 static int g_brillouin_has_options = 0;
 static int g_brillouin_monkhorst_pack[3] = {0, 0, 0};
 static int g_brillouin_max_kpoints_print = 0;
+static int g_brillouin_kvector_count = 0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
@@ -222,7 +224,9 @@ int nwchemc_embed_set_brillouin_zone(int has_options, const char *zone_name,
                                      int zone_name_len, int monkhorst_pack_x,
                                      int monkhorst_pack_y,
                                      int monkhorst_pack_z,
-                                     int max_kpoints_print) {
+                                     int max_kpoints_print,
+                                     const double *kvectors,
+                                     int kvector_count) {
   ++g_set_brillouin_zone_calls;
   g_brillouin_has_options = has_options;
   copy_span(g_brillouin_zone_name, sizeof(g_brillouin_zone_name), zone_name,
@@ -231,6 +235,9 @@ int nwchemc_embed_set_brillouin_zone(int has_options, const char *zone_name,
   g_brillouin_monkhorst_pack[1] = monkhorst_pack_y;
   g_brillouin_monkhorst_pack[2] = monkhorst_pack_z;
   g_brillouin_max_kpoints_print = max_kpoints_print;
+  g_brillouin_kvector_count = kvector_count;
+  for (int i = 0; i < kvector_count * 4 && i < 8; ++i)
+    g_brillouin_kvectors[i] = kvectors[i];
   return 0;
 }
 
@@ -517,6 +524,9 @@ static void reset_embed_captures(void) {
   g_brillouin_monkhorst_pack[1] = 0;
   g_brillouin_monkhorst_pack[2] = 0;
   g_brillouin_max_kpoints_print = 0;
+  g_brillouin_kvector_count = 0;
+  for (int i = 0; i < 8; ++i)
+    g_brillouin_kvectors[i] = 0.0;
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
@@ -932,6 +942,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_int_equal(g_brillouin_monkhorst_pack[1], 4);
   assert_int_equal(g_brillouin_monkhorst_pack[2], -5);
   assert_int_equal(g_brillouin_max_kpoints_print, 12);
+  assert_int_equal(g_brillouin_kvector_count, 2);
+  assert_close(g_brillouin_kvectors[0], 0.0, 1e-12);
+  assert_close(g_brillouin_kvectors[1], 0.0, 1e-12);
+  assert_close(g_brillouin_kvectors[2], 0.0, 1e-12);
+  assert_close(g_brillouin_kvectors[3], 0.5, 1e-12);
+  assert_close(g_brillouin_kvectors[4], 0.5, 1e-12);
+  assert_close(g_brillouin_kvectors[5], 0.0, 1e-12);
+  assert_close(g_brillouin_kvectors[6], 0.0, 1e-12);
+  assert_close(g_brillouin_kvectors[7], 0.5, 1e-12);
   assert_int_equal(g_set_pseudopotential_calls, 1);
   assert_int_equal(g_psp_count, 6);
   assert_string_equal(g_psp_elements[0], "Si");
