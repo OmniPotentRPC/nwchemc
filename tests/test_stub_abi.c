@@ -7,6 +7,24 @@
 
 #include <cmocka.h>
 
+#if defined(__GNUC__) || defined(__clang__)
+#define NWCHEMC_TEST_WEAK __attribute__((weak))
+#else
+#define NWCHEMC_TEST_WEAK
+#endif
+
+extern NWChemCResult nwchemc_dipole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_dipole(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_dipole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *dipole_au,
+    size_t dipole_len) NWCHEMC_TEST_WEAK;
+
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
   assert_int_equal(nwchemc_available(), 0);
@@ -25,6 +43,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult hessian_result =
       nwchemc_hessian(0, NULL, NULL, NULL, 0, NULL);
   assert_int_equal(hessian_result.ok, 0);
+  assert_true(nwchemc_dipole != NULL);
+  double dipole_au[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_result =
+      nwchemc_dipole(0, NULL, NULL, NULL, 0, dipole_au);
+  assert_int_equal(dipole_result.ok, 0);
   assert_null(nwchemc_session_create(NULL, 0));
   assert_int_not_equal(nwchemc_session_set_params(NULL, NULL, 0), 0);
   nwchemc_session_destroy(NULL);
@@ -37,6 +60,10 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_forces =
       nwchemc_session_energy_forces(NULL, 0, NULL, NULL, NULL);
   assert_int_equal(session_forces.ok, 0);
+  assert_true(nwchemc_session_dipole != NULL);
+  NWChemCResult session_dipole =
+      nwchemc_session_dipole(NULL, 0, NULL, NULL, dipole_au);
+  assert_int_equal(session_dipole.ok, 0);
   NWChemCResult session_step =
       nwchemc_session_calculate_forces(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step.ok, 0);
@@ -50,6 +77,10 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_step_hessian =
       nwchemc_session_calculate_hessian(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step_hessian.ok, 0);
+  assert_true(nwchemc_session_calculate_dipole != NULL);
+  NWChemCResult session_step_dipole =
+      nwchemc_session_calculate_dipole(NULL, NULL, 0, dipole_au, 3);
+  assert_int_equal(session_step_dipole.ok, 0);
   NWChemCResult session_hessian =
       nwchemc_session_hessian(NULL, 0, NULL, NULL, NULL);
   assert_int_equal(session_hessian.ok, 0);
