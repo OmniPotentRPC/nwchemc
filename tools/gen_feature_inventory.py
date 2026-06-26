@@ -110,6 +110,11 @@ def main() -> int:
             "NWChemPseudopotentialStanza",
             "Pseudopotential library/file entries block",
         ),
+        "mrccData": (
+            "NWChemInputStanza.mrccData",
+            "NWChemMrccDataStanza",
+            "TCE MRCC data block",
+        ),
     }
 
     stanzas = []

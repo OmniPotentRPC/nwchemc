@@ -404,6 +404,22 @@ struct NWChemTceStanza {
   directives            @53 :List(NWChemDirective);
 }
 
+# @struct NWChemMrccDataStanza
+# @brief TCE MRCC data block for reference roots, active spaces, and occupation strings.
+struct NWChemMrccDataStanza {
+  root           @0 :Int32 = 0; # Emit "root <n>".
+  casElectrons   @1 :Int32 = 0; # First value in "cas <electrons> <orbitals>".
+  casOrbitals    @2 :Int32 = 0; # Second value in "cas <electrons> <orbitals>".
+  nref           @3 :Int32 = 0; # Emit explicit nref; zero derives from references length.
+  references     @4 :List(Text); # MRCC occupation strings following nref.
+  se4t           @5 :Bool = false; # Emit "se4t".
+  noAposteriori  @6 :Bool = false; # Emit "no_aposteriori".
+  subgroupSize   @7 :Int32 = 0; # Emit "subgroupsize <n>".
+  improveTiling  @8 :Bool = false; # Emit "improvetiling".
+  usspt          @9 :Bool = false; # Emit "usspt".
+  directives     @10 :List(NWChemDirective);
+}
+
 # @struct NWChemTaskStanza
 # @brief Explicit NWChem "task <theory> <operation>" line.
 # Prefer top-level theory/task for embed defaults; use this stanza when emitting
@@ -476,6 +492,7 @@ struct NWChemInputStanza {
   nwpw            @13 :NWChemNwpwStanza;
   ccsd            @14 :NWChemCcsdStanza;
   tce             @15 :NWChemTceStanza;
+  mrccData        @16 :NWChemMrccDataStanza;
 
   enum Kind {
     generic         @0;
@@ -493,6 +510,7 @@ struct NWChemInputStanza {
     nwpw            @12;
     ccsd            @13;
     tce             @14;
+    mrccData        @15;
   }
 }
 

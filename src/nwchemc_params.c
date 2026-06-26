@@ -1051,6 +1051,70 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static int render_mrcc_data_stanza(NWChemMrccDataStanza_ptr ptr, char *dst,
+                                   size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemMrccDataStanza mrcc;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemMrccDataStanza(&mrcc, ptr);
+  int nrefs = pointer_list_len(&mrcc.references);
+  if (nrefs < 0)
+    return -1;
+  int has_directives = directives_have_keywords(mrcc.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_fields = mrcc.root > 0 || mrcc.casElectrons > 0 ||
+                   mrcc.casOrbitals > 0 || mrcc.nref > 0 || nrefs > 0 ||
+                   mrcc.se4t || mrcc.noAposteriori ||
+                   mrcc.subgroupSize > 0 || mrcc.improveTiling || mrcc.usspt;
+  if (!has_fields && !has_directives)
+    return 0;
+
+  if (append_format(block, sizeof(block), "mrccdata\n") != 0)
+    return -1;
+  if (mrcc.se4t && append_format(block, sizeof(block), "  se4t\n") != 0)
+    return -1;
+  if (mrcc.noAposteriori &&
+      append_format(block, sizeof(block), "  no_aposteriori\n") != 0)
+    return -1;
+  if (mrcc.root > 0 &&
+      append_format(block, sizeof(block), "  root %d\n", mrcc.root) != 0)
+    return -1;
+  if ((mrcc.casElectrons > 0 || mrcc.casOrbitals > 0) &&
+      append_format(block, sizeof(block), "  cas %d %d\n",
+                    mrcc.casElectrons, mrcc.casOrbitals) != 0)
+    return -1;
+  int emitted_nref = mrcc.nref > 0 ? mrcc.nref : nrefs;
+  if (emitted_nref > 0 &&
+      append_format(block, sizeof(block), "  nref %d\n", emitted_nref) != 0)
+    return -1;
+  for (int i = 0; i < nrefs; ++i) {
+    capn_text reference = capn_get_text(mrcc.references, i, empty_text);
+    if (reference.len <= 0)
+      continue;
+    if (append_format(block, sizeof(block), "  ") != 0 ||
+        append_text(block, sizeof(block), reference) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (mrcc.subgroupSize > 0 &&
+      append_format(block, sizeof(block), "  subgroupsize %d\n",
+                    mrcc.subgroupSize) != 0)
+    return -1;
+  if (mrcc.improveTiling &&
+      append_format(block, sizeof(block), "  improvetiling\n") != 0)
+    return -1;
+  if (mrcc.usspt && append_format(block, sizeof(block), "  usspt\n") != 0)
+    return -1;
+  if (render_directives(mrcc.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_task_stanza(NWChemTaskStanza_ptr ptr, char *dst,
                               size_t dst_size) {
   if (ptr.p.type == CAPN_NULL)
@@ -1587,6 +1651,10 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     case NWChemInputStanza_Kind_tce:
       if (render_tce_stanza(stanza.tce, dst, dst_size,
                             include_direct_promoted_tce) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_mrccData:
+      if (render_mrcc_data_stanza(stanza.mrccData, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_task:
