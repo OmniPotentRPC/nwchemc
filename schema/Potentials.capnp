@@ -219,6 +219,31 @@ enum NWChemToggle {
   disabled    @2; # Emit/promote the option as disabled.
 }
 
+enum NWChemTceReference {
+  unspecified @0; # Do not emit tce reference.
+  dft         @1; # Emit DFT; promote tce:reference = 0.
+  hf          @2; # Emit HF; promote tce:reference = 1.
+  scf         @3; # Emit SCF; promote tce:reference = 1.
+}
+
+enum NWChemTceTwoElectronStorage {
+  unspecified @0; # Do not emit/promote tce:model2e.
+  default     @1; # Emit/promote tce:model2e = default.
+  orbital     @2; # Emit 2eorb; promote tce:model2e = 2eorb.
+  spin        @3; # Emit 2espin; promote tce:model2e = 2espin.
+}
+
+enum NWChemTceIoAlgorithm {
+  unspecified @0; # Do not emit/promote tce:ioalg.
+  fortran     @1; # Emit io fortran; promote tce:ioalg = 0.
+  eaf         @2; # Emit io eaf; promote tce:ioalg = 1.
+  ga          @3; # Emit io ga; promote tce:ioalg = 2.
+  sf          @4; # Emit io sf; promote tce:ioalg = 3.
+  replicated  @5; # Emit io replicated; promote tce:ioalg = 4.
+  dra         @6; # Emit io dra; promote tce:ioalg = 5.
+  gaEaf       @7; # Emit io ga_eaf; promote tce:ioalg = 6.
+}
+
 enum NWChemNwpwSmearType {
   unspecified        @0; # Do not emit fractional_smeartype.
   fixed              @1; # NWChem smear fixed.
@@ -320,6 +345,65 @@ struct NWChemCcsdStanza {
   directives        @10 :List(NWChemDirective);
 }
 
+# @struct NWChemTceStanza
+# @brief Tensor Contraction Engine controls for CC, CI, MBPT, EOM-CC, and CR-EOMCC.
+struct NWChemTceStanza {
+  method                @0  :Text = ""; # Full-deck method keyword, e.g. ccsd(t), cr-ccsd(t), bwccsd.
+  model                 @1  :Text = ""; # Emit/promote tce:model normalized value.
+  model2e               @2  :NWChemTceTwoElectronStorage = unspecified; # Emit/promote tce:model2e.
+  perturbative          @3  :Text = ""; # Promote tce:perturbative.
+  ccsdVariant           @4  :Text = ""; # Promote tce:ccsdvar.
+  noTriplesSingles      @5  :NWChemToggle = unspecified; # Promote tce:nts.
+  reference             @6  :NWChemTceReference = unspecified; # Emit/promote tce:reference.
+  frozenCore            @7  :Int32 = 0; # Emit/promote tce:frozen core.
+  frozenVirtual         @8  :Int32 = 0; # Emit/promote tce:frozen virtual.
+  thresh                @9  :Float64 = 0.0; # Emit/promote tce:thresh.
+  levelShift            @10 :Float64 = 0.0; # Emit/promote tce:zlshift.
+  leftLevelShift        @11 :Float64 = 0.0; # Emit/promote tce:zlshiftl.
+  levelShift2Alpha      @12 :Float64 = 0.0; # First value in tce:zlshift2.
+  levelShift2Beta       @13 :Float64 = 0.0; # Second value in tce:zlshift2.
+  levelShift3Alpha      @14 :Float64 = 0.0; # First value in tce:zlshift3.
+  levelShift3Beta       @15 :Float64 = 0.0; # Second value in tce:zlshift3.
+  maxiter               @16 :Int32 = 0; # Emit/promote tce:maxiter.
+  ioAlgorithm           @17 :NWChemTceIoAlgorithm = unspecified; # Emit/promote tce:ioalg.
+  diis                  @18 :Int32 = 0; # Emit/promote tce:diis.
+  diis2                 @19 :Int32 = 0; # Emit/promote tce:diis2.
+  diis3                 @20 :Int32 = 0; # Emit/promote tce:diis3.
+  eomSolver             @21 :Int32 = 0; # Emit eomsol; promote tce:eoms.
+  hbarDimension         @22 :Int32 = 0; # Emit hbard; promote tce:hbard.
+  nroots                @23 :Int32 = 0; # Emit/promote tce:nroots.
+  target                @24 :Int32 = 0; # Emit/promote tce:target.
+  targetSymmetry        @25 :Text = ""; # Emit targetsym; promote tce:targetsym.
+  symmetry              @26 :NWChemToggle = unspecified; # Emit/promote tce:symmetry.
+  densityMatrix         @27 :NWChemToggle = unspecified; # Emit densmat when enabled; promote tce:densmat.
+  densityMatrixFile     @28 :Text = ""; # Emit/promote tce:file_densmat.
+  left                  @29 :NWChemToggle = unspecified; # Promote tce:left.
+  multipole             @30 :Int32 = 0; # Emit/promote tce:multipole.
+  fragment              @31 :Int32 = -1; # Emit/promote tce:fragment when >= 0.
+  recomputeFock         @32 :NWChemToggle = unspecified; # Emit fock/nofock; promote tce:recompf.
+  activeOccupiedAlpha   @33 :Int32 = 0; # Emit/promote tce:active_oa.
+  activeOccupiedBeta    @34 :Int32 = 0; # Emit/promote tce:active_ob.
+  activeVirtualAlpha    @35 :Int32 = 0; # Emit/promote tce:active_va.
+  activeVirtualBeta     @36 :Int32 = 0; # Emit/promote tce:active_vb.
+  activeOccupied        @37 :Int32 = 0; # Emit oact; promote tce:oact.
+  activeUnoccupied      @38 :Int32 = 0; # Emit uact; promote tce:uact.
+  activeEnergyMin       @39 :Float64 = 0.0; # Emit emin_act; promote tce:eactmin.
+  activeEnergyMax       @40 :Float64 = 0.0; # Emit emax_act; promote tce:eactmax.
+  activeExcitationLevel @41 :Int32 = 0; # Emit t3a_lvl; promote tce:act_excit_lvl.
+  maxDiff               @42 :Float64 = 0.0; # Emit/promote tce:maxdiff.
+  atomicTileSize        @43 :Int32 = 0; # Emit attilesize; promote tce:maxs.
+  split                 @44 :Int32 = 0; # Emit split; promote tce:ichopx.
+  twoElectronMethod     @45 :Int32 = 0; # Emit 2emet; promote tce:i4im.
+  diskBackend           @46 :Int32 = -1; # Emit idiskx; promote tce:idiskx when >= 0.
+  tileSize              @47 :Int32 = 0; # Emit/promote tce:tilesize.
+  cudaDevices           @48 :Int32 = 0; # Emit/promote tce:cuda.
+  mrcc                  @49 :NWChemToggle = unspecified; # Promote tce:mrcc.
+  tccSpaces             @50 :NWChemToggle = unspecified; # Emit tcc_spaces; promote tce:ltcc.
+  eaCcsd                @51 :NWChemToggle = unspecified; # Emit/promote tce:eaccsd when enabled.
+  ipCcsd                @52 :NWChemToggle = unspecified; # Emit/promote tce:ipccsd when enabled.
+  directives            @53 :List(NWChemDirective);
+}
+
 # @struct NWChemTaskStanza
 # @brief Explicit NWChem "task <theory> <operation>" line.
 # Prefer top-level theory/task for embed defaults; use this stanza when emitting
@@ -391,6 +475,7 @@ struct NWChemInputStanza {
   geometry        @12 :NWChemGeometryStanza;
   nwpw            @13 :NWChemNwpwStanza;
   ccsd            @14 :NWChemCcsdStanza;
+  tce             @15 :NWChemTceStanza;
 
   enum Kind {
     generic         @0;
@@ -407,6 +492,7 @@ struct NWChemInputStanza {
     geometry        @11;
     nwpw            @12;
     ccsd            @13;
+    tce             @14;
   }
 }
 

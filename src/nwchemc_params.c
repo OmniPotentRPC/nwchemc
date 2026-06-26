@@ -762,6 +762,295 @@ static int render_ccsd_stanza(NWChemCcsdStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static const char *tce_reference_keyword(enum NWChemTceReference reference) {
+  switch (reference) {
+  case NWChemTceReference_dft:
+    return "dft";
+  case NWChemTceReference_hf:
+    return "hf";
+  case NWChemTceReference_scf:
+    return "scf";
+  case NWChemTceReference_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static const char *
+tce_two_electron_keyword(enum NWChemTceTwoElectronStorage storage) {
+  switch (storage) {
+  case NWChemTceTwoElectronStorage_orbital:
+    return "2eorb";
+  case NWChemTceTwoElectronStorage_spin:
+    return "2espin";
+  case NWChemTceTwoElectronStorage_default:
+  case NWChemTceTwoElectronStorage_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static const char *tce_io_keyword(enum NWChemTceIoAlgorithm io) {
+  switch (io) {
+  case NWChemTceIoAlgorithm_fortran:
+    return "fortran";
+  case NWChemTceIoAlgorithm_eaf:
+    return "eaf";
+  case NWChemTceIoAlgorithm_ga:
+    return "ga";
+  case NWChemTceIoAlgorithm_sf:
+    return "sf";
+  case NWChemTceIoAlgorithm_replicated:
+    return "replicated";
+  case NWChemTceIoAlgorithm_dra:
+    return "dra";
+  case NWChemTceIoAlgorithm_gaEaf:
+    return "ga_eaf";
+  case NWChemTceIoAlgorithm_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static capn_text tce_method_text(const struct NWChemTceStanza *tce) {
+  if (tce->method.len > 0)
+    return tce->method;
+  if (tce->ccsdVariant.len > 0)
+    return tce->ccsdVariant;
+  return tce->model;
+}
+
+static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
+                             size_t dst_size, int include_direct_promoted) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemTceStanza tce;
+  char block[8192];
+  block[0] = '\0';
+  read_NWChemTceStanza(&tce, ptr);
+  int has_directives = directives_have_keywords(tce.directives);
+  if (has_directives < 0)
+    return -1;
+  capn_text method = tce_method_text(&tce);
+  int has_renderable_promoted =
+      tce.reference != NWChemTceReference_unspecified ||
+      tce.frozenCore > 0 || tce.frozenVirtual > 0 ||
+      tce.model2e != NWChemTceTwoElectronStorage_unspecified ||
+      method.len > 0 || tce.thresh > 0.0 || tce.levelShift > 0.0 ||
+      tce.leftLevelShift > 0.0 || tce.levelShift2Alpha > 0.0 ||
+      tce.levelShift2Beta > 0.0 || tce.levelShift3Alpha > 0.0 ||
+      tce.levelShift3Beta > 0.0 || tce.maxiter > 0 ||
+      tce.ioAlgorithm != NWChemTceIoAlgorithm_unspecified || tce.diis > 0 ||
+      tce.diis2 > 0 || tce.diis3 > 0 || tce.eomSolver > 0 ||
+      tce.hbarDimension > 0 || tce.nroots > 0 || tce.target > 0 ||
+      tce.targetSymmetry.len > 0 ||
+      tce.symmetry == NWChemToggle_enabled ||
+      tce.densityMatrix == NWChemToggle_enabled || tce.multipole > 0 ||
+      tce.fragment >= 0 || tce.recomputeFock != NWChemToggle_unspecified ||
+      tce.activeOccupiedAlpha > 0 || tce.activeOccupiedBeta > 0 ||
+      tce.activeVirtualAlpha > 0 || tce.activeVirtualBeta > 0 ||
+      tce.activeOccupied > 0 || tce.activeUnoccupied > 0 ||
+      tce.activeEnergyMin > 0.0 || tce.activeEnergyMax > 0.0 ||
+      tce.activeExcitationLevel > 0 || tce.maxDiff > 0.0 ||
+      tce.atomicTileSize > 0 || tce.split > 0 ||
+      tce.twoElectronMethod > 0 || tce.diskBackend >= 0 ||
+      tce.tileSize > 0 || tce.cudaDevices > 0 ||
+      tce.tccSpaces == NWChemToggle_enabled ||
+      tce.eaCcsd == NWChemToggle_enabled ||
+      tce.ipCcsd == NWChemToggle_enabled;
+  if (!has_directives && !(include_direct_promoted && has_renderable_promoted))
+    return 0;
+  if (append_format(block, sizeof(block), "tce\n") != 0)
+    return -1;
+  if (include_direct_promoted) {
+    const char *reference = tce_reference_keyword(tce.reference);
+    const char *model2e = tce_two_electron_keyword(tce.model2e);
+    const char *io = tce_io_keyword(tce.ioAlgorithm);
+    if (reference &&
+        append_format(block, sizeof(block), "  %s\n", reference) != 0)
+      return -1;
+    if (tce.frozenCore > 0 || tce.frozenVirtual > 0) {
+      if (append_format(block, sizeof(block), "  freeze") != 0)
+        return -1;
+      if (tce.frozenCore > 0 &&
+          append_format(block, sizeof(block), " %d", tce.frozenCore) != 0)
+        return -1;
+      if (tce.frozenVirtual > 0 &&
+          append_format(block, sizeof(block), " virtual %d",
+                        tce.frozenVirtual) != 0)
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+    if (model2e &&
+        append_format(block, sizeof(block), "  %s\n", model2e) != 0)
+      return -1;
+    if (method.len > 0 &&
+        (append_format(block, sizeof(block), "  ") != 0 ||
+         append_text(block, sizeof(block), method) != 0 ||
+         append_format(block, sizeof(block), "\n") != 0))
+      return -1;
+    if (tce.thresh > 0.0 &&
+        append_format(block, sizeof(block), "  thresh %.12g\n", tce.thresh) !=
+            0)
+      return -1;
+    if (tce.levelShift > 0.0 &&
+        append_format(block, sizeof(block), "  lshift %.12g\n",
+                      tce.levelShift) != 0)
+      return -1;
+    if (tce.leftLevelShift > 0.0 &&
+        append_format(block, sizeof(block), "  lshiftl %.12g\n",
+                      tce.leftLevelShift) != 0)
+      return -1;
+    if ((tce.levelShift2Alpha > 0.0 || tce.levelShift2Beta > 0.0) &&
+        append_format(block, sizeof(block), "  lshift2 %.12g %.12g\n",
+                      tce.levelShift2Alpha, tce.levelShift2Beta) != 0)
+      return -1;
+    if ((tce.levelShift3Alpha > 0.0 || tce.levelShift3Beta > 0.0) &&
+        append_format(block, sizeof(block), "  lshift3 %.12g %.12g\n",
+                      tce.levelShift3Alpha, tce.levelShift3Beta) != 0)
+      return -1;
+    if (tce.maxiter > 0 &&
+        append_format(block, sizeof(block), "  maxiter %d\n", tce.maxiter) !=
+            0)
+      return -1;
+    if (io && append_format(block, sizeof(block), "  io %s\n", io) != 0)
+      return -1;
+    if (tce.eomSolver > 0 &&
+        append_format(block, sizeof(block), "  eomsol %d\n",
+                      tce.eomSolver) != 0)
+      return -1;
+    if (tce.diis > 0 &&
+        append_format(block, sizeof(block), "  diis %d\n", tce.diis) != 0)
+      return -1;
+    if (tce.diis2 > 0 &&
+        append_format(block, sizeof(block), "  diis2 %d\n", tce.diis2) != 0)
+      return -1;
+    if (tce.diis3 > 0 &&
+        append_format(block, sizeof(block), "  diis3 %d\n", tce.diis3) != 0)
+      return -1;
+    if (tce.hbarDimension > 0 &&
+        append_format(block, sizeof(block), "  hbard %d\n",
+                      tce.hbarDimension) != 0)
+      return -1;
+    if (tce.nroots > 0 &&
+        append_format(block, sizeof(block), "  nroots %d\n", tce.nroots) != 0)
+      return -1;
+    if (tce.target > 0 &&
+        append_format(block, sizeof(block), "  target %d\n", tce.target) != 0)
+      return -1;
+    if (tce.targetSymmetry.len > 0 &&
+        (append_format(block, sizeof(block), "  targetsym ") != 0 ||
+         append_text(block, sizeof(block), tce.targetSymmetry) != 0 ||
+         append_format(block, sizeof(block), "\n") != 0))
+      return -1;
+    if (tce.symmetry == NWChemToggle_enabled &&
+        append_format(block, sizeof(block), "  symmetry\n") != 0)
+      return -1;
+    if (tce.densityMatrix == NWChemToggle_enabled) {
+      if (append_format(block, sizeof(block), "  densmat") != 0)
+        return -1;
+      if (tce.densityMatrixFile.len > 0 &&
+          (append_format(block, sizeof(block), " ") != 0 ||
+           append_text(block, sizeof(block), tce.densityMatrixFile) != 0))
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+    if (tce.multipole > 0 &&
+        append_format(block, sizeof(block), "  multipole %d\n",
+                      tce.multipole) != 0)
+      return -1;
+    if (tce.fragment >= 0 &&
+        append_format(block, sizeof(block), "  fragment %d\n", tce.fragment) !=
+            0)
+      return -1;
+    if (tce.recomputeFock == NWChemToggle_enabled &&
+        append_format(block, sizeof(block), "  fock\n") != 0)
+      return -1;
+    if (tce.recomputeFock == NWChemToggle_disabled &&
+        append_format(block, sizeof(block), "  nofock\n") != 0)
+      return -1;
+    if (tce.activeOccupied > 0 &&
+        append_format(block, sizeof(block), "  oact %d\n",
+                      tce.activeOccupied) != 0)
+      return -1;
+    if (tce.activeUnoccupied > 0 &&
+        append_format(block, sizeof(block), "  uact %d\n",
+                      tce.activeUnoccupied) != 0)
+      return -1;
+    if (tce.activeEnergyMin > 0.0 &&
+        append_format(block, sizeof(block), "  emin_act %.12g\n",
+                      tce.activeEnergyMin) != 0)
+      return -1;
+    if (tce.activeEnergyMax > 0.0 &&
+        append_format(block, sizeof(block), "  emax_act %.12g\n",
+                      tce.activeEnergyMax) != 0)
+      return -1;
+    if (tce.activeOccupiedAlpha > 0 &&
+        append_format(block, sizeof(block), "  active_oa %d\n",
+                      tce.activeOccupiedAlpha) != 0)
+      return -1;
+    if (tce.activeOccupiedBeta > 0 &&
+        append_format(block, sizeof(block), "  active_ob %d\n",
+                      tce.activeOccupiedBeta) != 0)
+      return -1;
+    if (tce.activeVirtualAlpha > 0 &&
+        append_format(block, sizeof(block), "  active_va %d\n",
+                      tce.activeVirtualAlpha) != 0)
+      return -1;
+    if (tce.activeVirtualBeta > 0 &&
+        append_format(block, sizeof(block), "  active_vb %d\n",
+                      tce.activeVirtualBeta) != 0)
+      return -1;
+    if (tce.activeExcitationLevel > 0 &&
+        append_format(block, sizeof(block), "  t3a_lvl %d\n",
+                      tce.activeExcitationLevel) != 0)
+      return -1;
+    if (tce.maxDiff > 0.0 &&
+        append_format(block, sizeof(block), "  maxdiff %.12g\n",
+                      tce.maxDiff) != 0)
+      return -1;
+    if (tce.atomicTileSize > 0 &&
+        append_format(block, sizeof(block), "  attilesize %d\n",
+                      tce.atomicTileSize) != 0)
+      return -1;
+    if (tce.split > 0 &&
+        append_format(block, sizeof(block), "  split %d\n", tce.split) != 0)
+      return -1;
+    if (tce.twoElectronMethod > 0 &&
+        append_format(block, sizeof(block), "  2emet %d\n",
+                      tce.twoElectronMethod) != 0)
+      return -1;
+    if (tce.diskBackend >= 0 &&
+        append_format(block, sizeof(block), "  idiskx %d\n",
+                      tce.diskBackend) != 0)
+      return -1;
+    if (tce.tileSize > 0 &&
+        append_format(block, sizeof(block), "  tilesize %d\n",
+                      tce.tileSize) != 0)
+      return -1;
+    if (tce.cudaDevices > 0 &&
+        append_format(block, sizeof(block), "  cuda %d\n",
+                      tce.cudaDevices) != 0)
+      return -1;
+    if (tce.tccSpaces == NWChemToggle_enabled &&
+        append_format(block, sizeof(block), "  tcc_spaces\n") != 0)
+      return -1;
+    if (tce.eaCcsd == NWChemToggle_enabled &&
+        append_format(block, sizeof(block), "  eaccsd\n") != 0)
+      return -1;
+    if (tce.ipCcsd == NWChemToggle_enabled &&
+        append_format(block, sizeof(block), "  ipccsd\n") != 0)
+      return -1;
+  }
+  if (render_directives(tce.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_task_stanza(NWChemTaskStanza_ptr ptr, char *dst,
                               size_t dst_size) {
   if (ptr.p.type == CAPN_NULL)
@@ -1250,6 +1539,7 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 int include_direct_pseudopotentials,
                                 int include_direct_promoted_driver,
                                 int include_direct_promoted_nwpw,
+                                int include_direct_promoted_tce,
                                 int include_direct_set_strings,
                                 int include_task_stanzas) {
   int n = struct_list_len(&stanzas.p);
@@ -1292,6 +1582,11 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     case NWChemInputStanza_Kind_ccsd:
       if (render_ccsd_stanza(stanza.ccsd, dst, dst_size,
                              include_direct_promoted_scf) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_tce:
+      if (render_tce_stanza(stanza.tce, dst, dst_size,
+                            include_direct_promoted_tce) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_task:
@@ -1352,7 +1647,7 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   read_NWChemParams(&view, params);
   dst[0] = '\0';
   if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1, 1, 1,
-                           1) != 0)
+                           1, 1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -1365,7 +1660,7 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   read_NWChemParams(&view, params);
   dst[0] = '\0';
   if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0, 0, 0,
-                           0) != 0)
+                           0, 0) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }

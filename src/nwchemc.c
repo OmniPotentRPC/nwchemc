@@ -105,7 +105,7 @@ struct NWChemCSession {
 static NWChemCSession *g_active_session = NULL;
 
 enum {
-  NWCHEMC_DIRECT_SET_MAX = 128,
+  NWCHEMC_DIRECT_SET_MAX = 192,
   NWCHEMC_DIRECT_SET_VALUE_MAX = 16,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
   NWCHEMC_DIRECT_SET_VALUE_LEN = 256,
@@ -237,6 +237,394 @@ static int append_nwpw_prefixed_typed_values(
                                    value_type, value_list, nvalues) != 0)
       return -1;
   }
+  return 0;
+}
+
+static int tce_reference_value(enum NWChemTceReference reference, int *value) {
+  if (!value)
+    return 0;
+  switch (reference) {
+  case NWChemTceReference_dft:
+    *value = 0;
+    return 1;
+  case NWChemTceReference_hf:
+  case NWChemTceReference_scf:
+    *value = 1;
+    return 1;
+  case NWChemTceReference_unspecified:
+  default:
+    return 0;
+  }
+}
+
+static const char *
+tce_two_electron_value(enum NWChemTceTwoElectronStorage storage) {
+  switch (storage) {
+  case NWChemTceTwoElectronStorage_default:
+    return "default";
+  case NWChemTceTwoElectronStorage_orbital:
+    return "2eorb";
+  case NWChemTceTwoElectronStorage_spin:
+    return "2espin";
+  case NWChemTceTwoElectronStorage_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static int tce_io_value(enum NWChemTceIoAlgorithm io, int *value) {
+  if (!value)
+    return 0;
+  switch (io) {
+  case NWChemTceIoAlgorithm_fortran:
+    *value = 0;
+    return 1;
+  case NWChemTceIoAlgorithm_eaf:
+    *value = 1;
+    return 1;
+  case NWChemTceIoAlgorithm_ga:
+    *value = 2;
+    return 1;
+  case NWChemTceIoAlgorithm_sf:
+    *value = 3;
+    return 1;
+  case NWChemTceIoAlgorithm_replicated:
+    *value = 4;
+    return 1;
+  case NWChemTceIoAlgorithm_dra:
+    *value = 5;
+    return 1;
+  case NWChemTceIoAlgorithm_gaEaf:
+    *value = 6;
+    return 1;
+  case NWChemTceIoAlgorithm_unspecified:
+  default:
+    return 0;
+  }
+}
+
+static const char *toggle_logical_value(enum NWChemToggle toggle) {
+  switch (toggle) {
+  case NWChemToggle_enabled:
+    return "true";
+  case NWChemToggle_disabled:
+    return "false";
+  case NWChemToggle_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static int append_tce_direct_values(
+    NWChemParams_ptr params, capn_text *keys, int *value_types,
+    int *value_counts, capn_text *values, size_t key_capacity,
+    size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN]) {
+  if (params.p.type == CAPN_NULL || !keys || !value_types || !value_counts ||
+      !values || !count)
+    return -1;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_tce ||
+        stanza.tce.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemTceStanza tce;
+    read_NWChemTceStanza(&tce, stanza.tce);
+    if (tce.model.len > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(value, sizeof(value), tce.model);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, "tce:model",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+        return -1;
+    }
+    const char *model2e = tce_two_electron_value(tce.model2e);
+    if (model2e &&
+        append_direct_typed_value(keys, value_types, value_counts, values,
+                                  key_capacity, value_capacity, count,
+                                  key_storage, value_storage, "tce:model2e",
+                                  NWCHEMC_DIRECT_SET_VALUE_TEXT, model2e) != 0)
+      return -1;
+    if (tce.perturbative.len > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(value, sizeof(value), tce.perturbative);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage,
+              "tce:perturbative", NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+        return -1;
+    }
+    if (tce.ccsdVariant.len > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(value, sizeof(value), tce.ccsdVariant);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, "tce:ccsdvar",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+        return -1;
+    }
+    const char *nts_value = toggle_logical_value(tce.noTriplesSingles);
+    if (nts_value &&
+        append_direct_typed_value(keys, value_types, value_counts, values,
+                                  key_capacity, value_capacity, count,
+                                  key_storage, value_storage, "tce:nts",
+                                  NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                                  nts_value) != 0)
+      return -1;
+    int int_value = 0;
+    if (tce_reference_value(tce.reference, &int_value)) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", int_value);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage,
+              "tce:reference", NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    if (tce.frozenCore > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", tce.frozenCore);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage,
+              "tce:frozen core", NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    if (tce.frozenVirtual > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", tce.frozenVirtual);
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage,
+                                    "tce:frozen virtual",
+                                    NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                                    value) != 0)
+        return -1;
+    }
+    if (tce.thresh > 0.0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", tce.thresh);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, "tce:thresh",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+        return -1;
+    }
+    if (tce.levelShift > 0.0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", tce.levelShift);
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, "tce:zlshift",
+                                    NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                                    value) != 0)
+        return -1;
+    }
+    if (tce.leftLevelShift > 0.0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", tce.leftLevelShift);
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, "tce:zlshiftl",
+                                    NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                                    value) != 0)
+        return -1;
+    }
+    if (tce.levelShift2Alpha > 0.0 || tce.levelShift2Beta > 0.0) {
+      char alpha_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char beta_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *value_list[2] = {alpha_value, beta_value};
+      snprintf(alpha_value, sizeof(alpha_value), "%.15g",
+               tce.levelShift2Alpha);
+      snprintf(beta_value, sizeof(beta_value), "%.15g",
+               tce.levelShift2Beta);
+      if (append_direct_typed_values(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage,
+              "tce:zlshift2", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list,
+              2) != 0)
+        return -1;
+    }
+    if (tce.levelShift3Alpha > 0.0 || tce.levelShift3Beta > 0.0) {
+      char alpha_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char beta_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *value_list[2] = {alpha_value, beta_value};
+      snprintf(alpha_value, sizeof(alpha_value), "%.15g",
+               tce.levelShift3Alpha);
+      snprintf(beta_value, sizeof(beta_value), "%.15g",
+               tce.levelShift3Beta);
+      if (append_direct_typed_values(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage,
+              "tce:zlshift3", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list,
+              2) != 0)
+        return -1;
+    }
+    if (tce.maxiter > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", tce.maxiter);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, "tce:maxiter",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    if (tce_io_value(tce.ioAlgorithm, &int_value)) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", int_value);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, "tce:ioalg",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    const struct {
+      const char *key;
+      int value;
+    } int_fields[] = {
+        {"tce:diis", tce.diis},
+        {"tce:diis2", tce.diis2},
+        {"tce:diis3", tce.diis3},
+        {"tce:eoms", tce.eomSolver},
+        {"tce:hbard", tce.hbarDimension},
+        {"tce:nroots", tce.nroots},
+        {"tce:target", tce.target},
+        {"tce:multipole", tce.multipole},
+        {"tce:active_oa", tce.activeOccupiedAlpha},
+        {"tce:active_ob", tce.activeOccupiedBeta},
+        {"tce:active_va", tce.activeVirtualAlpha},
+        {"tce:active_vb", tce.activeVirtualBeta},
+        {"tce:oact", tce.activeOccupied},
+        {"tce:uact", tce.activeUnoccupied},
+        {"tce:act_excit_lvl", tce.activeExcitationLevel},
+        {"tce:maxs", tce.atomicTileSize},
+        {"tce:ichopx", tce.split},
+        {"tce:i4im", tce.twoElectronMethod},
+        {"tce:tilesize", tce.tileSize},
+        {"tce:cuda", tce.cudaDevices},
+    };
+    for (size_t j = 0; j < sizeof(int_fields) / sizeof(int_fields[0]); ++j) {
+      if (int_fields[j].value <= 0)
+        continue;
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", int_fields[j].value);
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage,
+                                    int_fields[j].key,
+                                    NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                                    value) != 0)
+        return -1;
+    }
+    if (tce.fragment >= 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", tce.fragment);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage,
+              "tce:fragment", NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    if (tce.diskBackend >= 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", tce.diskBackend);
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, "tce:idiskx",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    if (tce.targetSymmetry.len > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(value, sizeof(value), tce.targetSymmetry);
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage,
+                                    "tce:targetsym",
+                                    NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                    value) != 0)
+        return -1;
+    }
+    if (tce.densityMatrixFile.len > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(value, sizeof(value), tce.densityMatrixFile);
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage,
+                                    "tce:file_densmat",
+                                    NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                    value) != 0)
+        return -1;
+    }
+    const struct {
+      const char *key;
+      enum NWChemToggle toggle;
+      int value_type;
+    } toggle_fields[] = {
+        {"tce:symmetry", tce.symmetry, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:densmat", tce.densityMatrix, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:left", tce.left, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:recompf", tce.recomputeFock, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:ltcc", tce.tccSpaces, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:eaccsd", tce.eaCcsd, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:ipccsd", tce.ipCcsd, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+    };
+    for (size_t j = 0; j < sizeof(toggle_fields) / sizeof(toggle_fields[0]);
+         ++j) {
+      const char *value = toggle_logical_value(toggle_fields[j].toggle);
+      if (value &&
+          append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage,
+                                    toggle_fields[j].key,
+                                    toggle_fields[j].value_type, value) != 0)
+        return -1;
+    }
+    if (tce.mrcc != NWChemToggle_unspecified) {
+      const char *value = tce.mrcc == NWChemToggle_enabled ? "1" : "0";
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, "tce:mrcc",
+                                    NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                                    value) != 0)
+        return -1;
+    }
+    const struct {
+      const char *key;
+      double value;
+    } double_fields[] = {
+        {"tce:eactmin", tce.activeEnergyMin},
+        {"tce:eactmax", tce.activeEnergyMax},
+        {"tce:maxdiff", tce.maxDiff},
+    };
+    for (size_t j = 0; j < sizeof(double_fields) / sizeof(double_fields[0]);
+         ++j) {
+      if (double_fields[j].value <= 0.0)
+        continue;
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", double_fields[j].value);
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage,
+                                    double_fields[j].key,
+                                    NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                                    value) != 0)
+        return -1;
+    }
+  }
+
   return 0;
 }
 
@@ -610,6 +998,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             value) != 0)
       return -1;
   }
+  if (append_tce_direct_values(params_root, typed_set_keys, typed_set_types,
+                               typed_set_value_counts, typed_set_values,
+                               NWCHEMC_DIRECT_SET_MAX,
+                               NWCHEMC_DIRECT_SET_VALUE_MAX,
+                               &typed_set_count, nwpw_direct_keys,
+                               nwpw_direct_values) != 0)
+    return -1;
   if (nwpw_energy_cutoff > 0.0) {
     char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
     snprintf(value, sizeof(value), "%.17g", nwpw_energy_cutoff);
