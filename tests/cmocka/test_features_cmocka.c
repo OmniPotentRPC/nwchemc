@@ -71,7 +71,7 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 12);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)abis, 23);
+  assert_int_equal((int)abis, 25);
   assert_int_equal((int)(mods + stanzas + fields + abis),
                    (int)nwchemc_feature_count());
 }
@@ -131,6 +131,8 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_calculate_forces",
       "abi.nwchemc_session_calculate_result",
       "abi.nwchemc_calculate_result",
+      "abi.nwchemc_calculate_hessian",
+      "abi.nwchemc_calculate_dipole",
       "abi.nwchemc_potential_result_size_for_force_input",
       "abi.nwchemc_session_calculate_hessian",
       "abi.nwchemc_session_calculate_dipole",
