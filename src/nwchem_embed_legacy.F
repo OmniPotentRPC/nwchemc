@@ -970,7 +970,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          status = geom_destroy(geom)
          return
       endif
-      if (scale .eq. 0.0d0) then
+      if (dabs(scale) .le. 1.0d-300) then
          errmsg = 'invalid optimized geometry scale'
          status = geom_destroy(geom)
          return
