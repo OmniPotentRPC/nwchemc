@@ -22,6 +22,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_set_dft_direct
   public :: nwchemc_embed_set_scf_direct
   public :: nwchemc_embed_set_driver_direct
+  public :: nwchemc_embed_set_nwpw_direct
   public :: nwchemc_embed_set_pseudopotentials
   public :: nwchemc_embed_set_rtdb_strings
   public :: nwchemc_embed_set_rtdb_values
@@ -398,6 +399,25 @@ contains
     cfg_driver_xrms_tol = real(xrms_tol, real64)
     rc = 0_c_int
   end function nwchemc_embed_set_driver_direct
+
+  !> Confirm structured NWPW cutoff controls are present on the direct path.
+  !> The C layer expands these controls into typed RTDB set entries.
+  function nwchemc_embed_set_nwpw_direct(has_options, energy_cutoff, &
+      wavefunction_cutoff, ewald_rcut, ewald_ncut) result(rc) &
+      bind(C, name='nwchemc_embed_set_nwpw_direct')
+    integer(c_int), intent(in), value :: has_options
+    real(c_double), intent(in), value :: energy_cutoff
+    real(c_double), intent(in), value :: wavefunction_cutoff
+    real(c_double), intent(in), value :: ewald_rcut
+    integer(c_int), intent(in), value :: ewald_ncut
+    integer(c_int) :: rc
+
+    if (has_options < 0) then
+      rc = -1_c_int
+    else
+      rc = 0_c_int
+    end if
+  end function nwchemc_embed_set_nwpw_direct
 
   !> Store direct NWPW pseudopotential library entries extracted from Cap'n Proto.
   function nwchemc_embed_set_pseudopotentials(elements, library_types, &

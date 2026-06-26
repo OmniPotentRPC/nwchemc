@@ -21,6 +21,15 @@
       )
     ),
     (
+      kind = nwpw,
+      nwpw = (
+        energyCutoff = 12.5,
+        wavefunctionCutoff = 6.25,
+        ewaldRcut = 3.5,
+        ewaldNcut = 9
+      )
+    ),
+    (
       kind = pseudopotential,
       pseudopotential = (
         entries = [

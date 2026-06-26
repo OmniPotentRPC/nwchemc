@@ -876,12 +876,50 @@ static int render_geometry_stanza(NWChemGeometryStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
+                              size_t dst_size,
+                              int include_direct_promoted) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemNwpwStanza nwpw;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemNwpwStanza(&nwpw, ptr);
+  if (append_format(block, sizeof(block), "nwpw\n") != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.energyCutoff > 0.0 &&
+      append_format(block, sizeof(block), "  energy_cutoff %.15g\n",
+                    nwpw.energyCutoff) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.wavefunctionCutoff > 0.0 &&
+      append_format(block, sizeof(block), "  wavefunction_cutoff %.15g\n",
+                    nwpw.wavefunctionCutoff) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.ewaldRcut > 0.0 &&
+      append_format(block, sizeof(block), "  ewald_rcut %.15g\n",
+                    nwpw.ewaldRcut) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.ewaldNcut > 0 &&
+      append_format(block, sizeof(block), "  ewald_ncut %d\n",
+                    nwpw.ewaldNcut) != 0)
+    return -1;
+  if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
+    return -1;
+  if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
+    return 0;
+  if (append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 size_t dst_size,
                                 int include_direct_promoted_dft,
                                 int include_direct_promoted_scf,
                                 int include_direct_pseudopotentials,
                                 int include_direct_promoted_driver,
+                                int include_direct_promoted_nwpw,
                                 int include_direct_set_strings,
                                 int include_task_stanzas) {
   int n = struct_list_len(&stanzas.p);
@@ -943,6 +981,11 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       if (render_geometry_stanza(stanza.geometry, dst, dst_size) != 0)
         return -1;
       break;
+    case NWChemInputStanza_Kind_nwpw:
+      if (render_nwpw_stanza(stanza.nwpw, dst, dst_size,
+                             include_direct_promoted_nwpw) != 0)
+        return -1;
+      break;
     case NWChemInputStanza_Kind_generic:
     default:
       if (render_generic_stanza(stanza.generic, dst, dst_size) != 0)
@@ -973,7 +1016,7 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1, 1,
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1, 1, 1,
                            1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
@@ -986,7 +1029,7 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0, 0,
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0, 0, 0,
                            0) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
@@ -1144,6 +1187,58 @@ int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
     if (driver.xrmsTol > 0.0) {
       *has_options = 1;
       *xrms_tol = driver.xrmsTol;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw(NWChemParams_ptr params,
+                                       int *has_options,
+                                       double *energy_cutoff,
+                                       double *wavefunction_cutoff,
+                                       double *ewald_rcut,
+                                       int *ewald_ncut) {
+  if (params.p.type == CAPN_NULL || !has_options || !energy_cutoff ||
+      !wavefunction_cutoff || !ewald_rcut || !ewald_ncut)
+    return -1;
+
+  *has_options = 0;
+  *energy_cutoff = 0.0;
+  *wavefunction_cutoff = 0.0;
+  *ewald_rcut = 0.0;
+  *ewald_ncut = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.energyCutoff > 0.0) {
+      *has_options = 1;
+      *energy_cutoff = nwpw.energyCutoff;
+    }
+    if (nwpw.wavefunctionCutoff > 0.0) {
+      *has_options = 1;
+      *wavefunction_cutoff = nwpw.wavefunctionCutoff;
+    }
+    if (nwpw.ewaldRcut > 0.0) {
+      *has_options = 1;
+      *ewald_rcut = nwpw.ewaldRcut;
+    }
+    if (nwpw.ewaldNcut > 0) {
+      *has_options = 1;
+      *ewald_ncut = nwpw.ewaldNcut;
     }
   }
 

@@ -1067,6 +1067,14 @@
       "nwchem_role": "Geometry block metadata (units/symmetry; coords via ABI)",
       "stub": true,
       "embed": true
+    },
+    {
+      "kind": "nwpw",
+      "schema_path": "NWChemInputStanza.nwpw",
+      "capnp_type": "nwpw",
+      "nwchem_role": "nwpw stanza",
+      "stub": true,
+      "embed": true
     }
   ],
   "params_fields": [
