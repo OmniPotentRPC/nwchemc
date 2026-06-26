@@ -23,13 +23,17 @@ static char g_dft_xc[64];
 static char g_input_blocks[8192];
 static char g_psp_elements[8][17];
 static char g_psp_names[8][257];
+static char g_set_keys[8][129];
+static char g_set_values[8][257];
 static int g_psp_types[8];
 static int g_psp_count = 0;
+static int g_set_string_count = 0;
 static int g_set_config_calls = 0;
 static int g_set_dft_direct_calls = 0;
 static int g_set_scf_direct_calls = 0;
 static int g_set_driver_direct_calls = 0;
 static int g_set_pseudopotential_calls = 0;
+static int g_set_rtdb_strings_calls = 0;
 static int g_dft_direct_enabled = 0;
 static int g_dft_smearing_enabled = 0;
 static double g_dft_smear_sigma_hartree = 0.0;
@@ -175,6 +179,20 @@ int nwchemc_embed_set_pseudopotentials(const char *elements,
   return 0;
 }
 
+int nwchemc_embed_set_rtdb_strings(const char *keys, const char *values,
+                                   int count) {
+  ++g_set_rtdb_strings_calls;
+  g_set_string_count = count;
+  if (count > 8)
+    count = 8;
+  for (int i = 0; i < count; ++i) {
+    copy_span(g_set_keys[i], sizeof(g_set_keys[i]), keys + i * 128, 128);
+    copy_span(g_set_values[i], sizeof(g_set_values[i]), values + i * 256,
+              256);
+  }
+  return 0;
+}
+
 int nwchemc_embed_energy_only(const int *n_atoms, const double *positions_ang,
                               const int *atomic_numbers, const int *charge,
                               const int *multiplicity, double *energy_h,
@@ -305,14 +323,18 @@ static void reset_embed_captures(void) {
   for (int i = 0; i < 8; ++i) {
     g_psp_elements[i][0] = '\0';
     g_psp_names[i][0] = '\0';
+    g_set_keys[i][0] = '\0';
+    g_set_values[i][0] = '\0';
     g_psp_types[i] = -1;
   }
   g_psp_count = 0;
+  g_set_string_count = 0;
   g_set_config_calls = 0;
   g_set_dft_direct_calls = 0;
   g_set_scf_direct_calls = 0;
   g_set_driver_direct_calls = 0;
   g_set_pseudopotential_calls = 0;
+  g_set_rtdb_strings_calls = 0;
   g_dft_direct_enabled = 0;
   g_dft_smearing_enabled = 0;
   g_dft_smear_sigma_hartree = 0.0;
@@ -463,6 +485,10 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_close(g_driver_grms_tol, 1.5e-5, 1.0e-12);
   assert_close(g_driver_xmax_tol, 7.5e-5, 1.0e-12);
   assert_close(g_driver_xrms_tol, 5.5e-5, 1.0e-12);
+  assert_int_equal(g_set_rtdb_strings_calls, 1);
+  assert_int_equal(g_set_string_count, 1);
+  assert_string_equal(g_set_keys[0], "dft:grid");
+  assert_string_equal(g_set_values[0], "xfine");
   assert_null(strstr(g_input_blocks, "scf\n"));
   assert_null(strstr(g_input_blocks, "maxiter 50"));
   assert_null(strstr(g_input_blocks, "tol2e 1e-09"));
@@ -473,6 +499,7 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_null(strstr(g_input_blocks, "grms 1.5e-05"));
   assert_null(strstr(g_input_blocks, "xmax 7.5e-05"));
   assert_null(strstr(g_input_blocks, "xrms 5.5e-05"));
+  assert_null(strstr(g_input_blocks, "set dft:grid xfine"));
 
   free(message);
 }

@@ -50,6 +50,12 @@ static void assert_render_contains(const char *blocks, const char *needle) {
   assert_non_null(strstr(blocks, needle));
 }
 
+static void assert_capn_text_equals(capn_text text, const char *expected) {
+  assert_non_null(expected);
+  assert_int_equal(text.len, (int)strlen(expected));
+  assert_memory_equal(text.str, expected, (size_t)text.len);
+}
+
 static void test_render_config_options_stanzas(void **state) {
   (void)state;
   assert_non_null(g_config_options_path);
@@ -89,6 +95,16 @@ static void test_render_config_options_stanzas(void **state) {
   assert_render_contains(blocks, "task scf energy");
   assert_render_contains(blocks, "set dft:grid xfine");
   assert_render_contains(blocks, "print low");
+
+  capn_text set_keys[4];
+  capn_text set_values[4];
+  size_t set_count = 0;
+  assert_int_equal(nwchemc_params_extract_direct_set_strings(
+                       params_root, set_keys, set_values, 4, &set_count),
+                   0);
+  assert_int_equal(set_count, 1);
+  assert_capn_text_equals(set_keys[0], "dft:grid");
+  assert_capn_text_equals(set_values[0], "xfine");
 
   int scf_maxiter = 0;
   double scf_thresh = 0.0;
@@ -143,6 +159,7 @@ static void test_render_config_options_stanzas(void **state) {
   assert_null(strstr(embed_blocks, "grms 1.5e-05"));
   assert_null(strstr(embed_blocks, "xmax 7.5e-05"));
   assert_null(strstr(embed_blocks, "xrms 5.5e-05"));
+  assert_null(strstr(embed_blocks, "set dft:grid xfine"));
 
   nwchemc_params_release(&arena);
   free(message);
