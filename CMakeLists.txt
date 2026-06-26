@@ -734,8 +734,19 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       ${NWCHEM_LINK_ITEMS}
       PkgConfig::CMOCKA
     )
+    target_include_directories(nwchem-geometry-basis-rtdb PRIVATE
+      ${NWCHEM_EMBED_INCLUDES}
+    )
+    target_compile_definitions(nwchem-geometry-basis-rtdb PRIVATE
+      NWCHEMC_HAS_NWCHEM
+      GFORTRAN
+      LINUX64
+      EXT_INT
+      OPENBLAS
+    )
     target_compile_options(nwchem-geometry-basis-rtdb PRIVATE
       ${NWCHEMC_COMMON_C_WARNINGS}
+      ${NWCHEM_FORTRAN_OPTIONS}
       $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
     )
     add_test(
