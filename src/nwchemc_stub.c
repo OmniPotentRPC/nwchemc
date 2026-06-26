@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+static NWChemCResult stub_fail(void);
+
 int nwchemc_set_params(const void *params_capnp,
                        size_t params_capnp_size_bytes) {
   (void)params_capnp;
@@ -78,6 +80,19 @@ NWChemCResult nwchemc_hessian(
   return r;
 }
 
+NWChemCResult nwchemc_dipole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *dipole_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)dipole_au;
+  return stub_fail();
+}
+
 const char *nwchemc_version(void) { return "nwchemc-stub/0.1.0"; }
 
 int nwchemc_available(void) { return 0; }
@@ -147,6 +162,18 @@ NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers,
+                                     double *dipole_au) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)dipole_au;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_forces(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *forces_h_bohr,
@@ -205,6 +232,18 @@ NWChemCResult nwchemc_session_calculate_hessian(
   (void)force_input_capnp_size_bytes;
   (void)hessian_h_bohr2;
   (void)hessian_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_dipole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *dipole_au,
+    size_t dipole_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)dipole_au;
+  (void)dipole_len;
   return stub_fail();
 }
 

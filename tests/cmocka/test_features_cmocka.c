@@ -71,7 +71,7 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 12);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)abis, 20);
+  assert_int_equal((int)abis, 23);
   assert_int_equal((int)(mods + stanzas + fields + abis),
                    (int)nwchemc_feature_count());
 }

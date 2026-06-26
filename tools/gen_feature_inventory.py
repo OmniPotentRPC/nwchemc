@@ -178,6 +178,11 @@ def main() -> int:
                 "embed": "runs Cartesian Hessian",
             },
             {
+                "name": "nwchemc_dipole",
+                "stub": "fails ok==0",
+                "embed": "runs total dipole",
+            },
+            {
                 "name": "nwchemc_session_create",
                 "stub": "returns NULL",
                 "embed": "creates persistent Cap'n Proto session",
@@ -208,6 +213,11 @@ def main() -> int:
                 "embed": "runs session energy/forces",
             },
             {
+                "name": "nwchemc_session_dipole",
+                "stub": "fails ok==0",
+                "embed": "runs session total dipole",
+            },
+            {
                 "name": "nwchemc_session_calculate_forces",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput energy/forces",
@@ -231,6 +241,11 @@ def main() -> int:
                 "name": "nwchemc_session_calculate_hessian",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput Hessian",
+            },
+            {
+                "name": "nwchemc_session_calculate_dipole",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput dipole",
             },
             {
                 "name": "nwchemc_session_hessian",

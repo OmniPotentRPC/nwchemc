@@ -65,6 +65,17 @@ extern int nwchemc_embed_hessian_cell(
     const double *cell_ang, const int *has_cell, const int *charge,
     const int *multiplicity, double *hessian_h_bohr2, char *errmsg,
     int errmsg_len);
+extern int nwchemc_embed_dipole(const int *n_atoms,
+                                const double *positions_ang,
+                                const int *atomic_numbers, const int *charge,
+                                const int *multiplicity, double *energy_h,
+                                double *dipole_au, char *errmsg,
+                                int errmsg_len);
+extern int nwchemc_embed_dipole_cell(
+    const int *n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const double *cell_ang, const int *has_cell, const int *charge,
+    const int *multiplicity, double *energy_h, double *dipole_au, char *errmsg,
+    int errmsg_len);
 extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
@@ -474,6 +485,58 @@ NWChemCResult nwchemc_hessian(
   return r;
 }
 
+NWChemCResult nwchemc_dipole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *dipole_au) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+
+  if (n_atoms <= 0 || !positions_ang || !atomic_numbers || !dipole_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                          &params_root) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
+    return r;
+  }
+
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
+  if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  g_active_session = NULL;
+
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = params.charge;
+  int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  double eh = 0.0;
+  int rc = nwchemc_embed_dipole(&n, positions_ang, atomic_numbers, &ch, &mult,
+                                &eh, dipole_au, errmsg,
+                                (int)sizeof(errmsg) - 1);
+  nwchemc_params_release(&arena);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed dipole failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
 static void session_clear_params(NWChemCSession *session) {
   if (!session)
     return;
@@ -770,6 +833,68 @@ NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
       forces_h_bohr[i] = -forces_h_bohr[i];
   }
   return r;
+}
+
+static NWChemCResult session_dipole_cell(NWChemCSession *session, int n_atoms,
+                                         const double *positions_ang,
+                                         const int *atomic_numbers,
+                                         const double *cell_ang, int has_cell,
+                                         double *dipole_au) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !dipole_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  int topology_status =
+      session_check_topology(session, (size_t)n_atoms, atomic_numbers);
+  if (topology_status < 0) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  if (topology_status > 0) {
+    snprintf(r.message, sizeof(r.message), "session topology mismatch");
+    return r;
+  }
+  if (session_apply_config(session) != 0) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  ensure_init();
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = 0;
+  int mult = 1;
+  session_charge_multiplicity(session, &ch, &mult);
+  double eh = 0.0;
+  int cell_flag = has_cell ? 1 : 0;
+  double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0};
+  const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  int rc = nwchemc_embed_dipole_cell(
+      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult, &eh,
+      dipole_au, errmsg, (int)sizeof(errmsg) - 1);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed dipole failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
+NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers,
+                                     double *dipole_au) {
+  return session_dipole_cell(session, n_atoms, positions_ang, atomic_numbers,
+                             NULL, 0, dipole_au);
 }
 
 NWChemCResult nwchemc_session_calculate_forces(
@@ -1111,6 +1236,57 @@ NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
                               NULL, 0, hessian_h_bohr2);
 }
 
+NWChemCResult nwchemc_session_calculate_dipole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *dipole_au,
+    size_t dipole_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !dipole_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || dipole_len < 3u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  return session_dipole_cell(session, (int)n_atoms, session->step_positions_ang,
+                             session->step_atomic_numbers, cell_ang, has_cell,
+                             dipole_au);
+}
+
 const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
 
 int nwchemc_available(void) {
@@ -1201,6 +1377,23 @@ NWChemCResult nwchemc_hessian(
   return r;
 }
 
+NWChemCResult nwchemc_dipole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *dipole_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)dipole_au;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
+  return r;
+}
+
 const char *nwchemc_version(void) { return "nwchemc/unavailable"; }
 
 int nwchemc_available(void) { return 0; }
@@ -1269,6 +1462,18 @@ NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers,
+                                     double *dipole_au) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)dipole_au;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_forces(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *forces_h_bohr,
@@ -1327,6 +1532,18 @@ NWChemCResult nwchemc_session_calculate_hessian(
   (void)force_input_capnp_size_bytes;
   (void)hessian_h_bohr2;
   (void)hessian_len;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_dipole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *dipole_au,
+    size_t dipole_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)dipole_au;
+  (void)dipole_len;
   return no_nwchem_fail();
 }
 

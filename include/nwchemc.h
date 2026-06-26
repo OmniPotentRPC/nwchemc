@@ -99,6 +99,24 @@ NWChemCResult nwchemc_hessian(
     double *hessian_h_bohr2);
 
 /**
+ * @brief Compute total electric dipole for an atomic configuration.
+ *
+ * @param n_atoms Number of atoms.
+ * @param positions_ang Flat Cartesian coordinate array in Angstrom, length
+ *        `n_atoms * 3`.
+ * @param atomic_numbers Atomic number array, length `n_atoms`.
+ * @param params_capnp Pointer to an unpacked flat `NWChemParams` message.
+ * @param params_capnp_size_bytes Size of `params_capnp` in bytes.
+ * @param dipole_au Output total dipole vector in atomic units, length 3.
+ * @return Calculation result and status message. `energy_h` carries the
+ *         associated total energy in Hartree when available.
+ */
+NWChemCResult nwchemc_dipole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *dipole_au);
+
+/**
  * @brief Create a persistent evaluation session from a Cap'n Proto message.
  *
  * The session owns a copy of the serialized message so callers may pass a
@@ -144,6 +162,14 @@ NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
                                             const double *positions_ang,
                                             const int *atomic_numbers,
                                             double *forces_h_bohr);
+
+/**
+ * @brief Compute total electric dipole using a persistent session.
+ */
+NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers,
+                                     double *dipole_au);
 
 /**
  * @brief Compute energy and forces for one Cap'n Proto `ForceInput` step.
@@ -234,6 +260,23 @@ NWChemCResult nwchemc_session_calculate_hessian(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *hessian_h_bohr2,
     size_t hessian_len);
+
+/**
+ * @brief Compute dipole for one Cap'n Proto `ForceInput` step.
+ *
+ * The session keeps persistent `NWChemParams` method state while the step
+ * message supplies positions, atomic numbers, and optional 3x3 cell vectors.
+ * The dipole vector is returned in atomic units.
+ *
+ * @param session Persistent session created from `NWChemParams`.
+ * @param force_input_capnp Pointer to an unpacked flat `ForceInput` message.
+ * @param force_input_capnp_size_bytes Size of `force_input_capnp` in bytes.
+ * @param dipole_au Output total dipole vector in atomic units.
+ * @param dipole_len Number of doubles available in `dipole_au`.
+ */
+NWChemCResult nwchemc_session_calculate_dipole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *dipole_au, size_t dipole_len);
 
 /**
  * @brief Compute Hessian using a persistent session.
