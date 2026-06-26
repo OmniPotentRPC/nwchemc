@@ -61,7 +61,15 @@
         toleranceEnergy = 0.125,
         toleranceDensity = 0.25,
         toleranceGradient = 0.5,
-        exchangeCorrelation = "pbe96"
+        exchangeCorrelation = "pbe96",
+        balanceMode = nobalance,
+        boStepStart = 11,
+        boStepEnd = 22,
+        boTimeStep = 0.75,
+        boAlgorithm = velocityVerlet,
+        boFakeMass = 333.0,
+        scalingFirst = 1.5,
+        scalingSecond = 2.5
       )
     ),
     (

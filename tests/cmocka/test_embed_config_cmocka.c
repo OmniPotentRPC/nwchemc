@@ -627,11 +627,17 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "loop 3 7"));
   assert_null(strstr(g_input_blocks, "tolerances 0.125 0.25 0.5"));
   assert_null(strstr(g_input_blocks, "exchange_correlation pbe96"));
+  assert_null(strstr(g_input_blocks, "nobalance"));
+  assert_null(strstr(g_input_blocks, "bo_steps 11 22"));
+  assert_null(strstr(g_input_blocks, "bo_time_step 0.75"));
+  assert_null(strstr(g_input_blocks, "bo_algorithm velocity-verlet"));
+  assert_null(strstr(g_input_blocks, "bo_fake_mass 333"));
+  assert_null(strstr(g_input_blocks, "scaling 1.5 2.5"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 47);
+  assert_int_equal(g_typed_set_count, 54);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -669,6 +675,20 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1");
   assert_typed_set_scalar("band:HFX_parameter",
                           NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1");
+  assert_typed_set_scalar("nwpw:balance", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "false");
+  assert_typed_set_pair("nwpw:bo_steps", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                        "11", "22");
+  assert_typed_set_scalar("nwpw:bo_time_step",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.75");
+  assert_typed_set_scalar("nwpw:bo_algorithm",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar("nwpw:bo_fake_mass",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "333");
+  assert_typed_set_pair("nwpw:scaling", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.5",
+                        "2.5");
+  assert_typed_set_pair("cpmd:scaling", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.5",
+                        "2.5");
   assert_int_equal(g_set_nwpw_direct_calls, 1);
   assert_int_equal(g_nwpw_has_options, 1);
   assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);

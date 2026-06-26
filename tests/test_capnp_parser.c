@@ -104,6 +104,12 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "loop 3 7"));
   assert_non_null(strstr(input_blocks, "tolerances 0.125 0.25 0.5"));
   assert_non_null(strstr(input_blocks, "exchange_correlation pbe96"));
+  assert_non_null(strstr(input_blocks, "nobalance"));
+  assert_non_null(strstr(input_blocks, "bo_steps 11 22"));
+  assert_non_null(strstr(input_blocks, "bo_time_step 0.75"));
+  assert_non_null(strstr(input_blocks, "bo_algorithm velocity-verlet"));
+  assert_non_null(strstr(input_blocks, "bo_fake_mass 333"));
+  assert_non_null(strstr(input_blocks, "scaling 1.5 2.5"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -163,6 +169,12 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "loop 3 7"));
   assert_null(strstr(input_blocks, "tolerances 0.125 0.25 0.5"));
   assert_null(strstr(input_blocks, "exchange_correlation pbe96"));
+  assert_null(strstr(input_blocks, "nobalance"));
+  assert_null(strstr(input_blocks, "bo_steps 11 22"));
+  assert_null(strstr(input_blocks, "bo_time_step 0.75"));
+  assert_null(strstr(input_blocks, "bo_algorithm velocity-verlet"));
+  assert_null(strstr(input_blocks, "bo_fake_mass 333"));
+  assert_null(strstr(input_blocks, "scaling 1.5 2.5"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -248,6 +260,37 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_xc, 1);
   assert_true(text_equals(exchange_correlation, "pbe96"));
+
+  int has_bo = 0;
+  int balance_mode = 0;
+  int bo_step_start = 0;
+  int bo_step_end = 0;
+  double bo_time_step = 0.0;
+  int bo_algorithm = 0;
+  double bo_fake_mass = 0.0;
+  int has_scaling = 0;
+  double scaling_first = 0.0;
+  double scaling_second = 0.0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_bo(
+                       params_root, &has_bo, &balance_mode, &bo_step_start,
+                       &bo_step_end, &bo_time_step, &bo_algorithm,
+                       &bo_fake_mass, &has_scaling, &scaling_first,
+                       &scaling_second),
+                   0);
+  assert_int_equal(has_bo, 1);
+  assert_int_equal(balance_mode, NWChemNwpwBalanceMode_nobalance);
+  assert_int_equal(bo_step_start, 11);
+  assert_int_equal(bo_step_end, 22);
+  assert_true(bo_time_step > 0.749);
+  assert_true(bo_time_step < 0.751);
+  assert_int_equal(bo_algorithm, NWChemNwpwBoAlgorithm_velocityVerlet);
+  assert_true(bo_fake_mass > 332.999);
+  assert_true(bo_fake_mass < 333.001);
+  assert_int_equal(has_scaling, 1);
+  assert_true(scaling_first > 1.499);
+  assert_true(scaling_first < 1.501);
+  assert_true(scaling_second > 2.499);
+  assert_true(scaling_second < 2.501);
 
   nwchemc_params_release(&arena);
   free(message);
