@@ -114,6 +114,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
      $     driver_xrms_tol, psp_count, psp_elements, psp_types,
      $     psp_names, set_string_count, set_keys, set_values,
+     $     typed_set_count, typed_set_keys, typed_set_types,
+     $     typed_set_value_counts, typed_set_values,
      $     energy_h, grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
@@ -126,6 +128,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer has_cell
       integer psp_count
       integer set_string_count
+      integer typed_set_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
@@ -134,6 +137,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision cell_ang(*)
       integer atmnrs(*)
       integer psp_types(*)
+      integer typed_set_types(*)
+      integer typed_set_value_counts(*)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
@@ -142,6 +147,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*256 psp_names(*)
       character*128 set_keys(*)
       character*256 set_values(*)
+      character*128 typed_set_keys(*)
+      character*256 typed_set_values(16,*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
@@ -189,6 +196,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
      $     set_keys, set_values, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_typed_sets(rtdb, typed_set_count,
+     $     typed_set_keys, typed_set_types, typed_set_value_counts,
+     $     typed_set_values, errmsg, status)
       if (.not. status) return
 
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
@@ -253,6 +264,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
      $     driver_xrms_tol, psp_count, psp_elements, psp_types,
      $     psp_names, set_string_count, set_keys, set_values,
+     $     typed_set_count, typed_set_keys, typed_set_types,
+     $     typed_set_value_counts, typed_set_values,
      $     hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
@@ -265,6 +278,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer has_cell
       integer psp_count
       integer set_string_count
+      integer typed_set_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
@@ -273,6 +287,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision cell_ang(*)
       integer atmnrs(*)
       integer psp_types(*)
+      integer typed_set_types(*)
+      integer typed_set_value_counts(*)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
@@ -281,6 +297,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*256 psp_names(*)
       character*128 set_keys(*)
       character*256 set_values(*)
+      character*128 typed_set_keys(*)
+      character*256 typed_set_values(16,*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
@@ -333,6 +351,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
      $     set_keys, set_values, errmsg, status)
       if (.not. status) return
+      call nwchemc_apply_direct_typed_sets(rtdb, typed_set_count,
+     $     typed_set_keys, typed_set_types, typed_set_value_counts,
+     $     typed_set_values, errmsg, status)
+      if (.not. status) return
 
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
@@ -382,6 +404,122 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
  920  continue
       close(unit=69, status='keep')
       errmsg = 'unexpected EOF reading hessian file'
+      return
+      end
+
+      subroutine nwchemc_apply_direct_typed_sets(rtdb, set_count,
+     $     set_keys, set_types, set_value_counts, set_values, errmsg,
+     $     ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+#include "inp.fh"
+      integer rtdb, set_count
+      integer set_types(*)
+      integer set_value_counts(*)
+      character*128 set_keys(*)
+      character*256 set_values(16,*)
+      character*(*) errmsg
+      logical ok
+      integer i, j, l_key, l_value, nvalues, maxsets, maxvalues
+      parameter (maxsets = 64)
+      parameter (maxvalues = 16)
+      integer ivals(maxvalues)
+      double precision dvals(maxvalues)
+      logical lvals(maxvalues)
+      character*256 cvals(maxvalues)
+
+      ok = .false.
+      if (set_count .lt. 0 .or. set_count .gt. maxsets) then
+         errmsg = 'invalid direct typed set count'
+         return
+      endif
+      do i = 1, set_count
+         l_key = inp_strlen(set_keys(i))
+         nvalues = set_value_counts(i)
+         if (l_key .le. 0 .or. nvalues .le. 0 .or.
+     $      nvalues .gt. maxvalues) then
+            errmsg = 'invalid direct typed set entry'
+            return
+         endif
+         do j = 1, nvalues
+            l_value = inp_strlen(set_values(j,i))
+            if (l_value .le. 0) then
+               errmsg = 'empty direct typed set value'
+               return
+            endif
+         enddo
+         if (set_types(i) .eq. 2) then
+            do j = 1, nvalues
+               read(set_values(j,i), *, err=900) dvals(j)
+            enddo
+            if (.not. rtdb_put(rtdb, set_keys(i)(1:l_key), mt_dbl,
+     $         nvalues, dvals)) then
+               errmsg = 'direct double set write failed'
+               return
+            endif
+         else if (set_types(i) .eq. 3) then
+            do j = 1, nvalues
+               read(set_values(j,i), *, err=910) ivals(j)
+            enddo
+            if (.not. rtdb_put(rtdb, set_keys(i)(1:l_key), mt_int,
+     $         nvalues, ivals)) then
+               errmsg = 'direct integer set write failed'
+               return
+            endif
+         else if (set_types(i) .eq. 4) then
+            do j = 1, nvalues
+               call nwchemc_parse_logical(set_values(j,i),
+     $            lvals(j), ok)
+               if (.not. ok) then
+                  errmsg = 'direct logical set parse failed'
+                  return
+               endif
+            enddo
+            if (.not. rtdb_put(rtdb, set_keys(i)(1:l_key), mt_log,
+     $         nvalues, lvals)) then
+               errmsg = 'direct logical set write failed'
+               return
+            endif
+         else
+            do j = 1, nvalues
+               cvals(j) = set_values(j,i)
+            enddo
+            if (.not. rtdb_cput(rtdb, set_keys(i)(1:l_key),
+     $         nvalues, cvals)) then
+               errmsg = 'direct string set write failed'
+               return
+            endif
+         endif
+      enddo
+      ok = .true.
+      return
+ 900  continue
+      errmsg = 'direct double set parse failed'
+      return
+ 910  continue
+      errmsg = 'direct integer set parse failed'
+      return
+      end
+
+      subroutine nwchemc_parse_logical(value, parsed, ok)
+      implicit none
+#include "inp.fh"
+      character*(*) value
+      logical parsed, ok
+
+      ok = .true.
+      if (inp_compare(.false., value, 'true') .or.
+     $    inp_compare(.false., value, '.true.') .or.
+     $    inp_compare(.false., value, 't')) then
+         parsed = .true.
+      else if (inp_compare(.false., value, 'false') .or.
+     $    inp_compare(.false., value, '.false.') .or.
+     $    inp_compare(.false., value, 'f')) then
+         parsed = .false.
+      else
+         ok = .false.
+      endif
       return
       end
 

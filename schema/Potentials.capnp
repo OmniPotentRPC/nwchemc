@@ -46,8 +46,18 @@ struct NWChemGenericStanza {
 }
 
 struct NWChemSetDirective {
-  key   @0 :Text; # RTDB key, e.g. "dft:avg_fon".
-  value @1 :Text; # NWChem input literal, e.g. ".false.".
+  key       @0 :Text; # RTDB key, e.g. "dft:avg_fon".
+  value     @1 :Text; # Backward-compatible single NWChem input literal.
+  valueType @2 :ValueType = auto;
+  values    @3 :List(Text); # Preferred structured value list.
+
+  enum ValueType {
+    auto    @0; # Infer through NWChem text parser in full decks; direct embed treats as text.
+    text    @1; # NWChem "string" set value.
+    double  @2;
+    integer @3;
+    logical @4;
+  }
 }
 
 struct NWChemDftSmearing {

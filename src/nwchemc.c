@@ -37,6 +37,10 @@ extern int nwchemc_embed_set_pseudopotentials(const char *elements,
                                               int count);
 extern int nwchemc_embed_set_rtdb_strings(const char *keys,
                                           const char *values, int count);
+extern int nwchemc_embed_set_rtdb_values(const char *keys,
+                                         const int *value_types,
+                                         const int *value_counts,
+                                         const char *values, int count);
 extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers,
@@ -82,6 +86,7 @@ static NWChemCSession *g_active_session = NULL;
 
 enum {
   NWCHEMC_DIRECT_SET_MAX = 64,
+  NWCHEMC_DIRECT_SET_VALUE_MAX = 16,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
   NWCHEMC_DIRECT_SET_VALUE_LEN = 256,
 };
@@ -208,9 +213,20 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   capn_text set_keys[NWCHEMC_DIRECT_SET_MAX];
   capn_text set_values[NWCHEMC_DIRECT_SET_MAX];
   size_t set_count = 0;
+  capn_text typed_set_keys[NWCHEMC_DIRECT_SET_MAX];
+  int typed_set_types[NWCHEMC_DIRECT_SET_MAX];
+  int typed_set_value_counts[NWCHEMC_DIRECT_SET_MAX];
+  capn_text typed_set_values[NWCHEMC_DIRECT_SET_MAX *
+                             NWCHEMC_DIRECT_SET_VALUE_MAX];
+  size_t typed_set_count = 0;
   char packed_set_keys[NWCHEMC_DIRECT_SET_MAX * NWCHEMC_DIRECT_SET_KEY_LEN];
   char packed_set_values[NWCHEMC_DIRECT_SET_MAX *
                          NWCHEMC_DIRECT_SET_VALUE_LEN];
+  char packed_typed_set_keys[NWCHEMC_DIRECT_SET_MAX *
+                             NWCHEMC_DIRECT_SET_KEY_LEN];
+  char packed_typed_set_values[NWCHEMC_DIRECT_SET_MAX *
+                               NWCHEMC_DIRECT_SET_VALUE_MAX *
+                               NWCHEMC_DIRECT_SET_VALUE_LEN];
   if (nwchemc_params_extract_direct_pseudopotentials(
           params_root, psp_elements, psp_types, psp_names, 64, &psp_count) != 0)
     return -1;
@@ -218,10 +234,17 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
           &set_count) != 0)
     return -1;
+  if (nwchemc_params_extract_direct_set_values(
+          params_root, typed_set_keys, typed_set_types, typed_set_value_counts,
+          typed_set_values, NWCHEMC_DIRECT_SET_MAX, NWCHEMC_DIRECT_SET_VALUE_MAX,
+          &typed_set_count) != 0)
+    return -1;
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
   memset(packed_psp_names, 0, sizeof(packed_psp_names));
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));
+  memset(packed_typed_set_keys, 0, sizeof(packed_typed_set_keys));
+  memset(packed_typed_set_values, 0, sizeof(packed_typed_set_values));
   for (size_t i = 0; i < psp_count; ++i) {
     copy_text_record(packed_psp_elements + i * 16, 16, psp_elements[i]);
     copy_text_record(packed_psp_names + i * 256, 256, psp_names[i]);
@@ -231,6 +254,18 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                      NWCHEMC_DIRECT_SET_KEY_LEN, set_keys[i]);
     copy_text_record(packed_set_values + i * NWCHEMC_DIRECT_SET_VALUE_LEN,
                      NWCHEMC_DIRECT_SET_VALUE_LEN, set_values[i]);
+  }
+  for (size_t i = 0; i < typed_set_count; ++i) {
+    copy_text_record(packed_typed_set_keys + i * NWCHEMC_DIRECT_SET_KEY_LEN,
+                     NWCHEMC_DIRECT_SET_KEY_LEN, typed_set_keys[i]);
+    for (int j = 0; j < typed_set_value_counts[i]; ++j) {
+      size_t offset = (i * NWCHEMC_DIRECT_SET_VALUE_MAX + (size_t)j) *
+                      NWCHEMC_DIRECT_SET_VALUE_LEN;
+      copy_text_record(packed_typed_set_values + offset,
+                       NWCHEMC_DIRECT_SET_VALUE_LEN,
+                       typed_set_values[i * NWCHEMC_DIRECT_SET_VALUE_MAX +
+                                        (size_t)j]);
+    }
   }
   if (dft_xc.len > 0 && dft_xc.str) {
     scf_type = dft_xc.str;
@@ -260,6 +295,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     return -1;
   if (nwchemc_embed_set_rtdb_strings(packed_set_keys, packed_set_values,
                                      (int)set_count) != 0)
+    return -1;
+  if (nwchemc_embed_set_rtdb_values(
+          packed_typed_set_keys, typed_set_types, typed_set_value_counts,
+          packed_typed_set_values, (int)typed_set_count) != 0)
     return -1;
   if (nwchemc_embed_set_scf_direct(scf_has_options, scf_maxiter, scf_thresh,
                                    scf_tol2e) != 0)

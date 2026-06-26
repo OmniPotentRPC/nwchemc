@@ -277,10 +277,44 @@ static int render_set_stanza(NWChemSetDirective_ptr ptr, char *dst,
   if (set.key.len <= 0)
     return 0;
   if (append_format(block, sizeof(block), "set ") != 0 ||
-      append_text(block, sizeof(block), set.key) != 0 ||
-      append_format(block, sizeof(block), " ") != 0 ||
-      append_text(block, sizeof(block), set.value) != 0)
+      append_text(block, sizeof(block), set.key) != 0)
     return -1;
+  const char *type_literal = NULL;
+  switch (set.valueType) {
+  case NWChemSetDirective_ValueType_text:
+    type_literal = "string";
+    break;
+  case NWChemSetDirective_ValueType_double:
+    type_literal = "double";
+    break;
+  case NWChemSetDirective_ValueType_integer:
+    type_literal = "integer";
+    break;
+  case NWChemSetDirective_ValueType_logical:
+    type_literal = "logical";
+    break;
+  case NWChemSetDirective_ValueType_auto:
+  default:
+    break;
+  }
+  if (type_literal &&
+      append_format(block, sizeof(block), " %s", type_literal) != 0)
+    return -1;
+  int nvalues = pointer_list_len(&set.values);
+  if (nvalues < 0)
+    return -1;
+  if (nvalues > 0) {
+    for (int i = 0; i < nvalues; ++i) {
+      capn_text value = capn_get_text(set.values, i, empty_text);
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), value) != 0)
+        return -1;
+    }
+  } else if (set.value.len > 0) {
+    if (append_format(block, sizeof(block), " ") != 0 ||
+        append_text(block, sizeof(block), set.value) != 0)
+      return -1;
+  }
   return append_block(dst, dst_size, block);
 }
 
@@ -1184,12 +1218,84 @@ int nwchemc_params_extract_direct_set_strings(NWChemParams_ptr params,
 
     struct NWChemSetDirective set;
     read_NWChemSetDirective(&set, stanza.set);
+    int nvalues = pointer_list_len(&set.values);
+    if (nvalues < 0)
+      return -1;
+    if (nvalues > 0 ||
+        (set.valueType != NWChemSetDirective_ValueType_auto &&
+         set.valueType != NWChemSetDirective_ValueType_text))
+      continue;
     if (set.key.len <= 0 || set.value.len <= 0)
       continue;
     if (*count >= capacity)
       return -1;
     keys[*count] = set.key;
     values[*count] = set.value;
+    ++*count;
+  }
+  return 0;
+}
+
+static int map_set_value_type(int schema_value_type) {
+  switch (schema_value_type) {
+  case NWChemSetDirective_ValueType_text:
+    return NWCHEMC_DIRECT_SET_VALUE_TEXT;
+  case NWChemSetDirective_ValueType_double:
+    return NWCHEMC_DIRECT_SET_VALUE_DOUBLE;
+  case NWChemSetDirective_ValueType_integer:
+    return NWCHEMC_DIRECT_SET_VALUE_INTEGER;
+  case NWChemSetDirective_ValueType_logical:
+    return NWCHEMC_DIRECT_SET_VALUE_LOGICAL;
+  case NWChemSetDirective_ValueType_auto:
+  default:
+    return NWCHEMC_DIRECT_SET_VALUE_AUTO;
+  }
+}
+
+int nwchemc_params_extract_direct_set_values(
+    NWChemParams_ptr params, capn_text *keys, int *value_types,
+    int *value_counts, capn_text *values, size_t set_capacity,
+    size_t value_capacity, size_t *count) {
+  if (params.p.type == CAPN_NULL || !keys || !value_types || !value_counts ||
+      !values || !count || value_capacity == 0)
+    return -1;
+
+  *count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int nstanzas = struct_list_len(&view.inputStanzas.p);
+  if (nstanzas < 0)
+    return -1;
+
+  for (int i = 0; i < nstanzas; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_set ||
+        stanza.set.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemSetDirective set;
+    read_NWChemSetDirective(&set, stanza.set);
+    int nvalues = pointer_list_len(&set.values);
+    if (nvalues < 0)
+      return -1;
+    if (nvalues == 0)
+      continue;
+    if (set.key.len <= 0)
+      continue;
+    if (*count >= set_capacity || (size_t)nvalues > value_capacity)
+      return -1;
+
+    keys[*count] = set.key;
+    value_types[*count] = map_set_value_type(set.valueType);
+    value_counts[*count] = nvalues;
+    for (int j = 0; j < nvalues; ++j) {
+      capn_text value = capn_get_text(set.values, j, empty_text);
+      if (value.len <= 0)
+        return -1;
+      values[*count * value_capacity + (size_t)j] = value;
+    }
     ++*count;
   }
   return 0;
