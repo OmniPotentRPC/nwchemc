@@ -40,6 +40,14 @@ NWChemCResult nwchemc_calculate_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_hessian(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len);
+NWChemCResult nwchemc_calculate_dipole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len);
 void nwchemc_session_destroy(NWChemCSession *session);
 ```
 
@@ -60,9 +68,12 @@ unpacked flat `PotentialResult` buffer before calling
 The first accepted session evaluation fixes the atom count and ordered
 atomic-number list for that session; later steps may change coordinates, units,
 and cell vectors, but atom-count or species changes require a separate session.
+Session calls reject topology-changing steps instead of resetting the handle
+implicitly; callers that need a new topology create a separate session.
 `nwchemc_calculate_result()` offers the same `NWChemParams + ForceInput`
 carrier for one-shot callers and delegates through the session result path;
-callers with multiple steps should reuse `NWChemCSession`.
+callers with multiple steps should reuse `NWChemCSession`. One-shot Hessian and
+dipole wrappers use the same `NWChemParams + ForceInput` carrier.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,

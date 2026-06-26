@@ -74,7 +74,8 @@ and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
 The first successful session evaluation establishes the session topology: atom
 count and the ordered atomic-number list. Later session calls may change
 coordinates, units, and cell vectors, but they must keep the same topology.
-Changing species or atom count requires a separate ~NWChemCSession~.
+Changing species or atom count is rejected by the active session and requires a
+separate ~NWChemCSession~.
 
 ~nwchemc_potential_result_size_for_force_input~ parses the step message and
 returns the result byte count without evaluating NWChem. If the output buffer is
@@ -88,6 +89,9 @@ For a single geometry step, ~nwchemc_calculate_result~ accepts
 buffer. It uses the same result-carrier path as
 ~nwchemc_session_calculate_result~ and returns the required output byte count
 without initializing NWChem when the buffer is too small.
+~nwchemc_calculate_hessian~ and ~nwchemc_calculate_dipole~ provide the same
+one-shot ~NWChemParams~ + ~ForceInput~ carrier for native Hessian and dipole
+buffers.
 
 * Parameter Ownership
 ~nwchemc~ reads the message with generated ~capnp-c~ bindings.
@@ -106,12 +110,13 @@ as negative gradients in Hartree per Bohr.
 ~nwchemc_session_calculate_result()~ writes ~PotentialResult.energy~ and
 ~PotentialResult.forces~ in the units requested by ~ForceInput.energyUnit~ and
 ~ForceInput.lengthUnit~, while ~NWChemCResult.energy_h~ remains Hartree.
-~nwchemc_hessian()~ and ~nwchemc_session_calculate_hessian()~ fill a dense
-row-major Cartesian Hessian in Hartree per Bohr squared, with length
-~(natoms * 3) * (natoms * 3)~.
+~nwchemc_hessian()~, ~nwchemc_session_calculate_hessian()~, and
+~nwchemc_calculate_hessian()~ fill a dense row-major Cartesian Hessian in
+Hartree per Bohr squared, with length ~(natoms * 3) * (natoms * 3)~.
 ~nwchemc_dipole()~, ~nwchemc_session_dipole()~, and
-~nwchemc_session_calculate_dipole()~ fill a three-element total dipole vector in
-atomic units and keep ~NWChemCResult.energy_h~ in Hartree.
+~nwchemc_session_calculate_dipole()~, and ~nwchemc_calculate_dipole()~ fill a
+three-element total dipole vector in atomic units and keep
+~NWChemCResult.energy_h~ in Hartree.
 Input coordinates are Angstrom values in a flat ~[natoms * 3]~ array.
 
 * Language Bindings

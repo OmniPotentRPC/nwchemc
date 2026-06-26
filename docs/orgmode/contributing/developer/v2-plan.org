@@ -21,6 +21,8 @@ directly. The public calculation entry points are:
 - ~nwchemc_session_calculate_forces~
 - ~nwchemc_session_calculate_result~
 - ~nwchemc_calculate_result~
+- ~nwchemc_calculate_hessian~
+- ~nwchemc_calculate_dipole~
 - ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_calculate_dipole~
 - ~nwchemc_session_hessian~
@@ -95,7 +97,7 @@ feature tests verify the generated inventory lookup table and ABI coverage.
 * Pickup Tasks
 ** Long-Running Step Calls
 ~nwchemc_session_calculate_forces~,
-~nwchemc_session_calculate_result~, and
+~nwchemc_session_calculate_result~,
 ~nwchemc_session_calculate_hessian~, and
 ~nwchemc_session_calculate_dipole~ are C ABI entry points for socket-style,
 optimizer-style, property, and vibrational callers. They take the session's
@@ -110,9 +112,13 @@ NWChem.
 ~NWChemParams + ForceInput -> PotentialResult~ path. Multi-step callers should
 reuse a session so configuration is applied once and per-step calls only carry
 coordinates, cell data, atom numbers, and requested units.
+~nwchemc_calculate_hessian~ and ~nwchemc_calculate_dipole~ are one-shot
+wrappers around the same session ForceInput validation and direct numeric
+geometry path.
 The session owns the topology invariant. A caller that changes atom count or
-species ordering must create a separate session rather than reusing the same
-handle.
+species ordering is rejected before NWChem evaluation. Resetting or replacing
+that topology is explicit: create a separate session, or add a dedicated reset
+entry point with the same explicit semantics.
 
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only

@@ -193,6 +193,8 @@ When ~allElements~ is true, the renderer and embed direct path use NWChem's
 | ~nwchemc_session_calculate_forces~ | ~abi.nwchemc_session_calculate_forces~ | fails | ForceInput energy/forces |
 | ~nwchemc_session_calculate_result~ | ~abi.nwchemc_session_calculate_result~ | fails | ForceInput PotentialResult |
 | ~nwchemc_calculate_result~ | ~abi.nwchemc_calculate_result~ | fails | one-shot ForceInput PotentialResult |
+| ~nwchemc_calculate_hessian~ | ~abi.nwchemc_calculate_hessian~ | fails | one-shot ForceInput Hessian |
+| ~nwchemc_calculate_dipole~ | ~abi.nwchemc_calculate_dipole~ | fails | one-shot ForceInput dipole |
 | ~nwchemc_session_calculate_hessian~ | ~abi.nwchemc_session_calculate_hessian~ | fails | ForceInput Hessian |
 | ~nwchemc_session_calculate_dipole~ | ~abi.nwchemc_session_calculate_dipole~ | fails | ForceInput dipole |
 | ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails | session Cartesian Hessian |
