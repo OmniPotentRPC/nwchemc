@@ -48,6 +48,21 @@ static void test_find_params_basis(void **state) {
   assert_int_equal(e->klass, NWCHEMC_FEATURE_PARAMS_FIELD);
 }
 
+static void test_find_tce_schema_fields(void **state) {
+  (void)state;
+  static const char *ids[] = {
+      "field.NWChemTceStanza.dipole",
+      "field.NWChemTceStanza.quadrupole",
+      "field.NWChemTceStanza.octupole",
+  };
+  size_t i;
+  for (i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i) {
+    const NWChemCFeatureEntry *e = nwchemc_feature_find(ids[i]);
+    assert_non_null(e);
+    assert_int_equal(e->klass, NWCHEMC_FEATURE_SCHEMA_FIELD);
+  }
+}
+
 static void test_unknown_null(void **state) {
   (void)state;
   assert_null(nwchemc_feature_find("module.nope"));
@@ -210,6 +225,7 @@ int main(void) {
       cmocka_unit_test(test_find_stanza_pseudopotential),
       cmocka_unit_test(test_find_abi_hessian),
       cmocka_unit_test(test_find_params_basis),
+      cmocka_unit_test(test_find_tce_schema_fields),
       cmocka_unit_test(test_unknown_null),
       cmocka_unit_test(test_module_name_lookup),
       cmocka_unit_test(test_class_partition_counts),
