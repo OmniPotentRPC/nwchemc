@@ -418,13 +418,21 @@ static int tce_io_value(enum NWChemTceIoAlgorithm io, int *value) {
   }
 }
 
+/** Parser-equivalent RTDB defaults for a structured TCE method token. */
 struct tce_method_defaults {
+  /** User-facing NWChem method token from NWChemTceStanza.method. */
   const char *method;
+  /** Normalized value for tce:model. */
   const char *model;
+  /** Optional normalized value for tce:perturbative. */
   const char *perturbative;
+  /** Optional normalized value for tce:ccsdvar. */
   const char *ccsd_variant;
+  /** Optional normalized logical value for tce:nts. */
   int no_triples_singles;
+  /** Optional normalized logical value for tce:left. */
   int left;
+  /** Optional normalized integer value for tce:mrcc; negative means unset. */
   int mrcc;
 };
 
