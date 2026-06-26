@@ -380,11 +380,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
 
       if (.not. rtdb_get(rtdb, 'task:dipole', mt_dbl, 3,
-     $     dipole_au)) then
+     $     dipole_au(1))) then
          if (.not. rtdb_get(rtdb, 'scf:dipole', mt_dbl, 3,
-     $      dipole_au)) then
+     $      dipole_au(1))) then
             if (.not. rtdb_get(rtdb, 'dft:dipole', mt_dbl, 3,
-     $         dipole_au)) then
+     $         dipole_au(1))) then
                errmsg = 'rtdb_get task/scf/dft dipole failed'
                return
             endif
