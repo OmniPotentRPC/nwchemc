@@ -154,6 +154,22 @@ static int span_starts_with(const char *s, int len, const char *prefix) {
   return s && len >= prefix_len && memcmp(s, prefix, (size_t)prefix_len) == 0;
 }
 
+static int ascii_lower(int c) {
+  return c >= 'A' && c <= 'Z' ? c + ('a' - 'A') : c;
+}
+
+static int capn_text_iequals(capn_text text, const char *value) {
+  int value_len = cstr_len(value);
+  if (!text.str || text.len != value_len)
+    return 0;
+  for (int i = 0; i < value_len; ++i) {
+    if (ascii_lower((unsigned char)text.str[i]) !=
+        ascii_lower((unsigned char)value[i]))
+      return 0;
+  }
+  return 1;
+}
+
 static void copy_text_record(char *dst, size_t dst_size, capn_text text) {
   size_t n = 0;
   memset(dst, 0, dst_size);
@@ -400,6 +416,124 @@ static int tce_io_value(enum NWChemTceIoAlgorithm io, int *value) {
   default:
     return 0;
   }
+}
+
+struct tce_method_defaults {
+  const char *method;
+  const char *model;
+  const char *perturbative;
+  const char *ccsd_variant;
+  int no_triples_singles;
+  int left;
+  int mrcc;
+};
+
+static const struct tce_method_defaults *tce_method_defaults_for(
+    capn_text method) {
+  static const struct tce_method_defaults defaults[] = {
+      {"ccd", "ccd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"lccd", "lccd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsd", "ccsd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsd_act", "ccsd_act", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"lccsd", "lccsd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"lccsd(t)", "lccsd", "(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"cr-lccsd(t)", "lccsd", "cr_(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"crsd(t)ac", "ccsd_act", "cr_(t)a", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsdta", "ccsdta", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsdt", "ccsdt", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsdtq", "ccsdtq", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"cc2", "ccsd", NULL, "cc2", NWChemToggle_disabled,
+       NWChemToggle_unspecified, -1},
+      {"lr-ccsd", "ccsd", NULL, "lr-ccsd", NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsd(t)", "ccsd", "(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsd[t]", "ccsd", "[t]", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"qcisd(t)", "qcisd", "(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"cr-qcisd(t)", "qcisd", "cr_(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"lambda-ccsd(t)", "ccsd", "lambda(t)", NULL,
+       NWChemToggle_unspecified, NWChemToggle_enabled, -1},
+      {"cr-ccsd(t)", "ccsd", "cr_(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"lr-ccsd(t)", "ccsd", "lr_(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"creomsd(t)", "ccsd", "creom_(t)", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"creom(t)ac", "ccsd_act", "creom(t)a", NULL,
+       NWChemToggle_unspecified, NWChemToggle_unspecified, -1},
+      {"r-creom1(t)", "ccsd", "emb1", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"r-creom2(t)", "ccsd", "emb2", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"lr-ccsd(tq)-1", "ccsd", "lr_(tq1)", NULL,
+       NWChemToggle_unspecified, NWChemToggle_unspecified, -1},
+      {"lr-ccsd(tq)-1p", "ccsd", "lr_(tq1p)", NULL,
+       NWChemToggle_unspecified, NWChemToggle_unspecified, -1},
+      {"cr-ccsd[t]", "ccsd", "cr_[t]", NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"ccsd(2)_t", "ccsd", "2_t", NULL, NWChemToggle_unspecified,
+       NWChemToggle_enabled, -1},
+      {"ccsd(2)", "ccsd", "2_tq", NULL, NWChemToggle_unspecified,
+       NWChemToggle_enabled, -1},
+      {"ccsdt(2)_q", "ccsdt", "2_q", NULL, NWChemToggle_unspecified,
+       NWChemToggle_enabled, -1},
+      {"qcisd", "qcisd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"cis", "cis", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"cisd", "cisd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"cisdt", "cisdt", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"cisdtq", "cisdtq", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mbpt2", "mbpt2", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mbpt3", "mbpt3", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mbpt4", "mbpt4", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mbpt4(sdq)", "mbpt4sdq", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mbpt4sdq(t)", "mbpt4sdq_t", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mp2", "mbpt2", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mp3", "mbpt3", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mp4sdq", "mbpt4sdq", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mp4sdq(t)", "mbpt4sdq_t", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"mp4", "mbpt4", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, -1},
+      {"bwccsd", "bwccsd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, 1},
+      {"mkccsd", "mkccsd", NULL, NULL, NWChemToggle_unspecified,
+       NWChemToggle_unspecified, 1},
+  };
+
+  if (!method.str || method.len <= 0)
+    return NULL;
+  for (size_t i = 0; i < sizeof(defaults) / sizeof(defaults[0]); ++i) {
+    if (capn_text_iequals(method, defaults[i].method))
+      return &defaults[i];
+  }
+  return NULL;
 }
 
 static const char *toggle_logical_value(enum NWChemToggle toggle) {
@@ -694,6 +828,8 @@ static int append_tce_direct_values(
 
     struct NWChemTceStanza tce;
     read_NWChemTceStanza(&tce, stanza.tce);
+    const struct tce_method_defaults *method_defaults =
+        tce_method_defaults_for(tce.method);
     if (tce.model.len > 0) {
       char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
       copy_text_record(value, sizeof(value), tce.model);
@@ -701,6 +837,12 @@ static int append_tce_direct_values(
               keys, value_types, value_counts, values, key_capacity,
               value_capacity, count, key_storage, value_storage, "tce:model",
               NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+        return -1;
+    } else if (method_defaults && method_defaults->model) {
+      if (append_direct_typed_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, "tce:model",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, method_defaults->model) != 0)
         return -1;
     }
     const char *model2e = tce_two_electron_value(tce.model2e);
@@ -718,6 +860,14 @@ static int append_tce_direct_values(
               value_capacity, count, key_storage, value_storage,
               "tce:perturbative", NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
         return -1;
+    } else if (method_defaults && method_defaults->perturbative) {
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage,
+                                    "tce:perturbative",
+                                    NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                    method_defaults->perturbative) != 0)
+        return -1;
     }
     if (tce.ccsdVariant.len > 0) {
       char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
@@ -727,8 +877,17 @@ static int append_tce_direct_values(
               value_capacity, count, key_storage, value_storage, "tce:ccsdvar",
               NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
         return -1;
+    } else if (method_defaults && method_defaults->ccsd_variant) {
+      if (append_direct_typed_value(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, "tce:ccsdvar",
+                                    NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                    method_defaults->ccsd_variant) != 0)
+        return -1;
     }
     const char *nts_value = toggle_logical_value(tce.noTriplesSingles);
+    if (!nts_value && method_defaults)
+      nts_value = toggle_logical_value(method_defaults->no_triples_singles);
     if (nts_value &&
         append_direct_typed_value(keys, value_types, value_counts, values,
                                   key_capacity, value_capacity, count,
@@ -928,7 +1087,13 @@ static int append_tce_direct_values(
     } toggle_fields[] = {
         {"tce:symmetry", tce.symmetry, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:densmat", tce.densityMatrix, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
-        {"tce:left", tce.left, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:left",
+         tce.left != NWChemToggle_unspecified ||
+                 !method_defaults ||
+                 method_defaults->left == NWChemToggle_unspecified
+             ? tce.left
+             : method_defaults->left,
+         NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:recompf", tce.recomputeFock, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:ltcc", tce.tccSpaces, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:eaccsd", tce.eaCcsd, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
@@ -945,8 +1110,13 @@ static int append_tce_direct_values(
                                     toggle_fields[j].value_type, value) != 0)
         return -1;
     }
-    if (tce.mrcc != NWChemToggle_unspecified) {
-      const char *value = tce.mrcc == NWChemToggle_enabled ? "1" : "0";
+    int mrcc_value = -1;
+    if (tce.mrcc != NWChemToggle_unspecified)
+      mrcc_value = tce.mrcc == NWChemToggle_enabled ? 1 : 0;
+    else if (method_defaults)
+      mrcc_value = method_defaults->mrcc;
+    if (mrcc_value >= 0) {
+      const char *value = mrcc_value ? "1" : "0";
       if (append_direct_typed_value(keys, value_types, value_counts, values,
                                     key_capacity, value_capacity, count,
                                     key_storage, value_storage, "tce:mrcc",
