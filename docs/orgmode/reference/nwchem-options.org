@@ -118,6 +118,12 @@ RTDB values directly:
 | ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ | ~nwpw:np_dimensions~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ | ~nwpw:spin_orbit~, ~pspw:spin_orbit~, ~band:spin_orbit~ |
 | ~parallelIo~ | ~parallel_io on~ or ~off~ | ~nwpw:parallel_io~ |
+| ~xyzFilename~ | ~xyz_filename <path>~ | ~cpmd:xyz_filename~, ~nwpw:xyz_filename~ |
+| ~ionMotionFilename~ | ~ion_motion_filename <path>~ | ~cpmd:ion_motion_filename~, ~nwpw:ion_motion_filename~ |
+| ~electronMotionFilename~ | ~emotion_filename <path>~ | ~cpmd:emotion_filename~, ~nwpw:emotion_filename~ |
+| ~hamiltonianMotionFilename~ | ~hmotion_filename <path>~ | ~cpmd:hmotion_filename~, ~nwpw:hmotion_filename~ |
+| ~orbitalMotionFilename~ | ~omotion_filename <path>~ | ~cpmd:omotion_filename~, ~nwpw:omotion_filename~ |
+| ~eigenvalueMotionFilename~ | ~eigmotion_filename <path>~ | ~cpmd:eigmotion_filename~, ~nwpw:eigmotion_filename~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -219,6 +225,12 @@ controls:
 | ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ |
 | ~parallelIo~ | ~parallel_io on~ or ~off~ |
+| ~xyzFilename~ | ~xyz_filename <path>~ |
+| ~ionMotionFilename~ | ~ion_motion_filename <path>~ |
+| ~electronMotionFilename~ | ~emotion_filename <path>~ |
+| ~hamiltonianMotionFilename~ | ~hmotion_filename <path>~ |
+| ~orbitalMotionFilename~ | ~omotion_filename <path>~ |
+| ~eigenvalueMotionFilename~ | ~eigmotion_filename <path>~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem

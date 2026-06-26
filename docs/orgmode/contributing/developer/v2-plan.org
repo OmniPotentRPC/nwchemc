@@ -75,7 +75,8 @@ omitted from embed-rendered text when no non-promoted syntax remains.
 Structured NWPW state controls and simple named ~exchangeCorrelation~ values
 use the same direct RTDB path. Born-Oppenheimer NWPW controls with stable
 RTDB keys are promoted in the same pass. NWPW execution controls with stable
-RTDB keys are also promoted directly.
+RTDB keys are also promoted directly. Output and motion filename fields are
+promoted to the paired CPMD/NWPW RTDB string keys.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -98,6 +99,7 @@ The schema contains typed stanzas for:
   BO algorithm, BO fake mass, and scaling
 - ~nwpw~ execution controls for processor dimensions, spin-orbit, and
   parallel I/O
+- ~nwpw~ output and motion filename controls
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -216,6 +218,12 @@ module prefix:
 | ~npFftProcesses~ / ~npOrbitalProcesses~ / ~npKspaceProcesses~ | ~np_dimensions~ | ~nwpw~ |
 | ~spinOrbit~ | ~spin_orbit~ | ~nwpw~, ~pspw~, ~band~ |
 | ~parallelIo~ | ~parallel_io~ | ~nwpw~ |
+| ~xyzFilename~ | ~xyz_filename~ | ~cpmd~, ~nwpw~ |
+| ~ionMotionFilename~ | ~ion_motion_filename~ | ~cpmd~, ~nwpw~ |
+| ~electronMotionFilename~ | ~emotion_filename~ | ~cpmd~, ~nwpw~ |
+| ~hamiltonianMotionFilename~ | ~hmotion_filename~ | ~cpmd~, ~nwpw~ |
+| ~orbitalMotionFilename~ | ~omotion_filename~ | ~cpmd~, ~nwpw~ |
+| ~eigenvalueMotionFilename~ | ~eigmotion_filename~ | ~cpmd~, ~nwpw~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes
