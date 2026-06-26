@@ -700,6 +700,68 @@ static void test_parser_extracts_direct_pseudopotentials(void **state) {
   free(message);
 }
 
+typedef int (*direct_pseudopotential_entry_fn)(
+    void *user_data, capn_text target,
+    const struct NWChemPseudopotentialEntry *entry);
+extern int nwchemc_params_for_each_direct_pseudopotential(
+    NWChemParams_ptr params, direct_pseudopotential_entry_fn callback,
+    void *user_data, size_t *count);
+
+struct pseudopotential_walk_capture {
+  capn_text targets[8];
+  capn_text names[8];
+  int types[8];
+  size_t count;
+};
+
+static int capture_direct_pseudopotential_entry(
+    void *user_data, capn_text target,
+    const struct NWChemPseudopotentialEntry *entry) {
+  struct pseudopotential_walk_capture *capture = user_data;
+  assert_non_null(capture);
+  assert_non_null(entry);
+  assert_true(capture->count < 8);
+  capture->targets[capture->count] = target;
+  capture->names[capture->count] = entry->libraryName;
+  capture->types[capture->count] = entry->libraryType;
+  ++capture->count;
+  return 0;
+}
+
+static void test_parser_walks_direct_pseudopotential_capnp_entries(
+    void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  struct pseudopotential_walk_capture capture = {0};
+  size_t count = 0;
+  assert_int_equal(nwchemc_params_for_each_direct_pseudopotential(
+                       params_root, capture_direct_pseudopotential_entry,
+                       &capture, &count),
+                   0);
+  assert_int_equal((int)count, 6);
+  assert_int_equal((int)capture.count, 6);
+  assert_true(text_equals(capture.targets[0], "Si"));
+  assert_int_equal(capture.types[0],
+                   NWChemPseudopotentialEntry_LibraryType_library);
+  assert_true(text_equals(capture.names[0], "sg15"));
+  assert_true(text_equals(capture.targets[5], "*"));
+  assert_int_equal(capture.types[5],
+                   NWChemPseudopotentialEntry_LibraryType_pspwLibrary);
+  assert_true(text_equals(capture.names[5], "pspw_default"));
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc != 2) {
     fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
@@ -711,6 +773,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_options),
       cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
+      cmocka_unit_test(test_parser_walks_direct_pseudopotential_capnp_entries),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }
