@@ -412,7 +412,9 @@ contains
     integer(c_int), intent(in), value :: ewald_ncut
     integer(c_int) :: rc
 
-    if (has_options < 0) then
+    if (has_options < 0 .or. energy_cutoff < 0.0_c_double .or. &
+        wavefunction_cutoff < 0.0_c_double .or. &
+        ewald_rcut < 0.0_c_double .or. ewald_ncut < 0) then
       rc = -1_c_int
     else
       rc = 0_c_int
