@@ -33,6 +33,10 @@ Long-running callers can keep one ~NWChemParams~ configuration in a session and
 send per-step ~ForceInput~ Cap'n Proto messages for coordinates, atomic
 numbers, length units, optional cell vectors, and unit-aware
 ~PotentialResult~ output.
+The first accepted session evaluation establishes the session topology from
+atom count and ordered atomic numbers. Later session evaluations reject atom
+count or species changes before entering the embed bridge, while still allowing
+coordinate, unit, and cell-vector changes.
 
 * RTDB Path
 The embedded Fortran layer writes numeric geometry through NWChem geometry APIs
@@ -100,6 +104,9 @@ NWChem.
 ~NWChemParams + ForceInput -> PotentialResult~ path. Multi-step callers should
 reuse a session so configuration is applied once and per-step calls only carry
 coordinates, cell data, atom numbers, and requested units.
+The session owns the topology invariant. A caller that changes atom count or
+species ordering must create a separate session rather than reusing the same
+handle.
 
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only

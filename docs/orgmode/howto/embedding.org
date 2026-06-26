@@ -63,6 +63,12 @@ Hartree. ~forces_h_bohr~ is filled in Hartree per Bohr for low-overhead native
 callers. ~nwchemc_session_calculate_result~ fills an unpacked flat
 ~PotentialResult~ Cap'n Proto message: ~energy~ uses ~ForceInput.energyUnit~,
 and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
+
+The first successful session evaluation establishes the session topology: atom
+count and the ordered atomic-number list. Later session calls may change
+coordinates, units, and cell vectors, but they must keep the same topology.
+Changing species or atom count requires a separate ~NWChemCSession~.
+
 ~nwchemc_potential_result_size_for_force_input~ parses the step message and
 returns the result byte count without evaluating NWChem. If the output buffer is
 too small, ~nwchemc_session_calculate_result~ reports the required byte count

@@ -52,6 +52,9 @@ unpacked flat `PotentialResult` buffer before calling
 `NWChemCResult.energy_h` in Hartree and writes `PotentialResult.energy` /
 `PotentialResult.forces` in `ForceInput.energyUnit` and
 `ForceInput.energyUnit / ForceInput.lengthUnit`.
+The first accepted session evaluation fixes the atom count and ordered
+atomic-number list for that session; later steps may change coordinates, units,
+and cell vectors, but atom-count or species changes require a separate session.
 `nwchemc_calculate_result()` offers the same `NWChemParams + ForceInput`
 carrier for one-shot callers and delegates through the session result path;
 callers with multiple steps should reuse `NWChemCSession`.
