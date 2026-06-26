@@ -33,6 +33,12 @@
     (
       kind = tce,
       tce = (
+        dipole = true
+      )
+    ),
+    (
+      kind = tce,
+      tce = (
         method = "bwccsd"
       )
     )

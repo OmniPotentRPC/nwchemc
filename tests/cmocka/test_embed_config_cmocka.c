@@ -1299,7 +1299,8 @@ static void test_embed_config_promotes_tce_method_tokens(void **state) {
 
   assert_int_equal(result.ok, 1);
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 10);
+  assert_int_equal(g_typed_set_count, 12);
+  assert_null(strstr(g_input_blocks, "dipole"));
   assert_typed_set_scalar_entry("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                                 "multi");
   assert_typed_set_scalar_entry("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT,
@@ -1314,6 +1315,8 @@ static void test_embed_config_promotes_tce_method_tokens(void **state) {
                                 NWCHEMC_DIRECT_SET_VALUE_TEXT, "lambda(t)");
   assert_typed_set_scalar_entry("tce:left", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
                                 "true");
+  assert_typed_set_scalar_entry("tce:multipole",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
   assert_typed_set_scalar_entry("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                                 "bwccsd");
   assert_typed_set_scalar_entry("tce:mrcc", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
