@@ -249,6 +249,24 @@ static void test_calculate_hessian_and_dipole_one_shot(void **state) {
   double trace = quadrupole[0] + quadrupole[3] + quadrupole[5];
   assert_true(fabs(trace) < 1.0e-7 * fmax(1.0, max_quadrupole_abs));
 
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequency_status = nwchemc_calculate_frequencies(
+      params, params_size, step_eq, step_eq_size, frequencies, 6, intensities,
+      6);
+  if (!frequency_status.ok)
+    fail_msg("nwchemc_calculate_frequencies failed: %s",
+             frequency_status.message);
+  double max_frequency_abs = 0.0;
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(frequencies[i]))
+      fail_msg("non-finite one-shot frequency[%d]", i);
+    if (!isfinite(intensities[i]))
+      fail_msg("non-finite one-shot intensity[%d]", i);
+    max_frequency_abs = fmax(max_frequency_abs, fabs(frequencies[i]));
+  }
+  assert_true(max_frequency_abs > 1.0);
+
   free(step_eq);
   free(params);
 }
