@@ -69,7 +69,7 @@ static void test_class_partition_counts(void **state) {
   size_t fields = nwchemc_feature_count_class(NWCHEMC_FEATURE_PARAMS_FIELD);
   size_t abis = nwchemc_feature_count_class(NWCHEMC_FEATURE_ABI);
   assert_int_equal((int)mods, 88);
-  assert_int_equal((int)stanzas, 15);
+  assert_int_equal((int)stanzas, 16);
   assert_int_equal((int)fields, 14);
   assert_int_equal((int)abis, 25);
   assert_int_equal((int)(mods + stanzas + fields + abis),
@@ -157,6 +157,7 @@ static void test_stanza_kinds_interned(void **state) {
       "stanza.raw",     "stanza.module",     "stanza.pseudopotential",
       "stanza.scf",     "stanza.task",       "stanza.driver",
       "stanza.property", "stanza.basis",     "stanza.geometry",
+      "stanza.mrccData",
   };
   size_t i;
   for (i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i) {
