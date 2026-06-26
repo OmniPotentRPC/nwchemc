@@ -59,7 +59,14 @@
         oppositeSpinScale = 0.8,
         printLevel = high,
         printItems = ["reference"],
-        noPrintItems = ["byproduct", "energies"]
+        noPrintItems = ["byproduct", "energies"],
+        doa = [1, 0, 1],
+        dob = [2, 0],
+        dog = [3],
+        doh = [4, 5],
+        dojk = [6],
+        dos = [7, 8, 9],
+        dod = [10]
       )
     ),
     (

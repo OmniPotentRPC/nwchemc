@@ -151,6 +151,13 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "fos 0.8"));
   assert_non_null(strstr(input_blocks, "print high reference"));
   assert_non_null(strstr(input_blocks, "noprint byproduct energies"));
+  assert_non_null(strstr(input_blocks, "doa 1 0 1"));
+  assert_non_null(strstr(input_blocks, "dob 2 0"));
+  assert_non_null(strstr(input_blocks, "dog 3"));
+  assert_non_null(strstr(input_blocks, "doh 4 5"));
+  assert_non_null(strstr(input_blocks, "dojk 6"));
+  assert_non_null(strstr(input_blocks, "dos 7 8 9"));
+  assert_non_null(strstr(input_blocks, "dod 10"));
   assert_non_null(strstr(input_blocks, "tce\n  dft"));
   assert_non_null(strstr(input_blocks, "freeze 1 virtual 2"));
   assert_non_null(strstr(input_blocks, "2eorb"));
@@ -294,7 +301,17 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nodisk"));
   assert_non_null(
       strstr(input_blocks,
-             "ccsd\n  print high reference\n  noprint byproduct energies\nend"));
+             "ccsd\n"
+             "  print high reference\n"
+             "  noprint byproduct energies\n"
+             "  doa 1 0 1\n"
+             "  dob 2 0\n"
+             "  dog 3\n"
+             "  doh 4 5\n"
+             "  dojk 6\n"
+             "  dos 7 8 9\n"
+             "  dod 10\n"
+             "end"));
   assert_null(strstr(input_blocks, "tce\n  dft"));
   assert_null(strstr(input_blocks, "cr-ccsd(t)"));
   assert_null(strstr(input_blocks, "lshift 0.01"));

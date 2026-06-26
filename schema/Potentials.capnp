@@ -411,6 +411,13 @@ struct NWChemCcsdStanza {
   printLevel        @11 :NWChemPrintLevel = unspecified; # Emit CCSD print level.
   printItems        @12 :List(Text); # Extra CCSD print names after the level.
   noPrintItems      @13 :List(Text); # CCSD noprint names.
+  doa               @14 :List(Int32); # Emit CCSD DOA debugging switches.
+  dob               @15 :List(Int32); # Emit CCSD DOB debugging switches.
+  dog               @16 :List(Int32); # Emit CCSD DOG debugging switches.
+  doh               @17 :List(Int32); # Emit CCSD DOH debugging switches.
+  dojk              @18 :List(Int32); # Emit CCSD DOJK debugging switches.
+  dos               @19 :List(Int32); # Emit CCSD DOS debugging switches.
+  dod               @20 :List(Int32); # Emit CCSD DOD debugging switches.
 }
 
 # @struct NWChemTceStanza

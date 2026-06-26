@@ -714,7 +714,17 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nodisk"));
   assert_non_null(strstr(
       g_input_blocks,
-      "ccsd\n  print high reference\n  noprint byproduct energies\nend"));
+      "ccsd\n"
+      "  print high reference\n"
+      "  noprint byproduct energies\n"
+      "  doa 1 0 1\n"
+      "  dob 2 0\n"
+      "  dog 3\n"
+      "  doh 4 5\n"
+      "  dojk 6\n"
+      "  dos 7 8 9\n"
+      "  dod 10\n"
+      "end"));
   assert_null(strstr(g_input_blocks, "tce\n  dft"));
   assert_null(strstr(g_input_blocks, "cr-ccsd(t)"));
   assert_null(strstr(g_input_blocks, "lshift 0.01"));
