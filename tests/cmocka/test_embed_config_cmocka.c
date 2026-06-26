@@ -664,7 +664,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "mrccdata\n  se4t"));
   assert_non_null(strstr(g_input_blocks, "  cas 2 2\n"));
   assert_non_null(strstr(g_input_blocks, "  2222ba\n"));
-  assert_non_null(strstr(g_input_blocks, "tce\n  freeze core atomic\nend"));
+  assert_non_null(
+      strstr(g_input_blocks, "tce\n  freeze core atomic\n  dipole\nend"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "print debug"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));

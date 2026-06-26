@@ -136,7 +136,8 @@
     (
       kind = tce,
       tce = (
-        freezeMode = coreAtomic
+        freezeMode = coreAtomic,
+        dipole = true
       )
     ),
     (
