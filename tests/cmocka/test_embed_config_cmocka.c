@@ -979,14 +979,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "mrccdata\n  se4t"));
   assert_non_null(strstr(g_input_blocks, "  cas 2 2\n"));
   assert_non_null(strstr(g_input_blocks, "  2222ba\n"));
-  assert_non_null(
-      strstr(g_input_blocks, "tce\n  freeze core atomic\n  dipole\nend"));
+  assert_non_null(strstr(g_input_blocks, "tce\n  freeze core atomic\nend"));
+  assert_null(strstr(g_input_blocks, "dipole"));
   assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 162);
+  assert_int_equal(g_typed_set_count, 164);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1201,6 +1201,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "true");
   assert_typed_set_scalar("tce:multipole", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "3");
+  assert_typed_set_scalar_entry("tce:left", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                                "true");
+  assert_typed_set_scalar_entry("tce:multipole",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
   assert_typed_set_scalar("tce:fragment", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "2");
   assert_typed_set_scalar("tce:recompf", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,

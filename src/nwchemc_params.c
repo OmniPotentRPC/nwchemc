@@ -1301,7 +1301,8 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
       tce.tccSpaces == NWChemToggle_enabled ||
       tce.eaCcsd == NWChemToggle_enabled ||
       tce.ipCcsd == NWChemToggle_enabled;
-  if (!has_directives && !freeze_mode && !tce.dipole &&
+  if (!has_directives && !freeze_mode &&
+      !(include_direct_promoted && tce.dipole) &&
       !print_level && nprint_items == 0 &&
       !(include_direct_promoted && has_renderable_promoted))
     return 0;
@@ -1310,7 +1311,8 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
   if (freeze_mode &&
       append_format(block, sizeof(block), "  %s\n", freeze_mode) != 0)
     return -1;
-  if (tce.dipole && append_format(block, sizeof(block), "  dipole\n") != 0)
+  if (include_direct_promoted && tce.dipole &&
+      append_format(block, sizeof(block), "  dipole\n") != 0)
     return -1;
   if (include_direct_promoted) {
     const char *reference = tce_reference_keyword(tce.reference);

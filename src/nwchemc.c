@@ -1024,6 +1024,9 @@ static int append_tce_direct_values(
               NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
         return -1;
     }
+    int effective_multipole = tce.multipole;
+    if (tce.dipole && effective_multipole < 1)
+      effective_multipole = 1;
     const struct {
       const char *key;
       int value;
@@ -1035,7 +1038,7 @@ static int append_tce_direct_values(
         {"tce:hbard", tce.hbarDimension},
         {"tce:nroots", tce.nroots},
         {"tce:target", tce.target},
-        {"tce:multipole", tce.multipole},
+        {"tce:multipole", effective_multipole},
         {"tce:active_oa", tce.activeOccupiedAlpha},
         {"tce:active_ob", tce.activeOccupiedBeta},
         {"tce:active_va", tce.activeVirtualAlpha},
@@ -1103,6 +1106,8 @@ static int append_tce_direct_values(
         return -1;
     }
     int effective_left = tce.left;
+    if (tce.dipole)
+      effective_left = NWChemToggle_enabled;
     if (effective_left == NWChemToggle_unspecified && method_defaults &&
         method_defaults->left != NWChemToggle_unspecified)
       effective_left = method_defaults->left;
