@@ -105,6 +105,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"stanza.geometry", "NWChemInputStanza.geometry", "Geometry block metadata (units/symmetry; coords via ABI)", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.nwpw", "NWChemInputStanza.nwpw", "nwpw stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.ccsd", "NWChemInputStanza.ccsd", "ccsd stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.tce", "NWChemInputStanza.tce", "tce stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"params.basis", "NWChemParams.basis", "Gaussian basis set name", NWCHEMC_FEATURE_PARAMS_FIELD, 0, 1, 1},
     {"params.theory", "NWChemParams.theory", "Main theory/task family (scf/dft/...)", NWCHEMC_FEATURE_PARAMS_FIELD, 1, 1, 1},
     {"params.scfType", "NWChemParams.scfType", "SCF type or DFT XC keyword", NWCHEMC_FEATURE_PARAMS_FIELD, 2, 1, 1},
@@ -146,7 +147,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 141;
+static const size_t k_feature_count = 142;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

@@ -1083,6 +1083,14 @@
       "nwchem_role": "ccsd stanza",
       "stub": true,
       "embed": true
+    },
+    {
+      "kind": "tce",
+      "schema_path": "NWChemInputStanza.tce",
+      "capnp_type": "tce",
+      "nwchem_role": "tce stanza",
+      "stub": true,
+      "embed": true
     }
   ],
   "params_fields": [
