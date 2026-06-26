@@ -13,6 +13,7 @@
 static const char *g_params_path = NULL;
 static const char *g_config_options_path = NULL;
 static const char *g_pspspin_path = NULL;
+static const char *g_pspspin_many_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
 static const char *g_force_step_ev_path = NULL;
@@ -28,7 +29,7 @@ static char g_psp_names[8][257];
 static char g_set_keys[8][129];
 static char g_set_values[8][257];
 static char g_typed_set_keys[192][129];
-static char g_typed_set_values[192][16][257];
+static char g_typed_set_values[192][64][257];
 static char g_brillouin_zone_name[64];
 static double g_brillouin_kvectors[8];
 static int g_psp_types[8];
@@ -1148,6 +1149,43 @@ static void test_embed_config_promotes_pspspin_rules(void **state) {
   free(message);
 }
 
+static void test_embed_config_promotes_large_pspspin_ion_list(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_pspspin_many_path, &message_size);
+  assert_non_null(message);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+
+  assert_int_equal(result.ok, 1);
+  assert_null(strstr(g_input_blocks, "pspspin"));
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 6);
+  assert_typed_set_scalar("nwpw:pspspin", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("nwpw:pspspin_count",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar("nwpw:pspspin_iamup:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("nwpw:pspspin_upscale:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "2.5");
+  assert_typed_set_scalar("nwpw:pspspin_upl:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3");
+  const char *ions[] = {
+      "1",  "2",  "3",  "4",  "5",  "6",  "7",
+      "8",  "9",  "10", "11", "12", "13", "14",
+      "15", "16", "17", "18", "19", "20"};
+  assert_typed_set_values("nwpw:pspspin_upions:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, 20, ions);
+
+  free(message);
+}
+
 static void test_session_reuses_config_across_geometry_steps(void **state) {
   (void)state;
   reset_embed_captures();
@@ -1657,25 +1695,27 @@ static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 8) {
+  if (argc != 9) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
-            "FORCE_STEP_A_BIN FORCE_STEP_B_BIN FORCE_STEP_EV_BIN "
-            "FORCE_STEP_CHANGED_SPECIES_BIN\n",
+            "PSPSPIN_MANY_PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
+            "FORCE_STEP_EV_BIN FORCE_STEP_CHANGED_SPECIES_BIN\n",
             argv[0]);
     return 2;
   }
   g_params_path = argv[1];
   g_config_options_path = argv[2];
   g_pspspin_path = argv[3];
-  g_force_step_a_path = argv[4];
-  g_force_step_b_path = argv[5];
-  g_force_step_ev_path = argv[6];
-  g_force_step_changed_species_path = argv[7];
+  g_pspspin_many_path = argv[4];
+  g_force_step_a_path = argv[5];
+  g_force_step_b_path = argv[6];
+  g_force_step_ev_path = argv[7];
+  g_force_step_changed_species_path = argv[8];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
       cmocka_unit_test(test_embed_config_promotes_pspspin_rules),
+      cmocka_unit_test(test_embed_config_promotes_large_pspspin_ion_list),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_rejects_param_replacement_after_topology),
