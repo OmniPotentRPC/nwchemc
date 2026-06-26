@@ -81,7 +81,9 @@ controls write the matching ~nwpw:fractional_*~ keys directly.
 Virtual orbital counts, LCAO skip/use mode, and Ewald grid dimensions are
 promoted to direct ~nwpw:*~ keys. Nose-Hoover thermostat controls write the
 paired ~cpmd:*~ / ~nwpw:*~ nose, restart, period, temperature, and chain-length
-keys directly.
+keys directly. Structured simulation-cell controls write boundary conditions,
+3x3 cell vectors, FFT grids, small grids, box delta, box orientation, and
+box-type state to the matching ~<cell>:*~ RTDB keys.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -117,6 +119,11 @@ The schema contains typed stanzas for:
 - ~nwpw~ fractional orbital and smear controls
 - ~nwpw~ virtual orbital, LCAO, and Ewald grid controls
 - ~nwpw~ Nose-Hoover thermostat controls
+- ~nwpw~ Brillouin-zone controls for Monkhorst-Pack grids, explicit k-vectors,
+  zone names, and k-point print counts
+- ~nwpw~ simulation-cell controls for boundary conditions, 3x3 lattice vectors
+  in Bohr, FFT grids, small grids, box delta, box orientation, and
+  box-different-lengths state
 - coupled-cluster module coverage through generic ~ccsd~, ~tce~, and
   ~tceMrcc~ module stanzas, plus structured classic ~ccsd~, TCE, and
   MRCCDATA controls
@@ -259,6 +266,13 @@ module prefix:
 | ~noseIonTemperature~ | ~Tr~ | ~cpmd~, ~nwpw~ |
 | ~noseElectronChainLength~ | ~Mchain~ | ~cpmd~, ~nwpw~ |
 | ~noseIonChainLength~ | ~Nchain~ | ~cpmd~, ~nwpw~ |
+| ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
+| ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
+| ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |
+| ~ngridSmallX~ / ~ngridSmallY~ / ~ngridSmallZ~ | ~ngrid_small~ | ~<cell>~ |
+| ~boxDeltaBohr~ | ~box_delta~ | ~<cell>~ |
+| ~boxOrient~ | ~box_orient~ | ~<cell>~ |
+| ~boxDifferentLengths~ | ~box_type~ | ~<cell>~ |
 | ~maxiter~ | ~maxiter~ | ~ccsd~ |
 | ~thresh~ | ~thresh~ | ~ccsd~ |
 | ~tol2e~ | ~tol2e~ | ~ccsd~ |
@@ -305,6 +319,22 @@ NWPW input handler for named functionals. The nested
 Open direct-path checks: add embed regression that asserts direct path matches
 text-path energies when NWChem embed is available.
 
+** DONE Simulation Cell Direct Path
+~NWChemSimulationCellStanza~ renders full-deck ~nwpw / simulation_cell~ text
+and embed builds promote stable RTDB state directly through
+~nwchemc_embed_set_rtdb_values~. The direct path writes ~<cell>:boundry~,
+~<cell>:unita~, ~<cell>:ngrid~, ~<cell>:ngrid_small~, ~<cell>:box_delta~,
+~<cell>:box_orient~, and ~<cell>:box_type~. The Cap'n Proto vector field is
+~latticeVectorsBohr~ and must contain zero or nine values. Tests:
+~test_parser_renders_structured_input~ and
+~test_embed_config_uses_direct_dft_values~ cover full rendering, embed text
+omission, and typed RTDB values.
+
+Compact lattice directives (~sc~, ~fcc~, and ~bcc~) render as full input when
+provided through ~latticeKind~ plus ~latticeLengthBohr~. A direct numeric path
+for those compact forms needs an exact match to NWChem's unit-cell helper
+matrices before promotion to ~<cell>:unita~.
+
 ** Expand Direct RTDB Settings
 Move additional scalar options that have stable NWChem RTDB keys out of rendered
 text stanzas. Good candidates are additional module scalar controls with
@@ -320,6 +350,12 @@ Keep the structured pseudopotential Cap'n Proto stanza. Replace the rendered
 RTDB representation that exactly matches the input handler. Pseudopotentials are
 used by PSPW/NWPW and related rgpot potential workflows, so preserve library
 type semantics instead of collapsing them to free-form strings.
+
+The structured entry coverage includes ~library~, ~pspw_library~, ~paw_library~,
+~cpi~, ~teter~, and the ~allElements~ default target. Pick-up tasks are:
+confirm the exact RTDB keys written by the NWPW pseudopotential input handler
+for every entry type, add cmocka capture tests for those keys, then route only
+the confirmed entries around ~nw_inp_from_character~.
 
 ** Atom And Geometry Limits
 The fixed-form embed helper currently caps direct geometry and basis setup at 64
