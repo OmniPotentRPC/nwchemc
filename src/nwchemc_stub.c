@@ -216,6 +216,32 @@ NWChemCResult nwchemc_calculate_result(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_hessian(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)hessian_h_bohr2;
+  (void)hessian_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_dipole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)dipole_au;
+  (void)dipole_len;
+  return stub_fail();
+}
+
 size_t nwchemc_potential_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;

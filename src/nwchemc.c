@@ -1119,6 +1119,25 @@ size_t nwchemc_potential_result_size_for_force_input(
   return result_size;
 }
 
+static int force_input_step_atom_count(const void *force_input_capnp,
+                                       size_t force_input_capnp_size_bytes,
+                                       size_t *n_atoms) {
+  if (!force_input_capnp || force_input_capnp_size_bytes == 0 || !n_atoms)
+    return -1;
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0)
+    return -1;
+  int has_cell = 0;
+  int rc = nwchemc_force_input_atom_count(force_input, n_atoms, &has_cell);
+  nwchemc_params_release(&arena);
+  if (rc != 0 || *n_atoms == 0 || *n_atoms > (size_t)INT_MAX)
+    return -1;
+  (void)has_cell;
+  return 0;
+}
+
 static NWChemCResult session_hessian_cell(NWChemCSession *session, int n_atoms,
                                           const double *positions_ang,
                                           const int *atomic_numbers,
@@ -1285,6 +1304,81 @@ NWChemCResult nwchemc_session_calculate_dipole(
   return session_dipole_cell(session, (int)n_atoms, session->step_positions_ang,
                              session->step_atomic_numbers, cell_ang, has_cell,
                              dipole_au);
+}
+
+NWChemCResult nwchemc_calculate_hessian(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !hessian_h_bohr2) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      n_atoms > SIZE_MAX / 3u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  size_t ndof = n_atoms * 3u;
+  if (ndof > SIZE_MAX / ndof || hessian_len < ndof * ndof) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_hessian(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      hessian_h_bohr2, hessian_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_dipole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !dipole_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      dipole_len < 3u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_dipole(
+      session, force_input_capnp, force_input_capnp_size_bytes, dipole_au,
+      dipole_len);
+  nwchemc_session_destroy(session);
+  return r;
 }
 
 const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
@@ -1513,6 +1607,32 @@ NWChemCResult nwchemc_calculate_result(
   (void)potential_result_capnp;
   (void)potential_result_capnp_capacity_bytes;
   (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_hessian(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)hessian_h_bohr2;
+  (void)hessian_len;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_dipole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)dipole_au;
+  (void)dipole_len;
   return no_nwchem_fail();
 }
 
