@@ -134,6 +134,12 @@
       )
     ),
     (
+      kind = tce,
+      tce = (
+        freezeMode = coreAtomic
+      )
+    ),
+    (
       kind = nwpw,
       nwpw = (
         energyCutoff = 12.5,
