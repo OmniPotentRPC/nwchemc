@@ -119,6 +119,34 @@ static void test_h2_energy_gradient(void **state) {
   maybe_write_compare_json(result.energy_h, grad, ncoord);
 }
 
+static void test_xe_energy_gradient_uses_heavy_element_symbol(void **state) {
+  (void)state;
+  size_t params_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  assert_non_null(params);
+
+  assert_true(nwchemc_available());
+
+  const int n_atoms = 1;
+  const int ncoord = n_atoms * 3;
+  const int atomic_numbers[1] = {54};
+  const double positions_ang[3] = {0.0, 0.0, 0.0};
+  double grad[3] = {0.0, 0.0, 0.0};
+
+  NWChemCResult result = nwchemc_energy_gradient(
+      n_atoms, positions_ang, atomic_numbers, params, params_size, grad);
+  free(params);
+
+  if (!result.ok)
+    fail_msg("nwchemc_energy_gradient Xe failed: %s", result.message);
+  assert_true(isfinite(result.energy_h));
+  assert_true(result.energy_h < -10.0);
+  for (int i = 0; i < ncoord; ++i) {
+    if (!isfinite(grad[i]))
+      fail_msg("non-finite Xe gradient[%d]", i);
+  }
+}
+
 int main(int argc, char **argv) {
   if (argc != 2) {
     fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
@@ -127,6 +155,7 @@ int main(int argc, char **argv) {
   g_params_path = argv[1];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_h2_energy_gradient),
+      cmocka_unit_test(test_xe_energy_gradient_uses_heavy_element_symbol),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }
