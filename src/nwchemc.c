@@ -88,6 +88,9 @@ struct NWChemCSession {
   NWChemParams_ptr params_root;
   int has_params;
   int configured;
+  /* Charge and multiplicity decoded once at params install, reused per step. */
+  int charge;
+  int multiplicity;
   double *step_positions_ang;
   int *step_atomic_numbers;
   size_t step_atom_capacity;
@@ -668,6 +671,12 @@ static int session_install_params(NWChemCSession *session,
   }
   session->has_params = 1;
   session->configured = 1;
+  {
+    struct NWChemParams decoded;
+    read_NWChemParams(&decoded, session->params_root);
+    session->charge = decoded.charge;
+    session->multiplicity = decoded.multiplicity > 0 ? decoded.multiplicity : 1;
+  }
   g_active_session = session;
   return 0;
 }
@@ -690,10 +699,9 @@ static int session_apply_config(NWChemCSession *session) {
 
 static void session_charge_multiplicity(NWChemCSession *session, int *charge,
                                         int *multiplicity) {
-  struct NWChemParams params;
-  read_NWChemParams(&params, session->params_root);
-  *charge = params.charge;
-  *multiplicity = params.multiplicity > 0 ? params.multiplicity : 1;
+  /* Cached at params install; no per-step capnp decode. */
+  *charge = session->charge;
+  *multiplicity = session->multiplicity;
 }
 
 NWChemCSession *nwchemc_session_create(const void *params_capnp,
