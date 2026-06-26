@@ -116,6 +116,24 @@
       )
     ),
     (
+      kind = mrccData,
+      mrccData = (
+        root = 1,
+        casElectrons = 2,
+        casOrbitals = 2,
+        nref = 4,
+        references = ["222220", "222202", "2222ab", "2222ba"],
+        se4t = true,
+        noAposteriori = true,
+        subgroupSize = 2,
+        improveTiling = true,
+        usspt = true,
+        directives = [
+          (keyword = "print", args = ["debug"])
+        ]
+      )
+    ),
+    (
       kind = nwpw,
       nwpw = (
         energyCutoff = 12.5,

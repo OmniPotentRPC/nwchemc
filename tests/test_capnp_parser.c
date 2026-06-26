@@ -167,6 +167,16 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "tilesize 40"));
   assert_non_null(strstr(input_blocks, "cuda 1"));
   assert_non_null(strstr(input_blocks, "tcc_spaces"));
+  assert_non_null(strstr(input_blocks, "mrccdata\n  se4t"));
+  assert_non_null(strstr(input_blocks, "  no_aposteriori\n"));
+  assert_non_null(strstr(input_blocks, "  root 1\n"));
+  assert_non_null(strstr(input_blocks, "  cas 2 2\n"));
+  assert_non_null(strstr(input_blocks, "  nref 4\n"));
+  assert_non_null(strstr(input_blocks, "  222220\n"));
+  assert_non_null(strstr(input_blocks, "  2222ba\n"));
+  assert_non_null(strstr(input_blocks, "  subgroupsize 2\n"));
+  assert_non_null(strstr(input_blocks, "  improvetiling\n"));
+  assert_non_null(strstr(input_blocks, "  usspt\n"));
   assert_non_null(strstr(input_blocks, "print debug"));
 
   nwchemc_params_release(&arena);
@@ -261,6 +271,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nofock"));
   assert_null(strstr(input_blocks, "active_oa 5"));
   assert_null(strstr(input_blocks, "tcc_spaces"));
+  assert_non_null(strstr(input_blocks, "mrccdata\n  se4t"));
+  assert_non_null(strstr(input_blocks, "  cas 2 2\n"));
+  assert_non_null(strstr(input_blocks, "  2222ba\n"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "print debug"));
