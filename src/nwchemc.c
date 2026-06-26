@@ -395,6 +395,145 @@ static const char *toggle_logical_value(enum NWChemToggle toggle) {
   }
 }
 
+struct direct_pspspin_rule_append_state {
+  capn_text *keys;
+  int *value_types;
+  int *value_counts;
+  capn_text *values;
+  size_t key_capacity;
+  size_t value_capacity;
+  size_t *count;
+  char (*key_storage)[NWCHEMC_DIRECT_SET_KEY_LEN];
+  char (*value_storage)[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                       [NWCHEMC_DIRECT_SET_VALUE_LEN];
+};
+
+static int pspspin_index_name(size_t index, char *dst, size_t dst_size) {
+  if (index == 0 || index > 999999)
+    return -1;
+  int n = snprintf(dst, dst_size, "_%06zu", index);
+  return n >= 0 && (size_t)n < dst_size ? 0 : -1;
+}
+
+static int pspspin_angular_momentum_value(
+    enum NWChemPseudopotentialSpinRule_AngularMomentum angular_momentum,
+    int *value) {
+  if (!value)
+    return -1;
+  switch (angular_momentum) {
+  case NWChemPseudopotentialSpinRule_AngularMomentum_p:
+    *value = 1;
+    return 0;
+  case NWChemPseudopotentialSpinRule_AngularMomentum_d:
+    *value = 2;
+    return 0;
+  case NWChemPseudopotentialSpinRule_AngularMomentum_f:
+    *value = 3;
+    return 0;
+  case NWChemPseudopotentialSpinRule_AngularMomentum_s:
+  default:
+    *value = 0;
+    return 0;
+  }
+}
+
+static int append_direct_pspspin_rule(
+    void *user_data, size_t rule_index,
+    const struct NWChemPseudopotentialSpinRule *rule) {
+  struct direct_pspspin_rule_append_state *state = user_data;
+  if (!state || !rule)
+    return -1;
+
+  capn_list32 ion_indices = rule->ionIndices;
+  capn_resolve(&ion_indices.p);
+  if (ion_indices.p.type == CAPN_NULL ||
+      ion_indices.p.type != CAPN_LIST || ion_indices.p.datasz != 4)
+    return -1;
+  int nions = ion_indices.p.len;
+  if (nions <= 0 || nions > NWCHEMC_DIRECT_SET_VALUE_MAX)
+    return -1;
+
+  char index_name[8];
+  if (pspspin_index_name(rule_index, index_name, sizeof(index_name)) != 0)
+    return -1;
+
+  int iam_up = rule->channel != NWChemPseudopotentialSpinRule_Channel_down;
+  const char *channel = iam_up ? "up" : "down";
+  int angular_momentum = 0;
+  if (pspspin_angular_momentum_value(rule->angularMomentum,
+                                     &angular_momentum) != 0)
+    return -1;
+
+  char key[NWCHEMC_DIRECT_SET_KEY_LEN];
+  int n = snprintf(key, sizeof(key), "nwpw:pspspin_iamup:%s", index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  if (append_direct_typed_value(
+          state->keys, state->value_types, state->value_counts, state->values,
+          state->key_capacity, state->value_capacity, state->count,
+          state->key_storage, state->value_storage, key,
+          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, iam_up ? "true" : "false") != 0)
+    return -1;
+
+  char scale_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+  snprintf(scale_value, sizeof(scale_value), "%.15g", rule->scale);
+  n = snprintf(key, sizeof(key), "nwpw:pspspin_%sscale:%s", channel,
+               index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  if (append_direct_typed_value(
+          state->keys, state->value_types, state->value_counts, state->values,
+          state->key_capacity, state->value_capacity, state->count,
+          state->key_storage, state->value_storage, key,
+          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, scale_value) != 0)
+    return -1;
+
+  char angular_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+  snprintf(angular_value, sizeof(angular_value), "%d", angular_momentum);
+  n = snprintf(key, sizeof(key), "nwpw:pspspin_%sl:%s", channel, index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  if (append_direct_typed_value(
+          state->keys, state->value_types, state->value_counts, state->values,
+          state->key_capacity, state->value_capacity, state->count,
+          state->key_storage, state->value_storage, key,
+          NWCHEMC_DIRECT_SET_VALUE_INTEGER, angular_value) != 0)
+    return -1;
+
+  if (rule->hasMagneticQuantumNumber) {
+    char magnetic_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(magnetic_value, sizeof(magnetic_value), "%d",
+             rule->magneticQuantumNumber);
+    n = snprintf(key, sizeof(key), "nwpw:pspspin_%sm:%s", channel,
+                 index_name);
+    if (n < 0 || (size_t)n >= sizeof(key))
+      return -1;
+    if (append_direct_typed_value(
+            state->keys, state->value_types, state->value_counts,
+            state->values, state->key_capacity, state->value_capacity,
+            state->count, state->key_storage, state->value_storage, key,
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, magnetic_value) != 0)
+      return -1;
+  }
+
+  char ion_values[NWCHEMC_DIRECT_SET_VALUE_MAX][NWCHEMC_DIRECT_SET_VALUE_LEN];
+  const char *ion_value_list[NWCHEMC_DIRECT_SET_VALUE_MAX];
+  for (int i = 0; i < nions; ++i) {
+    int ion_index = (int)(int32_t)capn_get32(ion_indices, i);
+    snprintf(ion_values[i], sizeof(ion_values[i]), "%d", ion_index);
+    ion_value_list[i] = ion_values[i];
+  }
+  n = snprintf(key, sizeof(key), "nwpw:pspspin_%sions:%s", channel,
+               index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  return append_direct_typed_values(
+      state->keys, state->value_types, state->value_counts, state->values,
+      state->key_capacity, state->value_capacity, state->count,
+      state->key_storage, state->value_storage, key,
+      NWCHEMC_DIRECT_SET_VALUE_INTEGER, ion_value_list, nions);
+}
+
 static int append_simulation_cell_direct_values(
     NWChemParams_ptr params, capn_text *keys, int *value_types,
     int *value_counts, capn_text *values, size_t key_capacity,
@@ -1620,6 +1759,25 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:pspspin_count",
             NWCHEMC_DIRECT_SET_VALUE_INTEGER, count_value) != 0)
       return -1;
+    if (psp_spin_enabled && psp_spin_count > 0) {
+      struct direct_pspspin_rule_append_state pspspin_rule_state = {
+          .keys = typed_set_keys,
+          .value_types = typed_set_types,
+          .value_counts = typed_set_value_counts,
+          .values = typed_set_values,
+          .key_capacity = NWCHEMC_DIRECT_SET_MAX,
+          .value_capacity = NWCHEMC_DIRECT_SET_VALUE_MAX,
+          .count = &typed_set_count,
+          .key_storage = nwpw_direct_keys,
+          .value_storage = nwpw_direct_values,
+      };
+      size_t walked_pspspin_rules = 0;
+      if (nwchemc_params_for_each_direct_pseudopotential_spin_rule(
+              params_root, append_direct_pspspin_rule, &pspspin_rule_state,
+              &walked_pspspin_rules) != 0 ||
+          walked_pspspin_rules != (size_t)psp_spin_count)
+        return -1;
+    }
   }
   static const char *nwpw_cpmd_nwpw[] = {"cpmd", "nwpw"};
   const struct {

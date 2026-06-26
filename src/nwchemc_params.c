@@ -628,6 +628,76 @@ static const char *pseudopotential_spin_literal(
   }
 }
 
+static const char *pseudopotential_spin_channel_literal(
+    enum NWChemPseudopotentialSpinRule_Channel channel) {
+  switch (channel) {
+  case NWChemPseudopotentialSpinRule_Channel_down:
+    return "down";
+  case NWChemPseudopotentialSpinRule_Channel_up:
+  default:
+    return "up";
+  }
+}
+
+static const char *pseudopotential_spin_angular_literal(
+    enum NWChemPseudopotentialSpinRule_AngularMomentum angular_momentum) {
+  switch (angular_momentum) {
+  case NWChemPseudopotentialSpinRule_AngularMomentum_p:
+    return "p";
+  case NWChemPseudopotentialSpinRule_AngularMomentum_d:
+    return "d";
+  case NWChemPseudopotentialSpinRule_AngularMomentum_f:
+    return "f";
+  case NWChemPseudopotentialSpinRule_AngularMomentum_s:
+  default:
+    return "s";
+  }
+}
+
+static int render_pseudopotential_spin_rules(
+    NWChemPseudopotentialSpinRule_list rules, char *dst, size_t dst_size) {
+  int n = struct_list_len(&rules.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemPseudopotentialSpinRule rule;
+    get_NWChemPseudopotentialSpinRule(&rule, rules, i);
+    capn_list32 ion_indices = rule.ionIndices;
+    capn_resolve(&ion_indices.p);
+    if (ion_indices.p.type == CAPN_NULL)
+      continue;
+    if (ion_indices.p.type != CAPN_LIST || ion_indices.p.datasz != 4)
+      return -1;
+    int nions = ion_indices.p.len;
+    if (nions == 0)
+      continue;
+    if (rule.hasMagneticQuantumNumber) {
+      if (append_format(dst, dst_size, "  pspspin not_m %d %s %s %.15g",
+                        rule.magneticQuantumNumber,
+                        pseudopotential_spin_channel_literal(rule.channel),
+                        pseudopotential_spin_angular_literal(
+                            rule.angularMomentum),
+                        rule.scale) != 0)
+        return -1;
+    } else if (append_format(dst, dst_size, "  pspspin %s %s %.15g",
+                             pseudopotential_spin_channel_literal(
+                                 rule.channel),
+                             pseudopotential_spin_angular_literal(
+                                 rule.angularMomentum),
+                             rule.scale) != 0) {
+      return -1;
+    }
+    for (int j = 0; j < nions; ++j) {
+      int ion_index = (int)(int32_t)capn_get32(ion_indices, j);
+      if (append_format(dst, dst_size, " %d", ion_index) != 0)
+        return -1;
+    }
+    if (append_format(dst, dst_size, "\n") != 0)
+      return -1;
+  }
+  return 0;
+}
+
 static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
                                          char *dst, size_t dst_size,
                                          int include_direct_entries) {
@@ -652,6 +722,10 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
       (include_direct_entries ||
        pseudopotential.pspSpin != NWChemPseudopotentialSpinMode_disabled) &&
       append_format(block, sizeof(block), "  pspspin %s\n", psp_spin) != 0)
+    return -1;
+  if (include_direct_entries &&
+      render_pseudopotential_spin_rules(pseudopotential.spinRules, block,
+                                        sizeof(block)) != 0)
     return -1;
   if (render_directives(pseudopotential.directives, block, sizeof(block),
                         "  ") != 0)
@@ -3049,6 +3123,54 @@ int nwchemc_params_for_each_direct_pseudopotential(
   return 0;
 }
 
+int nwchemc_params_for_each_direct_pseudopotential_spin_rule(
+    NWChemParams_ptr params,
+    nwchemc_params_pseudopotential_spin_rule_fn callback, void *user_data,
+    size_t *count) {
+  if (params.p.type == CAPN_NULL || !count)
+    return -1;
+
+  *count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int nstanzas = struct_list_len(&view.inputStanzas.p);
+  if (nstanzas < 0)
+    return -1;
+
+  for (int i = 0; i < nstanzas; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_pseudopotential ||
+        stanza.pseudopotential.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemPseudopotentialStanza pseudopotential;
+    read_NWChemPseudopotentialStanza(&pseudopotential,
+                                     stanza.pseudopotential);
+    if (pseudopotential.pspSpin ==
+        NWChemPseudopotentialSpinMode_disabled)
+      continue;
+    int nrules = struct_list_len(&pseudopotential.spinRules.p);
+    if (nrules < 0)
+      return -1;
+    for (int j = 0; j < nrules; ++j) {
+      struct NWChemPseudopotentialSpinRule rule;
+      get_NWChemPseudopotentialSpinRule(&rule, pseudopotential.spinRules, j);
+      int nions = list32_len(rule.ionIndices);
+      if (nions < 0)
+        return -1;
+      if (nions == 0)
+        continue;
+      size_t rule_index = *count + 1;
+      if (callback && callback(user_data, rule_index, &rule) != 0)
+        return -1;
+      ++*count;
+    }
+  }
+  return 0;
+}
+
 struct direct_pseudopotential_extract_state {
   capn_text *elements;
   int *library_types;
@@ -3125,6 +3247,26 @@ int nwchemc_params_extract_direct_pseudopotential_spin(
       *has_options = 1;
       *pspspin_enabled = 0;
       *pspspin_count = 0;
+      continue;
+    }
+    if (pseudopotential.pspSpin == NWChemPseudopotentialSpinMode_enabled) {
+      *has_options = 1;
+      *pspspin_enabled = 1;
+    }
+    int nrules = struct_list_len(&pseudopotential.spinRules.p);
+    if (nrules < 0)
+      return -1;
+    for (int j = 0; j < nrules; ++j) {
+      struct NWChemPseudopotentialSpinRule rule;
+      get_NWChemPseudopotentialSpinRule(&rule, pseudopotential.spinRules, j);
+      int nions = list32_len(rule.ionIndices);
+      if (nions < 0)
+        return -1;
+      if (nions == 0)
+        continue;
+      *has_options = 1;
+      *pspspin_enabled = 1;
+      ++*pspspin_count;
     }
   }
 

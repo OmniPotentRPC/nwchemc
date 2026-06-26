@@ -119,6 +119,15 @@ int nwchemc_params_for_each_direct_pseudopotential(
     NWChemParams_ptr params, nwchemc_params_direct_pseudopotential_fn callback,
     void *user_data, size_t *count);
 
+typedef int (*nwchemc_params_pseudopotential_spin_rule_fn)(
+    void *user_data, size_t rule_index,
+    const struct NWChemPseudopotentialSpinRule *rule);
+
+int nwchemc_params_for_each_direct_pseudopotential_spin_rule(
+    NWChemParams_ptr params,
+    nwchemc_params_pseudopotential_spin_rule_fn callback, void *user_data,
+    size_t *count);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);
