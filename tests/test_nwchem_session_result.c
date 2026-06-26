@@ -73,6 +73,21 @@ static void assert_close(double actual, double expected, double tolerance) {
   assert_true(actual < expected + tolerance);
 }
 
+static double h2_bond_length(const double *positions_ang) {
+  double dx = positions_ang[3] - positions_ang[0];
+  double dy = positions_ang[4] - positions_ang[1];
+  double dz = positions_ang[5] - positions_ang[2];
+  return sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+static void assert_finite_positions(const double *positions_ang,
+                                    int position_count) {
+  for (int i = 0; i < position_count; ++i) {
+    if (!isfinite(positions_ang[i]))
+      fail_msg("non-finite optimized position[%d]", i);
+  }
+}
+
 static double assert_potential_result(const unsigned char *message,
                                       size_t message_size,
                                       double expected_energy) {
@@ -238,6 +253,61 @@ static void test_calculate_hessian_and_dipole_one_shot(void **state) {
   free(params);
 }
 
+static void test_calculate_optimize_returns_final_geometry(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  size_t step_stretched_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  unsigned char *step_stretched =
+      read_file(g_step_stretched_path, &step_stretched_size);
+  assert_non_null(params);
+  assert_non_null(step_stretched);
+
+  double short_output[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult short_status = nwchemc_calculate_optimize(
+      params, params_size, step_stretched, step_stretched_size, short_output,
+      5);
+  assert_int_equal(short_status.ok, 0);
+
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_status = nwchemc_calculate_optimize(
+      params, params_size, step_stretched, step_stretched_size,
+      optimized_positions, 6);
+  if (!optimize_status.ok)
+    fail_msg("nwchemc_calculate_optimize failed: %s",
+             optimize_status.message);
+  assert_true(isfinite(optimize_status.energy_h));
+  assert_true(optimize_status.energy_h < -0.9);
+  assert_finite_positions(optimized_positions, 6);
+  double one_shot_bond = h2_bond_length(optimized_positions);
+  assert_true(one_shot_bond > 0.5);
+  assert_true(one_shot_bond < 1.0);
+  assert_true(one_shot_bond < 1.3);
+
+  NWChemCSession *session = nwchemc_session_create(params, params_size);
+  assert_non_null(session);
+  double session_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult session_status = nwchemc_session_calculate_optimize(
+      session, step_stretched, step_stretched_size, session_positions, 6);
+  if (!session_status.ok)
+    fail_msg("nwchemc_session_calculate_optimize failed: %s",
+             session_status.message);
+  assert_true(isfinite(session_status.energy_h));
+  assert_true(session_status.energy_h < -0.9);
+  assert_finite_positions(session_positions, 6);
+  double session_bond = h2_bond_length(session_positions);
+  assert_true(session_bond > 0.5);
+  assert_true(session_bond < 1.0);
+  assert_true(session_bond < 1.3);
+  assert_close(session_bond, one_shot_bond, 1.0e-5);
+
+  nwchemc_session_destroy(session);
+  free(step_stretched);
+  free(params);
+}
+
 int main(int argc, char **argv) {
   if (argc != 4) {
     fprintf(stderr,
@@ -251,6 +321,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_session_calculate_result_accepts_multiple_steps),
       cmocka_unit_test(test_calculate_hessian_and_dipole_one_shot),
+      cmocka_unit_test(test_calculate_optimize_returns_final_geometry),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }
