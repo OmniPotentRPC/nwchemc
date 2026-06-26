@@ -92,6 +92,10 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "N teter N.teter"));
   assert_non_null(strstr(input_blocks, "* pspw_library pspw_default"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
+  assert_non_null(strstr(input_blocks, "energy_cutoff 12.5"));
+  assert_non_null(strstr(input_blocks, "wavefunction_cutoff 6.25"));
+  assert_non_null(strstr(input_blocks, "ewald_rcut 3.5"));
+  assert_non_null(strstr(input_blocks, "ewald_ncut 9"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -139,11 +143,49 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "C cpi C.cpi"));
   assert_null(strstr(input_blocks, "N teter N.teter"));
   assert_null(strstr(input_blocks, "* pspw_library pspw_default"));
+  assert_null(strstr(input_blocks, "energy_cutoff 12.5"));
+  assert_null(strstr(input_blocks, "wavefunction_cutoff 6.25"));
+  assert_null(strstr(input_blocks, "ewald_rcut 3.5"));
+  assert_null(strstr(input_blocks, "ewald_ncut 9"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
   assert_non_null(strstr(input_blocks, "iterations 40"));
   assert_non_null(strstr(input_blocks, "set int:acc_std 1e-8"));
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
+static void test_parser_extracts_direct_nwpw_options(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  int has_options = 0;
+  double energy_cutoff = 0.0;
+  double wavefunction_cutoff = 0.0;
+  double ewald_rcut = 0.0;
+  int ewald_ncut = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw(
+                       params_root, &has_options, &energy_cutoff,
+                       &wavefunction_cutoff, &ewald_rcut, &ewald_ncut),
+                   0);
+  assert_int_equal(has_options, 1);
+  assert_true(energy_cutoff > 12.499);
+  assert_true(energy_cutoff < 12.501);
+  assert_true(wavefunction_cutoff > 6.249);
+  assert_true(wavefunction_cutoff < 6.251);
+  assert_true(ewald_rcut > 3.499);
+  assert_true(ewald_rcut < 3.501);
+  assert_int_equal(ewald_ncut, 9);
 
   nwchemc_params_release(&arena);
   free(message);
@@ -208,6 +250,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
+      cmocka_unit_test(test_parser_extracts_direct_nwpw_options),
       cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);

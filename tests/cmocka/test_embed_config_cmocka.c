@@ -38,6 +38,7 @@ static int g_set_config_calls = 0;
 static int g_set_dft_direct_calls = 0;
 static int g_set_scf_direct_calls = 0;
 static int g_set_driver_direct_calls = 0;
+static int g_set_nwpw_direct_calls = 0;
 static int g_set_pseudopotential_calls = 0;
 static int g_set_rtdb_strings_calls = 0;
 static int g_set_rtdb_values_calls = 0;
@@ -56,6 +57,11 @@ static double g_driver_gmax_tol = 0.0;
 static double g_driver_grms_tol = 0.0;
 static double g_driver_xmax_tol = 0.0;
 static double g_driver_xrms_tol = 0.0;
+static int g_nwpw_has_options = 0;
+static double g_nwpw_energy_cutoff = 0.0;
+static double g_nwpw_wavefunction_cutoff = 0.0;
+static double g_nwpw_ewald_rcut = 0.0;
+static int g_nwpw_ewald_ncut = 0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
@@ -192,6 +198,18 @@ int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
   g_driver_grms_tol = grms_tol;
   g_driver_xmax_tol = xmax_tol;
   g_driver_xrms_tol = xrms_tol;
+  return 0;
+}
+
+int nwchemc_embed_set_nwpw_direct(int has_options, double energy_cutoff,
+                                  double wavefunction_cutoff,
+                                  double ewald_rcut, int ewald_ncut) {
+  ++g_set_nwpw_direct_calls;
+  g_nwpw_has_options = has_options;
+  g_nwpw_energy_cutoff = energy_cutoff;
+  g_nwpw_wavefunction_cutoff = wavefunction_cutoff;
+  g_nwpw_ewald_rcut = ewald_rcut;
+  g_nwpw_ewald_ncut = ewald_ncut;
   return 0;
 }
 
@@ -445,6 +463,7 @@ static void reset_embed_captures(void) {
   g_set_dft_direct_calls = 0;
   g_set_scf_direct_calls = 0;
   g_set_driver_direct_calls = 0;
+  g_set_nwpw_direct_calls = 0;
   g_set_pseudopotential_calls = 0;
   g_set_rtdb_strings_calls = 0;
   g_set_rtdb_values_calls = 0;
@@ -463,6 +482,11 @@ static void reset_embed_captures(void) {
   g_driver_grms_tol = 0.0;
   g_driver_xmax_tol = 0.0;
   g_driver_xrms_tol = 0.0;
+  g_nwpw_has_options = 0;
+  g_nwpw_energy_cutoff = 0.0;
+  g_nwpw_wavefunction_cutoff = 0.0;
+  g_nwpw_ewald_rcut = 0.0;
+  g_nwpw_ewald_ncut = 0;
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
@@ -550,9 +574,19 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "C cpi C.cpi"));
   assert_null(strstr(g_input_blocks, "N teter N.teter"));
   assert_null(strstr(g_input_blocks, "* pspw_library pspw_default"));
+  assert_null(strstr(g_input_blocks, "energy_cutoff 12.5"));
+  assert_null(strstr(g_input_blocks, "wavefunction_cutoff 6.25"));
+  assert_null(strstr(g_input_blocks, "ewald_rcut 3.5"));
+  assert_null(strstr(g_input_blocks, "ewald_ncut 9"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
+  assert_int_equal(g_set_nwpw_direct_calls, 1);
+  assert_int_equal(g_nwpw_has_options, 1);
+  assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);
+  assert_close(g_nwpw_wavefunction_cutoff, 6.25, 1e-12);
+  assert_close(g_nwpw_ewald_rcut, 3.5, 1e-12);
+  assert_int_equal(g_nwpw_ewald_ncut, 9);
   assert_int_equal(g_set_pseudopotential_calls, 1);
   assert_int_equal(g_psp_count, 6);
   assert_string_equal(g_psp_elements[0], "Si");

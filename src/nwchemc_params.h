@@ -46,6 +46,13 @@ int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
                                          double *xmax_tol,
                                          double *xrms_tol);
 
+int nwchemc_params_extract_direct_nwpw(NWChemParams_ptr params,
+                                       int *has_options,
+                                       double *energy_cutoff,
+                                       double *wavefunction_cutoff,
+                                       double *ewald_rcut,
+                                       int *ewald_ncut);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

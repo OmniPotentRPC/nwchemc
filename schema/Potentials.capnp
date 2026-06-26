@@ -194,6 +194,14 @@ struct NWChemPseudopotentialStanza {
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
 }
 
+struct NWChemNwpwStanza {
+  energyCutoff       @0 :Float64 = 0.0; # Emit/promote NWPW energy_cutoff.
+  wavefunctionCutoff @1 :Float64 = 0.0; # Emit/promote NWPW wavefunction_cutoff.
+  ewaldRcut          @2 :Float64 = 0.0; # Emit/promote NWPW ewald_rcut.
+  ewaldNcut          @3 :Int32 = 0;     # Emit/promote NWPW ewald_ncut.
+  directives         @4 :List(NWChemDirective);
+}
+
 # @struct NWChemScfStanza
 # @brief Typed SCF/HF block controls (vectors, convergence, thresh).
 # Extra directives cover the long tail of SCF options via NWChemDirective.
@@ -276,6 +284,7 @@ struct NWChemInputStanza {
   property        @10 :NWChemPropertyStanza;
   basisStanza     @11 :NWChemBasisStanza;
   geometry        @12 :NWChemGeometryStanza;
+  nwpw            @13 :NWChemNwpwStanza;
 
   enum Kind {
     generic         @0;
@@ -290,6 +299,7 @@ struct NWChemInputStanza {
     property        @9;
     basis           @10; # NWChemInputStanza.basisStanza
     geometry        @11;
+    nwpw            @12;
   }
 }
 
