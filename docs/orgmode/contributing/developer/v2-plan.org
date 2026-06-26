@@ -74,7 +74,8 @@ promoted to the NWPW RTDB keys used by ~nwpw_input.F~. Promoted fields are
 omitted from embed-rendered text when no non-promoted syntax remains.
 Structured NWPW state controls and simple named ~exchangeCorrelation~ values
 use the same direct RTDB path. Born-Oppenheimer NWPW controls with stable
-RTDB keys are promoted in the same pass.
+RTDB keys are promoted in the same pass. NWPW execution controls with stable
+RTDB keys are also promoted directly.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -95,6 +96,8 @@ The schema contains typed stanzas for:
 - ~nwpw~ state controls and simple named exchange-correlation functionals
 - ~nwpw~ Born-Oppenheimer controls for balance, BO steps, BO time step,
   BO algorithm, BO fake mass, and scaling
+- ~nwpw~ execution controls for processor dimensions, spin-orbit, and
+  parallel I/O
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -210,6 +213,9 @@ module prefix:
 | ~boAlgorithm~ | ~bo_algorithm~ | ~nwpw~ |
 | ~boFakeMass~ | ~bo_fake_mass~ | ~nwpw~ |
 | ~scalingFirst~ / ~scalingSecond~ | ~scaling~ | ~nwpw~, ~cpmd~ |
+| ~npFftProcesses~ / ~npOrbitalProcesses~ / ~npKspaceProcesses~ | ~np_dimensions~ | ~nwpw~ |
+| ~spinOrbit~ | ~spin_orbit~ | ~nwpw~, ~pspw~, ~band~ |
+| ~parallelIo~ | ~parallel_io~ | ~nwpw~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes

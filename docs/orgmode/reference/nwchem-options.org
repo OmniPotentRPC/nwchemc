@@ -115,6 +115,9 @@ RTDB values directly:
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
 | ~boFakeMass~ | ~bo_fake_mass <value>~ | ~nwpw:bo_fake_mass~ |
 | ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ | ~nwpw:scaling~, ~cpmd:scaling~ |
+| ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ | ~nwpw:np_dimensions~ |
+| ~spinOrbit~ | ~spin_orbit on~ or ~off~ | ~nwpw:spin_orbit~, ~pspw:spin_orbit~, ~band:spin_orbit~ |
+| ~parallelIo~ | ~parallel_io on~ or ~off~ | ~nwpw:parallel_io~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -213,6 +216,9 @@ controls:
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
 | ~boFakeMass~ | ~bo_fake_mass <value>~ |
 | ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ |
+| ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ |
+| ~spinOrbit~ | ~spin_orbit on~ or ~off~ |
+| ~parallelIo~ | ~parallel_io on~ or ~off~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem
