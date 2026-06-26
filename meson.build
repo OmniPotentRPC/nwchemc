@@ -688,6 +688,23 @@ if get_option('with_tests')
       ),
       is_parallel: false,
     )
+    test(
+      'nwchem-geometry-basis-rtdb',
+      executable(
+        'test_nwchem_geometry_basis_rtdb',
+        [
+          'tests/test_nwchem_geometry_basis_rtdb.c',
+          'tests/nwchem_geometry_basis_rtdb_probe.F',
+        ],
+        include_directories: inc,
+        dependencies: [cmocka_dep],
+        link_with: nwchemc_legacy,
+        link_args: nwchem_link_args,
+        c_args: common_c_args,
+        fortran_args: nwchem_legacy_args,
+      ),
+      is_parallel: false,
+    )
     mpirun = find_program('mpirun', required: false)
     if mpirun.found()
       nwchem_mpi_test = executable(
