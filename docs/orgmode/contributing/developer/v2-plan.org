@@ -119,6 +119,12 @@ The session owns the topology invariant. A caller that changes atom count or
 species ordering is rejected before NWChem evaluation. Resetting or replacing
 that topology is explicit: create a separate session, or add a dedicated reset
 entry point with the same explicit semantics.
+Do not add a second key-value database for session or parameter state. Session
+objects may own decoded scalar fields that are derived from the installed
+~NWChemParams~ message. Any broader in-memory memo for parsed Cap'n Proto bytes
+must use xxHash over the serialized bytes with the byte length and schema
+identity in the key, and it must confirm byte equality before reusing a cached
+decode.
 
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only

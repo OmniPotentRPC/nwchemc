@@ -88,7 +88,7 @@ struct NWChemCSession {
   NWChemParams_ptr params_root;
   int has_params;
   int configured;
-  /* Charge and multiplicity decoded once at params install, reused per step. */
+  /* Session-owned scalar state decoded from installed params. */
   int charge;
   int multiplicity;
   double *step_positions_ang;
@@ -699,7 +699,7 @@ static int session_apply_config(NWChemCSession *session) {
 
 static void session_charge_multiplicity(NWChemCSession *session, int *charge,
                                         int *multiplicity) {
-  /* Cached at params install; no per-step capnp decode. */
+  /* Session step calls reuse decoded scalar state. */
   *charge = session->charge;
   *multiplicity = session->multiplicity;
 }
