@@ -80,6 +80,8 @@ struct NWChemCSession {
   double *step_positions_ang;
   int *step_atomic_numbers;
   size_t step_atom_capacity;
+  int *topology_atomic_numbers;
+  size_t topology_atom_count;
 };
 
 static NWChemCSession *g_active_session = NULL;
@@ -498,6 +500,14 @@ static void session_clear_step_scratch(NWChemCSession *session) {
   session->step_atom_capacity = 0;
 }
 
+static void session_clear_topology(NWChemCSession *session) {
+  if (!session)
+    return;
+  free(session->topology_atomic_numbers);
+  session->topology_atomic_numbers = NULL;
+  session->topology_atom_count = 0;
+}
+
 static int session_reserve_step_atoms(NWChemCSession *session,
                                       size_t n_atoms) {
   if (!session || n_atoms == 0)
@@ -521,6 +531,33 @@ static int session_reserve_step_atoms(NWChemCSession *session,
   session->step_positions_ang = positions;
   session->step_atomic_numbers = atomic_numbers;
   session->step_atom_capacity = n_atoms;
+  return 0;
+}
+
+static int session_check_topology(NWChemCSession *session, size_t n_atoms,
+                                  const int *atomic_numbers) {
+  if (!session || n_atoms == 0 || !atomic_numbers)
+    return -1;
+
+  if (session->topology_atom_count == 0) {
+    if (n_atoms > SIZE_MAX / sizeof(*session->topology_atomic_numbers))
+      return -1;
+    int *topology =
+        (int *)malloc(n_atoms * sizeof(*session->topology_atomic_numbers));
+    if (!topology)
+      return -1;
+    memcpy(topology, atomic_numbers, n_atoms * sizeof(*topology));
+    session->topology_atomic_numbers = topology;
+    session->topology_atom_count = n_atoms;
+    return 0;
+  }
+
+  if (session->topology_atom_count != n_atoms)
+    return 1;
+  for (size_t i = 0; i < n_atoms; ++i) {
+    if (session->topology_atomic_numbers[i] != atomic_numbers[i])
+      return 1;
+  }
   return 0;
 }
 
@@ -628,6 +665,7 @@ void nwchemc_session_destroy(NWChemCSession *session) {
     g_active_session = NULL;
   session_clear_params(session);
   session_clear_step_scratch(session);
+  session_clear_topology(session);
   free(session);
 }
 
@@ -645,6 +683,16 @@ static NWChemCResult session_energy_gradient_cell(NWChemCSession *session,
   if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
       !grad_h_bohr) {
     snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  int topology_status =
+      session_check_topology(session, (size_t)n_atoms, atomic_numbers);
+  if (topology_status < 0) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  if (topology_status > 0) {
+    snprintf(r.message, sizeof(r.message), "session topology mismatch");
     return r;
   }
   if (session_apply_config(session) != 0) {
@@ -958,6 +1006,16 @@ static NWChemCResult session_hessian_cell(NWChemCSession *session, int n_atoms,
   if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
       !hessian_h_bohr2) {
     snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  int topology_status =
+      session_check_topology(session, (size_t)n_atoms, atomic_numbers);
+  if (topology_status < 0) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  if (topology_status > 0) {
+    snprintf(r.message, sizeof(r.message), "session topology mismatch");
     return r;
   }
   if (session_apply_config(session) != 0) {
