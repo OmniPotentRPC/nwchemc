@@ -156,7 +156,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*128 set_keys(*)
       character*256 set_values(*)
       character*128 typed_set_keys(*)
-      character*256 typed_set_values(16,*)
+      character*256 typed_set_values(64,*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
@@ -319,7 +319,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*128 set_keys(*)
       character*256 set_values(*)
       character*128 typed_set_keys(*)
-      character*256 typed_set_values(16,*)
+      character*256 typed_set_values(64,*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
@@ -473,7 +473,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*128 set_keys(*)
       character*256 set_values(*)
       character*128 typed_set_keys(*)
-      character*256 typed_set_values(16,*)
+      character*256 typed_set_values(64,*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
@@ -598,12 +598,12 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer set_types(*)
       integer set_value_counts(*)
       character*128 set_keys(*)
-      character*256 set_values(16,*)
+      character*256 set_values(64,*)
       character*(*) errmsg
       logical ok
       integer i, j, l_key, l_value, nvalues, maxsets, maxvalues
       parameter (maxsets = 64)
-      parameter (maxvalues = 16)
+      parameter (maxvalues = 64)
       integer ivals(maxvalues)
       double precision dvals(maxvalues)
       logical lvals(maxvalues)

@@ -286,10 +286,10 @@ int nwchemc_embed_set_rtdb_values(const char *keys, const int *value_types,
               keys + i * 128, 128);
     g_typed_set_types[i] = value_types[i];
     g_typed_set_value_counts[i] = value_counts[i];
-    int nvalues = value_counts[i] < 16 ? value_counts[i] : 16;
+    int nvalues = value_counts[i] < 64 ? value_counts[i] : 64;
     for (int j = 0; j < nvalues; ++j) {
       copy_span(g_typed_set_values[i][j], sizeof(g_typed_set_values[i][j]),
-                values + (i * 16 + j) * 256, 256);
+                values + (i * 64 + j) * 256, 256);
     }
   }
   return 0;
@@ -483,7 +483,7 @@ static void reset_embed_captures(void) {
   }
   for (int i = 0; i < 192; ++i) {
     g_typed_set_keys[i][0] = '\0';
-    for (int j = 0; j < 16; ++j)
+    for (int j = 0; j < 64; ++j)
       g_typed_set_values[i][j][0] = '\0';
     g_typed_set_types[i] = -1;
     g_typed_set_value_counts[i] = 0;

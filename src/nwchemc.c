@@ -113,7 +113,7 @@ enum {
   NWCHEMC_DIRECT_PSP_ELEMENT_LEN = 16,
   NWCHEMC_DIRECT_PSP_NAME_LEN = 256,
   NWCHEMC_DIRECT_SET_MAX = 192,
-  NWCHEMC_DIRECT_SET_VALUE_MAX = 16,
+  NWCHEMC_DIRECT_SET_VALUE_MAX = 64,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
   NWCHEMC_DIRECT_SET_VALUE_LEN = 256,
 };
@@ -1215,17 +1215,17 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                              NWCHEMC_DIRECT_SET_VALUE_MAX];
   size_t typed_set_count = 0;
   char nwpw_direct_keys[NWCHEMC_DIRECT_SET_MAX][NWCHEMC_DIRECT_SET_KEY_LEN];
-  char nwpw_direct_values[NWCHEMC_DIRECT_SET_MAX]
-                         [NWCHEMC_DIRECT_SET_VALUE_MAX]
-                         [NWCHEMC_DIRECT_SET_VALUE_LEN];
+  static char nwpw_direct_values[NWCHEMC_DIRECT_SET_MAX]
+                                [NWCHEMC_DIRECT_SET_VALUE_MAX]
+                                [NWCHEMC_DIRECT_SET_VALUE_LEN];
   char packed_set_keys[NWCHEMC_DIRECT_SET_MAX * NWCHEMC_DIRECT_SET_KEY_LEN];
   char packed_set_values[NWCHEMC_DIRECT_SET_MAX *
                          NWCHEMC_DIRECT_SET_VALUE_LEN];
   char packed_typed_set_keys[NWCHEMC_DIRECT_SET_MAX *
                              NWCHEMC_DIRECT_SET_KEY_LEN];
-  char packed_typed_set_values[NWCHEMC_DIRECT_SET_MAX *
-                               NWCHEMC_DIRECT_SET_VALUE_MAX *
-                               NWCHEMC_DIRECT_SET_VALUE_LEN];
+  static char packed_typed_set_values[NWCHEMC_DIRECT_SET_MAX *
+                                      NWCHEMC_DIRECT_SET_VALUE_MAX *
+                                      NWCHEMC_DIRECT_SET_VALUE_LEN];
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
   memset(packed_psp_names, 0, sizeof(packed_psp_names));
   memset(psp_types, 0, sizeof(psp_types));

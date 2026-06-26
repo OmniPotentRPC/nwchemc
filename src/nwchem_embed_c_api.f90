@@ -70,7 +70,7 @@ module nwchem_embed_c_api
   integer, parameter :: psp_element_len = 16
   integer, parameter :: psp_name_len = 256
   integer, parameter :: max_embed_set_strings = 64
-  integer, parameter :: max_embed_set_values = 16
+  integer, parameter :: max_embed_set_values = 64
   integer, parameter :: set_key_len = 128
   integer, parameter :: set_value_len = 256
   integer, save :: cfg_psp_count = 0
@@ -147,7 +147,7 @@ module nwchem_embed_c_api
       character(len=128), intent(in) :: typed_set_keys(*)
       integer, intent(in) :: typed_set_types(*)
       integer, intent(in) :: typed_set_value_counts(*)
-      character(len=256), intent(in) :: typed_set_values(16,*)
+      character(len=256), intent(in) :: typed_set_values(64,*)
       integer, intent(in) :: brillouin_has_options
       character(len=64), intent(in) :: brillouin_zone_name
       integer, intent(in) :: brillouin_monkhorst_pack(3)
@@ -203,7 +203,7 @@ module nwchem_embed_c_api
       character(len=128), intent(in) :: typed_set_keys(*)
       integer, intent(in) :: typed_set_types(*)
       integer, intent(in) :: typed_set_value_counts(*)
-      character(len=256), intent(in) :: typed_set_values(16,*)
+      character(len=256), intent(in) :: typed_set_values(64,*)
       integer, intent(in) :: brillouin_has_options
       character(len=64), intent(in) :: brillouin_zone_name
       integer, intent(in) :: brillouin_monkhorst_pack(3)
@@ -259,7 +259,7 @@ module nwchem_embed_c_api
       character(len=128), intent(in) :: typed_set_keys(*)
       integer, intent(in) :: typed_set_types(*)
       integer, intent(in) :: typed_set_value_counts(*)
-      character(len=256), intent(in) :: typed_set_values(16,*)
+      character(len=256), intent(in) :: typed_set_values(64,*)
       integer, intent(in) :: brillouin_has_options
       character(len=64), intent(in) :: brillouin_zone_name
       integer, intent(in) :: brillouin_monkhorst_pack(3)
