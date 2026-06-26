@@ -5,7 +5,8 @@ Stable C ABI for embedding NWChem from language-neutral Cap'n Proto
 
 `nwchemc` builds `libnwchemc.so` from a C ABI layer, modern Fortran
 `iso_c_binding` / `iso_fortran_env` bridge code, and the legacy NWChem embed
-entry points required for RTDB, geometry, basis, energy, and gradient calls.
+entry points required for RTDB, geometry, basis, energy, gradient, Hessian, and
+dipole calls.
 
 The public ABI does not expose C++ or Rust types:
 
@@ -19,6 +20,10 @@ NWChemCResult nwchemc_hessian(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *hessian_h_bohr2);
+NWChemCResult nwchemc_dipole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *dipole_au);
 NWChemCSession *nwchemc_session_create(
     const void *params_capnp, size_t params_capnp_size_bytes);
 size_t nwchemc_potential_result_size_for_force_input(
@@ -165,6 +170,8 @@ directly.
 `nwchemc_hessian()` fills a dense row-major Cartesian Hessian in
 Hartree/Bohr^2. It accepts the same `NWChemParams` Cap'n Proto message as the
 energy/gradient call.
+`nwchemc_dipole()` fills a three-element total dipole vector in atomic units and
+returns the associated total energy in `NWChemCResult.energy_h`.
 
 ## Cap'n Proto C
 

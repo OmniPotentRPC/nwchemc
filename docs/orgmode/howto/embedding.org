@@ -16,6 +16,10 @@ NWChemCResult result = nwchemc_energy_gradient(
 NWChemCResult hessian = nwchemc_hessian(
     n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
     hessian_h_bohr2);
+double dipole_au[3];
+NWChemCResult dipole = nwchemc_dipole(
+    n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
+    dipole_au);
 #+end_src
 
 ~params_bytes~ is an unpacked flat Cap'n Proto message.
@@ -49,6 +53,9 @@ if (session != NULL) {
   NWChemCResult curvature = nwchemc_session_calculate_hessian(
       session, force_input_bytes, force_input_size, hessian_h_bohr2,
       (n_atoms * 3) * (n_atoms * 3));
+  double dipole_au[3];
+  NWChemCResult property = nwchemc_session_calculate_dipole(
+      session, force_input_bytes, force_input_size, dipole_au, 3);
   free(potential_result_bytes);
   nwchemc_session_destroy(session);
 }
@@ -73,7 +80,8 @@ Changing species or atom count requires a separate ~NWChemCSession~.
 returns the result byte count without evaluating NWChem. If the output buffer is
 too small, ~nwchemc_session_calculate_result~ reports the required byte count
 through ~potential_result_size~ and does not evaluate NWChem. ~hessian_h_bohr2~
-is filled in Hartree per Bohr squared.
+is filled in Hartree per Bohr squared. ~dipole_au~ is filled with a
+three-element total dipole vector in atomic units.
 
 For a single geometry step, ~nwchemc_calculate_result~ accepts
 ~NWChemParams~, one ~ForceInput~, and the caller-owned ~PotentialResult~ output
@@ -101,6 +109,9 @@ as negative gradients in Hartree per Bohr.
 ~nwchemc_hessian()~ and ~nwchemc_session_calculate_hessian()~ fill a dense
 row-major Cartesian Hessian in Hartree per Bohr squared, with length
 ~(natoms * 3) * (natoms * 3)~.
+~nwchemc_dipole()~, ~nwchemc_session_dipole()~, and
+~nwchemc_session_calculate_dipole()~ fill a three-element total dipole vector in
+atomic units and keep ~NWChemCResult.energy_h~ in Hartree.
 Input coordinates are Angstrom values in a flat ~[natoms * 3]~ array.
 
 * Language Bindings

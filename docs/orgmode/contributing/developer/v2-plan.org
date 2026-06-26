@@ -10,16 +10,19 @@ directly. The public calculation entry points are:
 - ~nwchemc_energy_gradient~
 - ~nwchemc_energy_forces~
 - ~nwchemc_hessian~
+- ~nwchemc_dipole~
 - ~nwchemc_session_create~
 - ~nwchemc_session_set_params~
 - ~nwchemc_session_destroy~
 - ~nwchemc_session_energy~
 - ~nwchemc_session_energy_gradient~
 - ~nwchemc_session_energy_forces~
+- ~nwchemc_session_dipole~
 - ~nwchemc_session_calculate_forces~
 - ~nwchemc_session_calculate_result~
 - ~nwchemc_calculate_result~
 - ~nwchemc_session_calculate_hessian~
+- ~nwchemc_session_calculate_dipole~
 - ~nwchemc_session_hessian~
 - ~nwchemc_potential_result_size_for_force_input~
 - ~nwchemc_available~
@@ -44,7 +47,9 @@ and writes Gaussian library basis data through NWChem basis APIs. Session
 ~ForceInput.box~ values are applied as numeric 3x3 cells through
 ~geom_amatrix_set~, ~geom_isystype_set(3)~, and ~geom_P1_set~. The bridge then
 stores charge, multiplicity, method, and task state through RTDB-facing calls
-before calling ~task_energy~, ~task_gradient~, or ~task_hessian~.
+before calling ~task_energy~, ~task_gradient~, or ~task_hessian~. The dipole
+ABI calls use ~task_energy~ and then read ~task:dipole~ from RTDB, falling back
+to method-specific dipole keys where NWChem stores them.
 
 NWChem modules read and mutate RTDB entries inside task routines and module
 input handlers. Direct RTDB writes must therefore preserve this order:
@@ -91,12 +96,13 @@ feature tests verify the generated inventory lookup table and ABI coverage.
 ** Long-Running Step Calls
 ~nwchemc_session_calculate_forces~,
 ~nwchemc_session_calculate_result~, and
-~nwchemc_session_calculate_hessian~ are C ABI entry points for socket-style,
-optimizer-style, and vibrational callers. They take the session's persistent
-~NWChemParams~ and a per-call serialized ~ForceInput~ message, validate atom
-counts and output buffer sizes, convert coordinates and cells to the C ABI
-units, call the embed bridge, and return either native NWChem buffers or a
-serialized ~PotentialResult~ in the caller's requested units.
+~nwchemc_session_calculate_hessian~, and
+~nwchemc_session_calculate_dipole~ are C ABI entry points for socket-style,
+optimizer-style, property, and vibrational callers. They take the session's
+persistent ~NWChemParams~ and a per-call serialized ~ForceInput~ message,
+validate atom counts and output buffer sizes, convert coordinates and cells to
+the C ABI units, call the embed bridge, and return either native NWChem buffers
+or a serialized ~PotentialResult~ in the caller's requested units.
 ~nwchemc_potential_result_size_for_force_input~ gives callers the
 ~PotentialResult~ byte count from the per-step ~ForceInput~ without evaluating
 NWChem.
@@ -156,6 +162,8 @@ Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes
 ~task:theory~ and ~task:operation~ directly from the requested entry point
 before calling the corresponding NWChem task routine.
+The dipole entry points set ~task:operation~ to ~energy~ and extract the dipole
+from RTDB instead of rendering a text property task.
 
 Open direct-path checks: add embed regression that asserts direct path matches
 text-path energies when NWChem embed is available.
@@ -184,8 +192,8 @@ the full periodic table through oganesson for direct geometry and basis setup.
 
 ** ABI Surface
 Keep adding calculation entry points around the same ~NWChemParams~ carrier:
-energy-only, properties, dipoles, optimized geometries, vibrational analysis,
-and any rgpot-relevant potential/force forms. Avoid parallel option structs.
+properties beyond total dipole, optimized geometries, vibrational analysis, and
+any rgpot-relevant potential/force forms. Avoid parallel option structs.
 
 ** Build Model
 The embed build consumes an NWChem build tree because it needs source headers,
