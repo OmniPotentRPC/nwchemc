@@ -548,6 +548,7 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_null(strstr(g_input_blocks, "grms 1.5e-05"));
   assert_null(strstr(g_input_blocks, "xmax 7.5e-05"));
   assert_null(strstr(g_input_blocks, "xrms 5.5e-05"));
+  assert_null(strstr(g_input_blocks, "task scf energy"));
   assert_null(strstr(g_input_blocks, "set dft:grid xfine"));
   assert_null(strstr(g_input_blocks, "set dft:nopen integer 2"));
   assert_null(strstr(g_input_blocks, "set dft:smear_sigma double 0.0015"));
