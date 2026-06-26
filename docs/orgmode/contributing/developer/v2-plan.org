@@ -93,7 +93,7 @@ The schema contains typed stanzas for:
 - ~scf~ blocks including typed max-iteration, convergence-threshold, and
   two-electron tolerance scalars
 - classic ~ccsd~ scalar controls for max iterations, thresholds, DIIS,
-  frozen-orbital counts, disk use, and SCS scaling
+  frozen-orbital counts, disk use, SCS scaling, and structured print controls
 - ~tce~ controls for coupled-cluster/CI/MBPT/EOM method identity,
   perturbative triples, freeze counts, convergence/level shifts, DIIS, EOM
   roots/targets, density/multipole flags, active spaces, transform controls,
@@ -284,6 +284,7 @@ module prefix:
 | ~useDisk~ | ~usedisk~ | ~ccsd~ |
 | ~sameSpinScale~ | ~fss~ | ~ccsd~ |
 | ~oppositeSpinScale~ | ~fos~ | ~ccsd~ |
+| ~printLevel~ / ~printItems~ / ~noPrintItems~ | text-only ~print~ / ~noprint~ lines | ~ccsd~ |
 | ~model~ | ~model~ | ~tce~ |
 | ~model2e~ | ~model2e~ | ~tce~ |
 | ~perturbative~ | ~perturbative~ | ~tce~ |
