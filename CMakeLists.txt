@@ -474,6 +474,29 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     DEPENDS "${NWCHEMC_FORCE_INPUT_STEP_EV_BIN}"
   )
 
+  set(NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN
+    "${CMAKE_CURRENT_BINARY_DIR}/force_input_step_changed_species.bin"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CAPNP_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "ForceInput"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_step_changed_species.capnp.txt"
+      "${NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN}"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_step_changed_species.capnp.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+    VERBATIM
+  )
+  add_custom_target(force_input_step_changed_species_bin
+    DEPENDS "${NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN}"
+  )
+
   set(NWCHEMC_FORCE_INPUT_H2_EQ_BIN
     "${CMAKE_CURRENT_BINARY_DIR}/force_input_h2_eq.bin"
   )
@@ -551,6 +574,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     force_input_step_a_bin
     force_input_step_b_bin
     force_input_step_ev_bin
+    force_input_step_changed_species_bin
   )
   add_test(NAME embed-config-cmocka
     COMMAND test_embed_config_cmocka
@@ -559,6 +583,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_EV_BIN}"
+      "${NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN}"
   )
 
   if(NWCHEMC_WITH_NWCHEM)

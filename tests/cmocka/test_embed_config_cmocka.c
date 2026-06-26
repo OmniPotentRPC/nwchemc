@@ -15,6 +15,7 @@ static const char *g_config_options_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
 static const char *g_force_step_ev_path = NULL;
+static const char *g_force_step_changed_species_path = NULL;
 
 static char g_basis[64];
 static char g_theory[64];
@@ -635,12 +636,16 @@ static void test_session_calculate_forces_accepts_force_input_steps(
   size_t message_size = 0;
   size_t step_a_size = 0;
   size_t step_b_size = 0;
+  size_t step_changed_species_size = 0;
   unsigned char *message = read_file(g_params_path, &message_size);
   unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
   unsigned char *step_b = read_file(g_force_step_b_path, &step_b_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
   assert_non_null(message);
   assert_non_null(step_a);
   assert_non_null(step_b);
+  assert_non_null(step_changed_species);
 
   NWChemCSession *session = nwchemc_session_create(message, message_size);
   assert_non_null(session);
@@ -673,12 +678,19 @@ static void test_session_calculate_forces_accepts_force_input_steps(
   assert_int_equal(g_call_has_cell[1], 1);
   assert_close(g_call_cell_ang[1][0], 10.58354421806, 1.0e-11);
 
+  NWChemCResult changed_species = nwchemc_session_calculate_forces(
+      session, step_changed_species, step_changed_species_size, forces, 6);
+  assert_int_equal(changed_species.ok, 0);
+  assert_non_null(strstr(changed_species.message, "topology"));
+  assert_int_equal(g_energy_grad_calls, 2);
+
   NWChemCResult short_output = nwchemc_session_calculate_forces(
       session, step_b, step_b_size, forces, 5);
   assert_int_equal(short_output.ok, 0);
   assert_int_equal(g_energy_grad_calls, 2);
 
   nwchemc_session_destroy(session);
+  free(step_changed_species);
   free(step_b);
   free(step_a);
   free(message);
@@ -733,14 +745,18 @@ static void test_session_calculate_result_writes_potential_result(
   size_t step_a_size = 0;
   size_t step_b_size = 0;
   size_t step_ev_size = 0;
+  size_t step_changed_species_size = 0;
   unsigned char *message = read_file(g_params_path, &message_size);
   unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
   unsigned char *step_b = read_file(g_force_step_b_path, &step_b_size);
   unsigned char *step_ev = read_file(g_force_step_ev_path, &step_ev_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
   assert_non_null(message);
   assert_non_null(step_a);
   assert_non_null(step_b);
   assert_non_null(step_ev);
+  assert_non_null(step_changed_species);
 
   NWChemCSession *session = nwchemc_session_create(message, message_size);
   assert_non_null(session);
@@ -788,6 +804,15 @@ static void test_session_calculate_result_writes_potential_result(
   assert_int_equal(g_call_has_cell[1], 1);
   assert_close(g_call_cell_ang[1][0], 10.58354421806, 1.0e-11);
 
+  size_t changed_result_size = 0;
+  NWChemCResult changed_species = nwchemc_session_calculate_result(
+      session, step_changed_species, step_changed_species_size, result_bytes,
+      sizeof(result_bytes), &changed_result_size);
+  assert_int_equal(changed_species.ok, 0);
+  assert_non_null(strstr(changed_species.message, "topology"));
+  assert_int_equal(changed_result_size, result_size);
+  assert_int_equal(g_energy_grad_calls, 2);
+
   unsigned char short_result[79];
   size_t required_size = 0;
   NWChemCResult short_output = nwchemc_session_calculate_result(
@@ -813,6 +838,7 @@ static void test_session_calculate_result_writes_potential_result(
   assert_int_equal(g_set_config_calls, 1);
 
   nwchemc_session_destroy(session);
+  free(step_changed_species);
   free(step_ev);
   free(step_b);
   free(step_a);
@@ -868,10 +894,10 @@ static void test_calculate_result_one_shot_writes_potential_result(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 6) {
+  if (argc != 7) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
-            "FORCE_STEP_EV_BIN\n",
+            "FORCE_STEP_EV_BIN FORCE_STEP_CHANGED_SPECIES_BIN\n",
             argv[0]);
     return 2;
   }
@@ -880,6 +906,7 @@ int main(int argc, char **argv) {
   g_force_step_a_path = argv[3];
   g_force_step_b_path = argv[4];
   g_force_step_ev_path = argv[5];
+  g_force_step_changed_species_path = argv[6];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),

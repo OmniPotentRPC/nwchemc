@@ -291,6 +291,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  force_input_step_changed_species_bin = custom_target(
+    'force_input_step_changed_species_bin',
+    input: 'tests/force_input_step_changed_species.capnp.txt',
+    output: 'force_input_step_changed_species.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'ForceInput',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_h2_eq_bin = custom_target(
     'force_input_h2_eq_bin',
     input: 'tests/force_input_h2_eq.capnp.txt',
@@ -413,6 +427,7 @@ if get_option('with_tests')
       force_input_step_a_bin,
       force_input_step_b_bin,
       force_input_step_ev_bin,
+      force_input_step_changed_species_bin,
     ],
     suite: ['cmocka', 'parser'],
   )
