@@ -131,6 +131,14 @@ RTDB values directly:
 | ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~ | ~virtual_orbitals <start> <end>~ | ~nwpw:excited_ne~ |
 | ~lcaoMode~ | ~lcao~ or ~lcao_skip~ | ~nwpw:lcao_skip~ |
 | ~ewaldGridX~, ~ewaldGridY~, ~ewaldGridZ~ | ~ewald_ngrid <x> <y> <z>~ | ~nwpw:ewald_ngrid~ |
+| ~noseHoover~ | ~Nose-Hoover ...~ or ~energy~ | ~cpmd:nose~, ~nwpw:nose~ |
+| ~noseRestart~ | ~restart~ or ~start~ token in ~Nose-Hoover~ | ~cpmd:nose_restart~, ~nwpw:nose_restart~ |
+| ~noseElectronPeriod~ | first ~Nose-Hoover~ numeric argument | ~cpmd:Pe~, ~nwpw:Pe~ |
+| ~noseElectronTemperature~ | second ~Nose-Hoover~ numeric argument | ~cpmd:Te~, ~nwpw:Te~ |
+| ~noseIonPeriod~ | third ~Nose-Hoover~ numeric argument | ~cpmd:Pr~, ~nwpw:Pr~ |
+| ~noseIonTemperature~ | fourth ~Nose-Hoover~ numeric argument | ~cpmd:Tr~, ~nwpw:Tr~ |
+| ~noseElectronChainLength~ | sixth ~Nose-Hoover~ argument | ~cpmd:Mchain~, ~nwpw:Mchain~ |
+| ~noseIonChainLength~ | seventh ~Nose-Hoover~ argument | ~cpmd:Nchain~, ~nwpw:Nchain~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -245,6 +253,14 @@ controls:
 | ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~ | ~virtual_orbitals <start> <end>~ |
 | ~lcaoMode~ | ~lcao~ or ~lcao_skip~ |
 | ~ewaldGridX~, ~ewaldGridY~, ~ewaldGridZ~ | ~ewald_ngrid <x> <y> <z>~ |
+| ~noseHoover~ | ~Nose-Hoover ...~ or ~energy~ |
+| ~noseRestart~ | ~restart~ or ~start~ token in ~Nose-Hoover~ |
+| ~noseElectronPeriod~ | first ~Nose-Hoover~ numeric argument |
+| ~noseElectronTemperature~ | second ~Nose-Hoover~ numeric argument |
+| ~noseIonPeriod~ | third ~Nose-Hoover~ numeric argument |
+| ~noseIonTemperature~ | fourth ~Nose-Hoover~ numeric argument |
+| ~noseElectronChainLength~ | sixth ~Nose-Hoover~ argument |
+| ~noseIonChainLength~ | seventh ~Nose-Hoover~ argument |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem

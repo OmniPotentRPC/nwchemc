@@ -79,7 +79,9 @@ RTDB keys are also promoted directly. Output and motion filename fields are
 promoted to the paired CPMD/NWPW RTDB string keys. Fractional orbital and smear
 controls write the matching ~nwpw:fractional_*~ keys directly.
 Virtual orbital counts, LCAO skip/use mode, and Ewald grid dimensions are
-promoted to direct ~nwpw:*~ keys.
+promoted to direct ~nwpw:*~ keys. Nose-Hoover thermostat controls write the
+paired ~cpmd:*~ / ~nwpw:*~ nose, restart, period, temperature, and chain-length
+keys directly.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -105,6 +107,10 @@ The schema contains typed stanzas for:
 - ~nwpw~ output and motion filename controls
 - ~nwpw~ fractional orbital and smear controls
 - ~nwpw~ virtual orbital, LCAO, and Ewald grid controls
+- ~nwpw~ Nose-Hoover thermostat controls
+- coupled-cluster module coverage through generic ~ccsd~, ~tce~, and
+  ~tceMrcc~ module stanzas, with structured CC controls tracked as schema/API
+  parity work
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -236,6 +242,14 @@ module prefix:
 | ~virtualOrbitalsStart~ / ~virtualOrbitalsEnd~ | ~excited_ne~ | ~nwpw~ |
 | ~lcaoMode~ | ~lcao_skip~ | ~nwpw~ |
 | ~ewaldGridX~ / ~ewaldGridY~ / ~ewaldGridZ~ | ~ewald_ngrid~ | ~nwpw~ |
+| ~noseHoover~ | ~nose~ | ~cpmd~, ~nwpw~ |
+| ~noseRestart~ | ~nose_restart~ | ~cpmd~, ~nwpw~ |
+| ~noseElectronPeriod~ | ~Pe~ | ~cpmd~, ~nwpw~ |
+| ~noseElectronTemperature~ | ~Te~ | ~cpmd~, ~nwpw~ |
+| ~noseIonPeriod~ | ~Pr~ | ~cpmd~, ~nwpw~ |
+| ~noseIonTemperature~ | ~Tr~ | ~cpmd~, ~nwpw~ |
+| ~noseElectronChainLength~ | ~Mchain~ | ~cpmd~, ~nwpw~ |
+| ~noseIonChainLength~ | ~Nchain~ | ~cpmd~, ~nwpw~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes
