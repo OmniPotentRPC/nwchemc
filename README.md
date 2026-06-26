@@ -29,6 +29,12 @@ NWChemCResult nwchemc_session_calculate_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 void nwchemc_session_destroy(NWChemCSession *session);
 ```
 
@@ -46,6 +52,9 @@ unpacked flat `PotentialResult` buffer before calling
 `NWChemCResult.energy_h` in Hartree and writes `PotentialResult.energy` /
 `PotentialResult.forces` in `ForceInput.energyUnit` and
 `ForceInput.energyUnit / ForceInput.lengthUnit`.
+`nwchemc_calculate_result()` offers the same `NWChemParams + ForceInput`
+carrier for one-shot callers and delegates through the session result path;
+callers with multiple steps should reuse `NWChemCSession`.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,

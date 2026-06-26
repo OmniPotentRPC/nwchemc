@@ -556,6 +556,8 @@ int nwchemc_session_set_params(NWChemCSession *session,
 void nwchemc_session_destroy(NWChemCSession *session) {
   if (!session)
     return;
+  if (g_active_session == session)
+    g_active_session = NULL;
   session_clear_params(session);
   session_clear_step_scratch(session);
   free(session);
@@ -803,6 +805,50 @@ NWChemCResult nwchemc_session_calculate_result(
     }
   }
   free(forces);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes = 0;
+
+  size_t required_size = nwchemc_potential_result_size_for_force_input(
+      force_input_capnp, force_input_capnp_size_bytes);
+  *potential_result_capnp_size_bytes = required_size;
+  if (required_size == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes < required_size) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_result(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      potential_result_capnp, potential_result_capnp_capacity_bytes,
+      potential_result_capnp_size_bytes);
+  nwchemc_session_destroy(session);
   return r;
 }
 
@@ -1115,6 +1161,22 @@ NWChemCResult nwchemc_session_calculate_result(
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) {
   (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
   (void)potential_result_capnp;

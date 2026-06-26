@@ -69,6 +69,12 @@ too small, ~nwchemc_session_calculate_result~ reports the required byte count
 through ~potential_result_size~ and does not evaluate NWChem. ~hessian_h_bohr2~
 is filled in Hartree per Bohr squared.
 
+For a single geometry step, ~nwchemc_calculate_result~ accepts
+~NWChemParams~, one ~ForceInput~, and the caller-owned ~PotentialResult~ output
+buffer. It uses the same result-carrier path as
+~nwchemc_session_calculate_result~ and returns the required output byte count
+without initializing NWChem when the buffer is too small.
+
 * Parameter Ownership
 ~nwchemc~ reads the message with generated ~capnp-c~ bindings.
 The public ABI does not require a C++ runtime and does not define a second

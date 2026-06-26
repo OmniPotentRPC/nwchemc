@@ -186,6 +186,26 @@ NWChemCResult nwchemc_session_calculate_result(
     size_t *potential_result_capnp_size_bytes);
 
 /**
+ * @brief Compute one `ForceInput` step and write `PotentialResult`.
+ *
+ * This is the one-shot Cap'n Proto entry point for callers that do not keep a
+ * persistent session. Multi-step callers should create one session and call
+ * `nwchemc_session_calculate_result()` for each step so the `NWChemParams`
+ * method state is applied once and reused across the loop.
+ *
+ * When `potential_result_capnp_capacity_bytes` is too small, the function
+ * returns `ok == 0`, writes the required byte count to
+ * `potential_result_capnp_size_bytes`, and does not initialize or evaluate
+ * NWChem.
+ */
+NWChemCResult nwchemc_calculate_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief Return the byte count needed for a `PotentialResult` step output.
  *
  * This parses the serialized `ForceInput` geometry and returns the size of the

@@ -165,6 +165,7 @@ The renderer emits these entries inside an ~nwpw~ block with a nested
 | ~nwchemc_session_energy_forces~ | ~abi.nwchemc_session_energy_forces~ | fails | session energy/forces |
 | ~nwchemc_session_calculate_forces~ | ~abi.nwchemc_session_calculate_forces~ | fails | ForceInput energy/forces |
 | ~nwchemc_session_calculate_result~ | ~abi.nwchemc_session_calculate_result~ | fails | ForceInput PotentialResult |
+| ~nwchemc_calculate_result~ | ~abi.nwchemc_calculate_result~ | fails | one-shot ForceInput PotentialResult |
 | ~nwchemc_session_calculate_hessian~ | ~abi.nwchemc_session_calculate_hessian~ | fails | ForceInput Hessian |
 | ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails | session Cartesian Hessian |
 | ~nwchemc_available~ | ~abi.nwchemc_available~ | 0 | 1 |

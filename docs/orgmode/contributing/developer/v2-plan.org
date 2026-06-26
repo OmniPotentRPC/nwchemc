@@ -18,6 +18,7 @@ directly. The public calculation entry points are:
 - ~nwchemc_session_energy_forces~
 - ~nwchemc_session_calculate_forces~
 - ~nwchemc_session_calculate_result~
+- ~nwchemc_calculate_result~
 - ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_hessian~
 - ~nwchemc_potential_result_size_for_force_input~
@@ -94,6 +95,10 @@ serialized ~PotentialResult~ in the caller's requested units.
 ~nwchemc_potential_result_size_for_force_input~ gives callers the
 ~PotentialResult~ byte count from the per-step ~ForceInput~ without evaluating
 NWChem.
+~nwchemc_calculate_result~ is the one-shot convenience wrapper around the same
+~NWChemParams + ForceInput -> PotentialResult~ path. Multi-step callers should
+reuse a session so configuration is applied once and per-step calls only carry
+coordinates, cell data, atom numbers, and requested units.
 
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only
