@@ -740,12 +740,12 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "  2222ba\n"));
   assert_non_null(
       strstr(g_input_blocks, "tce\n  freeze core atomic\n  dipole\nend"));
-  assert_non_null(strstr(g_input_blocks, "pspspin off"));
+  assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 160);
+  assert_int_equal(g_typed_set_count, 162);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -807,6 +807,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "false");
   assert_typed_set_scalar("nwpw:parallel_io", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
                           "true");
+  assert_typed_set_scalar("nwpw:pspspin", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "false");
+  assert_typed_set_scalar("nwpw:pspspin_count",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "0");
   assert_typed_set_scalar("cpmd:xyz_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "traj.xyz");
   assert_typed_set_scalar("nwpw:xyz_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
