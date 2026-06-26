@@ -117,6 +117,25 @@ NWChemCResult nwchemc_dipole(
     double *dipole_au);
 
 /**
+ * @brief Compute total traceless electric quadrupole for an atomic configuration.
+ *
+ * @param n_atoms Number of atoms.
+ * @param positions_ang Flat Cartesian coordinate array in Angstrom, length
+ *        `n_atoms * 3`.
+ * @param atomic_numbers Atomic number array, length `n_atoms`.
+ * @param params_capnp Pointer to an unpacked flat `NWChemParams` message.
+ * @param params_capnp_size_bytes Size of `params_capnp` in bytes.
+ * @param quadrupole_au Output quadrupole tensor components in atomic units,
+ *        length 6, ordered `xx, xy, xz, yy, yz, zz`.
+ * @return Calculation result and status message. `energy_h` carries the
+ *         associated total energy in Hartree when available.
+ */
+NWChemCResult nwchemc_quadrupole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *quadrupole_au);
+
+/**
  * @brief Create a persistent evaluation session from a Cap'n Proto message.
  *
  * The session owns a copy of the serialized message so callers may pass a
@@ -174,6 +193,14 @@ NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers,
                                      double *dipole_au);
+
+/**
+ * @brief Compute total traceless electric quadrupole using a persistent session.
+ */
+NWChemCResult nwchemc_session_quadrupole(NWChemCSession *session, int n_atoms,
+                                         const double *positions_ang,
+                                         const int *atomic_numbers,
+                                         double *quadrupole_au);
 
 /**
  * @brief Compute energy and forces for one Cap'n Proto `ForceInput` step.
@@ -259,6 +286,18 @@ NWChemCResult nwchemc_calculate_dipole(
     double *dipole_au, size_t dipole_len);
 
 /**
+ * @brief Compute one `ForceInput` step and write a quadrupole tensor.
+ *
+ * This is the one-shot Cap'n Proto quadrupole entry point for callers that do
+ * not keep a persistent session. The six tensor components are returned in
+ * atomic units as `xx, xy, xz, yy, yz, zz`.
+ */
+NWChemCResult nwchemc_calculate_quadrupole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *quadrupole_au, size_t quadrupole_len);
+
+/**
  * @brief Return the byte count needed for a `PotentialResult` step output.
  *
  * This parses the serialized `ForceInput` geometry and returns the size of the
@@ -304,6 +343,25 @@ NWChemCResult nwchemc_session_calculate_hessian(
 NWChemCResult nwchemc_session_calculate_dipole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *dipole_au, size_t dipole_len);
+
+/**
+ * @brief Compute quadrupole for one Cap'n Proto `ForceInput` step.
+ *
+ * The session keeps persistent `NWChemParams` method state while the step
+ * message supplies positions, atomic numbers, and optional 3x3 cell vectors.
+ * The quadrupole tensor is returned in atomic units as
+ * `xx, xy, xz, yy, yz, zz`.
+ *
+ * @param session Persistent session created from `NWChemParams`.
+ * @param force_input_capnp Pointer to an unpacked flat `ForceInput` message.
+ * @param force_input_capnp_size_bytes Size of `force_input_capnp` in bytes.
+ * @param quadrupole_au Output quadrupole tensor components in atomic units.
+ * @param quadrupole_len Number of doubles available in `quadrupole_au`.
+ */
+NWChemCResult nwchemc_session_calculate_quadrupole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *quadrupole_au,
+    size_t quadrupole_len);
 
 /**
  * @brief Compute Hessian using a persistent session.
