@@ -844,6 +844,8 @@ int nwchemc_session_set_params(NWChemCSession *session,
                                size_t params_capnp_size_bytes) {
   if (!session || !params_capnp || params_capnp_size_bytes == 0)
     return -1;
+  if (session->topology_atom_count != 0)
+    return -1;
   return session_install_params(session, params_capnp,
                                 params_capnp_size_bytes);
 }
