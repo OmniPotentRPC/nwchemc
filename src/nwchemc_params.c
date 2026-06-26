@@ -649,6 +649,8 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   }
   const char *psp_spin = pseudopotential_spin_literal(pseudopotential.pspSpin);
   if (psp_spin &&
+      (include_direct_entries ||
+       pseudopotential.pspSpin != NWChemPseudopotentialSpinMode_disabled) &&
       append_format(block, sizeof(block), "  pspspin %s\n", psp_spin) != 0)
     return -1;
   if (render_directives(pseudopotential.directives, block, sizeof(block),
@@ -3088,6 +3090,44 @@ int nwchemc_params_extract_direct_pseudopotentials(
   *count = state.count;
   if (rc != 0 || walked != state.count)
     return -1;
+  return 0;
+}
+
+int nwchemc_params_extract_direct_pseudopotential_spin(
+    NWChemParams_ptr params, int *has_options, int *pspspin_enabled,
+    int *pspspin_count) {
+  if (params.p.type == CAPN_NULL || !has_options || !pspspin_enabled ||
+      !pspspin_count)
+    return -1;
+
+  *has_options = 0;
+  *pspspin_enabled = 0;
+  *pspspin_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_pseudopotential ||
+        stanza.pseudopotential.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemPseudopotentialStanza pseudopotential;
+    read_NWChemPseudopotentialStanza(&pseudopotential,
+                                     stanza.pseudopotential);
+    if (pseudopotential.pspSpin ==
+        NWChemPseudopotentialSpinMode_disabled) {
+      *has_options = 1;
+      *pspspin_enabled = 0;
+      *pspspin_count = 0;
+    }
+  }
+
   return 0;
 }
 

@@ -123,6 +123,10 @@ int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);
 
+int nwchemc_params_extract_direct_pseudopotential_spin(
+    NWChemParams_ptr params, int *has_options, int *pspspin_enabled,
+    int *pspspin_count);
+
 int nwchemc_params_extract_direct_set_strings(NWChemParams_ptr params,
                                               capn_text *keys,
                                               capn_text *values,

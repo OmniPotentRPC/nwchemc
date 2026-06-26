@@ -435,8 +435,11 @@ the renderer and embed direct path use NWChem's ~*~ target, which maps to
 fallback RTDB keys such as ~*:pspw_library~, ~*:pspw_library_type~, and
 ~*:paw_library~.
 ~pspSpin~ is structured so callers do not need a free-form directive for the
-common ~pspspin~ toggle; it remains in rendered text because this bridge does
-not have a confirmed stable RTDB key for that option.
+common ~pspspin~ reset. In embed mode, ~pspSpin = disabled~ writes
+~nwpw:pspspin~ = false and ~nwpw:pspspin_count~ = 0 directly, matching
+~nwpw_input.F~. The indexed ~pspspin up/down~ spin-scaling grammar requires
+explicit scale, angular-momentum, optional magnetic, and ion-list fields before
+it can be promoted out of text directives.
 
 * ABI Entry Points
 | Symbol | Intern id | Stub | Embed |

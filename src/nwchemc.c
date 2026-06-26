@@ -1059,6 +1059,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     return -1;
   int psp_types[NWCHEMC_DIRECT_PSP_MAX];
   size_t psp_count = 0;
+  int psp_spin_has_options = 0;
+  int psp_spin_enabled = 0;
+  int psp_spin_count = 0;
   char packed_psp_elements[NWCHEMC_DIRECT_PSP_MAX *
                            NWCHEMC_DIRECT_PSP_ELEMENT_LEN];
   char packed_psp_names[NWCHEMC_DIRECT_PSP_MAX *
@@ -1098,6 +1101,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, pack_direct_pseudopotential_entry, &psp_pack,
           &psp_count) != 0 ||
       psp_count != psp_pack.count)
+    return -1;
+  if (nwchemc_params_extract_direct_pseudopotential_spin(
+          params_root, &psp_spin_has_options, &psp_spin_enabled,
+          &psp_spin_count) != 0)
     return -1;
   if (nwchemc_params_extract_direct_set_strings(
           params_root, set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
@@ -1593,6 +1600,25 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:parallel_io",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (psp_spin_has_options) {
+    char count_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *enabled_value = psp_spin_enabled ? "true" : "false";
+    snprintf(count_value, sizeof(count_value), "%d", psp_spin_count);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:pspspin",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, enabled_value) != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:pspspin_count",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, count_value) != 0)
       return -1;
   }
   static const char *nwpw_cpmd_nwpw[] = {"cpmd", "nwpw"};
