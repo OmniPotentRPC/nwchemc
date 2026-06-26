@@ -211,7 +211,7 @@ When ~allElements~ is true, the renderer and embed direct path use NWChem's
 | ~nwchemc_hessian~ | ~abi.nwchemc_hessian~ | fails | Cartesian Hessian |
 | ~nwchemc_dipole~ | ~abi.nwchemc_dipole~ | fails | total dipole |
 | ~nwchemc_session_create~ | ~abi.nwchemc_session_create~ | NULL | create persistent session |
-| ~nwchemc_session_set_params~ | ~abi.nwchemc_session_set_params~ | fails | replace session params |
+| ~nwchemc_session_set_params~ | ~abi.nwchemc_session_set_params~ | fails | replace params before topology |
 | ~nwchemc_session_destroy~ | ~abi.nwchemc_session_destroy~ | no-op | release session |
 | ~nwchemc_session_energy_gradient~ | ~abi.nwchemc_session_energy_gradient~ | fails | session energy/gradient |
 | ~nwchemc_session_energy~ | ~abi.nwchemc_session_energy~ | fails | session energy-only |

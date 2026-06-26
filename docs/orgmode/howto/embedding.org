@@ -75,7 +75,9 @@ The first successful session evaluation establishes the session topology: atom
 count and the ordered atomic-number list. Later session calls may change
 coordinates, units, and cell vectors, but they must keep the same topology.
 Changing species or atom count is rejected by the active session and requires a
-separate ~NWChemCSession~.
+separate ~NWChemCSession~. ~nwchemc_session_set_params~ is a pre-topology
+replacement hook; after the first successful evaluation, a new configuration
+also requires a separate session.
 
 ~nwchemc_potential_result_size_for_force_input~ parses the step message and
 returns the result byte count without evaluating NWChem. If the output buffer is

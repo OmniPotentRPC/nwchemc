@@ -69,7 +69,8 @@ The first accepted session evaluation fixes the atom count and ordered
 atomic-number list for that session; later steps may change coordinates, units,
 and cell vectors, but atom-count or species changes require a separate session.
 Session calls reject topology-changing steps instead of resetting the handle
-implicitly; callers that need a new topology create a separate session.
+implicitly; callers that need a new topology or a new post-step configuration
+create a separate session.
 `nwchemc_calculate_result()` offers the same `NWChemParams + ForceInput`
 carrier for one-shot callers and delegates through the session result path;
 callers with multiple steps should reuse `NWChemCSession`. One-shot Hessian and

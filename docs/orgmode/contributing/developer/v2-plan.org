@@ -123,6 +123,10 @@ The session owns the topology invariant. A caller that changes atom count or
 species ordering is rejected before NWChem evaluation. Resetting or replacing
 that topology is explicit: create a separate session, or add a dedicated reset
 entry point with the same explicit semantics.
+~nwchemc_session_set_params~ replaces the installed ~NWChemParams~ only before
+the first accepted topology. After a session has accepted a step, parameter
+replacement is rejected so stale direct RTDB keys cannot silently carry into a
+new configuration.
 Do not add a second key-value database for session or parameter state. Session
 objects may own decoded scalar fields that are derived from the installed
 ~NWChemParams~ message. Any broader in-memory memo for parsed Cap'n Proto bytes

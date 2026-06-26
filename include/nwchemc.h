@@ -128,6 +128,10 @@ NWChemCSession *nwchemc_session_create(const void *params_capnp,
 
 /**
  * @brief Replace the Cap'n Proto parameter message for an existing session.
+ *
+ * Replacement is accepted only before the session has accepted a topology from
+ * an evaluation call. After that point, create a separate session for a new
+ * configuration.
  */
 int nwchemc_session_set_params(NWChemCSession *session,
                                const void *params_capnp,

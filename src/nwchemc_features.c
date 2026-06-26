@@ -125,7 +125,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_hessian", "include/nwchemc.h::nwchemc_hessian", "stub=fails ok==0; embed=runs Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_dipole", "include/nwchemc.h::nwchemc_dipole", "stub=fails ok==0; embed=runs total dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_create", "include/nwchemc.h::nwchemc_session_create", "stub=returns NULL; embed=creates persistent Cap'n Proto session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
-    {"abi.nwchemc_session_set_params", "include/nwchemc.h::nwchemc_session_set_params", "stub=fails non-zero; embed=replaces persistent Cap'n Proto params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_set_params", "include/nwchemc.h::nwchemc_session_set_params", "stub=fails non-zero; embed=replaces params before topology", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_destroy", "include/nwchemc.h::nwchemc_session_destroy", "stub=no-op; embed=releases persistent session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy_gradient", "include/nwchemc.h::nwchemc_session_energy_gradient", "stub=fails ok==0; embed=runs session energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy", "include/nwchemc.h::nwchemc_session_energy", "stub=fails ok==0; embed=runs session energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -186,4 +186,3 @@ const char *nwchemc_module_nwchem_name(int module_enum_id) {
   }
   return NULL;
 }
-
