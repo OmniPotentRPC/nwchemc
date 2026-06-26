@@ -119,6 +119,20 @@ NWChemCResult nwchemc_optimize(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_frequencies(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)intensities_au;
+  return stub_fail();
+}
+
 const char *nwchemc_version(void) { return "nwchemc-stub/0.1.0"; }
 
 int nwchemc_available(void) { return 0; }
@@ -224,6 +238,19 @@ NWChemCResult nwchemc_session_optimize(NWChemCSession *session, int n_atoms,
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_frequencies(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *frequencies_cm1,
+    double *intensities_au) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)frequencies_cm1;
+  (void)intensities_au;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_forces(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *forces_h_bohr,
@@ -318,6 +345,22 @@ NWChemCResult nwchemc_calculate_optimize(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_frequencies(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)frequencies_len;
+  (void)intensities_au;
+  (void)intensities_len;
+  return stub_fail();
+}
+
 size_t nwchemc_potential_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
@@ -370,6 +413,20 @@ NWChemCResult nwchemc_session_calculate_optimize(
   (void)force_input_capnp_size_bytes;
   (void)optimized_positions_ang;
   (void)optimized_positions_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_frequencies(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *frequencies_cm1,
+    size_t frequencies_len, double *intensities_au, size_t intensities_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)frequencies_len;
+  (void)intensities_au;
+  (void)intensities_len;
   return stub_fail();
 }
 

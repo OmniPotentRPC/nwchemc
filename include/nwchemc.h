@@ -155,6 +155,19 @@ NWChemCResult nwchemc_optimize(
     double *optimized_positions_ang);
 
 /**
+ * @brief Compute harmonic vibrational frequencies for an atomic configuration.
+ *
+ * The frequency buffer has length `n_atoms * 3` and is returned in cm^-1.
+ * When `intensities_au` is non-NULL, it must also have length `n_atoms * 3`
+ * and receives the atomic-unit IR intensity values stored by NWChem under
+ * `vib:intensities`; entries are zero when NWChem does not store intensities.
+ */
+NWChemCResult nwchemc_frequencies(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au);
+
+/**
  * @brief Create a persistent evaluation session from a Cap'n Proto message.
  *
  * The session owns a copy of the serialized message so callers may pass a
@@ -228,6 +241,14 @@ NWChemCResult nwchemc_session_optimize(NWChemCSession *session, int n_atoms,
                                        const double *positions_ang,
                                        const int *atomic_numbers,
                                        double *optimized_positions_ang);
+
+/**
+ * @brief Compute harmonic vibrational frequencies using a persistent session.
+ */
+NWChemCResult nwchemc_session_frequencies(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *frequencies_cm1,
+    double *intensities_au);
 
 /**
  * @brief Compute energy and forces for one Cap'n Proto `ForceInput` step.
@@ -337,6 +358,19 @@ NWChemCResult nwchemc_calculate_optimize(
     double *optimized_positions_ang, size_t optimized_positions_len);
 
 /**
+ * @brief Compute one `ForceInput` step and write vibrational frequencies.
+ *
+ * This is the one-shot Cap'n Proto frequency entry point for callers that do
+ * not keep a persistent session. The frequency output length is `n_atoms * 3`;
+ * the intensity output is optional and uses the same length.
+ */
+NWChemCResult nwchemc_calculate_frequencies(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len);
+
+/**
  * @brief Return the byte count needed for a `PotentialResult` step output.
  *
  * This parses the serialized `ForceInput` geometry and returns the size of the
@@ -420,6 +454,19 @@ NWChemCResult nwchemc_session_calculate_optimize(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *optimized_positions_ang,
     size_t optimized_positions_len);
+
+/**
+ * @brief Compute harmonic frequencies for one Cap'n Proto `ForceInput` step.
+ *
+ * The session keeps persistent `NWChemParams` method state while the step
+ * message supplies positions, atomic numbers, and optional 3x3 cell vectors.
+ * The frequency output is returned in cm^-1 with length `n_atoms * 3`.
+ * Atomic-unit intensity output is optional and uses the same length.
+ */
+NWChemCResult nwchemc_session_calculate_frequencies(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *frequencies_cm1,
+    size_t frequencies_len, double *intensities_au, size_t intensities_len);
 
 /**
  * @brief Compute Hessian using a persistent session.
