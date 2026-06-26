@@ -882,7 +882,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 int include_direct_promoted_scf,
                                 int include_direct_pseudopotentials,
                                 int include_direct_promoted_driver,
-                                int include_direct_set_strings) {
+                                int include_direct_set_strings,
+                                int include_task_stanzas) {
   int n = struct_list_len(&stanzas.p);
   if (n < 0)
     return -1;
@@ -921,7 +922,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
         return -1;
       break;
     case NWChemInputStanza_Kind_task:
-      if (render_task_stanza(stanza.taskStanza, dst, dst_size) != 0)
+      if (include_task_stanzas &&
+          render_task_stanza(stanza.taskStanza, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_driver:
@@ -971,8 +973,8 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1, 1) !=
-      0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1, 1,
+                           1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -984,8 +986,8 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0, 0) !=
-      0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0, 0,
+                           0) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
