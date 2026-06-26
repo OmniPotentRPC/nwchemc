@@ -26,7 +26,17 @@
         energyCutoff = 12.5,
         wavefunctionCutoff = 6.25,
         ewaldRcut = 3.5,
-        ewaldNcut = 9
+        ewaldNcut = 9,
+        cellName = "cellA",
+        inputWavefunctionFilename = "psi.in",
+        outputWavefunctionFilename = "psi.out",
+        fakeMass = 2.5,
+        timeStep = 4.5,
+        loopStart = 3,
+        loopEnd = 7,
+        toleranceEnergy = 0.125,
+        toleranceDensity = 0.25,
+        toleranceGradient = 0.5
       )
     ),
     (

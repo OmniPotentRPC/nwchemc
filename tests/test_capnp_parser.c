@@ -96,6 +96,13 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "wavefunction_cutoff 6.25"));
   assert_non_null(strstr(input_blocks, "ewald_rcut 3.5"));
   assert_non_null(strstr(input_blocks, "ewald_ncut 9"));
+  assert_non_null(strstr(input_blocks, "cell_name cellA"));
+  assert_non_null(strstr(input_blocks, "input_wavefunction_filename psi.in"));
+  assert_non_null(strstr(input_blocks, "output_wavefunction_filename psi.out"));
+  assert_non_null(strstr(input_blocks, "fake_mass 2.5"));
+  assert_non_null(strstr(input_blocks, "time_step 4.5"));
+  assert_non_null(strstr(input_blocks, "loop 3 7"));
+  assert_non_null(strstr(input_blocks, "tolerances 0.125 0.25 0.5"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -147,6 +154,13 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "wavefunction_cutoff 6.25"));
   assert_null(strstr(input_blocks, "ewald_rcut 3.5"));
   assert_null(strstr(input_blocks, "ewald_ncut 9"));
+  assert_null(strstr(input_blocks, "cell_name cellA"));
+  assert_null(strstr(input_blocks, "input_wavefunction_filename psi.in"));
+  assert_null(strstr(input_blocks, "output_wavefunction_filename psi.out"));
+  assert_null(strstr(input_blocks, "fake_mass 2.5"));
+  assert_null(strstr(input_blocks, "time_step 4.5"));
+  assert_null(strstr(input_blocks, "loop 3 7"));
+  assert_null(strstr(input_blocks, "tolerances 0.125 0.25 0.5"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -186,6 +200,44 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(ewald_rcut > 3.499);
   assert_true(ewald_rcut < 3.501);
   assert_int_equal(ewald_ncut, 9);
+
+  int has_state = 0;
+  capn_text cell_name = {0};
+  capn_text input_wavefunction_filename = {0};
+  capn_text output_wavefunction_filename = {0};
+  double fake_mass = 0.0;
+  double time_step = 0.0;
+  int loop_start = 0;
+  int loop_end = 0;
+  int has_tolerances = 0;
+  double tolerance_energy = 0.0;
+  double tolerance_density = 0.0;
+  double tolerance_gradient = 0.0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_state(
+                       params_root, &has_state, &cell_name,
+                       &input_wavefunction_filename,
+                       &output_wavefunction_filename, &fake_mass, &time_step,
+                       &loop_start, &loop_end, &has_tolerances,
+                       &tolerance_energy, &tolerance_density,
+                       &tolerance_gradient),
+                   0);
+  assert_int_equal(has_state, 1);
+  assert_true(text_equals(cell_name, "cellA"));
+  assert_true(text_equals(input_wavefunction_filename, "psi.in"));
+  assert_true(text_equals(output_wavefunction_filename, "psi.out"));
+  assert_true(fake_mass > 2.499);
+  assert_true(fake_mass < 2.501);
+  assert_true(time_step > 4.499);
+  assert_true(time_step < 4.501);
+  assert_int_equal(loop_start, 3);
+  assert_int_equal(loop_end, 7);
+  assert_int_equal(has_tolerances, 1);
+  assert_true(tolerance_energy > 0.1249);
+  assert_true(tolerance_energy < 0.1251);
+  assert_true(tolerance_density > 0.2499);
+  assert_true(tolerance_density < 0.2501);
+  assert_true(tolerance_gradient > 0.4999);
+  assert_true(tolerance_gradient < 0.5001);
 
   nwchemc_params_release(&arena);
   free(message);
