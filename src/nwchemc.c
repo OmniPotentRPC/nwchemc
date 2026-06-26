@@ -877,11 +877,16 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   int ccsd_use_disk = NWChemToggle_unspecified;
   double ccsd_same_spin_scale = 0.0;
   double ccsd_opposite_spin_scale = 0.0;
+  int ccsd_use_trpdrv_nb = NWChemToggle_unspecified;
+  int ccsd_use_ccsd_omp = NWChemToggle_unspecified;
+  int ccsd_use_trpdrv_omp = NWChemToggle_unspecified;
+  int ccsd_use_trpdrv_offload = NWChemToggle_unspecified;
   if (nwchemc_params_extract_direct_ccsd(
           params_root, &ccsd_has_options, &ccsd_maxiter, &ccsd_thresh,
           &ccsd_tol2e, &ccsd_iprt, &ccsd_max_diis, &ccsd_frozen_core,
           &ccsd_frozen_virtual, &ccsd_use_disk, &ccsd_same_spin_scale,
-          &ccsd_opposite_spin_scale) != 0)
+          &ccsd_opposite_spin_scale, &ccsd_use_trpdrv_nb, &ccsd_use_ccsd_omp,
+          &ccsd_use_trpdrv_omp, &ccsd_use_trpdrv_offload) != 0)
     return -1;
   int driver_has_options = 0;
   int driver_maxiter = 0;
@@ -1173,6 +1178,28 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "ccsd:fos", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
             value) != 0)
+      return -1;
+  }
+  const struct {
+    const char *key;
+    int toggle;
+  } ccsd_toggle_fields[] = {
+      {"ccsd:use_trpdrv_nb", ccsd_use_trpdrv_nb},
+      {"ccsd:use_ccsd_omp", ccsd_use_ccsd_omp},
+      {"ccsd:use_trpdrv_omp", ccsd_use_trpdrv_omp},
+      {"ccsd:use_trpdrv_offload", ccsd_use_trpdrv_offload},
+  };
+  for (size_t i = 0; i < sizeof(ccsd_toggle_fields) /
+                             sizeof(ccsd_toggle_fields[0]);
+       ++i) {
+    const char *value = toggle_logical_value(ccsd_toggle_fields[i].toggle);
+    if (value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, ccsd_toggle_fields[i].key,
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
   }
   if (append_tce_direct_values(params_root, typed_set_keys, typed_set_types,

@@ -921,6 +921,33 @@ static int render_int32_list_directive(capn_list32 values, const char *keyword,
   return append_format(dst, dst_size, "\n");
 }
 
+static const char *nwchem_toggle_logical_keyword(enum NWChemToggle toggle) {
+  switch (toggle) {
+  case NWChemToggle_enabled:
+    return "true";
+  case NWChemToggle_disabled:
+    return "false";
+  case NWChemToggle_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static int render_set_logical_directive(const char *key,
+                                        enum NWChemToggle toggle, char *dst,
+                                        size_t dst_size) {
+  const char *value = nwchem_toggle_logical_keyword(toggle);
+  if (!value)
+    return 0;
+  if (dst[0] != '\0') {
+    size_t used = strlen(dst);
+    if (used > 0 && dst[used - 1] != '\n' &&
+        append_format(dst, dst_size, "\n") != 0)
+      return -1;
+  }
+  return append_format(dst, dst_size, "set %s logical %s\n", key, value);
+}
+
 static int render_ccsd_stanza(NWChemCcsdStanza_ptr ptr, char *dst,
                               size_t dst_size, int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
@@ -956,80 +983,110 @@ static int render_ccsd_stanza(NWChemCcsdStanza_ptr ptr, char *dst,
   int has_print = print_level || nprint_items > 0 || nnoprint_items > 0;
   int has_switches = ndoa > 0 || ndob > 0 || ndog > 0 || ndoh > 0 ||
                      ndojk > 0 || ndos > 0 || ndod > 0;
-  int has_remaining =
-      has_directives || has_print || has_switches ||
-      (include_direct_promoted && has_promoted);
-  if (!has_remaining)
+  int has_direct_toggles =
+      ccsd.useTriplesDriverNonblocking != NWChemToggle_unspecified ||
+      ccsd.useCcsdOpenmp != NWChemToggle_unspecified ||
+      ccsd.useTriplesDriverOpenmp != NWChemToggle_unspecified ||
+      ccsd.useTriplesDriverOffload != NWChemToggle_unspecified;
+  int has_block_content = has_directives || has_print || has_switches ||
+                          (include_direct_promoted && has_promoted);
+  int has_full_deck_sets = include_direct_promoted && has_direct_toggles;
+  if (!has_block_content && !has_full_deck_sets)
     return 0;
-  if (append_format(block, sizeof(block), "ccsd\n") != 0)
-    return -1;
-  if (include_direct_promoted && ccsd.maxiter > 0 &&
-      append_format(block, sizeof(block), "  maxiter %d\n", ccsd.maxiter) != 0)
-    return -1;
-  if (include_direct_promoted && ccsd.thresh > 0.0 &&
-      append_format(block, sizeof(block), "  thresh %.12g\n", ccsd.thresh) != 0)
-    return -1;
-  if (include_direct_promoted && ccsd.tol2e > 0.0 &&
-      append_format(block, sizeof(block), "  tol2e %.12g\n", ccsd.tol2e) != 0)
-    return -1;
-  if (include_direct_promoted && ccsd.iprt > 0 &&
-      append_format(block, sizeof(block), "  iprt %d\n", ccsd.iprt) != 0)
-    return -1;
-  if (include_direct_promoted && ccsd.maxDiis > 0 &&
-      append_format(block, sizeof(block), "  diisbas %d\n", ccsd.maxDiis) != 0)
-    return -1;
-  if (include_direct_promoted &&
-      (ccsd.frozenCore > 0 || ccsd.frozenVirtual > 0)) {
-    if (append_format(block, sizeof(block), "  freeze") != 0)
+  if (has_block_content) {
+    if (append_format(block, sizeof(block), "ccsd\n") != 0)
       return -1;
-    if (ccsd.frozenCore > 0 &&
-        append_format(block, sizeof(block), " %d", ccsd.frozenCore) != 0)
+    if (include_direct_promoted && ccsd.maxiter > 0 &&
+        append_format(block, sizeof(block), "  maxiter %d\n", ccsd.maxiter) !=
+            0)
       return -1;
-    if (ccsd.frozenVirtual > 0 &&
-        append_format(block, sizeof(block), " virtual %d",
-                      ccsd.frozenVirtual) != 0)
+    if (include_direct_promoted && ccsd.thresh > 0.0 &&
+        append_format(block, sizeof(block), "  thresh %.12g\n", ccsd.thresh) !=
+            0)
       return -1;
-    if (append_format(block, sizeof(block), "\n") != 0)
+    if (include_direct_promoted && ccsd.tol2e > 0.0 &&
+        append_format(block, sizeof(block), "  tol2e %.12g\n", ccsd.tol2e) !=
+            0)
+      return -1;
+    if (include_direct_promoted && ccsd.iprt > 0 &&
+        append_format(block, sizeof(block), "  iprt %d\n", ccsd.iprt) != 0)
+      return -1;
+    if (include_direct_promoted && ccsd.maxDiis > 0 &&
+        append_format(block, sizeof(block), "  diisbas %d\n", ccsd.maxDiis) !=
+            0)
+      return -1;
+    if (include_direct_promoted &&
+        (ccsd.frozenCore > 0 || ccsd.frozenVirtual > 0)) {
+      if (append_format(block, sizeof(block), "  freeze") != 0)
+        return -1;
+      if (ccsd.frozenCore > 0 &&
+          append_format(block, sizeof(block), " %d", ccsd.frozenCore) != 0)
+        return -1;
+      if (ccsd.frozenVirtual > 0 &&
+          append_format(block, sizeof(block), " virtual %d",
+                        ccsd.frozenVirtual) != 0)
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+    if (include_direct_promoted && ccsd.useDisk == NWChemToggle_disabled &&
+        append_format(block, sizeof(block), "  nodisk\n") != 0)
+      return -1;
+    if (include_direct_promoted && ccsd.sameSpinScale > 0.0 &&
+        append_format(block, sizeof(block), "  fss %.12g\n",
+                      ccsd.sameSpinScale) != 0)
+      return -1;
+    if (include_direct_promoted && ccsd.oppositeSpinScale > 0.0 &&
+        append_format(block, sizeof(block), "  fos %.12g\n",
+                      ccsd.oppositeSpinScale) != 0)
+      return -1;
+    if (print_level || nprint_items > 0) {
+      if (append_format(block, sizeof(block), "  print") != 0)
+        return -1;
+      if (print_level &&
+          append_format(block, sizeof(block), " %s", print_level) != 0)
+        return -1;
+      if (append_text_args(ccsd.printItems, block, sizeof(block)) != 0 ||
+          append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+    if (nnoprint_items > 0) {
+      if (append_format(block, sizeof(block), "  noprint") != 0 ||
+          append_text_args(ccsd.noPrintItems, block, sizeof(block)) != 0 ||
+          append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+    if (render_int32_list_directive(ccsd.doa, "doa", block, sizeof(block)) !=
+            0 ||
+        render_int32_list_directive(ccsd.dob, "dob", block, sizeof(block)) !=
+            0 ||
+        render_int32_list_directive(ccsd.dog, "dog", block, sizeof(block)) !=
+            0 ||
+        render_int32_list_directive(ccsd.doh, "doh", block, sizeof(block)) !=
+            0 ||
+        render_int32_list_directive(ccsd.dojk, "dojk", block, sizeof(block)) !=
+            0 ||
+        render_int32_list_directive(ccsd.dos, "dos", block, sizeof(block)) !=
+            0 ||
+        render_int32_list_directive(ccsd.dod, "dod", block, sizeof(block)) !=
+            0)
+      return -1;
+    if (render_directives(ccsd.directives, block, sizeof(block), "  ") != 0 ||
+        append_format(block, sizeof(block), "end") != 0)
       return -1;
   }
-  if (include_direct_promoted && ccsd.useDisk == NWChemToggle_disabled &&
-      append_format(block, sizeof(block), "  nodisk\n") != 0)
-    return -1;
-  if (include_direct_promoted && ccsd.sameSpinScale > 0.0 &&
-      append_format(block, sizeof(block), "  fss %.12g\n",
-                    ccsd.sameSpinScale) != 0)
-    return -1;
-  if (include_direct_promoted && ccsd.oppositeSpinScale > 0.0 &&
-      append_format(block, sizeof(block), "  fos %.12g\n",
-                    ccsd.oppositeSpinScale) != 0)
-    return -1;
-  if (print_level || nprint_items > 0) {
-    if (append_format(block, sizeof(block), "  print") != 0)
-      return -1;
-    if (print_level &&
-        append_format(block, sizeof(block), " %s", print_level) != 0)
-      return -1;
-    if (append_text_args(ccsd.printItems, block, sizeof(block)) != 0 ||
-        append_format(block, sizeof(block), "\n") != 0)
-      return -1;
-  }
-  if (nnoprint_items > 0) {
-    if (append_format(block, sizeof(block), "  noprint") != 0 ||
-        append_text_args(ccsd.noPrintItems, block, sizeof(block)) != 0 ||
-        append_format(block, sizeof(block), "\n") != 0)
-      return -1;
-  }
-  if (render_int32_list_directive(ccsd.doa, "doa", block, sizeof(block)) != 0 ||
-      render_int32_list_directive(ccsd.dob, "dob", block, sizeof(block)) != 0 ||
-      render_int32_list_directive(ccsd.dog, "dog", block, sizeof(block)) != 0 ||
-      render_int32_list_directive(ccsd.doh, "doh", block, sizeof(block)) != 0 ||
-      render_int32_list_directive(ccsd.dojk, "dojk", block, sizeof(block)) !=
-          0 ||
-      render_int32_list_directive(ccsd.dos, "dos", block, sizeof(block)) != 0 ||
-      render_int32_list_directive(ccsd.dod, "dod", block, sizeof(block)) != 0)
-    return -1;
-  if (render_directives(ccsd.directives, block, sizeof(block), "  ") != 0 ||
-      append_format(block, sizeof(block), "end") != 0)
+  if (has_full_deck_sets &&
+      (render_set_logical_directive("ccsd:use_trpdrv_nb",
+                                    ccsd.useTriplesDriverNonblocking, block,
+                                    sizeof(block)) != 0 ||
+       render_set_logical_directive("ccsd:use_ccsd_omp", ccsd.useCcsdOpenmp,
+                                    block, sizeof(block)) != 0 ||
+       render_set_logical_directive("ccsd:use_trpdrv_omp",
+                                    ccsd.useTriplesDriverOpenmp, block,
+                                    sizeof(block)) != 0 ||
+       render_set_logical_directive("ccsd:use_trpdrv_offload",
+                                    ccsd.useTriplesDriverOffload, block,
+                                    sizeof(block)) != 0))
     return -1;
   return append_block(dst, dst_size, block);
 }
@@ -2171,10 +2228,13 @@ int nwchemc_params_extract_direct_ccsd(
     NWChemParams_ptr params, int *has_options, int *maxiter, double *thresh,
     double *tol2e, int *iprt, int *max_diis, int *frozen_core,
     int *frozen_virtual, int *use_disk, double *same_spin_scale,
-    double *opposite_spin_scale) {
+    double *opposite_spin_scale, int *use_trpdrv_nb, int *use_ccsd_omp,
+    int *use_trpdrv_omp, int *use_trpdrv_offload) {
   if (params.p.type == CAPN_NULL || !has_options || !maxiter || !thresh ||
       !tol2e || !iprt || !max_diis || !frozen_core || !frozen_virtual ||
-      !use_disk || !same_spin_scale || !opposite_spin_scale)
+      !use_disk || !same_spin_scale || !opposite_spin_scale ||
+      !use_trpdrv_nb || !use_ccsd_omp || !use_trpdrv_omp ||
+      !use_trpdrv_offload)
     return -1;
 
   *has_options = 0;
@@ -2188,6 +2248,10 @@ int nwchemc_params_extract_direct_ccsd(
   *use_disk = NWChemToggle_unspecified;
   *same_spin_scale = 0.0;
   *opposite_spin_scale = 0.0;
+  *use_trpdrv_nb = NWChemToggle_unspecified;
+  *use_ccsd_omp = NWChemToggle_unspecified;
+  *use_trpdrv_omp = NWChemToggle_unspecified;
+  *use_trpdrv_offload = NWChemToggle_unspecified;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -2243,6 +2307,22 @@ int nwchemc_params_extract_direct_ccsd(
     if (ccsd.oppositeSpinScale > 0.0) {
       *has_options = 1;
       *opposite_spin_scale = ccsd.oppositeSpinScale;
+    }
+    if (ccsd.useTriplesDriverNonblocking != NWChemToggle_unspecified) {
+      *has_options = 1;
+      *use_trpdrv_nb = ccsd.useTriplesDriverNonblocking;
+    }
+    if (ccsd.useCcsdOpenmp != NWChemToggle_unspecified) {
+      *has_options = 1;
+      *use_ccsd_omp = ccsd.useCcsdOpenmp;
+    }
+    if (ccsd.useTriplesDriverOpenmp != NWChemToggle_unspecified) {
+      *has_options = 1;
+      *use_trpdrv_omp = ccsd.useTriplesDriverOpenmp;
+    }
+    if (ccsd.useTriplesDriverOffload != NWChemToggle_unspecified) {
+      *has_options = 1;
+      *use_trpdrv_offload = ccsd.useTriplesDriverOffload;
     }
   }
 
