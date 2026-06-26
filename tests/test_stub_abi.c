@@ -17,13 +17,24 @@ extern NWChemCResult nwchemc_dipole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_quadrupole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *quadrupole_au) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_session_dipole(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_quadrupole(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *quadrupole_au) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_session_calculate_dipole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *dipole_au,
     size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_quadrupole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *quadrupole_au,
+    size_t quadrupole_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -32,6 +43,10 @@ extern NWChemCResult nwchemc_calculate_dipole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_quadrupole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *quadrupole_au, size_t quadrupole_len) NWCHEMC_TEST_WEAK;
 
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
@@ -56,6 +71,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult dipole_result =
       nwchemc_dipole(0, NULL, NULL, NULL, 0, dipole_au);
   assert_int_equal(dipole_result.ok, 0);
+  assert_true(nwchemc_quadrupole != NULL);
+  double quadrupole_au[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult quadrupole_result =
+      nwchemc_quadrupole(0, NULL, NULL, NULL, 0, quadrupole_au);
+  assert_int_equal(quadrupole_result.ok, 0);
   assert_null(nwchemc_session_create(NULL, 0));
   assert_int_not_equal(nwchemc_session_set_params(NULL, NULL, 0), 0);
   nwchemc_session_destroy(NULL);
@@ -72,6 +92,10 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_dipole =
       nwchemc_session_dipole(NULL, 0, NULL, NULL, dipole_au);
   assert_int_equal(session_dipole.ok, 0);
+  assert_true(nwchemc_session_quadrupole != NULL);
+  NWChemCResult session_quadrupole =
+      nwchemc_session_quadrupole(NULL, 0, NULL, NULL, quadrupole_au);
+  assert_int_equal(session_quadrupole.ok, 0);
   NWChemCResult session_step =
       nwchemc_session_calculate_forces(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step.ok, 0);
@@ -94,10 +118,18 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_step_dipole =
       nwchemc_session_calculate_dipole(NULL, NULL, 0, dipole_au, 3);
   assert_int_equal(session_step_dipole.ok, 0);
+  assert_true(nwchemc_session_calculate_quadrupole != NULL);
+  NWChemCResult session_step_quadrupole =
+      nwchemc_session_calculate_quadrupole(NULL, NULL, 0, quadrupole_au, 6);
+  assert_int_equal(session_step_quadrupole.ok, 0);
   assert_true(nwchemc_calculate_dipole != NULL);
   NWChemCResult one_shot_dipole =
       nwchemc_calculate_dipole(NULL, 0, NULL, 0, dipole_au, 3);
   assert_int_equal(one_shot_dipole.ok, 0);
+  assert_true(nwchemc_calculate_quadrupole != NULL);
+  NWChemCResult one_shot_quadrupole =
+      nwchemc_calculate_quadrupole(NULL, 0, NULL, 0, quadrupole_au, 6);
+  assert_int_equal(one_shot_quadrupole.ok, 0);
   NWChemCResult session_hessian =
       nwchemc_session_hessian(NULL, 0, NULL, NULL, NULL);
   assert_int_equal(session_hessian.ok, 0);
