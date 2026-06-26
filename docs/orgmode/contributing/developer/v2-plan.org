@@ -96,6 +96,8 @@ The schema contains typed stanzas for:
   perturbative triples, freeze counts, convergence/level shifts, DIIS, EOM
   roots/targets, density/multipole flags, active spaces, transform controls,
   TCE-MRCC, and direct ~tce:*~ RTDB writes
+- ~mrccData~ controls for TCE MRCC roots, active spaces, reference occupation
+  strings, subgroup tiling, and USS correction input
 - ~driver~ blocks including direct max-iteration promotion and text fallback
   for other optimization controls
 - ~set~ directives
@@ -115,7 +117,8 @@ The schema contains typed stanzas for:
 - ~nwpw~ virtual orbital, LCAO, and Ewald grid controls
 - ~nwpw~ Nose-Hoover thermostat controls
 - coupled-cluster module coverage through generic ~ccsd~, ~tce~, and
-  ~tceMrcc~ module stanzas, plus structured classic ~ccsd~ and TCE controls
+  ~tceMrcc~ module stanzas, plus structured classic ~ccsd~, TCE, and
+  MRCCDATA controls
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and

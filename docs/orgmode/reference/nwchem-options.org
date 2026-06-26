@@ -53,6 +53,7 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | SCF | ~NWChemScfStanza~ | ~scf~, vectors/maxiter/thresh/tol2e/noprint, directives, ~end~. |
 | CCSD | ~NWChemCcsdStanza~ | ~ccsd~, scalar controls and directives, then ~end~. |
 | TCE | ~NWChemTceStanza~ | ~tce~, coupled-cluster/CI/MBPT/EOM controls, directives, then ~end~. |
+| MRCCDATA | ~NWChemMrccDataStanza~ | ~mrccdata~, MRCC roots, active space, references, directives, then ~end~. |
 | Task line | ~NWChemTaskStanza~ | ~task [theory] [operation] [ignore]~ (explicit deck task). |
 | Driver | ~NWChemDriverStanza~ | ~driver~, maxiter/tight/loose/gmax/grms/xmax/xrms/xyz, directives, ~end~. |
 | Property | ~NWChemPropertyStanza~ | ~property~, dipole/mulliken/quadrupole, directives, ~end~. |
@@ -270,6 +271,14 @@ EOM-CC, CR-EOMCC, TCE-MRCC, perturbative triples, frozen orbitals, active
 spaces, density/multipole controls, and EOM targeting through stable ~tce:*~
 RTDB keys from ~tce_input.F~. Use ~directives~ for parser-only print/debug
 keywords and method-specific cards that do not own a stable scalar RTDB key.
+
+* MRCCDATA Controls
+~NWChemMrccDataStanza~ covers the companion ~mrccdata~ block used by TCE MRCC
+calculations. Typed fields render ~root~, ~cas~, ~nref~, reference occupation
+strings, ~se4t~, ~no_aposteriori~, ~subgroupsize~, ~improvetiling~, and
+~usspt~. The embed path leaves this stanza in rendered input text because the
+repo does not establish a stable direct RTDB/API path for MRCC reference data.
+~directives~ remain available for extra MRCCDATA cards.
 
 * Task / Driver / Property / Basis / Geometry Stanzas
 - *Task* (~NWChemTaskStanza~): emit an explicit ~task theory operation~ line when
