@@ -74,7 +74,13 @@
         npOrbitalProcesses = 3,
         npKspaceProcesses = 4,
         spinOrbit = disabled,
-        parallelIo = enabled
+        parallelIo = enabled,
+        xyzFilename = "traj.xyz",
+        ionMotionFilename = "ion.mov",
+        electronMotionFilename = "electron.mov",
+        hamiltonianMotionFilename = "h.mov",
+        orbitalMotionFilename = "orb.mov",
+        eigenvalueMotionFilename = "eig.mov"
       )
     ),
     (

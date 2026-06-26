@@ -113,6 +113,12 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "np_dimensions 2 3 4"));
   assert_non_null(strstr(input_blocks, "spin_orbit off"));
   assert_non_null(strstr(input_blocks, "parallel_io on"));
+  assert_non_null(strstr(input_blocks, "xyz_filename traj.xyz"));
+  assert_non_null(strstr(input_blocks, "ion_motion_filename ion.mov"));
+  assert_non_null(strstr(input_blocks, "emotion_filename electron.mov"));
+  assert_non_null(strstr(input_blocks, "hmotion_filename h.mov"));
+  assert_non_null(strstr(input_blocks, "omotion_filename orb.mov"));
+  assert_non_null(strstr(input_blocks, "eigmotion_filename eig.mov"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -181,6 +187,12 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "np_dimensions 2 3 4"));
   assert_null(strstr(input_blocks, "spin_orbit off"));
   assert_null(strstr(input_blocks, "parallel_io on"));
+  assert_null(strstr(input_blocks, "xyz_filename traj.xyz"));
+  assert_null(strstr(input_blocks, "ion_motion_filename ion.mov"));
+  assert_null(strstr(input_blocks, "emotion_filename electron.mov"));
+  assert_null(strstr(input_blocks, "hmotion_filename h.mov"));
+  assert_null(strstr(input_blocks, "omotion_filename orb.mov"));
+  assert_null(strstr(input_blocks, "eigmotion_filename eig.mov"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -314,6 +326,27 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(np_kspace, 4);
   assert_int_equal(spin_orbit, NWChemNwpwToggle_disabled);
   assert_int_equal(parallel_io, NWChemNwpwToggle_enabled);
+
+  int has_filenames = 0;
+  capn_text xyz_filename = {0};
+  capn_text ion_motion_filename = {0};
+  capn_text electron_motion_filename = {0};
+  capn_text hamiltonian_motion_filename = {0};
+  capn_text orbital_motion_filename = {0};
+  capn_text eigenvalue_motion_filename = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_filenames(
+                       params_root, &has_filenames, &xyz_filename,
+                       &ion_motion_filename, &electron_motion_filename,
+                       &hamiltonian_motion_filename, &orbital_motion_filename,
+                       &eigenvalue_motion_filename),
+                   0);
+  assert_int_equal(has_filenames, 1);
+  assert_true(text_equals(xyz_filename, "traj.xyz"));
+  assert_true(text_equals(ion_motion_filename, "ion.mov"));
+  assert_true(text_equals(electron_motion_filename, "electron.mov"));
+  assert_true(text_equals(hamiltonian_motion_filename, "h.mov"));
+  assert_true(text_equals(orbital_motion_filename, "orb.mov"));
+  assert_true(text_equals(eigenvalue_motion_filename, "eig.mov"));
 
   nwchemc_params_release(&arena);
   free(message);

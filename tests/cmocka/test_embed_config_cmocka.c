@@ -636,11 +636,17 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "np_dimensions 2 3 4"));
   assert_null(strstr(g_input_blocks, "spin_orbit off"));
   assert_null(strstr(g_input_blocks, "parallel_io on"));
+  assert_null(strstr(g_input_blocks, "xyz_filename traj.xyz"));
+  assert_null(strstr(g_input_blocks, "ion_motion_filename ion.mov"));
+  assert_null(strstr(g_input_blocks, "emotion_filename electron.mov"));
+  assert_null(strstr(g_input_blocks, "hmotion_filename h.mov"));
+  assert_null(strstr(g_input_blocks, "omotion_filename orb.mov"));
+  assert_null(strstr(g_input_blocks, "eigmotion_filename eig.mov"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 59);
+  assert_int_equal(g_typed_set_count, 71);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -702,6 +708,30 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "false");
   assert_typed_set_scalar("nwpw:parallel_io", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
                           "true");
+  assert_typed_set_scalar("cpmd:xyz_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "traj.xyz");
+  assert_typed_set_scalar("nwpw:xyz_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "traj.xyz");
+  assert_typed_set_scalar("cpmd:ion_motion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "ion.mov");
+  assert_typed_set_scalar("nwpw:ion_motion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "ion.mov");
+  assert_typed_set_scalar("cpmd:emotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "electron.mov");
+  assert_typed_set_scalar("nwpw:emotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "electron.mov");
+  assert_typed_set_scalar("cpmd:hmotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "h.mov");
+  assert_typed_set_scalar("nwpw:hmotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "h.mov");
+  assert_typed_set_scalar("cpmd:omotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "orb.mov");
+  assert_typed_set_scalar("nwpw:omotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "orb.mov");
+  assert_typed_set_scalar("cpmd:eigmotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "eig.mov");
+  assert_typed_set_scalar("nwpw:eigmotion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "eig.mov");
   assert_int_equal(g_set_nwpw_direct_calls, 1);
   assert_int_equal(g_nwpw_has_options, 1);
   assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);
