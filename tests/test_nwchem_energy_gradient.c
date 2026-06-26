@@ -119,6 +119,35 @@ static void test_h2_energy_gradient(void **state) {
   maybe_write_compare_json(result.energy_h, grad, ncoord);
 }
 
+static void test_h2_dipole(void **state) {
+  (void)state;
+  size_t params_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  assert_non_null(params);
+
+  assert_true(nwchemc_available());
+
+  const int n_atoms = 2;
+  const int atomic_numbers[2] = {1, 1};
+  const double positions_ang[6] = {0.0, 0.0, -0.3707, 0.0, 0.0, 0.3707};
+  double dipole_au[3] = {0.0, 0.0, 0.0};
+
+  NWChemCResult result = nwchemc_dipole(
+      n_atoms, positions_ang, atomic_numbers, params, params_size, dipole_au);
+  free(params);
+
+  if (!result.ok)
+    fail_msg("nwchemc_dipole failed: %s", result.message);
+  assert_true(isfinite(result.energy_h));
+  assert_true(result.energy_h < -0.5);
+  assert_true(result.energy_h > -2.0);
+  for (int i = 0; i < 3; ++i) {
+    if (!isfinite(dipole_au[i]))
+      fail_msg("non-finite dipole[%d]", i);
+    assert_true(fabs(dipole_au[i]) < 1.0e-7);
+  }
+}
+
 static void test_cd_energy_gradient_uses_heavy_element_symbol(void **state) {
   (void)state;
   size_t params_size = 0;
@@ -155,6 +184,7 @@ int main(int argc, char **argv) {
   g_params_path = argv[1];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_h2_energy_gradient),
+      cmocka_unit_test(test_h2_dipole),
       cmocka_unit_test(test_cd_energy_gradient_uses_heavy_element_symbol),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
