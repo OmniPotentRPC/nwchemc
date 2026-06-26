@@ -134,7 +134,10 @@ handler names derived from the local NWChem source tree.
 * Task / Driver / Property / Basis / Geometry Stanzas
 - *Task* (~NWChemTaskStanza~): emit an explicit ~task theory operation~ line when
   building a multi-task deck. Embed callers usually rely on top-level ~theory~ +
-  ~task~ only; this stanza is for full-input generation.
+  ~task~ only; this stanza is for full-input generation. Embed rendering omits
+  task stanzas because the C ABI entry point writes ~task:theory~ and
+  ~task:operation~ directly for the requested energy, gradient, force, or
+  Hessian call.
 - *Driver* (~NWChemDriverStanza~): geometry optimization controls. Full input
   emits ~maxiter <n>~, ~tight~, ~loose~, and explicit ~gmax~ / ~grms~ /
   ~xmax~ / ~xrms~ values. Embed writes ~driver:nptopt~ and the
