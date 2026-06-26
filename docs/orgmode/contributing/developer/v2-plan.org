@@ -68,8 +68,10 @@ Geometry coordinates and library basis selection are not routed through text
 input. Typed SCF scalar controls (~maxiter~, ~thresh~, and ~tol2e~), driver
 ~maxiter~, driver convergence presets (~tight~ / ~loose~), and explicit driver
 ~gmax~ / ~grms~ / ~xmax~ / ~xrms~ tolerances are promoted into direct RTDB
-writes for embed calculations and omitted from embed-rendered text when no
-non-promoted syntax remains.
+writes for embed calculations. Structured NWPW cutoff controls
+(~energyCutoff~, ~wavefunctionCutoff~, ~ewaldRcut~, and ~ewaldNcut~) are also
+promoted to the NWPW RTDB keys used by ~nwpw_input.F~. Promoted fields are
+omitted from embed-rendered text when no non-promoted syntax remains.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -85,6 +87,8 @@ The schema contains typed stanzas for:
 - module blocks backed by the ~NWChemModuleName~ enum
 - ~nwpw~ pseudopotential blocks with library, PSPW, PAW, CPI, and Teter entries
   plus structured ~allElements~ default entries
+- ~nwpw~ cutoff controls for energy, wavefunction, Ewald real-space, and Ewald
+  reciprocal-space cutoffs
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -169,6 +173,18 @@ fixed-form bridge writes ~driver:nptopt~ and the four convergence tolerance keys
 (~driver:gmax_tol~, ~driver:grms_tol~, ~driver:xrms_tol~,
 ~driver:xmax_tol~), matching ~driver_input.F~ and ~opt_drv.F~. Explicit scalar
 values override preset defaults before the RTDB writes.
+
+~nwchemc_params_extract_direct_nwpw~ pulls typed ~NWChemNwpwStanza~
+~energyCutoff~, ~wavefunctionCutoff~, ~ewaldRcut~, and ~ewaldNcut~ values.
+The embed path writes the matching NWPW RTDB keys directly for each supported
+module prefix:
+
+| Field | RTDB suffix | Prefixes |
+|-------+-------------+----------|
+| ~energyCutoff~ | ~ecut~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
+| ~wavefunctionCutoff~ | ~wcut~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
+| ~ewaldRcut~ | ~rcut~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
+| ~ewaldNcut~ | ~ncut~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes

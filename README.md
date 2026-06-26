@@ -82,7 +82,8 @@ geometry, module, pseudopotential, set, generic), and escape hatches (`raw`,
 `docs/orgmode/reference/nwchem-options.org` for the full contract. Embed builds
 write typed SCF and driver scalar controls directly to RTDB, including driver
 `maxiter`, `tight` / `loose`, and explicit `gmax` / `grms` / `xmax` / `xrms`
-tolerances.
+tolerances. Structured NWPW cutoff controls are also promoted directly to the
+matching PSPW/BAND RTDB keys instead of going through rendered text.
 
 ## Build
 

@@ -57,13 +57,15 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | Basis block | ~NWChemBasisStanza~ | ~basis [spherical]~, optional ~* library~, ECP line, directives, ~end~. |
 | Geometry meta | ~NWChemGeometryStanza~ | ~geometry~ header (units/symmetry/noautosym); atom coords via C ABI. |
 | Known module | ~NWChemModuleStanza~ | A selected NWChem module block, tokenized directives, then ~end~. |
+| NWPW cutoff | ~NWChemNwpwStanza~ | ~nwpw~, cutoff controls, extra directives, then ~end~. |
 | Pseudopotential | ~NWChemPseudopotentialStanza~ | ~nwpw~, ~pseudopotentials~, library entries, extra directives, then ~end~. |
 | Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
 
 * Direct embed apply
 When ~apply_config_to_embed~ runs (embed builds only), typed
 ~NWChemDftStanza~, ~NWChemScfStanza~, ~NWChemDriverStanza~,
-~NWChemPseudopotentialStanza~, and text-valued ~NWChemSetDirective~ fields are
+~NWChemNwpwStanza~, ~NWChemPseudopotentialStanza~, and text-valued
+~NWChemSetDirective~ fields are
 applied outside rendered text where the bridge has a direct RTDB/API path.
 
 1. ~nwchemc_params_extract_direct_dft~ reads ~xc~, ~direct~, smearing.
@@ -87,6 +89,18 @@ through ~rtdb_cput~ before method state is applied.
 ~value~ field remains valid for one text value. Literal NWChem text remains
 available for parser-specific ~set~ syntax that does not fit this typed value
 carrier.
+
+~nwchemc_params_extract_direct_nwpw~ reads structured cutoff controls from
+~NWChemNwpwStanza~. Full-deck rendering emits NWPW text lines, while embed
+rendering omits the promoted cutoff lines and applies the corresponding typed
+RTDB values directly:
+
+| Field | NWChem text | Embed RTDB keys |
+|-------+-------------+-----------------|
+| ~energyCutoff~ | ~energy_cutoff <value>~ | ~cgsd:ecut~, ~band:ecut~, ~cpsd:ecut~, ~cpmd:ecut~ |
+| ~wavefunctionCutoff~ | ~wavefunction_cutoff <value>~ | ~cgsd:wcut~, ~band:wcut~, ~cpsd:wcut~, ~cpmd:wcut~ |
+| ~ewaldRcut~ | ~ewald_rcut <value>~ | ~cgsd:rcut~, ~band:rcut~, ~cpsd:rcut~, ~cpmd:rcut~ |
+| ~ewaldNcut~ | ~ewald_ncut <value>~ | ~cgsd:ncut~, ~band:ncut~, ~cpsd:ncut~, ~cpmd:ncut~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -155,6 +169,19 @@ handler names derived from the local NWChem source tree.
   (~positions_ang~, ~atomic_numbers~), not Cap'n Proto atom lists.
 
 * Pseudopotentials
+~NWChemNwpwStanza~ covers scalar NWPW cutoff controls:
+
+| Field | NWChem text |
+|-------+-------------|
+| ~energyCutoff~ | ~energy_cutoff <value>~ |
+| ~wavefunctionCutoff~ | ~wavefunction_cutoff <value>~ |
+| ~ewaldRcut~ | ~ewald_rcut <value>~ |
+| ~ewaldNcut~ | ~ewald_ncut <value>~ |
+| ~directives~ | Extra tokenized NWPW directives. |
+
+The embed path promotes these cutoff fields to the stable RTDB keys used by the
+NWChem NWPW input handler and leaves only extra directives in rendered text.
+
 ~NWChemPseudopotentialStanza~ provides a structured representation for NWPW
 pseudopotential selection:
 
