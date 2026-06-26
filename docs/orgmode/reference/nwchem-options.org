@@ -114,6 +114,7 @@ the promoted lines and writes the same values as typed RTDB entries:
 | ~sameSpinScale~ | ~fss <value>~ | ~ccsd:fss~ |
 | ~oppositeSpinScale~ | ~fos <value>~ | ~ccsd:fos~ |
 | ~printLevel~, ~printItems~, ~noPrintItems~ | ~print <level> <items...>~, ~noprint <items...>~ | rendered input text |
+| ~doa~, ~dob~, ~dog~, ~doh~, ~dojk~, ~dos~, ~dod~ | same-named integer-list switch lines | rendered input text |
 
 ~NWChemTceStanza~ reads the Tensor Contraction Engine coupled-cluster surface
 from the same Cap'n Proto message. Full-deck rendering emits a ~tce~ block.

@@ -94,6 +94,7 @@ The schema contains typed stanzas for:
   two-electron tolerance scalars
 - classic ~ccsd~ scalar controls for max iterations, thresholds, DIIS,
   frozen-orbital counts, disk use, SCS scaling, and structured print controls
+  plus the documented integer switch arrays
 - ~tce~ controls for coupled-cluster/CI/MBPT/EOM method identity,
   perturbative triples, freeze counts, convergence/level shifts, DIIS, EOM
   roots/targets, density/multipole flags, active spaces, transform controls,
@@ -285,6 +286,7 @@ module prefix:
 | ~sameSpinScale~ | ~fss~ | ~ccsd~ |
 | ~oppositeSpinScale~ | ~fos~ | ~ccsd~ |
 | ~printLevel~ / ~printItems~ / ~noPrintItems~ | text-only ~print~ / ~noprint~ lines | ~ccsd~ |
+| ~doa~ / ~dob~ / ~dog~ / ~doh~ / ~dojk~ / ~dos~ / ~dod~ | text-only integer-list switch lines | ~ccsd~ |
 | ~model~ | ~model~ | ~tce~ |
 | ~model2e~ | ~model2e~ | ~tce~ |
 | ~perturbative~ | ~perturbative~ | ~tce~ |
