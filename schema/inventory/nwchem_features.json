@@ -1091,6 +1091,14 @@
       "nwchem_role": "tce stanza",
       "stub": true,
       "embed": true
+    },
+    {
+      "kind": "mrccData",
+      "schema_path": "NWChemInputStanza.mrccData",
+      "capnp_type": "NWChemMrccDataStanza",
+      "nwchem_role": "TCE MRCC data block",
+      "stub": true,
+      "embed": true
     }
   ],
   "params_fields": [
