@@ -410,6 +410,7 @@ struct NWChemTceStanza {
   ipCcsd                @52 :NWChemToggle = unspecified; # Emit/promote tce:ipccsd when enabled.
   directives            @53 :List(NWChemDirective);
   freezeMode            @54 :NWChemTceFreezeMode = unspecified; # Emit symbolic freeze directive; not directly promoted.
+  dipole                @55 :Bool = false; # Emit TCE dipole keyword; not directly promoted.
 }
 
 # @struct NWChemMrccDataStanza
