@@ -124,6 +124,10 @@ RTDB values directly:
 | ~hamiltonianMotionFilename~ | ~hmotion_filename <path>~ | ~cpmd:hmotion_filename~, ~nwpw:hmotion_filename~ |
 | ~orbitalMotionFilename~ | ~omotion_filename <path>~ | ~cpmd:omotion_filename~, ~nwpw:omotion_filename~ |
 | ~eigenvalueMotionFilename~ | ~eigmotion_filename <path>~ | ~cpmd:eigmotion_filename~, ~nwpw:eigmotion_filename~ |
+| ~fractionalOrbitalsStart~, ~fractionalOrbitalsEnd~ | ~fractional_orbitals <start> <end>~ | ~nwpw:fractional_orbitals~ |
+| ~smearTemperature~ | ~smear temperature <value>~ | ~nwpw:fractional_temperature~ |
+| ~smearAlpha~ | ~smear alpha <value>~ | ~nwpw:fractional_alpha~ |
+| ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ | ~nwpw:fractional_smeartype~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -231,6 +235,10 @@ controls:
 | ~hamiltonianMotionFilename~ | ~hmotion_filename <path>~ |
 | ~orbitalMotionFilename~ | ~omotion_filename <path>~ |
 | ~eigenvalueMotionFilename~ | ~eigmotion_filename <path>~ |
+| ~fractionalOrbitalsStart~, ~fractionalOrbitalsEnd~ | ~fractional_orbitals <start> <end>~ |
+| ~smearTemperature~ | ~smear temperature <value>~ |
+| ~smearAlpha~ | ~smear alpha <value>~ |
+| ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem

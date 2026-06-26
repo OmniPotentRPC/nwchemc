@@ -76,7 +76,8 @@ Structured NWPW state controls and simple named ~exchangeCorrelation~ values
 use the same direct RTDB path. Born-Oppenheimer NWPW controls with stable
 RTDB keys are promoted in the same pass. NWPW execution controls with stable
 RTDB keys are also promoted directly. Output and motion filename fields are
-promoted to the paired CPMD/NWPW RTDB string keys.
+promoted to the paired CPMD/NWPW RTDB string keys. Fractional orbital and smear
+controls write the matching ~nwpw:fractional_*~ keys directly.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -100,6 +101,7 @@ The schema contains typed stanzas for:
 - ~nwpw~ execution controls for processor dimensions, spin-orbit, and
   parallel I/O
 - ~nwpw~ output and motion filename controls
+- ~nwpw~ fractional orbital and smear controls
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -224,6 +226,10 @@ module prefix:
 | ~hamiltonianMotionFilename~ | ~hmotion_filename~ | ~cpmd~, ~nwpw~ |
 | ~orbitalMotionFilename~ | ~omotion_filename~ | ~cpmd~, ~nwpw~ |
 | ~eigenvalueMotionFilename~ | ~eigmotion_filename~ | ~cpmd~, ~nwpw~ |
+| ~fractionalOrbitalsStart~ / ~fractionalOrbitalsEnd~ | ~fractional_orbitals~ | ~nwpw~ |
+| ~smearTemperature~ | ~fractional_temperature~ | ~nwpw~ |
+| ~smearAlpha~ | ~fractional_alpha~ | ~nwpw~ |
+| ~smearType~ | ~fractional_smeartype~ | ~nwpw~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes
