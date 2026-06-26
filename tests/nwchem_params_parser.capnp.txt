@@ -91,7 +91,15 @@
         lcaoMode = skip,
         ewaldGridX = 9,
         ewaldGridY = 10,
-        ewaldGridZ = 11
+        ewaldGridZ = 11,
+        noseHoover = enabled,
+        noseRestart = disabled,
+        noseElectronPeriod = 12.0,
+        noseElectronTemperature = 300.0,
+        noseIonPeriod = 34.0,
+        noseIonTemperature = 400.0,
+        noseElectronChainLength = 2,
+        noseIonChainLength = 3
       )
     ),
     (

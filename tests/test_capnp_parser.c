@@ -125,6 +125,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "virtual_orbitals 7 8"));
   assert_non_null(strstr(input_blocks, "lcao_skip"));
   assert_non_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
+  assert_non_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -205,6 +206,7 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "virtual_orbitals 7 8"));
   assert_null(strstr(input_blocks, "lcao_skip"));
   assert_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
+  assert_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -403,6 +405,35 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(ewald_grid_x, 9);
   assert_int_equal(ewald_grid_y, 10);
   assert_int_equal(ewald_grid_z, 11);
+
+  int has_nose = 0;
+  int nose_hoover = 0;
+  int nose_restart = 0;
+  double nose_electron_period = 0.0;
+  double nose_electron_temperature = 0.0;
+  double nose_ion_period = 0.0;
+  double nose_ion_temperature = 0.0;
+  int nose_electron_chain_length = 0;
+  int nose_ion_chain_length = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_nose(
+                       params_root, &has_nose, &nose_hoover, &nose_restart,
+                       &nose_electron_period, &nose_electron_temperature,
+                       &nose_ion_period, &nose_ion_temperature,
+                       &nose_electron_chain_length, &nose_ion_chain_length),
+                   0);
+  assert_int_equal(has_nose, 1);
+  assert_int_equal(nose_hoover, NWChemNwpwToggle_enabled);
+  assert_int_equal(nose_restart, NWChemNwpwToggle_disabled);
+  assert_true(nose_electron_period > 11.999);
+  assert_true(nose_electron_period < 12.001);
+  assert_true(nose_electron_temperature > 299.999);
+  assert_true(nose_electron_temperature < 300.001);
+  assert_true(nose_ion_period > 33.999);
+  assert_true(nose_ion_period < 34.001);
+  assert_true(nose_ion_temperature > 399.999);
+  assert_true(nose_ion_temperature < 400.001);
+  assert_int_equal(nose_electron_chain_length, 2);
+  assert_int_equal(nose_ion_chain_length, 3);
 
   nwchemc_params_release(&arena);
   free(message);

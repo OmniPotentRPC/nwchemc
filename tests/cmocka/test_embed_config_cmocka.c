@@ -648,11 +648,12 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "virtual_orbitals 7 8"));
   assert_null(strstr(g_input_blocks, "lcao_skip"));
   assert_null(strstr(g_input_blocks, "ewald_ngrid 9 10 11"));
+  assert_null(strstr(g_input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 78);
+  assert_int_equal(g_typed_set_count, 94);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -753,6 +754,30 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_typed_set_triple("nwpw:ewald_ngrid",
                           NWCHEMC_DIRECT_SET_VALUE_INTEGER, "9", "10",
                           "11");
+  assert_typed_set_scalar("cpmd:nose", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("nwpw:nose", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("cpmd:nose_restart",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
+  assert_typed_set_scalar("nwpw:nose_restart",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
+  assert_typed_set_scalar("cpmd:Pe", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "12");
+  assert_typed_set_scalar("nwpw:Pe", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "12");
+  assert_typed_set_scalar("cpmd:Te", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "300");
+  assert_typed_set_scalar("nwpw:Te", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "300");
+  assert_typed_set_scalar("cpmd:Pr", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "34");
+  assert_typed_set_scalar("nwpw:Pr", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "34");
+  assert_typed_set_scalar("cpmd:Tr", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "400");
+  assert_typed_set_scalar("nwpw:Tr", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "400");
+  assert_typed_set_scalar("cpmd:Mchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
+  assert_typed_set_scalar("nwpw:Mchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
+  assert_typed_set_scalar("cpmd:Nchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
+  assert_typed_set_scalar("nwpw:Nchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
   assert_int_equal(g_set_nwpw_direct_calls, 1);
   assert_int_equal(g_nwpw_has_options, 1);
   assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);
