@@ -109,6 +109,12 @@ RTDB values directly:
 | ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ | ~cgsd:loop~, ~band:loop~, ~cpsd:loop~ |
 | ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ | ~cgsd:tolerances~, ~band:tolerances~ |
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ | ~cgsd:exchange_correlation~, ~band:exchange_correlation~, ~cpsd:exchange_correlation~, ~cpmd:exchange_correlation~ |
+| ~balanceMode~ | ~balance~ or ~nobalance~ | ~nwpw:balance~ |
+| ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~ | ~nwpw:bo_steps~ |
+| ~boTimeStep~ | ~bo_time_step <value>~ | ~nwpw:bo_time_step~ |
+| ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
+| ~boFakeMass~ | ~bo_fake_mass <value>~ | ~nwpw:bo_fake_mass~ |
+| ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ | ~nwpw:scaling~, ~cpmd:scaling~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -184,7 +190,8 @@ handler names derived from the local NWChem source tree.
   (~positions_ang~, ~atomic_numbers~), not Cap'n Proto atom lists.
 
 * Pseudopotentials
-~NWChemNwpwStanza~ covers scalar NWPW cutoff and state controls:
+~NWChemNwpwStanza~ covers scalar NWPW cutoff, state, and Born-Oppenheimer
+controls:
 
 | Field | NWChem text |
 |-------+-------------|
@@ -200,6 +207,12 @@ handler names derived from the local NWChem source tree.
 | ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ |
 | ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ |
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ |
+| ~balanceMode~ | ~balance~ or ~nobalance~ |
+| ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~ |
+| ~boTimeStep~ | ~bo_time_step <value>~ |
+| ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
+| ~boFakeMass~ | ~bo_fake_mass <value>~ |
+| ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem

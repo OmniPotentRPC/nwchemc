@@ -89,7 +89,10 @@ NWPW cell names, wavefunction filenames, fake mass, time step, loop, and
 tolerance controls. Simple NWPW `exchangeCorrelation` names are promoted to
 the PSPW/BAND/CPSD/CPMD exchange-correlation RTDB keys with matching SIC/HFX
 defaults reset explicitly; complex `exchange_correlation new ...` grammar
-stays in the text/directive path.
+stays in the text/directive path. Born-Oppenheimer controls such as
+`balanceMode`, `boStepStart` / `boStepEnd`, `boTimeStep`, `boAlgorithm`,
+`boFakeMass`, and `scalingFirst` / `scalingSecond` are also promoted directly
+to the NWPW/CPMD RTDB keys used by NWChem.
 
 ## Build
 

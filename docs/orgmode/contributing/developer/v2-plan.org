@@ -73,7 +73,8 @@ writes for embed calculations. Structured NWPW cutoff controls
 promoted to the NWPW RTDB keys used by ~nwpw_input.F~. Promoted fields are
 omitted from embed-rendered text when no non-promoted syntax remains.
 Structured NWPW state controls and simple named ~exchangeCorrelation~ values
-use the same direct RTDB path.
+use the same direct RTDB path. Born-Oppenheimer NWPW controls with stable
+RTDB keys are promoted in the same pass.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -92,6 +93,8 @@ The schema contains typed stanzas for:
 - ~nwpw~ cutoff controls for energy, wavefunction, Ewald real-space, and Ewald
   reciprocal-space cutoffs
 - ~nwpw~ state controls and simple named exchange-correlation functionals
+- ~nwpw~ Born-Oppenheimer controls for balance, BO steps, BO time step,
+  BO algorithm, BO fake mass, and scaling
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -201,6 +204,12 @@ module prefix:
 | ~loopStart~ / ~loopEnd~ | ~loop~ | ~cgsd~, ~band~, ~cpsd~ |
 | ~toleranceEnergy~ / ~toleranceDensity~ / ~toleranceGradient~ | ~tolerances~ | ~cgsd~, ~band~ |
 | ~exchangeCorrelation~ | ~exchange_correlation~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
+| ~balanceMode~ | ~balance~ | ~nwpw~ |
+| ~boStepStart~ / ~boStepEnd~ | ~bo_steps~ | ~nwpw~ |
+| ~boTimeStep~ | ~bo_time_step~ | ~nwpw~ |
+| ~boAlgorithm~ | ~bo_algorithm~ | ~nwpw~ |
+| ~boFakeMass~ | ~bo_fake_mass~ | ~nwpw~ |
+| ~scalingFirst~ / ~scalingSecond~ | ~scaling~ | ~nwpw~, ~cpmd~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes
