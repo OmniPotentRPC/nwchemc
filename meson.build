@@ -138,8 +138,11 @@ if has_nwchem
     'nwchemc_legacy',
     [
       'src/nwchem_embed_legacy.F',
+      'src/nwchem_rtdb_put_dbl_array.F',
       'src/nwchem_rtdb_put_dbl.F',
+      'src/nwchem_rtdb_put_int_array.F',
       'src/nwchem_rtdb_put_int.F',
+      'src/nwchem_rtdb_put_log_array.F',
       nwchem_root + '/src/nwpw/nwpwlib/utilities/btdb.F',
     ],
     include_directories: inc,

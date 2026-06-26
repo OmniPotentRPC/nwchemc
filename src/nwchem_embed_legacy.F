@@ -453,8 +453,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             do j = 1, nvalues
                read(set_values(j,i), *, err=900) dvals(j)
             enddo
-            if (.not. rtdb_put(rtdb, set_keys(i)(1:l_key), mt_dbl,
-     $         nvalues, dvals)) then
+            call nwchemc_rtdb_put_dbl_array(rtdb, set_keys(i)(1:l_key),
+     $         nvalues, dvals, ok)
+            if (.not. ok) then
                errmsg = 'direct double set write failed'
                return
             endif
@@ -462,8 +463,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             do j = 1, nvalues
                read(set_values(j,i), *, err=910) ivals(j)
             enddo
-            if (.not. rtdb_put(rtdb, set_keys(i)(1:l_key), mt_int,
-     $         nvalues, ivals)) then
+            call nwchemc_rtdb_put_int_array(rtdb, set_keys(i)(1:l_key),
+     $         nvalues, ivals, ok)
+            if (.not. ok) then
                errmsg = 'direct integer set write failed'
                return
             endif
@@ -476,8 +478,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
                   return
                endif
             enddo
-            if (.not. rtdb_put(rtdb, set_keys(i)(1:l_key), mt_log,
-     $         nvalues, lvals)) then
+            call nwchemc_rtdb_put_log_array(rtdb, set_keys(i)(1:l_key),
+     $         nvalues, lvals, ok)
+            if (.not. ok) then
                errmsg = 'direct logical set write failed'
                return
             endif

@@ -210,8 +210,11 @@ if(NWCHEMC_WITH_NWCHEM)
 
   add_library(nwchemc_legacy STATIC
     src/nwchem_embed_legacy.F
+    src/nwchem_rtdb_put_dbl_array.F
     src/nwchem_rtdb_put_dbl.F
+    src/nwchem_rtdb_put_int_array.F
     src/nwchem_rtdb_put_int.F
+    src/nwchem_rtdb_put_log_array.F
     "${NWCHEMC_NWCHEM_ROOT}/src/nwpw/nwpwlib/utilities/btdb.F"
   )
   set_target_properties(nwchemc_legacy PROPERTIES POSITION_INDEPENDENT_CODE ON)
