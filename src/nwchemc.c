@@ -253,6 +253,45 @@ static int append_nwpw_prefixed_typed_values(
   return 0;
 }
 
+static int append_simulation_cell_direct_value(
+    capn_text *keys, int *value_types, int *value_counts, capn_text *values,
+    size_t key_capacity, size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    capn_text cell_name, const char *suffix, int value_type,
+    const char *const *value_list, int nvalues) {
+  char key[NWCHEMC_DIRECT_SET_KEY_LEN];
+  int n = 0;
+  if (cell_name.str && cell_name.len > 0) {
+    n = snprintf(key, sizeof(key), "%.*s:%s", cell_name.len, cell_name.str,
+                 suffix);
+  } else {
+    n = snprintf(key, sizeof(key), "cell_default:%s", suffix);
+  }
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  return append_direct_typed_values(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, key,
+                                    value_type, value_list, nvalues);
+}
+
+static int append_simulation_cell_direct_scalar(
+    capn_text *keys, int *value_types, int *value_counts, capn_text *values,
+    size_t key_capacity, size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    capn_text cell_name, const char *suffix, int value_type,
+    const char *value) {
+  const char *value_list[1] = {value};
+  return append_simulation_cell_direct_value(
+      keys, value_types, value_counts, values, key_capacity, value_capacity,
+      count, key_storage, value_storage, cell_name, suffix, value_type,
+      value_list, 1);
+}
+
 static int tce_reference_value(enum NWChemTceReference reference, int *value) {
   if (!value)
     return 0;
@@ -326,6 +365,121 @@ static const char *toggle_logical_value(enum NWChemToggle toggle) {
   default:
     return NULL;
   }
+}
+
+static int append_simulation_cell_direct_values(
+    NWChemParams_ptr params, capn_text *keys, int *value_types,
+    int *value_counts, capn_text *values, size_t key_capacity,
+    size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN]) {
+  if (params.p.type == CAPN_NULL || !keys || !value_types || !value_counts ||
+      !values || !count)
+    return -1;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = direct_struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_simulationCell ||
+        stanza.simulationCell.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemSimulationCellStanza cell;
+    read_NWChemSimulationCellStanza(&cell, stanza.simulationCell);
+    capn_list64 lattice_vectors = cell.latticeVectorsBohr;
+    capn_resolve(&lattice_vectors.p);
+    int nvector = 0;
+    if (lattice_vectors.p.type != CAPN_NULL) {
+      if (lattice_vectors.p.type != CAPN_LIST ||
+          lattice_vectors.p.datasz != 8)
+        return -1;
+      nvector = lattice_vectors.p.len;
+    }
+    if (nvector != 0 && nvector != 9)
+      return -1;
+    if (cell.boundaryConditions.len > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(value, sizeof(value), cell.boundaryConditions);
+      if (append_simulation_cell_direct_scalar(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, cell.cellName,
+              "boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+        return -1;
+    }
+    if (nvector == 9) {
+      char value_text[9][NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *value_list[9];
+      for (int j = 0; j < 9; ++j) {
+        snprintf(value_text[j], sizeof(value_text[j]), "%.15g",
+                 capn_to_f64(capn_get64(lattice_vectors, j)));
+        value_list[j] = value_text[j];
+      }
+      if (append_simulation_cell_direct_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, cell.cellName,
+              "unita", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 9) != 0)
+        return -1;
+    }
+    if (cell.ngridX > 0 && cell.ngridY > 0 && cell.ngridZ > 0) {
+      char nx[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char ny[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char nz[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *value_list[3] = {nx, ny, nz};
+      snprintf(nx, sizeof(nx), "%d", cell.ngridX);
+      snprintf(ny, sizeof(ny), "%d", cell.ngridY);
+      snprintf(nz, sizeof(nz), "%d", cell.ngridZ);
+      if (append_simulation_cell_direct_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, cell.cellName,
+              "ngrid", NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 3) != 0)
+        return -1;
+    }
+    if (cell.ngridSmallX > 0 && cell.ngridSmallY > 0 &&
+        cell.ngridSmallZ > 0) {
+      char nx[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char ny[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char nz[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *value_list[3] = {nx, ny, nz};
+      snprintf(nx, sizeof(nx), "%d", cell.ngridSmallX);
+      snprintf(ny, sizeof(ny), "%d", cell.ngridSmallY);
+      snprintf(nz, sizeof(nz), "%d", cell.ngridSmallZ);
+      if (append_simulation_cell_direct_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, cell.cellName,
+              "ngrid_small", NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list,
+              3) != 0)
+        return -1;
+    }
+    if (cell.boxDeltaBohr > 0.0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", cell.boxDeltaBohr);
+      if (append_simulation_cell_direct_scalar(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, cell.cellName,
+              "box_delta", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+        return -1;
+    }
+    if (cell.boxOrient &&
+        append_simulation_cell_direct_scalar(
+            keys, value_types, value_counts, values, key_capacity,
+            value_capacity, count, key_storage, value_storage, cell.cellName,
+            "box_orient", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+      return -1;
+    if (cell.boxDifferentLengths &&
+        append_simulation_cell_direct_scalar(
+            keys, value_types, value_counts, values, key_capacity,
+            value_capacity, count, key_storage, value_storage, cell.cellName,
+            "box_type", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1") != 0)
+      return -1;
+  }
+  return 0;
 }
 
 static int append_tce_direct_values(
@@ -1027,6 +1181,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                NWCHEMC_DIRECT_SET_VALUE_MAX,
                                &typed_set_count, nwpw_direct_keys,
                                nwpw_direct_values) != 0)
+    return -1;
+  if (append_simulation_cell_direct_values(
+          params_root, typed_set_keys, typed_set_types, typed_set_value_counts,
+          typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+          NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+          nwpw_direct_values) != 0)
     return -1;
   if (nwpw_energy_cutoff > 0.0) {
     char value[NWCHEMC_DIRECT_SET_VALUE_LEN];

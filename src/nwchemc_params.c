@@ -725,6 +725,114 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
   return append_block(dst, dst_size, block);
 }
 
+static const char *simulation_cell_lattice_kind_literal(
+    enum NWChemSimulationCellLatticeKind lattice_kind) {
+  switch (lattice_kind) {
+  case NWChemSimulationCellLatticeKind_sc:
+    return "sc";
+  case NWChemSimulationCellLatticeKind_fcc:
+    return "fcc";
+  case NWChemSimulationCellLatticeKind_bcc:
+    return "bcc";
+  case NWChemSimulationCellLatticeKind_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static int render_simulation_cell_stanza(NWChemSimulationCellStanza_ptr ptr,
+                                         char *dst, size_t dst_size,
+                                         int include_direct_promoted) {
+  if (ptr.p.type == CAPN_NULL || !include_direct_promoted)
+    return 0;
+
+  struct NWChemSimulationCellStanza cell;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemSimulationCellStanza(&cell, ptr);
+  capn_list64 lattice_vectors = cell.latticeVectorsBohr;
+  capn_resolve(&lattice_vectors.p);
+  int nvector = 0;
+  if (lattice_vectors.p.type != CAPN_NULL) {
+    if (lattice_vectors.p.type != CAPN_LIST || lattice_vectors.p.datasz != 8)
+      return -1;
+    nvector = lattice_vectors.p.len;
+  }
+  if (nvector != 0 && nvector != 9)
+    return -1;
+  int has_ngrid = cell.ngridX > 0 && cell.ngridY > 0 && cell.ngridZ > 0;
+  int has_ngrid_small = cell.ngridSmallX > 0 && cell.ngridSmallY > 0 &&
+                        cell.ngridSmallZ > 0;
+  const char *lattice_kind =
+      simulation_cell_lattice_kind_literal(cell.latticeKind);
+  int has_lattice_kind = lattice_kind && cell.latticeLengthBohr > 0.0;
+  int has_directives = directives_have_keywords(cell.directives);
+  if (has_directives < 0)
+    return -1;
+  if (cell.cellName.len <= 0 && cell.boundaryConditions.len <= 0 &&
+      nvector == 0 && !has_ngrid && !has_ngrid_small &&
+      cell.boxDeltaBohr <= 0.0 && !cell.boxOrient &&
+      !cell.boxDifferentLengths && !has_lattice_kind && !has_directives)
+    return 0;
+
+  if (append_format(block, sizeof(block), "nwpw\n  simulation_cell\n") != 0)
+    return -1;
+  if (cell.cellName.len > 0) {
+    if (append_format(block, sizeof(block), "    cell_name ") != 0 ||
+        append_text(block, sizeof(block), cell.cellName) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (cell.boundaryConditions.len > 0) {
+    if (append_format(block, sizeof(block), "    boundary_conditions ") != 0 ||
+        append_text(block, sizeof(block), cell.boundaryConditions) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (nvector == 9) {
+    if (append_format(block, sizeof(block), "    lattice_vectors\n") != 0)
+      return -1;
+    for (int row = 0; row < 3; ++row) {
+      double first =
+          capn_to_f64(capn_get64(lattice_vectors, row * 3));
+      double second =
+          capn_to_f64(capn_get64(lattice_vectors, row * 3 + 1));
+      double third =
+          capn_to_f64(capn_get64(lattice_vectors, row * 3 + 2));
+      if (append_format(block, sizeof(block), "      %.15g %.15g %.15g\n",
+                        first, second, third) != 0)
+        return -1;
+    }
+  }
+  if (has_ngrid &&
+      append_format(block, sizeof(block), "    ngrid %d %d %d\n", cell.ngridX,
+                    cell.ngridY, cell.ngridZ) != 0)
+    return -1;
+  if (has_ngrid_small &&
+      append_format(block, sizeof(block), "    ngrid_small %d %d %d\n",
+                    cell.ngridSmallX, cell.ngridSmallY,
+                    cell.ngridSmallZ) != 0)
+    return -1;
+  if (cell.boxDeltaBohr > 0.0 &&
+      append_format(block, sizeof(block), "    box_delta %.15g\n",
+                    cell.boxDeltaBohr) != 0)
+    return -1;
+  if (cell.boxOrient &&
+      append_format(block, sizeof(block), "    box_orient\n") != 0)
+    return -1;
+  if (cell.boxDifferentLengths &&
+      append_format(block, sizeof(block), "    box_different_lengths\n") != 0)
+    return -1;
+  if (has_lattice_kind &&
+      append_format(block, sizeof(block), "    %s %.15g\n", lattice_kind,
+                    cell.latticeLengthBohr) != 0)
+    return -1;
+  if (render_directives(cell.directives, block, sizeof(block), "    ") != 0 ||
+      append_format(block, sizeof(block), "  end\nend") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
                              size_t dst_size, int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
@@ -1761,6 +1869,11 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     case NWChemInputStanza_Kind_brillouinZone:
       if (render_brillouin_zone_stanza(stanza.brillouinZone, dst, dst_size,
                                        include_direct_promoted_nwpw) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_simulationCell:
+      if (render_simulation_cell_stanza(stanza.simulationCell, dst, dst_size,
+                                        include_direct_promoted_nwpw) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_task:
