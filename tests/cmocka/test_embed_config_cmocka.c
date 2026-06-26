@@ -757,6 +757,39 @@ static void test_session_reapplies_after_one_shot_config(void **state) {
   free(message);
 }
 
+static void test_session_rejects_param_replacement_after_topology(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  size_t replacement_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *replacement =
+      read_file(g_config_options_path, &replacement_size);
+  assert_non_null(message);
+  assert_non_null(replacement);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult first =
+      nwchemc_session_energy_gradient(session, 1, pos, z, grad);
+  assert_int_equal(first.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+
+  assert_int_not_equal(
+      nwchemc_session_set_params(session, replacement, replacement_size), 0);
+  assert_int_equal(g_set_config_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(replacement);
+  free(message);
+}
+
 static void test_session_calculate_forces_accepts_force_input_steps(
     void **state) {
   (void)state;
@@ -1170,6 +1203,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
+      cmocka_unit_test(test_session_rejects_param_replacement_after_topology),
       cmocka_unit_test(test_session_calculate_forces_accepts_force_input_steps),
       cmocka_unit_test(test_session_calculate_hessian_accepts_force_input_step),
       cmocka_unit_test(test_session_calculate_dipole_accepts_force_input_step),
