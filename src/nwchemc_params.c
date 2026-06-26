@@ -1031,6 +1031,24 @@ static const char *tce_freeze_keyword(enum NWChemTceFreezeMode freeze_mode) {
   }
 }
 
+static const char *print_level_keyword(enum NWChemPrintLevel print_level) {
+  switch (print_level) {
+  case NWChemPrintLevel_none:
+    return "none";
+  case NWChemPrintLevel_low:
+    return "low";
+  case NWChemPrintLevel_medium:
+    return "medium";
+  case NWChemPrintLevel_high:
+    return "high";
+  case NWChemPrintLevel_debug:
+    return "debug";
+  case NWChemPrintLevel_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 static capn_text tce_method_text(const struct NWChemTceStanza *tce) {
   if (tce->method.len > 0)
     return tce->method;
@@ -1053,6 +1071,10 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
     return -1;
   capn_text method = tce_method_text(&tce);
   const char *freeze_mode = tce_freeze_keyword(tce.freezeMode);
+  const char *print_level = print_level_keyword(tce.printLevel);
+  int nprint_items = pointer_list_len(&tce.printItems);
+  if (nprint_items < 0)
+    return -1;
   int has_renderable_promoted =
       tce.reference != NWChemTceReference_unspecified ||
       tce.frozenCore > 0 || tce.frozenVirtual > 0 ||
@@ -1080,6 +1102,7 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
       tce.eaCcsd == NWChemToggle_enabled ||
       tce.ipCcsd == NWChemToggle_enabled;
   if (!has_directives && !freeze_mode && !tce.dipole &&
+      !print_level && nprint_items == 0 &&
       !(include_direct_promoted && has_renderable_promoted))
     return 0;
   if (append_format(block, sizeof(block), "tce\n") != 0)
@@ -1269,6 +1292,23 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
       return -1;
     if (tce.ipCcsd == NWChemToggle_enabled &&
         append_format(block, sizeof(block), "  ipccsd\n") != 0)
+      return -1;
+  }
+  if (print_level || nprint_items > 0) {
+    if (append_format(block, sizeof(block), "  print") != 0)
+      return -1;
+    if (print_level &&
+        append_format(block, sizeof(block), " %s", print_level) != 0)
+      return -1;
+    for (int i = 0; i < nprint_items; ++i) {
+      capn_text item = capn_get_text(tce.printItems, i, empty_text);
+      if (item.len <= 0)
+        continue;
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), item) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
   if (render_directives(tce.directives, block, sizeof(block), "  ") != 0 ||
