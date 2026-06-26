@@ -745,8 +745,8 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       OPENBLAS
     )
     target_compile_options(nwchem-geometry-basis-rtdb PRIVATE
-      ${NWCHEMC_COMMON_C_WARNINGS}
-      ${NWCHEM_FORTRAN_OPTIONS}
+      "$<$<COMPILE_LANGUAGE:C>:${NWCHEMC_COMMON_C_WARNINGS}>"
+      "$<$<COMPILE_LANGUAGE:Fortran>:${NWCHEM_FORTRAN_OPTIONS}>"
       $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
     )
     add_test(
