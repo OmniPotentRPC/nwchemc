@@ -8,6 +8,11 @@
 #define NWCHEMC_DRIVER_TOLERANCE_NONE 0
 #define NWCHEMC_DRIVER_TOLERANCE_TIGHT 1
 #define NWCHEMC_DRIVER_TOLERANCE_LOOSE 2
+#define NWCHEMC_DIRECT_SET_VALUE_AUTO 0
+#define NWCHEMC_DIRECT_SET_VALUE_TEXT 1
+#define NWCHEMC_DIRECT_SET_VALUE_DOUBLE 2
+#define NWCHEMC_DIRECT_SET_VALUE_INTEGER 3
+#define NWCHEMC_DIRECT_SET_VALUE_LOGICAL 4
 
 int nwchemc_params_root(const void *params_capnp,
                         size_t params_capnp_size_bytes, struct capn *arena,
@@ -49,6 +54,11 @@ int nwchemc_params_extract_direct_set_strings(NWChemParams_ptr params,
                                               capn_text *keys,
                                               capn_text *values,
                                               size_t capacity, size_t *count);
+
+int nwchemc_params_extract_direct_set_values(
+    NWChemParams_ptr params, capn_text *keys, int *value_types,
+    int *value_counts, capn_text *values, size_t set_capacity,
+    size_t value_capacity, size_t *count);
 
 int nwchemc_force_input_root(const void *force_input_capnp,
                              size_t force_input_capnp_size_bytes,

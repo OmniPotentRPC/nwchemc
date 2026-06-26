@@ -94,6 +94,9 @@ static void test_render_config_options_stanzas(void **state) {
   assert_render_contains(blocks, "mulliken");
   assert_render_contains(blocks, "task scf energy");
   assert_render_contains(blocks, "set dft:grid xfine");
+  assert_render_contains(blocks, "set dft:nopen integer 2");
+  assert_render_contains(blocks, "set dft:smear_sigma double 0.0015");
+  assert_render_contains(blocks, "set dft:spinset logical false");
   assert_render_contains(blocks, "print low");
 
   capn_text set_keys[4];
@@ -105,6 +108,30 @@ static void test_render_config_options_stanzas(void **state) {
   assert_int_equal(set_count, 1);
   assert_capn_text_equals(set_keys[0], "dft:grid");
   assert_capn_text_equals(set_values[0], "xfine");
+
+  capn_text typed_set_keys[4];
+  int typed_set_types[4];
+  int typed_set_counts[4];
+  capn_text typed_set_values[16];
+  size_t typed_set_count = 0;
+  assert_int_equal(nwchemc_params_extract_direct_set_values(
+                       params_root, typed_set_keys, typed_set_types,
+                       typed_set_counts, typed_set_values, 4, 4,
+                       &typed_set_count),
+                   0);
+  assert_int_equal(typed_set_count, 3);
+  assert_capn_text_equals(typed_set_keys[0], "dft:nopen");
+  assert_int_equal(typed_set_types[0], NWCHEMC_DIRECT_SET_VALUE_INTEGER);
+  assert_int_equal(typed_set_counts[0], 1);
+  assert_capn_text_equals(typed_set_values[0], "2");
+  assert_capn_text_equals(typed_set_keys[1], "dft:smear_sigma");
+  assert_int_equal(typed_set_types[1], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+  assert_int_equal(typed_set_counts[1], 1);
+  assert_capn_text_equals(typed_set_values[4], "0.0015");
+  assert_capn_text_equals(typed_set_keys[2], "dft:spinset");
+  assert_int_equal(typed_set_types[2], NWCHEMC_DIRECT_SET_VALUE_LOGICAL);
+  assert_int_equal(typed_set_counts[2], 1);
+  assert_capn_text_equals(typed_set_values[8], "false");
 
   int scf_maxiter = 0;
   double scf_thresh = 0.0;
@@ -160,6 +187,9 @@ static void test_render_config_options_stanzas(void **state) {
   assert_null(strstr(embed_blocks, "xmax 7.5e-05"));
   assert_null(strstr(embed_blocks, "xrms 5.5e-05"));
   assert_null(strstr(embed_blocks, "set dft:grid xfine"));
+  assert_null(strstr(embed_blocks, "set dft:nopen integer 2"));
+  assert_null(strstr(embed_blocks, "set dft:smear_sigma double 0.0015"));
+  assert_null(strstr(embed_blocks, "set dft:spinset logical false"));
 
   nwchemc_params_release(&arena);
   free(message);

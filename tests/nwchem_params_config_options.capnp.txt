@@ -56,6 +56,30 @@
       )
     ),
     (
+      kind = set,
+      set = (
+        key = "dft:nopen",
+        valueType = integer,
+        values = ["2"]
+      )
+    ),
+    (
+      kind = set,
+      set = (
+        key = "dft:smear_sigma",
+        valueType = double,
+        values = ["0.0015"]
+      )
+    ),
+    (
+      kind = set,
+      set = (
+        key = "dft:spinset",
+        valueType = logical,
+        values = ["false"]
+      )
+    ),
+    (
       kind = raw,
       raw = "print low"
     )

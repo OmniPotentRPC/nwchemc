@@ -25,15 +25,21 @@ static char g_psp_elements[8][17];
 static char g_psp_names[8][257];
 static char g_set_keys[8][129];
 static char g_set_values[8][257];
+static char g_typed_set_keys[8][129];
+static char g_typed_set_values[8][4][257];
 static int g_psp_types[8];
+static int g_typed_set_types[8];
+static int g_typed_set_value_counts[8];
 static int g_psp_count = 0;
 static int g_set_string_count = 0;
+static int g_typed_set_count = 0;
 static int g_set_config_calls = 0;
 static int g_set_dft_direct_calls = 0;
 static int g_set_scf_direct_calls = 0;
 static int g_set_driver_direct_calls = 0;
 static int g_set_pseudopotential_calls = 0;
 static int g_set_rtdb_strings_calls = 0;
+static int g_set_rtdb_values_calls = 0;
 static int g_dft_direct_enabled = 0;
 static int g_dft_smearing_enabled = 0;
 static double g_dft_smear_sigma_hartree = 0.0;
@@ -193,6 +199,27 @@ int nwchemc_embed_set_rtdb_strings(const char *keys, const char *values,
   return 0;
 }
 
+int nwchemc_embed_set_rtdb_values(const char *keys, const int *value_types,
+                                  const int *value_counts,
+                                  const char *values, int count) {
+  ++g_set_rtdb_values_calls;
+  g_typed_set_count = count;
+  if (count > 8)
+    count = 8;
+  for (int i = 0; i < count; ++i) {
+    copy_span(g_typed_set_keys[i], sizeof(g_typed_set_keys[i]),
+              keys + i * 128, 128);
+    g_typed_set_types[i] = value_types[i];
+    g_typed_set_value_counts[i] = value_counts[i];
+    int nvalues = value_counts[i] < 4 ? value_counts[i] : 4;
+    for (int j = 0; j < nvalues; ++j) {
+      copy_span(g_typed_set_values[i][j], sizeof(g_typed_set_values[i][j]),
+                values + (i * 16 + j) * 256, 256);
+    }
+  }
+  return 0;
+}
+
 int nwchemc_embed_energy_only(const int *n_atoms, const double *positions_ang,
                               const int *atomic_numbers, const int *charge,
                               const int *multiplicity, double *energy_h,
@@ -325,16 +352,23 @@ static void reset_embed_captures(void) {
     g_psp_names[i][0] = '\0';
     g_set_keys[i][0] = '\0';
     g_set_values[i][0] = '\0';
+    g_typed_set_keys[i][0] = '\0';
+    for (int j = 0; j < 4; ++j)
+      g_typed_set_values[i][j][0] = '\0';
     g_psp_types[i] = -1;
+    g_typed_set_types[i] = -1;
+    g_typed_set_value_counts[i] = 0;
   }
   g_psp_count = 0;
   g_set_string_count = 0;
+  g_typed_set_count = 0;
   g_set_config_calls = 0;
   g_set_dft_direct_calls = 0;
   g_set_scf_direct_calls = 0;
   g_set_driver_direct_calls = 0;
   g_set_pseudopotential_calls = 0;
   g_set_rtdb_strings_calls = 0;
+  g_set_rtdb_values_calls = 0;
   g_dft_direct_enabled = 0;
   g_dft_smearing_enabled = 0;
   g_dft_smear_sigma_hartree = 0.0;
@@ -489,6 +523,20 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_int_equal(g_set_string_count, 1);
   assert_string_equal(g_set_keys[0], "dft:grid");
   assert_string_equal(g_set_values[0], "xfine");
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 3);
+  assert_string_equal(g_typed_set_keys[0], "dft:nopen");
+  assert_int_equal(g_typed_set_types[0], NWCHEMC_DIRECT_SET_VALUE_INTEGER);
+  assert_int_equal(g_typed_set_value_counts[0], 1);
+  assert_string_equal(g_typed_set_values[0][0], "2");
+  assert_string_equal(g_typed_set_keys[1], "dft:smear_sigma");
+  assert_int_equal(g_typed_set_types[1], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+  assert_int_equal(g_typed_set_value_counts[1], 1);
+  assert_string_equal(g_typed_set_values[1][0], "0.0015");
+  assert_string_equal(g_typed_set_keys[2], "dft:spinset");
+  assert_int_equal(g_typed_set_types[2], NWCHEMC_DIRECT_SET_VALUE_LOGICAL);
+  assert_int_equal(g_typed_set_value_counts[2], 1);
+  assert_string_equal(g_typed_set_values[2][0], "false");
   assert_null(strstr(g_input_blocks, "scf\n"));
   assert_null(strstr(g_input_blocks, "maxiter 50"));
   assert_null(strstr(g_input_blocks, "tol2e 1e-09"));
@@ -500,6 +548,9 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_null(strstr(g_input_blocks, "xmax 7.5e-05"));
   assert_null(strstr(g_input_blocks, "xrms 5.5e-05"));
   assert_null(strstr(g_input_blocks, "set dft:grid xfine"));
+  assert_null(strstr(g_input_blocks, "set dft:nopen integer 2"));
+  assert_null(strstr(g_input_blocks, "set dft:smear_sigma double 0.0015"));
+  assert_null(strstr(g_input_blocks, "set dft:spinset logical false"));
 
   free(message);
 }
