@@ -77,9 +77,7 @@
       kind = tce,
       tce = (
         method = "cr-ccsd(t)",
-        model = "ccsd",
         model2e = orbital,
-        perturbative = "cr_(t)",
         reference = dft,
         frozenCore = 1,
         frozenVirtual = 2,
