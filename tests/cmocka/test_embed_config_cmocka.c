@@ -745,7 +745,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 156);
+  assert_int_equal(g_typed_set_count, 160);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -904,6 +904,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "false");
   assert_typed_set_scalar("ccsd:fss", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.2");
   assert_typed_set_scalar("ccsd:fos", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.8");
+  assert_typed_set_scalar("ccsd:use_trpdrv_nb",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("ccsd:use_ccsd_omp",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("ccsd:use_trpdrv_omp",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
+  assert_typed_set_scalar("ccsd:use_trpdrv_offload",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT, "ccsd");
   assert_typed_set_scalar("tce:model2e", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "2eorb");

@@ -418,6 +418,10 @@ struct NWChemCcsdStanza {
   dojk              @18 :List(Int32); # Emit CCSD DOJK debugging switches.
   dos               @19 :List(Int32); # Emit CCSD DOS debugging switches.
   dod               @20 :List(Int32); # Emit CCSD DOD debugging switches.
+  useTriplesDriverNonblocking @21 :NWChemToggle = unspecified; # Emit/promote ccsd:use_trpdrv_nb.
+  useCcsdOpenmp               @22 :NWChemToggle = unspecified; # Emit/promote ccsd:use_ccsd_omp.
+  useTriplesDriverOpenmp      @23 :NWChemToggle = unspecified; # Emit/promote ccsd:use_trpdrv_omp.
+  useTriplesDriverOffload     @24 :NWChemToggle = unspecified; # Emit/promote ccsd:use_trpdrv_offload.
 }
 
 # @struct NWChemTceStanza

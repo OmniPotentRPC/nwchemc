@@ -158,6 +158,13 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "dojk 6"));
   assert_non_null(strstr(input_blocks, "dos 7 8 9"));
   assert_non_null(strstr(input_blocks, "dod 10"));
+  assert_non_null(
+      strstr(input_blocks, "set ccsd:use_trpdrv_nb logical true"));
+  assert_non_null(strstr(input_blocks, "set ccsd:use_ccsd_omp logical true"));
+  assert_non_null(
+      strstr(input_blocks, "set ccsd:use_trpdrv_omp logical false"));
+  assert_non_null(
+      strstr(input_blocks, "set ccsd:use_trpdrv_offload logical true"));
   assert_non_null(strstr(input_blocks, "tce\n  dft"));
   assert_non_null(strstr(input_blocks, "freeze 1 virtual 2"));
   assert_non_null(strstr(input_blocks, "2eorb"));
@@ -312,6 +319,10 @@ static void test_parser_extracts_direct_dft_options(void **state) {
              "  dos 7 8 9\n"
              "  dod 10\n"
              "end"));
+  assert_null(strstr(input_blocks, "set ccsd:use_trpdrv_nb logical true"));
+  assert_null(strstr(input_blocks, "set ccsd:use_ccsd_omp logical true"));
+  assert_null(strstr(input_blocks, "set ccsd:use_trpdrv_omp logical false"));
+  assert_null(strstr(input_blocks, "set ccsd:use_trpdrv_offload logical true"));
   assert_null(strstr(input_blocks, "tce\n  dft"));
   assert_null(strstr(input_blocks, "cr-ccsd(t)"));
   assert_null(strstr(input_blocks, "lshift 0.01"));
@@ -600,6 +611,10 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   int ccsd_frozen_core = 0;
   int ccsd_frozen_virtual = 0;
   int ccsd_use_disk = 0;
+  int ccsd_use_trpdrv_nb = 0;
+  int ccsd_use_ccsd_omp = 0;
+  int ccsd_use_trpdrv_omp = 0;
+  int ccsd_use_trpdrv_offload = 0;
   double ccsd_same_spin_scale = 0.0;
   double ccsd_opposite_spin_scale = 0.0;
   assert_int_equal(nwchemc_params_extract_direct_ccsd(
@@ -607,7 +622,9 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                        &ccsd_tol2e, &ccsd_iprt, &ccsd_max_diis,
                        &ccsd_frozen_core, &ccsd_frozen_virtual,
                        &ccsd_use_disk, &ccsd_same_spin_scale,
-                       &ccsd_opposite_spin_scale),
+                       &ccsd_opposite_spin_scale, &ccsd_use_trpdrv_nb,
+                       &ccsd_use_ccsd_omp, &ccsd_use_trpdrv_omp,
+                       &ccsd_use_trpdrv_offload),
                    0);
   assert_int_equal(has_ccsd, 1);
   assert_int_equal(ccsd_maxiter, 20);
@@ -620,6 +637,10 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(ccsd_frozen_core, 1);
   assert_int_equal(ccsd_frozen_virtual, 2);
   assert_int_equal(ccsd_use_disk, NWChemToggle_disabled);
+  assert_int_equal(ccsd_use_trpdrv_nb, NWChemToggle_enabled);
+  assert_int_equal(ccsd_use_ccsd_omp, NWChemToggle_enabled);
+  assert_int_equal(ccsd_use_trpdrv_omp, NWChemToggle_disabled);
+  assert_int_equal(ccsd_use_trpdrv_offload, NWChemToggle_enabled);
   assert_true(ccsd_same_spin_scale > 1.199);
   assert_true(ccsd_same_spin_scale < 1.201);
   assert_true(ccsd_opposite_spin_scale > 0.799);
