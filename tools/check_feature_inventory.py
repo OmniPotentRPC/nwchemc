@@ -85,6 +85,8 @@ def main() -> int:
         "nwchemc_session_calculate_forces",
         "nwchemc_session_calculate_result",
         "nwchemc_calculate_result",
+        "nwchemc_calculate_hessian",
+        "nwchemc_calculate_dipole",
         "nwchemc_potential_result_size_for_force_input",
         "nwchemc_session_calculate_hessian",
         "nwchemc_session_calculate_dipole",
