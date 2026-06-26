@@ -108,9 +108,17 @@ RTDB values directly:
 | ~timeStep~ | ~time_step <value>~ | ~cgsd:time_step~, ~band:time_step~, ~cpsd:time_step~ |
 | ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ | ~cgsd:loop~, ~band:loop~, ~cpsd:loop~ |
 | ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ | ~cgsd:tolerances~, ~band:tolerances~ |
+| ~exchangeCorrelation~ | ~exchange_correlation <name>~ | ~cgsd:exchange_correlation~, ~band:exchange_correlation~, ~cpsd:exchange_correlation~, ~cpmd:exchange_correlation~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
+
+Simple named NWPW functionals also reset the associated SIC/HFX RTDB switches
+and parameters that ~nwpw_input.F~ initializes for named functionals:
+~pspw:SIC_all~, ~pspw:HFX~, ~band:HFX~, ~pspw:SIC_xc_parameter~,
+~pspw:SIC_h_parameter~, ~pspw:HFX_parameter~, and ~band:HFX_parameter~.
+The special ~exchange_correlation new ...~ grammar remains represented with
+~directives~ or raw text because it carries a nested functional definition.
 
 * DFT Controls
 ~NWChemDftStanza~ provides typed fields for common DFT setup:
@@ -191,10 +199,13 @@ handler names derived from the local NWChem source tree.
 | ~timeStep~ | ~time_step <value>~ |
 | ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ |
 | ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ |
+| ~exchangeCorrelation~ | ~exchange_correlation <name>~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem
 NWPW input handler and leaves only extra directives in rendered text.
+Simple ~exchangeCorrelation~ names use the direct RTDB path. Use
+~directives~ or raw text for ~exchange_correlation new ...~ definitions.
 
 ~NWChemPseudopotentialStanza~ provides a structured representation for NWPW
 pseudopotential selection:

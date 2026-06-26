@@ -72,6 +72,8 @@ writes for embed calculations. Structured NWPW cutoff controls
 (~energyCutoff~, ~wavefunctionCutoff~, ~ewaldRcut~, and ~ewaldNcut~) are also
 promoted to the NWPW RTDB keys used by ~nwpw_input.F~. Promoted fields are
 omitted from embed-rendered text when no non-promoted syntax remains.
+Structured NWPW state controls and simple named ~exchangeCorrelation~ values
+use the same direct RTDB path.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -89,6 +91,7 @@ The schema contains typed stanzas for:
   plus structured ~allElements~ default entries
 - ~nwpw~ cutoff controls for energy, wavefunction, Ewald real-space, and Ewald
   reciprocal-space cutoffs
+- ~nwpw~ state controls and simple named exchange-correlation functionals
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -197,6 +200,7 @@ module prefix:
 | ~timeStep~ | ~time_step~ | ~cgsd~, ~band~, ~cpsd~ |
 | ~loopStart~ / ~loopEnd~ | ~loop~ | ~cgsd~, ~band~, ~cpsd~ |
 | ~toleranceEnergy~ / ~toleranceDensity~ / ~toleranceGradient~ | ~tolerances~ | ~cgsd~, ~band~ |
+| ~exchangeCorrelation~ | ~exchange_correlation~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes
@@ -204,6 +208,12 @@ keeps ~task theory operation~ lines, but C ABI evaluation writes
 before calling the corresponding NWChem task routine.
 The dipole entry points set ~task:operation~ to ~energy~ and extract the dipole
 from RTDB instead of rendering a text property task.
+
+Simple named ~exchangeCorrelation~ values also reset ~pspw:SIC_all~,
+~pspw:HFX~, ~band:HFX~, ~pspw:SIC_xc_parameter~, ~pspw:SIC_h_parameter~,
+~pspw:HFX_parameter~, and ~band:HFX_parameter~ to the defaults used by the
+NWPW input handler for named functionals. The nested
+~exchange_correlation new ...~ grammar remains in the text/directive path.
 
 Open direct-path checks: add embed regression that asserts direct path matches
 text-path energies when NWChem embed is available.

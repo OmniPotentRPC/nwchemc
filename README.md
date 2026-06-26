@@ -86,7 +86,10 @@ write typed SCF and driver scalar controls directly to RTDB, including driver
 tolerances. Structured NWPW cutoff controls are also promoted directly to the
 matching PSPW/BAND RTDB keys instead of going through rendered text, including
 NWPW cell names, wavefunction filenames, fake mass, time step, loop, and
-tolerance controls.
+tolerance controls. Simple NWPW `exchangeCorrelation` names are promoted to
+the PSPW/BAND/CPSD/CPMD exchange-correlation RTDB keys with matching SIC/HFX
+defaults reset explicitly; complex `exchange_correlation new ...` grammar
+stays in the text/directive path.
 
 ## Build
 
