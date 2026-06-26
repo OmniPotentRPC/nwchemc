@@ -175,6 +175,16 @@
       )
     ),
     (
+      kind = brillouinZone,
+      brillouinZone = (
+        zoneName = "zoneA",
+        monkhorstPackX = 3,
+        monkhorstPackY = 4,
+        monkhorstPackZ = -5,
+        maxKpointsPrint = 12
+      )
+    ),
+    (
       kind = pseudopotential,
       pseudopotential = (
         entries = [

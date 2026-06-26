@@ -126,6 +126,9 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "lcao_skip"));
   assert_non_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
   assert_non_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
+  assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
+  assert_non_null(strstr(input_blocks, "zone_name zoneA"));
+  assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
   assert_non_null(strstr(input_blocks, "ccsd\n  maxiter 20"));
   assert_non_null(strstr(input_blocks, "thresh 1e-07"));
   assert_non_null(strstr(input_blocks, "tol2e 1e-09"));
@@ -261,6 +264,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "lcao_skip"));
   assert_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
   assert_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
+  assert_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
+  assert_null(strstr(input_blocks, "zone_name zoneA"));
+  assert_null(strstr(input_blocks, "max_kpoints_print 12"));
   assert_null(strstr(input_blocks, "ccsd\n  maxiter 20"));
   assert_null(strstr(input_blocks, "freeze 1 virtual 2"));
   assert_null(strstr(input_blocks, "nodisk"));
@@ -506,6 +512,22 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(nose_ion_temperature < 400.001);
   assert_int_equal(nose_electron_chain_length, 2);
   assert_int_equal(nose_ion_chain_length, 3);
+
+  int has_brillouin_zone = 0;
+  capn_text brillouin_zone_name = {0};
+  int monkhorst_pack[3] = {0, 0, 0};
+  int max_kpoints_print = 0;
+  assert_int_equal(nwchemc_params_extract_direct_brillouin_zone(
+                       params_root, &has_brillouin_zone,
+                       &brillouin_zone_name, monkhorst_pack,
+                       &max_kpoints_print),
+                   0);
+  assert_int_equal(has_brillouin_zone, 1);
+  assert_true(text_equals(brillouin_zone_name, "zoneA"));
+  assert_int_equal(monkhorst_pack[0], 3);
+  assert_int_equal(monkhorst_pack[1], 4);
+  assert_int_equal(monkhorst_pack[2], -5);
+  assert_int_equal(max_kpoints_print, 12);
 
   int has_ccsd = 0;
   int ccsd_maxiter = 0;
