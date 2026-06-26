@@ -1108,6 +1108,29 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
     if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  if (include_direct_promoted && nwpw.virtualOrbitalsStart > 0 &&
+      nwpw.virtualOrbitalsEnd > 0 &&
+      append_format(block, sizeof(block), "  virtual_orbitals %d %d\n",
+                    nwpw.virtualOrbitalsStart,
+                    nwpw.virtualOrbitalsEnd) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.lcaoMode == NWChemNwpwLcaoMode_skip &&
+      append_format(block, sizeof(block), "  lcao_skip\n") != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.lcaoMode == NWChemNwpwLcaoMode_lcao &&
+      append_format(block, sizeof(block), "  lcao\n") != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.ewaldGridX > 0 &&
+      append_format(block, sizeof(block), "  ewald_ngrid %d %d %d\n",
+                    nwpw.ewaldGridX,
+                    nwpw.ewaldGridY > 0 ? nwpw.ewaldGridY : nwpw.ewaldGridX,
+                    nwpw.ewaldGridZ > 0 ? nwpw.ewaldGridZ
+                                        : (nwpw.ewaldGridY > 0
+                                               ? nwpw.ewaldGridY
+                                               : nwpw.ewaldGridX)) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -1800,6 +1823,59 @@ int nwchemc_params_extract_direct_nwpw_fractional(
       *smear_temperature = nwpw.smearTemperature;
       *smear_alpha = nwpw.smearAlpha;
       *smear_type = nwpw.smearType;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_orbital_grid(
+    NWChemParams_ptr params, int *has_options, int *virtual_orbitals_start,
+    int *virtual_orbitals_end, int *lcao_mode, int *ewald_grid_x,
+    int *ewald_grid_y, int *ewald_grid_z) {
+  if (params.p.type == CAPN_NULL || !has_options ||
+      !virtual_orbitals_start || !virtual_orbitals_end || !lcao_mode ||
+      !ewald_grid_x || !ewald_grid_y || !ewald_grid_z)
+    return -1;
+
+  *has_options = 0;
+  *virtual_orbitals_start = 0;
+  *virtual_orbitals_end = 0;
+  *lcao_mode = NWChemNwpwLcaoMode_unspecified;
+  *ewald_grid_x = 0;
+  *ewald_grid_y = 0;
+  *ewald_grid_z = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.virtualOrbitalsStart > 0 && nwpw.virtualOrbitalsEnd > 0) {
+      *has_options = 1;
+      *virtual_orbitals_start = nwpw.virtualOrbitalsStart;
+      *virtual_orbitals_end = nwpw.virtualOrbitalsEnd;
+    }
+    if (nwpw.lcaoMode != NWChemNwpwLcaoMode_unspecified) {
+      *has_options = 1;
+      *lcao_mode = nwpw.lcaoMode;
+    }
+    if (nwpw.ewaldGridX > 0) {
+      *has_options = 1;
+      *ewald_grid_x = nwpw.ewaldGridX;
+      *ewald_grid_y = nwpw.ewaldGridY > 0 ? nwpw.ewaldGridY : nwpw.ewaldGridX;
+      *ewald_grid_z =
+          nwpw.ewaldGridZ > 0 ? nwpw.ewaldGridZ : *ewald_grid_y;
     }
   }
 

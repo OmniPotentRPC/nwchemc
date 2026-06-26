@@ -413,6 +413,19 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_has_smear, &nwpw_smear_temperature, &nwpw_smear_alpha,
           &nwpw_smear_type) != 0)
     return -1;
+  int nwpw_orbital_grid_has_options = 0;
+  int nwpw_virtual_orbitals_start = 0;
+  int nwpw_virtual_orbitals_end = 0;
+  int nwpw_lcao_mode = NWChemNwpwLcaoMode_unspecified;
+  int nwpw_ewald_grid_x = 0;
+  int nwpw_ewald_grid_y = 0;
+  int nwpw_ewald_grid_z = 0;
+  if (nwchemc_params_extract_direct_nwpw_orbital_grid(
+          params_root, &nwpw_orbital_grid_has_options,
+          &nwpw_virtual_orbitals_start, &nwpw_virtual_orbitals_end,
+          &nwpw_lcao_mode, &nwpw_ewald_grid_x, &nwpw_ewald_grid_y,
+          &nwpw_ewald_grid_z) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -888,6 +901,49 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
         return -1;
     }
+  }
+  if (nwpw_virtual_orbitals_start > 0 && nwpw_virtual_orbitals_end > 0) {
+    char start_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char end_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[2] = {start_value, end_value};
+    snprintf(start_value, sizeof(start_value), "%d",
+             nwpw_virtual_orbitals_start);
+    snprintf(end_value, sizeof(end_value), "%d", nwpw_virtual_orbitals_end);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:excited_ne",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 2) != 0)
+      return -1;
+  }
+  if (nwpw_orbital_grid_has_options &&
+      nwpw_lcao_mode != NWChemNwpwLcaoMode_unspecified) {
+    const char *value =
+        nwpw_lcao_mode == NWChemNwpwLcaoMode_skip ? "true" : "false";
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:lcao_skip",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (nwpw_ewald_grid_x > 0) {
+    char x_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char y_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char z_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[3] = {x_value, y_value, z_value};
+    snprintf(x_value, sizeof(x_value), "%d", nwpw_ewald_grid_x);
+    snprintf(y_value, sizeof(y_value), "%d", nwpw_ewald_grid_y);
+    snprintf(z_value, sizeof(z_value), "%d", nwpw_ewald_grid_z);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:ewald_ngrid",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 3) != 0)
+      return -1;
   }
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
   memset(packed_psp_names, 0, sizeof(packed_psp_names));

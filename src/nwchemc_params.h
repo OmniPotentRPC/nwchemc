@@ -88,6 +88,11 @@ int nwchemc_params_extract_direct_nwpw_fractional(
     int *has_smear, double *smear_temperature, double *smear_alpha,
     int *smear_type);
 
+int nwchemc_params_extract_direct_nwpw_orbital_grid(
+    NWChemParams_ptr params, int *has_options, int *virtual_orbitals_start,
+    int *virtual_orbitals_end, int *lcao_mode, int *ewald_grid_x,
+    int *ewald_grid_y, int *ewald_grid_z);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

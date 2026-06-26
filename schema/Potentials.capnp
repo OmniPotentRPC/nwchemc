@@ -222,6 +222,12 @@ enum NWChemNwpwSmearType {
   marzariVanderbilt  @5; # NWChem smear marzari-vanderbilt.
 }
 
+enum NWChemNwpwLcaoMode {
+  unspecified @0; # Do not emit lcao/lcao_skip.
+  lcao        @1; # Emit/promote NWChem "lcao".
+  skip        @2; # Emit/promote NWChem "lcao_skip".
+}
+
 struct NWChemNwpwStanza {
   energyCutoff       @0 :Float64 = 0.0; # Emit/promote NWPW energy_cutoff.
   wavefunctionCutoff @1 :Float64 = 0.0; # Emit/promote NWPW wavefunction_cutoff.
@@ -263,6 +269,12 @@ struct NWChemNwpwStanza {
   smearTemperature            @37 :Float64 = 0.0;   # Emit/promote NWPW smear temperature RTDB value.
   smearAlpha                  @38 :Float64 = 0.0;   # Emit/promote NWPW smear alpha.
   smearType                   @39 :NWChemNwpwSmearType = unspecified; # Emit/promote NWPW smear type.
+  virtualOrbitalsStart        @40 :Int32 = 0;       # First NWPW virtual_orbitals value.
+  virtualOrbitalsEnd          @41 :Int32 = 0;       # Second NWPW virtual_orbitals value.
+  lcaoMode                    @42 :NWChemNwpwLcaoMode = unspecified; # Emit/promote lcao/lcao_skip.
+  ewaldGridX                  @43 :Int32 = 0;       # First NWPW ewald_ngrid value.
+  ewaldGridY                  @44 :Int32 = 0;       # Second NWPW ewald_ngrid value.
+  ewaldGridZ                  @45 :Int32 = 0;       # Third NWPW ewald_ngrid value.
 }
 
 # @struct NWChemScfStanza
