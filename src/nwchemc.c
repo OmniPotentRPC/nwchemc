@@ -844,7 +844,7 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwpw_has_smear) {
     if (nwpw_smear_temperature > 0.0) {
       char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
-      snprintf(value, sizeof(value), "%.17g", nwpw_smear_temperature);
+      snprintf(value, sizeof(value), "%.15g", nwpw_smear_temperature);
       if (append_direct_typed_value(
               typed_set_keys, typed_set_types, typed_set_value_counts,
               typed_set_values, NWCHEMC_DIRECT_SET_MAX,
@@ -856,7 +856,7 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     }
     if (nwpw_smear_alpha > 0.0) {
       char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
-      snprintf(value, sizeof(value), "%.17g", nwpw_smear_alpha);
+      snprintf(value, sizeof(value), "%.15g", nwpw_smear_alpha);
       if (append_direct_typed_value(
               typed_set_keys, typed_set_types, typed_set_value_counts,
               typed_set_values, NWCHEMC_DIRECT_SET_MAX,
