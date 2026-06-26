@@ -60,9 +60,11 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | Pseudopotential | ~NWChemPseudopotentialStanza~ | ~nwpw~, ~pseudopotentials~, library entries, extra directives, then ~end~. |
 | Raw | ~NWChemInputStanza.raw~ | Literal NWChem text. |
 
-* Direct embed apply (DFT promotion)
+* Direct embed apply
 When ~apply_config_to_embed~ runs (embed builds only), typed
-~NWChemDftStanza~ fields are applied outside rendered text:
+~NWChemDftStanza~, ~NWChemScfStanza~, ~NWChemDriverStanza~,
+~NWChemPseudopotentialStanza~, and text-valued ~NWChemSetDirective~ fields are
+applied outside rendered text where the bridge has a direct RTDB/API path.
 
 1. ~nwchemc_params_extract_direct_dft~ reads ~xc~, ~direct~, smearing.
 2. ~nwchemc_params_render_embed_input_blocks~ renders stanzas with promoted DFT
@@ -70,6 +72,13 @@ When ~apply_config_to_embed~ runs (embed builds only), typed
 3. ~nwchemc_embed_set_dft_direct~ stores ~xc~ as the effective DFT functional
    (~cfg_scf~ / ~dft:xc~), and the legacy RTDB setup writes ~dft:direct~,
    ~int2e:filesize~, ~int2e:memsize~, ~dft:smear_sigma~, and ~dft:spinset~.
+
+~nwchemc_params_extract_direct_set_strings~ reads text ~set key value~ stanzas.
+The full deck renderer still emits ~set key value~. The embed renderer omits
+those text-valued set lines and ~nwchemc_embed_set_rtdb_strings~ stores them
+through ~rtdb_cput~ before method state is applied. Typed numeric/logical RTDB
+sets should use the dedicated structured stanza when one exists; literal NWChem
+text remains available for list-valued or parser-specific ~set~ syntax.
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

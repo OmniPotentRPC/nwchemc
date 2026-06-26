@@ -104,6 +104,9 @@ coordinates, cell data, atom numbers, and requested units.
 The session path writes geometry and cell data numerically. Maintain that shape
 for coordinates, atom numbers, and cell vectors. Text input is acceptable only
 for NWChem grammar that does not have a confirmed direct API or RTDB key.
+Text-valued ~NWChemSetDirective~ stanzas are already promoted to direct
+~rtdb_cput~ calls in the embed path, so keep simple RTDB string options out of
+~nw_inp_from_character~.
 
 The result-carrier path keeps the native C force buffer ABI available for
 low-overhead callers and gives RPC-style callers the same ~PotentialResult~
@@ -123,6 +126,11 @@ embed-boundary test: ~tests/cmocka/test_embed_config_cmocka.c~.
 ~thresh~, and ~tol2e~ values into ~nwchemc_embed_set_scf_direct~. The fixed-form
 bridge writes ~scf:maxiter~, ~scf:thresh~, and ~scf:tol2e~ for SCF, and
 ~dft:iterations~ / ~dft:tol2e~ where the DFT handler has matching keys.
+
+~nwchemc_params_extract_direct_set_strings~ pulls text-valued
+~NWChemSetDirective~ entries into ~nwchemc_embed_set_rtdb_strings~. The
+fixed-form bridge writes those entries with ~rtdb_cput~ for gradient and
+Hessian paths before method state is applied.
 
 ~nwchemc_params_extract_direct_driver~ pulls typed
 ~NWChemDriverStanza.maxiter~, ~tight~, ~loose~, ~gmaxTol~, ~grmsTol~,
