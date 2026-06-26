@@ -92,10 +92,10 @@ through ~rtdb_cput~ before method state is applied.
 ~MT_DBL~, ~integer~ maps to ~MT_INT~, and ~logical~ maps to ~MT_LOG~.
 ~nwchemc_params_extract_direct_set_values~ and
 ~nwchemc_embed_set_rtdb_values~ keep those typed/list values out of
-~nw_inp_from_character~ for gradient, Hessian, and dipole calls. The older single
-~value~ field remains valid for one text value. Literal NWChem text remains
-available for parser-specific ~set~ syntax that does not fit this typed value
-carrier.
+~nw_inp_from_character~ for gradient, Hessian, dipole, and quadrupole calls.
+The older single ~value~ field remains valid for one text value. Literal NWChem
+text remains available for parser-specific ~set~ syntax that does not fit this
+typed value carrier.
 
 ~nwchemc_params_extract_direct_ccsd~ reads classic ~NWChemCcsdStanza~ scalar
 controls. Full-deck rendering emits ~ccsd~ text lines; embed rendering omits
@@ -305,7 +305,9 @@ available for extra MRCCDATA cards.
   task stanzas because the C ABI entry point writes ~task:theory~ and
   ~task:operation~ directly for the requested energy, gradient, force, or
   Hessian call. Dipole calls write the energy operation and read the dipole
-  vector from RTDB.
+  vector from RTDB. Quadrupole calls write the energy operation, load geometry
+  and AO basis handles from RTDB, initialize the integral package for that
+  basis, and call ~hnd_mtpole2~ directly for the six traceless components.
 - *Driver* (~NWChemDriverStanza~): geometry optimization controls. Full input
   emits ~maxiter <n>~, ~tight~, ~loose~, and explicit ~gmax~ / ~grms~ /
   ~xmax~ / ~xrms~ values. Embed writes ~driver:nptopt~ and the
@@ -471,6 +473,7 @@ spin-scaling rules.
 | ~nwchemc_energy_forces~ | ~abi.nwchemc_energy_forces~ | fails | energy/forces (-grad) |
 | ~nwchemc_hessian~ | ~abi.nwchemc_hessian~ | fails | Cartesian Hessian |
 | ~nwchemc_dipole~ | ~abi.nwchemc_dipole~ | fails | total dipole |
+| ~nwchemc_quadrupole~ | ~abi.nwchemc_quadrupole~ | fails | total traceless quadrupole |
 | ~nwchemc_session_create~ | ~abi.nwchemc_session_create~ | NULL | create persistent session |
 | ~nwchemc_session_set_params~ | ~abi.nwchemc_session_set_params~ | fails | replace params before topology |
 | ~nwchemc_session_destroy~ | ~abi.nwchemc_session_destroy~ | no-op | release session |
@@ -478,13 +481,16 @@ spin-scaling rules.
 | ~nwchemc_session_energy~ | ~abi.nwchemc_session_energy~ | fails | session energy-only |
 | ~nwchemc_session_energy_forces~ | ~abi.nwchemc_session_energy_forces~ | fails | session energy/forces |
 | ~nwchemc_session_dipole~ | ~abi.nwchemc_session_dipole~ | fails | session total dipole |
+| ~nwchemc_session_quadrupole~ | ~abi.nwchemc_session_quadrupole~ | fails | session total traceless quadrupole |
 | ~nwchemc_session_calculate_forces~ | ~abi.nwchemc_session_calculate_forces~ | fails | ForceInput energy/forces |
 | ~nwchemc_session_calculate_result~ | ~abi.nwchemc_session_calculate_result~ | fails | ForceInput PotentialResult |
 | ~nwchemc_calculate_result~ | ~abi.nwchemc_calculate_result~ | fails | one-shot ForceInput PotentialResult |
 | ~nwchemc_calculate_hessian~ | ~abi.nwchemc_calculate_hessian~ | fails | one-shot ForceInput Hessian |
 | ~nwchemc_calculate_dipole~ | ~abi.nwchemc_calculate_dipole~ | fails | one-shot ForceInput dipole |
+| ~nwchemc_calculate_quadrupole~ | ~abi.nwchemc_calculate_quadrupole~ | fails | one-shot ForceInput quadrupole |
 | ~nwchemc_session_calculate_hessian~ | ~abi.nwchemc_session_calculate_hessian~ | fails | ForceInput Hessian |
 | ~nwchemc_session_calculate_dipole~ | ~abi.nwchemc_session_calculate_dipole~ | fails | ForceInput dipole |
+| ~nwchemc_session_calculate_quadrupole~ | ~abi.nwchemc_session_calculate_quadrupole~ | fails | ForceInput quadrupole |
 | ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails | session Cartesian Hessian |
 | ~nwchemc_available~ | ~abi.nwchemc_available~ | 0 | 1 |
 | ~nwchemc_version~ | ~abi.nwchemc_version~ | stub marker | version string |
