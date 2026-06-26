@@ -1099,6 +1099,14 @@
       "nwchem_role": "TCE MRCC data block",
       "stub": true,
       "embed": true
+    },
+    {
+      "kind": "brillouinZone",
+      "schema_path": "NWChemInputStanza.brillouinZone",
+      "capnp_type": "NWChemBrillouinZoneStanza",
+      "nwchem_role": "NWPW Brillouin-zone k-point controls",
+      "stub": true,
+      "embed": true
     }
   ],
   "params_fields": [

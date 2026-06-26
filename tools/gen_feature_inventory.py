@@ -115,6 +115,11 @@ def main() -> int:
             "NWChemMrccDataStanza",
             "TCE MRCC data block",
         ),
+        "brillouinZone": (
+            "NWChemInputStanza.brillouinZone",
+            "NWChemBrillouinZoneStanza",
+            "NWPW Brillouin-zone k-point controls",
+        ),
     }
 
     stanzas = []
