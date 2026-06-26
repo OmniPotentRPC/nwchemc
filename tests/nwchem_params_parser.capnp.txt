@@ -52,7 +52,8 @@
           (element = "H", libraryType = pspwLibrary, libraryName = "hgh_lda"),
           (element = "O", libraryType = pawLibrary, libraryName = "paw_default"),
           (element = "C", libraryType = cpi, libraryName = "C.cpi"),
-          (element = "N", libraryType = teter, libraryName = "N.teter")
+          (element = "N", libraryType = teter, libraryName = "N.teter"),
+          (allElements = true, libraryType = pspwLibrary, libraryName = "pspw_default")
         ],
         directives = [
           (keyword = "pspspin", args = ["off"])

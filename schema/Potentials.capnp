@@ -165,9 +165,10 @@ struct NWChemModuleStanza {
 }
 
 struct NWChemPseudopotentialEntry {
-  element     @0 :Text;             # Element symbol, e.g. "Si".
+  element     @0 :Text;             # Element symbol, e.g. "Si"; ignored when allElements is true.
   libraryType @1 :LibraryType = library;
   libraryName @2 :Text;             # NWPW library name or file token.
+  allElements @3 :Bool = false;     # Use NWChem's "*" default entry for every element.
 
   enum LibraryType {
     library     @0; # NWChem "library" / PSPW library entry.

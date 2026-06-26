@@ -407,11 +407,12 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "O paw_library paw_default"));
   assert_null(strstr(g_input_blocks, "C cpi C.cpi"));
   assert_null(strstr(g_input_blocks, "N teter N.teter"));
+  assert_null(strstr(g_input_blocks, "* pspw_library pspw_default"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_pseudopotential_calls, 1);
-  assert_int_equal(g_psp_count, 5);
+  assert_int_equal(g_psp_count, 6);
   assert_string_equal(g_psp_elements[0], "Si");
   assert_int_equal(g_psp_types[0],
                    NWChemPseudopotentialEntry_LibraryType_library);
@@ -432,6 +433,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_int_equal(g_psp_types[4],
                    NWChemPseudopotentialEntry_LibraryType_teter);
   assert_string_equal(g_psp_names[4], "N.teter");
+  assert_string_equal(g_psp_elements[5], "*");
+  assert_int_equal(g_psp_types[5],
+                   NWChemPseudopotentialEntry_LibraryType_pspwLibrary);
+  assert_string_equal(g_psp_names[5], "pspw_default");
 
   free(message);
 }

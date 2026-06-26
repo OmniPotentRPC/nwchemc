@@ -90,6 +90,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "O paw_library paw_default"));
   assert_non_null(strstr(input_blocks, "C cpi C.cpi"));
   assert_non_null(strstr(input_blocks, "N teter N.teter"));
+  assert_non_null(strstr(input_blocks, "* pspw_library pspw_default"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
 
   nwchemc_params_release(&arena);
@@ -137,6 +138,7 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "O paw_library paw_default"));
   assert_null(strstr(input_blocks, "C cpi C.cpi"));
   assert_null(strstr(input_blocks, "N teter N.teter"));
+  assert_null(strstr(input_blocks, "* pspw_library pspw_default"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -166,7 +168,7 @@ static void test_parser_extracts_direct_pseudopotentials(void **state) {
   assert_int_equal(nwchemc_params_extract_direct_pseudopotentials(
                        params_root, elements, types, names, 8, &count),
                    0);
-  assert_int_equal((int)count, 5);
+  assert_int_equal((int)count, 6);
   assert_true(text_equals(elements[0], "Si"));
   assert_int_equal(types[0], NWChemPseudopotentialEntry_LibraryType_library);
   assert_true(text_equals(names[0], "sg15"));
@@ -184,6 +186,10 @@ static void test_parser_extracts_direct_pseudopotentials(void **state) {
   assert_true(text_equals(elements[4], "N"));
   assert_int_equal(types[4], NWChemPseudopotentialEntry_LibraryType_teter);
   assert_true(text_equals(names[4], "N.teter"));
+  assert_true(text_equals(elements[5], "*"));
+  assert_int_equal(types[5],
+                   NWChemPseudopotentialEntry_LibraryType_pspwLibrary);
+  assert_true(text_equals(names[5], "pspw_default"));
 
   assert_int_equal(nwchemc_params_extract_direct_pseudopotentials(
                        params_root, elements, types, names, 4, &count),
