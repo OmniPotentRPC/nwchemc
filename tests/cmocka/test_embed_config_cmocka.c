@@ -59,6 +59,8 @@ static double g_driver_xrms_tol = 0.0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
+static int g_dipole_calls = 0;
+static int g_dipole_cell_calls = 0;
 static int g_call_n_atoms[8];
 static int g_call_has_cell[8];
 static int g_call_atomic_numbers[8][8];
@@ -69,6 +71,22 @@ static int g_hessian_has_cell[8];
 static int g_hessian_atomic_numbers[8][8];
 static double g_hessian_positions_ang[8][24];
 static double g_hessian_cell_ang[8][9];
+static int g_dipole_n_atoms[8];
+static int g_dipole_has_cell[8];
+static int g_dipole_atomic_numbers[8][8];
+static double g_dipole_positions_ang[8][24];
+static double g_dipole_cell_ang[8][9];
+
+#if defined(__GNUC__) || defined(__clang__)
+#define NWCHEMC_TEST_WEAK __attribute__((weak))
+#else
+#define NWCHEMC_TEST_WEAK
+#endif
+
+extern NWChemCResult nwchemc_session_calculate_dipole(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *dipole_au,
+    size_t dipole_len) NWCHEMC_TEST_WEAK;
 
 static void copy_span(char *dst, size_t dst_size, const char *src, int len) {
   size_t n = len > 0 ? (size_t)len : 0;
@@ -340,6 +358,58 @@ int nwchemc_embed_hessian_cell(const int *n_atoms, const double *positions_ang,
                               errmsg, errmsg_len);
 }
 
+static int capture_dipole_call(const int *n_atoms, const double *positions_ang,
+                               const int *atomic_numbers,
+                               const double *cell_ang, const int *has_cell,
+                               const int *charge, const int *multiplicity,
+                               double *energy_h, double *dipole_au,
+                               char *errmsg, int errmsg_len) {
+  int call = g_dipole_calls;
+  (void)charge;
+  (void)multiplicity;
+  if (call < 8) {
+    int ncopy = *n_atoms < 8 ? *n_atoms : 8;
+    int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
+    g_dipole_n_atoms[call] = *n_atoms;
+    g_dipole_has_cell[call] = has_cell ? *has_cell : 0;
+    for (int i = 0; i < ncopy; ++i)
+      g_dipole_atomic_numbers[call][i] = atomic_numbers[i];
+    for (int i = 0; i < ncoord; ++i)
+      g_dipole_positions_ang[call][i] = positions_ang[i];
+    for (int i = 0; i < 9; ++i)
+      g_dipole_cell_ang[call][i] = cell_ang && g_dipole_has_cell[call]
+                                       ? cell_ang[i]
+                                       : 0.0;
+  }
+  ++g_dipole_calls;
+  *energy_h = -1.25;
+  dipole_au[0] = 0.25;
+  dipole_au[1] = 0.5;
+  dipole_au[2] = 0.75;
+  snprintf(errmsg, (size_t)errmsg_len, "ok");
+  return 0;
+}
+
+int nwchemc_embed_dipole(const int *n_atoms, const double *positions_ang,
+                         const int *atomic_numbers, const int *charge,
+                         const int *multiplicity, double *energy_h,
+                         double *dipole_au, char *errmsg, int errmsg_len) {
+  return capture_dipole_call(n_atoms, positions_ang, atomic_numbers, NULL,
+                             NULL, charge, multiplicity, energy_h, dipole_au,
+                             errmsg, errmsg_len);
+}
+
+int nwchemc_embed_dipole_cell(
+    const int *n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const double *cell_ang, const int *has_cell, const int *charge,
+    const int *multiplicity, double *energy_h, double *dipole_au, char *errmsg,
+    int errmsg_len) {
+  ++g_dipole_cell_calls;
+  return capture_dipole_call(n_atoms, positions_ang, atomic_numbers, cell_ang,
+                             has_cell, charge, multiplicity, energy_h,
+                             dipole_au, errmsg, errmsg_len);
+}
+
 void nwchemc_embed_finalize(void) {}
 
 static void reset_embed_captures(void) {
@@ -388,6 +458,8 @@ static void reset_embed_captures(void) {
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
+  g_dipole_calls = 0;
+  g_dipole_cell_calls = 0;
   memset(g_call_n_atoms, 0, sizeof(g_call_n_atoms));
   memset(g_call_has_cell, 0, sizeof(g_call_has_cell));
   memset(g_call_atomic_numbers, 0, sizeof(g_call_atomic_numbers));
@@ -398,6 +470,11 @@ static void reset_embed_captures(void) {
   memset(g_hessian_atomic_numbers, 0, sizeof(g_hessian_atomic_numbers));
   memset(g_hessian_positions_ang, 0, sizeof(g_hessian_positions_ang));
   memset(g_hessian_cell_ang, 0, sizeof(g_hessian_cell_ang));
+  memset(g_dipole_n_atoms, 0, sizeof(g_dipole_n_atoms));
+  memset(g_dipole_has_cell, 0, sizeof(g_dipole_has_cell));
+  memset(g_dipole_atomic_numbers, 0, sizeof(g_dipole_atomic_numbers));
+  memset(g_dipole_positions_ang, 0, sizeof(g_dipole_positions_ang));
+  memset(g_dipole_cell_ang, 0, sizeof(g_dipole_cell_ang));
 }
 
 static void assert_close(double actual, double expected, double tolerance) {
@@ -757,6 +834,61 @@ static void test_session_calculate_hessian_accepts_force_input_step(
   free(message);
 }
 
+static void test_session_calculate_dipole_accepts_force_input_step(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_session_calculate_dipole != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_changed_species_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_changed_species);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult first = nwchemc_session_calculate_dipole(
+      session, step_a, step_a_size, dipole, 3);
+  assert_int_equal(first.ok, 1);
+  assert_close(first.energy_h, -1.25, 1.0e-12);
+  assert_int_equal(g_dipole_calls, 1);
+  assert_int_equal(g_dipole_cell_calls, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_dipole_n_atoms[0], 2);
+  assert_int_equal(g_dipole_atomic_numbers[0][0], 1);
+  assert_int_equal(g_dipole_atomic_numbers[0][1], 8);
+  assert_close(g_dipole_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_dipole_has_cell[0], 1);
+  assert_close(g_dipole_cell_ang[0][0], 10.0, 1.0e-12);
+  assert_close(dipole[0], 0.25, 1.0e-12);
+  assert_close(dipole[1], 0.5, 1.0e-12);
+  assert_close(dipole[2], 0.75, 1.0e-12);
+
+  NWChemCResult changed_species = nwchemc_session_calculate_dipole(
+      session, step_changed_species, step_changed_species_size, dipole, 3);
+  assert_int_equal(changed_species.ok, 0);
+  assert_non_null(strstr(changed_species.message, "topology"));
+  assert_int_equal(g_dipole_calls, 1);
+
+  NWChemCResult short_output = nwchemc_session_calculate_dipole(
+      session, step_a, step_a_size, dipole, 2);
+  assert_int_equal(short_output.ok, 0);
+  assert_int_equal(g_dipole_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(step_changed_species);
+  free(step_a);
+  free(message);
+}
+
 static void test_session_calculate_result_writes_potential_result(
     void **state) {
   (void)state;
@@ -934,6 +1066,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_calculate_forces_accepts_force_input_steps),
       cmocka_unit_test(test_session_calculate_hessian_accepts_force_input_step),
+      cmocka_unit_test(test_session_calculate_dipole_accepts_force_input_step),
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
       cmocka_unit_test(test_calculate_result_one_shot_writes_potential_result),
   };
