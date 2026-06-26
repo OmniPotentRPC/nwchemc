@@ -194,6 +194,23 @@ struct NWChemPseudopotentialStanza {
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
 }
 
+struct NWChemKVector {
+  x      @0 :Float64 = 0.0; # First reduced Brillouin-zone coordinate.
+  y      @1 :Float64 = 0.0; # Second reduced Brillouin-zone coordinate.
+  z      @2 :Float64 = 0.0; # Third reduced Brillouin-zone coordinate.
+  weight @3 :Float64 = 0.0; # Optional NWChem kvector weight.
+}
+
+struct NWChemBrillouinZoneStanza {
+  zoneName          @0 :Text = ""; # NWChem zone_name; empty uses zone_default.
+  kVectors          @1 :List(NWChemKVector); # Explicit kvector entries.
+  maxKpointsPrint   @2 :Int32 = 0; # max_kpoints_print value.
+  monkhorstPackX    @3 :Int32 = 0; # First monkhorst-pack grid value.
+  monkhorstPackY    @4 :Int32 = 0; # Second monkhorst-pack grid value.
+  monkhorstPackZ    @5 :Int32 = 0; # Third monkhorst-pack grid value.
+  directives        @6 :List(NWChemDirective);
+}
+
 enum NWChemNwpwBalanceMode {
   unspecified @0; # Do not emit balance/nobalance.
   balance     @1; # Emit/promote NWChem "balance".
@@ -502,6 +519,7 @@ struct NWChemInputStanza {
   ccsd            @14 :NWChemCcsdStanza;
   tce             @15 :NWChemTceStanza;
   mrccData        @16 :NWChemMrccDataStanza;
+  brillouinZone   @17 :NWChemBrillouinZoneStanza;
 
   enum Kind {
     generic         @0;
@@ -520,6 +538,7 @@ struct NWChemInputStanza {
     ccsd            @13;
     tce             @14;
     mrccData        @15;
+    brillouinZone   @16;
   }
 }
 

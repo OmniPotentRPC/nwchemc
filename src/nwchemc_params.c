@@ -645,6 +645,86 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   return append_block(dst, dst_size, block);
 }
 
+static int append_zone_name_or_default(char *dst, size_t dst_size,
+                                       capn_text zone_name) {
+  if (zone_name.len > 0)
+    return append_text(dst, dst_size, zone_name);
+  return append_format(dst, dst_size, "zone_default");
+}
+
+static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
+                                        char *dst, size_t dst_size,
+                                        int include_direct_promoted) {
+  if (ptr.p.type == CAPN_NULL || !include_direct_promoted)
+    return 0;
+
+  struct NWChemBrillouinZoneStanza zone;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemBrillouinZoneStanza(&zone, ptr);
+  int nk = struct_list_len(&zone.kVectors.p);
+  if (nk < 0)
+    return -1;
+  int has_monkhorst = zone.monkhorstPackX != 0 &&
+                      zone.monkhorstPackY != 0 &&
+                      zone.monkhorstPackZ != 0;
+  int has_directives = directives_have_keywords(zone.directives);
+  if (has_directives < 0)
+    return -1;
+  if (!has_monkhorst && nk == 0 && zone.maxKpointsPrint <= 0 &&
+      !has_directives && zone.zoneName.len <= 0)
+    return 0;
+
+  if (append_format(block, sizeof(block), "nwpw\n") != 0)
+    return -1;
+  if (has_monkhorst) {
+    if (append_format(block, sizeof(block), "  monkhorst-pack %d %d %d ",
+                      zone.monkhorstPackX, zone.monkhorstPackY,
+                      zone.monkhorstPackZ) != 0 ||
+        append_zone_name_or_default(block, sizeof(block), zone.zoneName) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (nk > 0 || zone.maxKpointsPrint > 0 || has_directives) {
+    if (append_format(block, sizeof(block), "  brillouin_zone\n") != 0)
+      return -1;
+    if (zone.zoneName.len > 0) {
+      if (append_format(block, sizeof(block), "    zone_name ") != 0 ||
+          append_text(block, sizeof(block), zone.zoneName) != 0 ||
+          append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+    for (int i = 0; i < nk; ++i) {
+      struct NWChemKVector kvector;
+      get_NWChemKVector(&kvector, zone.kVectors, i);
+      if (append_format(block, sizeof(block), "    kvector %.15g %.15g %.15g",
+                        kvector.x, kvector.y, kvector.z) != 0)
+        return -1;
+      if (kvector.weight != 0.0 &&
+          append_format(block, sizeof(block), " %.15g", kvector.weight) != 0)
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+    if (zone.maxKpointsPrint > 0 &&
+        append_format(block, sizeof(block), "    max_kpoints_print %d\n",
+                      zone.maxKpointsPrint) != 0)
+      return -1;
+    if (render_directives(zone.directives, block, sizeof(block), "    ") != 0 ||
+        append_format(block, sizeof(block), "  end\n") != 0)
+      return -1;
+  }
+  if (zone.zoneName.len > 0) {
+    if (append_format(block, sizeof(block), "  zone_name ") != 0 ||
+        append_text(block, sizeof(block), zone.zoneName) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
                              size_t dst_size, int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
@@ -1678,6 +1758,11 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       if (render_mrcc_data_stanza(stanza.mrccData, dst, dst_size) != 0)
         return -1;
       break;
+    case NWChemInputStanza_Kind_brillouinZone:
+      if (render_brillouin_zone_stanza(stanza.brillouinZone, dst, dst_size,
+                                       include_direct_promoted_nwpw) != 0)
+        return -1;
+      break;
     case NWChemInputStanza_Kind_task:
       if (include_task_stanzas &&
           render_task_stanza(stanza.taskStanza, dst, dst_size) != 0)
@@ -2528,6 +2613,55 @@ int nwchemc_params_extract_direct_nwpw_nose(
         nwpw.noseElectronChainLength > 0 ? nwpw.noseElectronChainLength : 1;
     *ion_chain_length =
         nwpw.noseIonChainLength > 0 ? nwpw.noseIonChainLength : 1;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_brillouin_zone(
+    NWChemParams_ptr params, int *has_options, capn_text *zone_name,
+    int monkhorst_pack[3], int *max_kpoints_print) {
+  if (params.p.type == CAPN_NULL || !has_options || !zone_name ||
+      !monkhorst_pack || !max_kpoints_print)
+    return -1;
+
+  *has_options = 0;
+  *zone_name = (capn_text){0};
+  monkhorst_pack[0] = 0;
+  monkhorst_pack[1] = 0;
+  monkhorst_pack[2] = 0;
+  *max_kpoints_print = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_brillouinZone ||
+        stanza.brillouinZone.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemBrillouinZoneStanza zone;
+    read_NWChemBrillouinZoneStanza(&zone, stanza.brillouinZone);
+    if (zone.zoneName.len > 0) {
+      *has_options = 1;
+      *zone_name = zone.zoneName;
+    }
+    if (zone.monkhorstPackX != 0 && zone.monkhorstPackY != 0 &&
+        zone.monkhorstPackZ != 0) {
+      *has_options = 1;
+      monkhorst_pack[0] = zone.monkhorstPackX;
+      monkhorst_pack[1] = zone.monkhorstPackY;
+      monkhorst_pack[2] = zone.monkhorstPackZ;
+    }
+    if (zone.maxKpointsPrint > 0) {
+      *has_options = 1;
+      *max_kpoints_print = zone.maxKpointsPrint;
+    }
   }
 
   return 0;
