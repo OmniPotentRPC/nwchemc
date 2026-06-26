@@ -142,12 +142,16 @@ pseudopotential selection:
 | ~entries[].element~ | Element symbol such as ~Si~ or ~O~. |
 | ~entries[].libraryType~ | ~library~, ~pspw_library~, ~paw_library~, ~cpi~, or ~teter~. |
 | ~entries[].libraryName~ | Library or file token used by NWChem. |
+| ~entries[].allElements~ | NWChem ~*~ default entry for every element. |
 | ~directives~ | Extra tokenized NWPW directives emitted after the pseudopotential block. |
 
 The renderer emits these entries inside an ~nwpw~ block with a nested
 ~pseudopotentials~ section. For example, an entry with ~element = "Si"~,
 ~libraryType = library~, and ~libraryName = "sg15"~ renders as
 ~Si library sg15~.
+When ~allElements~ is true, the renderer and embed direct path use NWChem's
+~*~ target, which maps to fallback RTDB keys such as ~*:pspw_library~,
+~*:pspw_library_type~, and ~*:paw_library~.
 
 * ABI Entry Points
 | Symbol | Intern id | Stub | Embed |

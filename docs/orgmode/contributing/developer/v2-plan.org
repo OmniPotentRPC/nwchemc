@@ -73,6 +73,7 @@ The schema contains typed stanzas for:
 - raw NWChem fragments
 - module blocks backed by the ~NWChemModuleName~ enum
 - ~nwpw~ pseudopotential blocks with library, PSPW, PAW, CPI, and Teter entries
+  plus structured ~allElements~ default entries
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and

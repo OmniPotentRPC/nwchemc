@@ -550,6 +550,14 @@ static const char *pseudopotential_library_type_literal(
   }
 }
 
+static capn_text
+pseudopotential_entry_target(const struct NWChemPseudopotentialEntry *entry) {
+  static const capn_text all_elements = {1, "*", NULL};
+  if (entry->allElements)
+    return all_elements;
+  return entry->element;
+}
+
 static int render_pseudopotential_entries(
     NWChemPseudopotentialEntry_list entries, char *dst, size_t dst_size) {
   int n = struct_list_len(&entries.p);
@@ -558,10 +566,11 @@ static int render_pseudopotential_entries(
   for (int i = 0; i < n; ++i) {
     struct NWChemPseudopotentialEntry entry;
     get_NWChemPseudopotentialEntry(&entry, entries, i);
-    if (entry.element.len <= 0 || entry.libraryName.len <= 0)
+    capn_text target = pseudopotential_entry_target(&entry);
+    if (target.len <= 0 || entry.libraryName.len <= 0)
       continue;
     if (append_format(dst, dst_size, "    ") != 0 ||
-        append_text(dst, dst_size, entry.element) != 0 ||
+        append_text(dst, dst_size, target) != 0 ||
         append_format(dst, dst_size, " %s ",
                       pseudopotential_library_type_literal(
                           entry.libraryType)) != 0 ||
@@ -1132,11 +1141,12 @@ int nwchemc_params_extract_direct_pseudopotentials(
     for (int j = 0; j < nentries; ++j) {
       struct NWChemPseudopotentialEntry entry;
       get_NWChemPseudopotentialEntry(&entry, pseudopotential.entries, j);
-      if (entry.element.len <= 0 || entry.libraryName.len <= 0)
+      capn_text target = pseudopotential_entry_target(&entry);
+      if (target.len <= 0 || entry.libraryName.len <= 0)
         continue;
       if (*count >= capacity)
         return -1;
-      elements[*count] = entry.element;
+      elements[*count] = target;
       library_types[*count] = entry.libraryType;
       library_names[*count] = entry.libraryName;
       ++*count;
