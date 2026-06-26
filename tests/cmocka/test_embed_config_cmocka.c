@@ -586,6 +586,14 @@ static void test_session_reuses_config_across_geometry_steps(void **state) {
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_set_dft_direct_calls, 1);
 
+  int changed_z[1] = {8};
+  NWChemCResult changed_species =
+      nwchemc_session_energy_gradient(session, 1, pos_b, changed_z, grad);
+  assert_int_equal(changed_species.ok, 0);
+  assert_non_null(strstr(changed_species.message, "topology"));
+  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_set_config_calls, 1);
+
   nwchemc_session_destroy(session);
   free(message);
 }
@@ -702,10 +710,14 @@ static void test_session_calculate_hessian_accepts_force_input_step(
   reset_embed_captures();
   size_t message_size = 0;
   size_t step_a_size = 0;
+  size_t step_changed_species_size = 0;
   unsigned char *message = read_file(g_params_path, &message_size);
   unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
   assert_non_null(message);
   assert_non_null(step_a);
+  assert_non_null(step_changed_species);
 
   NWChemCSession *session = nwchemc_session_create(message, message_size);
   assert_non_null(session);
@@ -727,12 +739,19 @@ static void test_session_calculate_hessian_accepts_force_input_step(
   assert_close(hessian[0], 10.0, 1.0e-12);
   assert_close(hessian[35], 45.0, 1.0e-12);
 
+  NWChemCResult changed_species = nwchemc_session_calculate_hessian(
+      session, step_changed_species, step_changed_species_size, hessian, 36);
+  assert_int_equal(changed_species.ok, 0);
+  assert_non_null(strstr(changed_species.message, "topology"));
+  assert_int_equal(g_hessian_calls, 1);
+
   NWChemCResult short_output = nwchemc_session_calculate_hessian(
       session, step_a, step_a_size, hessian, 35);
   assert_int_equal(short_output.ok, 0);
   assert_int_equal(g_hessian_calls, 1);
 
   nwchemc_session_destroy(session);
+  free(step_changed_species);
   free(step_a);
   free(message);
 }
