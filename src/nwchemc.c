@@ -1080,6 +1080,10 @@ static int append_tce_direct_values(
                                     value) != 0)
         return -1;
     }
+    int effective_left = tce.left;
+    if (effective_left == NWChemToggle_unspecified && method_defaults &&
+        method_defaults->left != NWChemToggle_unspecified)
+      effective_left = method_defaults->left;
     const struct {
       const char *key;
       enum NWChemToggle toggle;
@@ -1087,13 +1091,7 @@ static int append_tce_direct_values(
     } toggle_fields[] = {
         {"tce:symmetry", tce.symmetry, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:densmat", tce.densityMatrix, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
-        {"tce:left",
-         tce.left != NWChemToggle_unspecified ||
-                 !method_defaults ||
-                 method_defaults->left == NWChemToggle_unspecified
-             ? tce.left
-             : method_defaults->left,
-         NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
+        {"tce:left", effective_left, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:recompf", tce.recomputeFock, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:ltcc", tce.tccSpaces, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
         {"tce:eaccsd", tce.eaCcsd, NWCHEMC_DIRECT_SET_VALUE_LOGICAL},
