@@ -48,7 +48,7 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 |--------+------------------+---------------------|
 | Generic block | ~NWChemGenericStanza~ | ~name~, one directive per line, then ~end~. |
 | Directive | ~NWChemDirective~ | ~keyword arg0 arg1 ...~ inside a block. |
-| RTDB set | ~NWChemSetDirective~ | ~set key value~. |
+| RTDB set | ~NWChemSetDirective~ | ~set key [type] value...~. |
 | DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
 | SCF | ~NWChemScfStanza~ | ~scf~, vectors/maxiter/thresh/tol2e/noprint, directives, ~end~. |
 | Task line | ~NWChemTaskStanza~ | ~task [theory] [operation] [ignore]~ (explicit deck task). |
@@ -76,9 +76,17 @@ applied outside rendered text where the bridge has a direct RTDB/API path.
 ~nwchemc_params_extract_direct_set_strings~ reads text ~set key value~ stanzas.
 The full deck renderer still emits ~set key value~. The embed renderer omits
 those text-valued set lines and ~nwchemc_embed_set_rtdb_strings~ stores them
-through ~rtdb_cput~ before method state is applied. Typed numeric/logical RTDB
-sets should use the dedicated structured stanza when one exists; literal NWChem
-text remains available for list-valued or parser-specific ~set~ syntax.
+through ~rtdb_cput~ before method state is applied.
+
+~NWChemSetDirective.valueType~ and ~values~ carry structured RTDB set values:
+~text~ maps to NWChem's ~string~ form and ~rtdb_cput~, ~double~ maps to
+~MT_DBL~, ~integer~ maps to ~MT_INT~, and ~logical~ maps to ~MT_LOG~.
+~nwchemc_params_extract_direct_set_values~ and
+~nwchemc_embed_set_rtdb_values~ keep those typed/list values out of
+~nw_inp_from_character~ for gradient and Hessian calls. The older single
+~value~ field remains valid for one text value. Literal NWChem text remains
+available for parser-specific ~set~ syntax that does not fit this typed value
+carrier.
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

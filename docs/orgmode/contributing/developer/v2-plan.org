@@ -107,6 +107,9 @@ for NWChem grammar that does not have a confirmed direct API or RTDB key.
 Text-valued ~NWChemSetDirective~ stanzas are already promoted to direct
 ~rtdb_cput~ calls in the embed path, so keep simple RTDB string options out of
 ~nw_inp_from_character~.
+Typed/list ~NWChemSetDirective.valueType~ + ~values~ entries are also promoted:
+~text~ uses ~rtdb_cput~, ~double~ uses ~MT_DBL~, ~integer~ uses ~MT_INT~, and
+~logical~ uses ~MT_LOG~.
 
 The result-carrier path keeps the native C force buffer ABI available for
 low-overhead callers and gives RPC-style callers the same ~PotentialResult~
@@ -131,6 +134,8 @@ bridge writes ~scf:maxiter~, ~scf:thresh~, and ~scf:tol2e~ for SCF, and
 ~NWChemSetDirective~ entries into ~nwchemc_embed_set_rtdb_strings~. The
 fixed-form bridge writes those entries with ~rtdb_cput~ for gradient and
 Hessian paths before method state is applied.
+~nwchemc_params_extract_direct_set_values~ does the same for typed/list
+~NWChemSetDirective.values~ entries through ~nwchemc_embed_set_rtdb_values~.
 
 ~nwchemc_params_extract_direct_driver~ pulls typed
 ~NWChemDriverStanza.maxiter~, ~tight~, ~loose~, ~gmaxTol~, ~grmsTol~,
