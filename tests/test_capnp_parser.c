@@ -126,6 +126,15 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "lcao_skip"));
   assert_non_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
   assert_non_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
+  assert_non_null(strstr(input_blocks, "ccsd\n  maxiter 20"));
+  assert_non_null(strstr(input_blocks, "thresh 1e-07"));
+  assert_non_null(strstr(input_blocks, "tol2e 1e-09"));
+  assert_non_null(strstr(input_blocks, "iprt 2"));
+  assert_non_null(strstr(input_blocks, "diisbas 6"));
+  assert_non_null(strstr(input_blocks, "freeze 1 virtual 2"));
+  assert_non_null(strstr(input_blocks, "nodisk"));
+  assert_non_null(strstr(input_blocks, "fss 1.2"));
+  assert_non_null(strstr(input_blocks, "fos 0.8"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -207,6 +216,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "lcao_skip"));
   assert_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
   assert_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
+  assert_null(strstr(input_blocks, "ccsd\n  maxiter 20"));
+  assert_null(strstr(input_blocks, "freeze 1 virtual 2"));
+  assert_null(strstr(input_blocks, "nodisk"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -434,6 +446,40 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(nose_ion_temperature < 400.001);
   assert_int_equal(nose_electron_chain_length, 2);
   assert_int_equal(nose_ion_chain_length, 3);
+
+  int has_ccsd = 0;
+  int ccsd_maxiter = 0;
+  double ccsd_thresh = 0.0;
+  double ccsd_tol2e = 0.0;
+  int ccsd_iprt = 0;
+  int ccsd_max_diis = 0;
+  int ccsd_frozen_core = 0;
+  int ccsd_frozen_virtual = 0;
+  int ccsd_use_disk = 0;
+  double ccsd_same_spin_scale = 0.0;
+  double ccsd_opposite_spin_scale = 0.0;
+  assert_int_equal(nwchemc_params_extract_direct_ccsd(
+                       params_root, &has_ccsd, &ccsd_maxiter, &ccsd_thresh,
+                       &ccsd_tol2e, &ccsd_iprt, &ccsd_max_diis,
+                       &ccsd_frozen_core, &ccsd_frozen_virtual,
+                       &ccsd_use_disk, &ccsd_same_spin_scale,
+                       &ccsd_opposite_spin_scale),
+                   0);
+  assert_int_equal(has_ccsd, 1);
+  assert_int_equal(ccsd_maxiter, 20);
+  assert_true(ccsd_thresh > 0.999e-7);
+  assert_true(ccsd_thresh < 1.001e-7);
+  assert_true(ccsd_tol2e > 0.999e-9);
+  assert_true(ccsd_tol2e < 1.001e-9);
+  assert_int_equal(ccsd_iprt, 2);
+  assert_int_equal(ccsd_max_diis, 6);
+  assert_int_equal(ccsd_frozen_core, 1);
+  assert_int_equal(ccsd_frozen_virtual, 2);
+  assert_int_equal(ccsd_use_disk, NWChemToggle_disabled);
+  assert_true(ccsd_same_spin_scale > 1.199);
+  assert_true(ccsd_same_spin_scale < 1.201);
+  assert_true(ccsd_opposite_spin_scale > 0.799);
+  assert_true(ccsd_opposite_spin_scale < 0.801);
 
   nwchemc_params_release(&arena);
   free(message);

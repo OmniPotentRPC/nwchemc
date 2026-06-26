@@ -21,6 +21,21 @@
       )
     ),
     (
+      kind = ccsd,
+      ccsd = (
+        maxiter = 20,
+        thresh = 1.0e-7,
+        tol2e = 1.0e-9,
+        iprt = 2,
+        maxDiis = 6,
+        frozenCore = 1,
+        frozenVirtual = 2,
+        useDisk = disabled,
+        sameSpinScale = 1.2,
+        oppositeSpinScale = 0.8
+      )
+    ),
+    (
       kind = nwpw,
       nwpw = (
         energyCutoff = 12.5,
