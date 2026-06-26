@@ -471,6 +471,52 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     DEPENDS "${NWCHEMC_FORCE_INPUT_STEP_EV_BIN}"
   )
 
+  set(NWCHEMC_FORCE_INPUT_H2_EQ_BIN
+    "${CMAKE_CURRENT_BINARY_DIR}/force_input_h2_eq.bin"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CAPNP_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "ForceInput"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_h2_eq.capnp.txt"
+      "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_h2_eq.capnp.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+    VERBATIM
+  )
+  add_custom_target(force_input_h2_eq_bin
+    DEPENDS "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+  )
+
+  set(NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN
+    "${CMAKE_CURRENT_BINARY_DIR}/force_input_h2_stretched.bin"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CAPNP_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "ForceInput"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_h2_stretched.capnp.txt"
+      "${NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN}"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/force_input_h2_stretched.capnp.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+    VERBATIM
+  )
+  add_custom_target(force_input_h2_stretched_bin
+    DEPENDS "${NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN}"
+  )
+
   add_executable(test_capnp_parser tests/test_capnp_parser.c)
   target_link_libraries(test_capnp_parser PRIVATE
     nwchemc_params
@@ -598,6 +644,34 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       COMMAND nwchem-energy-forces "${nwchem_params_BIN}"
     )
     set_tests_properties(nwchem-energy-forces PROPERTIES RUN_SERIAL TRUE)
+
+    add_executable(nwchem-session-result tests/test_nwchem_session_result.c)
+    target_link_libraries(nwchem-session-result PRIVATE
+      nwchemc
+      nwchemc_params
+      PkgConfig::CMOCKA
+    )
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-session-result PRIVATE "${NWCHEMC_M_LIBRARY}")
+    endif()
+    target_compile_options(nwchem-session-result PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
+    target_compile_definitions(nwchem-session-result PRIVATE
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-session-result
+      nwchem_params_bin
+      force_input_h2_eq_bin
+      force_input_h2_stretched_bin
+    )
+    add_test(
+      NAME nwchem-session-result
+      COMMAND nwchem-session-result
+        "${nwchem_params_BIN}"
+        "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+        "${NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN}"
+    )
+    set_tests_properties(nwchem-session-result PROPERTIES RUN_SERIAL TRUE)
 
     add_executable(nwchem-hessian tests/test_nwchem_hessian.c)
     target_link_libraries(nwchem-hessian PRIVATE nwchemc PkgConfig::CMOCKA)

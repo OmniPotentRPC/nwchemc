@@ -288,6 +288,34 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  force_input_h2_eq_bin = custom_target(
+    'force_input_h2_eq_bin',
+    input: 'tests/force_input_h2_eq.capnp.txt',
+    output: 'force_input_h2_eq.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'ForceInput',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
+  force_input_h2_stretched_bin = custom_target(
+    'force_input_h2_stretched_bin',
+    input: 'tests/force_input_h2_stretched.capnp.txt',
+    output: 'force_input_h2_stretched.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'ForceInput',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_config_options_params_bin = custom_target(
     'nwchem_config_options_params_bin',
     input: 'tests/nwchem_params_config_options.capnp.txt',
@@ -542,6 +570,26 @@ if get_option('with_tests')
         ],
       ),
       args: [nwchem_params_bin],
+      is_parallel: false,
+    )
+    test(
+      'nwchem-session-result',
+      executable(
+        'test_nwchem_session_result',
+        ['tests/test_nwchem_session_result.c'] + nwchemc_params_sources,
+        include_directories: [inc] + nwchemc_params_includes,
+        dependencies: [math_dep, cmocka_dep] + nwchemc_params_deps,
+        link_with: nwchemc,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      ),
+      args: [
+        nwchem_params_bin,
+        force_input_h2_eq_bin,
+        force_input_h2_stretched_bin,
+      ],
       is_parallel: false,
     )
     test(

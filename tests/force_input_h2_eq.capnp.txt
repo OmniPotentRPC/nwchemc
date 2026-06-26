@@ -1,0 +1,9 @@
+(
+  pos = [
+    0.0, 0.0, -0.3707,
+    0.0, 0.0, 0.3707
+  ],
+  atmnrs = [1, 1],
+  lengthUnit = "angstrom",
+  energyUnit = "hartree"
+)
