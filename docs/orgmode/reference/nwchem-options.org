@@ -509,7 +509,8 @@ spin-scaling rules.
 * Feature Inventory
 Machine-readable intern tables:
 
-- ~schema/inventory/nwchem_features.json~ — modules, stanzas, params fields, ABI
+- ~schema/inventory/nwchem_features.json~ — modules, stanzas, params fields,
+  schema fields, ABI
 - ~include/nwchemc_features.h~ / ~src/nwchemc_features.c~ — C intern/query API
 
 #+begin_src bash
@@ -522,6 +523,10 @@ meson test -C build feature-driver --print-errorlogs
 ~tools/nwchemc_feature_driver.c~ (Meson test ~feature-driver~) exercises intern
 counts/lookup and stub ABI through shipped ~nwchemc_*~ symbols. Modes:
 ~inventory~, ~stub-abi~, ~validate~, ~all~.
+
+Every struct field also has a ~field.<Struct>.<field>~ intern id, e.g.
+~field.NWChemTceStanza.quadrupole~. The ~params.<field>~ rows remain a
+top-level convenience index for ~NWChemParams~.
 
 * Coverage Model
 Typed fields cover the ABI-critical method, charge, multiplicity, directory,

@@ -12,18 +12,59 @@ def cstr(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+def strip_capnp_comments(text: str) -> str:
+    return re.sub(r"#.*", "", text)
+
+
+def iter_named_blocks(text: str, keyword: str):
+    pattern = re.compile(rf"\b{keyword}\s+(\w+)\s*\{{")
+    for match in pattern.finditer(text):
+        name = match.group(1)
+        start = match.end() - 1
+        depth = 0
+        for idx in range(start, len(text)):
+            if text[idx] == "{":
+                depth += 1
+            elif text[idx] == "}":
+                depth -= 1
+                if depth == 0:
+                    yield name, text[start + 1 : idx]
+                    break
+
+
+def find_named_block(text: str, keyword: str, name: str) -> str | None:
+    for block_name, body in iter_named_blocks(text, keyword):
+        if block_name == name:
+            return body
+    return None
+
+
+def parse_struct_fields(body: str) -> list[dict[str, object]]:
+    fields = []
+    for match in re.finditer(r"^\s*(\w+)\s+@(\d+)\s*:\s*([^;]+);", body, re.M):
+        fields.append(
+            {
+                "name": match.group(1),
+                "id": int(match.group(2)),
+                "type": match.group(3).strip(),
+            }
+        )
+    return fields
+
+
 def main() -> int:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
     schema = (root / "schema/Potentials.capnp").read_text(encoding="utf-8")
+    schema_clean = strip_capnp_comments(schema)
     c_src = (root / "src/nwchemc_params.c").read_text(encoding="utf-8")
 
-    mod_block = re.search(r"enum NWChemModuleName \{(.*?)\}", schema, re.S)
+    mod_block = find_named_block(schema_clean, "enum", "NWChemModuleName")
     if not mod_block:
         print("NWChemModuleName not found", file=sys.stderr)
         return 1
     modules = [
         {"camel": m.group(1), "id": int(m.group(2))}
-        for m in re.finditer(r"(\w+)\s+@(\d+);", mod_block.group(1))
+        for m in re.finditer(r"(\w+)\s+@(\d+);", mod_block)
     ]
 
     lit_map = {
@@ -33,25 +74,37 @@ def main() -> int:
         )
     }
 
-    params_block = re.search(r"struct NWChemParams \{(.*?)\}", schema, re.S)
+    params_block = find_named_block(schema_clean, "struct", "NWChemParams")
     if not params_block:
         print("NWChemParams not found", file=sys.stderr)
         return 1
-    fields = [
-        {
-            "name": m.group(1),
-            "id": int(m.group(2)),
-            "type": m.group(3).strip().split("#")[0].strip(),
-        }
-        for m in re.finditer(r"(\w+)\s+@(\d+)\s*:\s*([^;]+);", params_block.group(1))
-    ]
+    fields = parse_struct_fields(params_block)
 
-    stanza_enum = re.search(
-        r"struct NWChemInputStanza.*?enum Kind \{(.*?)\}", schema, re.S
+    input_stanza_block = find_named_block(schema_clean, "struct", "NWChemInputStanza")
+    stanza_enum = (
+        find_named_block(input_stanza_block, "enum", "Kind")
+        if input_stanza_block
+        else None
     )
-    stanza_kinds = (
-        re.findall(r"(\w+)\s+@\d+;", stanza_enum.group(1)) if stanza_enum else []
-    )
+    stanza_kinds = re.findall(r"(\w+)\s+@\d+;", stanza_enum) if stanza_enum else []
+
+    schema_fields = []
+    for struct_name, body in iter_named_blocks(schema_clean, "struct"):
+        for field in parse_struct_fields(body):
+            schema_fields.append(
+                {
+                    "feature_id": f"field.{struct_name}.{field['name']}",
+                    "schema_path": f"{struct_name}.{field['name']}",
+                    "struct": struct_name,
+                    "name": field["name"],
+                    "field_id": field["id"],
+                    "type": field["type"],
+                    "role": f"{struct_name}.{field['name']} Cap'n Proto field",
+                    "stub_applicable": True,
+                    "embed_applicable": True,
+                    "driver_class": "schema_field",
+                }
+            )
 
     stanza_meta = {
         "generic": (
@@ -166,6 +219,7 @@ def main() -> int:
         "modules": [],
         "stanzas": stanzas,
         "params_fields": [],
+        "schema_fields": schema_fields,
         "abi_entrypoints": [
             {
                 "name": "nwchemc_set_params",
@@ -437,6 +491,18 @@ def main() -> int:
                 "embed": 1 if f["embed_applicable"] else 0,
             }
         )
+    for f in inventory["schema_fields"]:
+        entries.append(
+            {
+                "id": f["feature_id"],
+                "path": f["schema_path"],
+                "role": f["role"],
+                "klass": "NWCHEMC_FEATURE_SCHEMA_FIELD",
+                "eid": f["field_id"],
+                "stub": 1 if f["stub_applicable"] else 0,
+                "embed": 1 if f["embed_applicable"] else 0,
+            }
+        )
     for a in inventory["abi_entrypoints"]:
         entries.append(
             {
@@ -470,6 +536,7 @@ typedef enum NWChemCFeatureClass {
   NWCHEMC_FEATURE_STANZA = 1,
   NWCHEMC_FEATURE_PARAMS_FIELD = 2,
   NWCHEMC_FEATURE_ABI = 3,
+  NWCHEMC_FEATURE_SCHEMA_FIELD = 4,
 } NWChemCFeatureClass;
 
 typedef struct NWChemCFeatureEntry {
@@ -565,7 +632,8 @@ size_t nwchemc_module_feature_count(void);
 
     print(
         f"modules={len(inventory['modules'])} fields={len(inventory['params_fields'])} "
-        f"stanzas={len(stanzas)} intern_rows={len(entries)}"
+        f"schema_fields={len(inventory['schema_fields'])} stanzas={len(stanzas)} "
+        f"intern_rows={len(entries)}"
     )
     return 0
 

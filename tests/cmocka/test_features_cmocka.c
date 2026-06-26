@@ -82,12 +82,15 @@ static void test_class_partition_counts(void **state) {
   size_t mods = nwchemc_feature_count_class(NWCHEMC_FEATURE_MODULE);
   size_t stanzas = nwchemc_feature_count_class(NWCHEMC_FEATURE_STANZA);
   size_t fields = nwchemc_feature_count_class(NWCHEMC_FEATURE_PARAMS_FIELD);
+  size_t schema_fields =
+      nwchemc_feature_count_class(NWCHEMC_FEATURE_SCHEMA_FIELD);
   size_t abis = nwchemc_feature_count_class(NWCHEMC_FEATURE_ABI);
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)abis, 33);
-  assert_int_equal((int)(mods + stanzas + fields + abis),
+  assert_int_equal((int)schema_fields, 282);
+  assert_int_equal((int)abis, 37);
+  assert_int_equal((int)(mods + stanzas + fields + schema_fields + abis),
                    (int)nwchemc_feature_count());
 }
 
@@ -103,7 +106,7 @@ static void test_feature_table_integrity(void **state) {
     assert_non_null(table[i].schema_path);
     assert_non_null(table[i].nwchem_text_or_role);
     assert_true(table[i].klass >= NWCHEMC_FEATURE_MODULE &&
-                table[i].klass <= NWCHEMC_FEATURE_ABI);
+                table[i].klass <= NWCHEMC_FEATURE_SCHEMA_FIELD);
     assert_non_null(nwchemc_feature_find(table[i].feature_id));
   }
 }
@@ -138,6 +141,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_dipole",
       "abi.nwchemc_quadrupole",
       "abi.nwchemc_optimize",
+      "abi.nwchemc_frequencies",
       "abi.nwchemc_session_create",
       "abi.nwchemc_session_set_params",
       "abi.nwchemc_session_destroy",
@@ -147,6 +151,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_dipole",
       "abi.nwchemc_session_quadrupole",
       "abi.nwchemc_session_optimize",
+      "abi.nwchemc_session_frequencies",
       "abi.nwchemc_session_calculate_forces",
       "abi.nwchemc_session_calculate_result",
       "abi.nwchemc_calculate_result",
@@ -154,11 +159,13 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_calculate_dipole",
       "abi.nwchemc_calculate_quadrupole",
       "abi.nwchemc_calculate_optimize",
+      "abi.nwchemc_calculate_frequencies",
       "abi.nwchemc_potential_result_size_for_force_input",
       "abi.nwchemc_session_calculate_hessian",
       "abi.nwchemc_session_calculate_dipole",
       "abi.nwchemc_session_calculate_quadrupole",
       "abi.nwchemc_session_calculate_optimize",
+      "abi.nwchemc_session_calculate_frequencies",
       "abi.nwchemc_session_hessian",
       "abi.nwchemc_available",
       "abi.nwchemc_version",

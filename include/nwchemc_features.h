@@ -18,6 +18,7 @@ typedef enum NWChemCFeatureClass {
   NWCHEMC_FEATURE_STANZA = 1,
   NWCHEMC_FEATURE_PARAMS_FIELD = 2,
   NWCHEMC_FEATURE_ABI = 3,
+  NWCHEMC_FEATURE_SCHEMA_FIELD = 4,
 } NWChemCFeatureClass;
 
 typedef struct NWChemCFeatureEntry {

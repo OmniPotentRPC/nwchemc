@@ -61,16 +61,21 @@ static int run_inventory(void) {
   size_t mods = nwchemc_feature_count_class(NWCHEMC_FEATURE_MODULE);
   size_t stanzas = nwchemc_feature_count_class(NWCHEMC_FEATURE_STANZA);
   size_t fields = nwchemc_feature_count_class(NWCHEMC_FEATURE_PARAMS_FIELD);
+  size_t schema_fields =
+      nwchemc_feature_count_class(NWCHEMC_FEATURE_SCHEMA_FIELD);
   size_t abis = nwchemc_feature_count_class(NWCHEMC_FEATURE_ABI);
   printf("nwchemc_feature_driver inventory\n");
-  printf("  total=%zu modules=%zu stanzas=%zu params_fields=%zu abi=%zu\n",
-         total, mods, stanzas, fields, abis);
-  if (mods < 88 || stanzas < 12 || fields < 14 || abis < 8) {
+  printf("  total=%zu modules=%zu stanzas=%zu params_fields=%zu "
+         "schema_fields=%zu abi=%zu\n",
+         total, mods, stanzas, fields, schema_fields, abis);
+  if (mods < 88 || stanzas < 12 || fields < 14 || schema_fields < 100 ||
+      abis < 8) {
     fprintf(stderr, "inventory counts below expected floor\n");
     return 1;
   }
   if (!nwchemc_feature_find("module.dft") ||
       !nwchemc_feature_find("params.basis") ||
+      !nwchemc_feature_find("field.NWChemTceStanza.quadrupole") ||
       !nwchemc_feature_find("stanza.pseudopotential") ||
       !nwchemc_feature_find("abi.nwchemc_hessian")) {
     fprintf(stderr, "missing core intern rows\n");
