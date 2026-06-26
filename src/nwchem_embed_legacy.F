@@ -805,6 +805,205 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       return
       end
 
+      subroutine nwchem_legacy_optimize(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, basis_name, theory_name,
+     $     scf_type, input_blocks, charge, mult, dft_direct,
+     $     dft_smear_on, dft_smear_sigma, dft_smear_spinset,
+     $     scf_has_options, scf_maxiter, scf_thresh, scf_tol2e,
+     $     driver_has_options, driver_maxiter, driver_tolerance_mode,
+     $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
+     $     driver_xrms_tol, psp_count, psp_elements, psp_types,
+     $     psp_names, set_string_count, set_keys, set_values,
+     $     typed_set_count, typed_set_keys, typed_set_types,
+     $     typed_set_value_counts, typed_set_values,
+     $     brillouin_has_options, brillouin_zone_name,
+     $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
+     $     brillouin_kvector_count, brillouin_kvectors,
+     $     energy_h, optimized_pos_ang, errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "global.fh"
+#include "geom.fh"
+#include "rtdb.fh"
+#include "stdio.fh"
+#include "errquit.fh"
+#include "inp.fh"
+      integer rtdb, n_atoms, charge, mult, ok
+      integer has_cell
+      integer psp_count
+      integer set_string_count
+      integer typed_set_count
+      integer brillouin_has_options, brillouin_max_kpoints_print
+      integer brillouin_kvector_count
+      integer dft_direct, dft_smear_on, dft_smear_spinset
+      integer scf_has_options, scf_maxiter
+      integer driver_has_options, driver_maxiter
+      integer driver_tolerance_mode
+      double precision pos_ang(*)
+      double precision cell_ang(*)
+      double precision brillouin_kvectors(*)
+      integer atmnrs(*)
+      integer psp_types(*)
+      integer typed_set_types(*)
+      integer typed_set_value_counts(*)
+      integer brillouin_monkhorst_pack(3)
+      character*64 basis_name
+      character*64 theory_name
+      character*64 scf_type
+      character*64 brillouin_zone_name
+      character*4096 input_blocks
+      character*16 psp_elements(*)
+      character*256 psp_names(*)
+      character*128 set_keys(*)
+      character*256 set_values(*)
+      character*128 typed_set_keys(*)
+      character*256 typed_set_values(64,*)
+      double precision dft_smear_sigma
+      double precision scf_thresh, scf_tol2e
+      double precision driver_gmax_tol, driver_grms_tol
+      double precision driver_xmax_tol, driver_xrms_tol
+      double precision energy_h
+      double precision optimized_pos_ang(*)
+      character*(*) errmsg
+      integer i, iat, n3
+      integer maxat, geom, ncent
+      parameter (maxat = 64)
+      double precision coords(3,maxat)
+      double precision zcharge(maxat)
+      double precision scale
+      character*16 tags(maxat)
+      logical status
+      external task_optimize
+      logical task_optimize
+      external nw_inp_from_character
+      logical nw_inp_from_character
+
+      ok = -1
+      energy_h = 0.0d0
+      errmsg = ' '
+      if (rtdb .lt. 0 .or. n_atoms .le. 0) then
+         errmsg = 'invalid rtdb or n_atoms'
+         return
+      endif
+      if (n_atoms .gt. maxat) then
+         errmsg = 'n_atoms exceeds embed maxat=64'
+         return
+      endif
+      n3 = 3 * n_atoms
+      do i = 1, n3
+         optimized_pos_ang(i) = 0.0d0
+      enddo
+
+      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_pseudopotentials(rtdb, psp_count, psp_elements,
+     $     psp_types, psp_names, errmsg, status)
+      if (.not. status) return
+      if (inp_strlen(input_blocks) .gt. 0) then
+         if (.not. nw_inp_from_character(rtdb,
+     $        input_blocks(1:inp_strlen(input_blocks)))) then
+            errmsg = 'nw_inp_from_character inputBlocks failed'
+            return
+         endif
+      endif
+      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
+     $     brillouin_zone_name, brillouin_monkhorst_pack,
+     $     brillouin_max_kpoints_print, brillouin_kvector_count,
+     $     brillouin_kvectors, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
+     $     set_keys, set_values, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_typed_sets(rtdb, typed_set_count,
+     $     typed_set_keys, typed_set_types, typed_set_value_counts,
+     $     typed_set_values, errmsg, status)
+      if (.not. status) return
+
+      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, scf_has_options, scf_maxiter,
+     $     scf_thresh, scf_tol2e, driver_has_options,
+     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
+      if (.not. status) then
+         errmsg = 'method RTDB setup failed'
+         return
+      endif
+      status = rtdb_cput(rtdb, 'task:operation', 1, 'optimize')
+      status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
+
+      if (.not. task_optimize(rtdb)) then
+         errmsg = 'task_optimize failed'
+         return
+      endif
+      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
+         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
+     $        energy_h)) then
+            if (.not. rtdb_get(rtdb, 'dft:energy', mt_dbl, 1,
+     $         energy_h)) then
+               errmsg = 'rtdb_get task/scf/dft energy failed'
+               return
+            endif
+         endif
+      endif
+
+      if (.not. geom_create(geom, 'geometry')) then
+         errmsg = 'geom_create optimized geometry failed'
+         return
+      endif
+      if (.not. geom_rtdb_load(rtdb, geom, 'geometry')) then
+         errmsg = 'geom_rtdb_load optimized geometry failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      if (.not. geom_set_user_units(geom, 'angstroms')) then
+         errmsg = 'geom_set_user_units optimized geometry failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      if (.not. geom_get_user_scale(geom, scale)) then
+         errmsg = 'geom_get_user_scale optimized geometry failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      if (scale .eq. 0.0d0) then
+         errmsg = 'invalid optimized geometry scale'
+         status = geom_destroy(geom)
+         return
+      endif
+      ncent = n_atoms
+      if (.not. geom_cart_get(geom, ncent, tags, coords, zcharge)) then
+         errmsg = 'geom_cart_get optimized geometry failed'
+         status = geom_destroy(geom)
+         return
+      endif
+      if (ncent .ne. n_atoms) then
+         errmsg = 'optimized geometry atom count mismatch'
+         status = geom_destroy(geom)
+         return
+      endif
+      do iat = 1, n_atoms
+         optimized_pos_ang(3 * (iat - 1) + 1) =
+     $      coords(1,iat) / scale
+         optimized_pos_ang(3 * (iat - 1) + 2) =
+     $      coords(2,iat) / scale
+         optimized_pos_ang(3 * (iat - 1) + 3) =
+     $      coords(3,iat) / scale
+      enddo
+      if (.not. geom_destroy(geom)) then
+         errmsg = 'geom_destroy optimized geometry failed'
+         return
+      endif
+
+      errmsg = 'ok'
+      ok = 0
+      return
+      end
+
       subroutine nwchemc_apply_direct_typed_sets(rtdb, set_count,
      $     set_keys, set_types, set_value_counts, set_values, errmsg,
      $     ok)

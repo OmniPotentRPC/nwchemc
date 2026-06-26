@@ -106,6 +106,19 @@ NWChemCResult nwchemc_quadrupole(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_optimize(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *optimized_positions_ang) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  return stub_fail();
+}
+
 const char *nwchemc_version(void) { return "nwchemc-stub/0.1.0"; }
 
 int nwchemc_available(void) { return 0; }
@@ -199,6 +212,18 @@ NWChemCResult nwchemc_session_quadrupole(NWChemCSession *session, int n_atoms,
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_optimize(NWChemCSession *session, int n_atoms,
+                                       const double *positions_ang,
+                                       const int *atomic_numbers,
+                                       double *optimized_positions_ang) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)optimized_positions_ang;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_forces(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *forces_h_bohr,
@@ -280,6 +305,19 @@ NWChemCResult nwchemc_calculate_quadrupole(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_optimize(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *optimized_positions_ang, size_t optimized_positions_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  (void)optimized_positions_len;
+  return stub_fail();
+}
+
 size_t nwchemc_potential_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
@@ -320,6 +358,18 @@ NWChemCResult nwchemc_session_calculate_quadrupole(
   (void)force_input_capnp_size_bytes;
   (void)quadrupole_au;
   (void)quadrupole_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_optimize(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *optimized_positions_ang,
+    size_t optimized_positions_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  (void)optimized_positions_len;
   return stub_fail();
 }
 

@@ -93,6 +93,16 @@ extern int nwchemc_embed_quadrupole_cell(
     const int *atomic_numbers, const double *cell_ang, const int *has_cell,
     const int *charge, const int *multiplicity, double *energy_h,
     double *quadrupole_au, char *errmsg, int errmsg_len);
+extern int nwchemc_embed_optimize(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const int *charge, const int *multiplicity,
+    double *energy_h, double *optimized_positions_ang, char *errmsg,
+    int errmsg_len);
+extern int nwchemc_embed_optimize_cell(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *energy_h,
+    double *optimized_positions_ang, char *errmsg, int errmsg_len);
 extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
@@ -2398,6 +2408,59 @@ NWChemCResult nwchemc_quadrupole(
   return r;
 }
 
+NWChemCResult nwchemc_optimize(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *optimized_positions_ang) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+
+  if (n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !optimized_positions_ang) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                          &params_root) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
+    return r;
+  }
+
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
+  if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  g_active_session = NULL;
+
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = params.charge;
+  int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  double eh = 0.0;
+  int rc = nwchemc_embed_optimize(&n, positions_ang, atomic_numbers, &ch,
+                                  &mult, &eh, optimized_positions_ang, errmsg,
+                                  (int)sizeof(errmsg) - 1);
+  nwchemc_params_release(&arena);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed optimize failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
 static void session_clear_params(NWChemCSession *session) {
   if (!session)
     return;
@@ -2824,6 +2887,67 @@ NWChemCResult nwchemc_session_quadrupole(NWChemCSession *session, int n_atoms,
                                          double *quadrupole_au) {
   return session_quadrupole_cell(session, n_atoms, positions_ang,
                                  atomic_numbers, NULL, 0, quadrupole_au);
+}
+
+static NWChemCResult session_optimize_cell(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, int has_cell,
+    double *optimized_positions_ang) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !optimized_positions_ang) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  int topology_status =
+      session_check_topology(session, (size_t)n_atoms, atomic_numbers);
+  if (topology_status < 0) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  if (topology_status > 0) {
+    snprintf(r.message, sizeof(r.message), "session topology mismatch");
+    return r;
+  }
+  if (session_apply_config(session) != 0) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  ensure_init();
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = 0;
+  int mult = 1;
+  session_charge_multiplicity(session, &ch, &mult);
+  double eh = 0.0;
+  int cell_flag = has_cell ? 1 : 0;
+  double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0};
+  const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  int rc = nwchemc_embed_optimize_cell(
+      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult, &eh,
+      optimized_positions_ang, errmsg, (int)sizeof(errmsg) - 1);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed optimize failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
+NWChemCResult nwchemc_session_optimize(NWChemCSession *session, int n_atoms,
+                                       const double *positions_ang,
+                                       const int *atomic_numbers,
+                                       double *optimized_positions_ang) {
+  return session_optimize_cell(session, n_atoms, positions_ang, atomic_numbers,
+                               NULL, 0, optimized_positions_ang);
 }
 
 NWChemCResult nwchemc_session_calculate_forces(
@@ -3286,6 +3410,59 @@ NWChemCResult nwchemc_session_calculate_quadrupole(
       session->step_atomic_numbers, cell_ang, has_cell, quadrupole_au);
 }
 
+NWChemCResult nwchemc_session_calculate_optimize(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *optimized_positions_ang,
+    size_t optimized_positions_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !optimized_positions_ang) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || n_atoms > SIZE_MAX / 3u ||
+      optimized_positions_len < n_atoms * 3u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  return session_optimize_cell(
+      session, (int)n_atoms, session->step_positions_ang,
+      session->step_atomic_numbers, cell_ang, has_cell,
+      optimized_positions_ang);
+}
+
 NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -3397,6 +3574,41 @@ NWChemCResult nwchemc_calculate_quadrupole(
   return r;
 }
 
+NWChemCResult nwchemc_calculate_optimize(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *optimized_positions_ang, size_t optimized_positions_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !optimized_positions_ang) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      n_atoms > SIZE_MAX / 3u || optimized_positions_len < n_atoms * 3u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_optimize(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      optimized_positions_ang, optimized_positions_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
 const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
 
 int nwchemc_available(void) {
@@ -3448,6 +3660,23 @@ NWChemCResult nwchemc_quadrupole(
   (void)params_capnp;
   (void)params_capnp_size_bytes;
   (void)quadrupole_au;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
+  return r;
+}
+
+NWChemCResult nwchemc_optimize(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *optimized_positions_ang) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)optimized_positions_ang;
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
@@ -3613,6 +3842,18 @@ NWChemCResult nwchemc_session_quadrupole(NWChemCSession *session, int n_atoms,
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_session_optimize(NWChemCSession *session, int n_atoms,
+                                       const double *positions_ang,
+                                       const int *atomic_numbers,
+                                       double *optimized_positions_ang) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)optimized_positions_ang;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_forces(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *forces_h_bohr,
@@ -3694,6 +3935,19 @@ NWChemCResult nwchemc_calculate_quadrupole(
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_calculate_optimize(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *optimized_positions_ang, size_t optimized_positions_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  (void)optimized_positions_len;
+  return no_nwchem_fail();
+}
+
 size_t nwchemc_potential_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
@@ -3734,6 +3988,18 @@ NWChemCResult nwchemc_session_calculate_quadrupole(
   (void)force_input_capnp_size_bytes;
   (void)quadrupole_au;
   (void)quadrupole_len;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_optimize(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *optimized_positions_ang,
+    size_t optimized_positions_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  (void)optimized_positions_len;
   return no_nwchem_fail();
 }
 
