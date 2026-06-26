@@ -3006,11 +3006,10 @@ int nwchemc_params_extract_direct_brillouin_zone(
   return 0;
 }
 
-int nwchemc_params_extract_direct_pseudopotentials(
-    NWChemParams_ptr params, capn_text *elements, int *library_types,
-    capn_text *library_names, size_t capacity, size_t *count) {
-  if (params.p.type == CAPN_NULL || !elements || !library_types ||
-      !library_names || !count)
+int nwchemc_params_for_each_direct_pseudopotential(
+    NWChemParams_ptr params, nwchemc_params_direct_pseudopotential_fn callback,
+    void *user_data, size_t *count) {
+  if (params.p.type == CAPN_NULL || !count)
     return -1;
 
   *count = 0;
@@ -3040,14 +3039,55 @@ int nwchemc_params_extract_direct_pseudopotentials(
       capn_text target = pseudopotential_entry_target(&entry);
       if (target.len <= 0 || entry.libraryName.len <= 0)
         continue;
-      if (*count >= capacity)
+      if (callback && callback(user_data, target, &entry) != 0)
         return -1;
-      elements[*count] = target;
-      library_types[*count] = entry.libraryType;
-      library_names[*count] = entry.libraryName;
       ++*count;
     }
   }
+  return 0;
+}
+
+struct direct_pseudopotential_extract_state {
+  capn_text *elements;
+  int *library_types;
+  capn_text *library_names;
+  size_t capacity;
+  size_t count;
+};
+
+static int extract_direct_pseudopotential_entry(
+    void *user_data, capn_text target,
+    const struct NWChemPseudopotentialEntry *entry) {
+  struct direct_pseudopotential_extract_state *state = user_data;
+  if (!state || !entry || state->count >= state->capacity)
+    return -1;
+  state->elements[state->count] = target;
+  state->library_types[state->count] = entry->libraryType;
+  state->library_names[state->count] = entry->libraryName;
+  ++state->count;
+  return 0;
+}
+
+int nwchemc_params_extract_direct_pseudopotentials(
+    NWChemParams_ptr params, capn_text *elements, int *library_types,
+    capn_text *library_names, size_t capacity, size_t *count) {
+  if (params.p.type == CAPN_NULL || !elements || !library_types ||
+      !library_names || !count)
+    return -1;
+
+  struct direct_pseudopotential_extract_state state = {
+      .elements = elements,
+      .library_types = library_types,
+      .library_names = library_names,
+      .capacity = capacity,
+      .count = 0,
+  };
+  size_t walked = 0;
+  int rc = nwchemc_params_for_each_direct_pseudopotential(
+      params, extract_direct_pseudopotential_entry, &state, &walked);
+  *count = state.count;
+  if (rc != 0 || walked != state.count)
+    return -1;
   return 0;
 }
 

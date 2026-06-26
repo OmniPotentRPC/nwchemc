@@ -111,6 +111,14 @@ int nwchemc_params_extract_direct_brillouin_zone(
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
     size_t kvector_capacity, size_t *kvector_count);
 
+typedef int (*nwchemc_params_direct_pseudopotential_fn)(
+    void *user_data, capn_text target,
+    const struct NWChemPseudopotentialEntry *entry);
+
+int nwchemc_params_for_each_direct_pseudopotential(
+    NWChemParams_ptr params, nwchemc_params_direct_pseudopotential_fn callback,
+    void *user_data, size_t *count);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

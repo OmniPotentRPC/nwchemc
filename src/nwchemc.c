@@ -109,6 +109,9 @@ struct NWChemCSession {
 static NWChemCSession *g_active_session = NULL;
 
 enum {
+  NWCHEMC_DIRECT_PSP_MAX = 64,
+  NWCHEMC_DIRECT_PSP_ELEMENT_LEN = 16,
+  NWCHEMC_DIRECT_PSP_NAME_LEN = 256,
   NWCHEMC_DIRECT_SET_MAX = 192,
   NWCHEMC_DIRECT_SET_VALUE_MAX = 16,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
@@ -141,6 +144,31 @@ static void copy_text_record(char *dst, size_t dst_size, capn_text text) {
   if (n >= dst_size)
     n = dst_size - 1;
   memcpy(dst, text.str, n);
+}
+
+struct direct_pseudopotential_pack {
+  char *elements;
+  int *library_types;
+  char *library_names;
+  size_t capacity;
+  size_t count;
+};
+
+static int pack_direct_pseudopotential_entry(
+    void *user_data, capn_text target,
+    const struct NWChemPseudopotentialEntry *entry) {
+  struct direct_pseudopotential_pack *pack = user_data;
+  if (!pack || !entry || pack->count >= pack->capacity)
+    return -1;
+  copy_text_record(pack->elements +
+                       pack->count * NWCHEMC_DIRECT_PSP_ELEMENT_LEN,
+                   NWCHEMC_DIRECT_PSP_ELEMENT_LEN, target);
+  pack->library_types[pack->count] = entry->libraryType;
+  copy_text_record(pack->library_names +
+                       pack->count * NWCHEMC_DIRECT_PSP_NAME_LEN,
+                   NWCHEMC_DIRECT_PSP_NAME_LEN, entry->libraryName);
+  ++pack->count;
+  return 0;
 }
 
 static capn_text text_from_cstr(const char *s) {
@@ -1029,12 +1057,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           brillouin_monkhorst_pack, &brillouin_max_kpoints_print, NULL, 0,
           &brillouin_kvector_count) != 0)
     return -1;
-  capn_text psp_elements[64];
-  capn_text psp_names[64];
-  int psp_types[64];
+  int psp_types[NWCHEMC_DIRECT_PSP_MAX];
   size_t psp_count = 0;
-  char packed_psp_elements[64 * 16];
-  char packed_psp_names[64 * 256];
+  char packed_psp_elements[NWCHEMC_DIRECT_PSP_MAX *
+                           NWCHEMC_DIRECT_PSP_ELEMENT_LEN];
+  char packed_psp_names[NWCHEMC_DIRECT_PSP_MAX *
+                        NWCHEMC_DIRECT_PSP_NAME_LEN];
   capn_text set_keys[NWCHEMC_DIRECT_SET_MAX];
   capn_text set_values[NWCHEMC_DIRECT_SET_MAX];
   size_t set_count = 0;
@@ -1056,8 +1084,20 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   char packed_typed_set_values[NWCHEMC_DIRECT_SET_MAX *
                                NWCHEMC_DIRECT_SET_VALUE_MAX *
                                NWCHEMC_DIRECT_SET_VALUE_LEN];
-  if (nwchemc_params_extract_direct_pseudopotentials(
-          params_root, psp_elements, psp_types, psp_names, 64, &psp_count) != 0)
+  memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
+  memset(packed_psp_names, 0, sizeof(packed_psp_names));
+  memset(psp_types, 0, sizeof(psp_types));
+  struct direct_pseudopotential_pack psp_pack = {
+      .elements = packed_psp_elements,
+      .library_types = psp_types,
+      .library_names = packed_psp_names,
+      .capacity = NWCHEMC_DIRECT_PSP_MAX,
+      .count = 0,
+  };
+  if (nwchemc_params_for_each_direct_pseudopotential(
+          params_root, pack_direct_pseudopotential_entry, &psp_pack,
+          &psp_count) != 0 ||
+      psp_count != psp_pack.count)
     return -1;
   if (nwchemc_params_extract_direct_set_strings(
           params_root, set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
@@ -1793,16 +1833,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
         return -1;
     }
   }
-  memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
-  memset(packed_psp_names, 0, sizeof(packed_psp_names));
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));
   memset(packed_typed_set_keys, 0, sizeof(packed_typed_set_keys));
   memset(packed_typed_set_values, 0, sizeof(packed_typed_set_values));
-  for (size_t i = 0; i < psp_count; ++i) {
-    copy_text_record(packed_psp_elements + i * 16, 16, psp_elements[i]);
-    copy_text_record(packed_psp_names + i * 256, 256, psp_names[i]);
-  }
   for (size_t i = 0; i < set_count; ++i) {
     copy_text_record(packed_set_keys + i * NWCHEMC_DIRECT_SET_KEY_LEN,
                      NWCHEMC_DIRECT_SET_KEY_LEN, set_keys[i]);
