@@ -1025,6 +1025,10 @@ static int append_tce_direct_values(
         return -1;
     }
     int effective_multipole = tce.multipole;
+    if (tce.octupole && effective_multipole < 3)
+      effective_multipole = 3;
+    if (tce.quadrupole && effective_multipole < 2)
+      effective_multipole = 2;
     if (tce.dipole && effective_multipole < 1)
       effective_multipole = 1;
     const struct {
@@ -1106,7 +1110,7 @@ static int append_tce_direct_values(
         return -1;
     }
     int effective_left = tce.left;
-    if (tce.dipole)
+    if (tce.dipole || tce.quadrupole || tce.octupole)
       effective_left = NWChemToggle_enabled;
     if (effective_left == NWChemToggle_unspecified && method_defaults &&
         method_defaults->left != NWChemToggle_unspecified)

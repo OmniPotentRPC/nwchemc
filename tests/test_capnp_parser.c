@@ -337,8 +337,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_non_null(strstr(input_blocks, "mrccdata\n  se4t"));
   assert_non_null(strstr(input_blocks, "  cas 2 2\n"));
   assert_non_null(strstr(input_blocks, "  2222ba\n"));
-  assert_non_null(
-      strstr(input_blocks, "tce\n  freeze core atomic\n  dipole\nend"));
+  assert_non_null(strstr(input_blocks, "tce\n  freeze core atomic\nend"));
+  assert_null(strstr(input_blocks, "dipole"));
   assert_null(strstr(input_blocks, "nwpw"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "print debug"));

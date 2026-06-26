@@ -316,6 +316,7 @@ module prefix:
 | ~nroots~ / ~target~ / ~targetSymmetry~ | ~nroots~ / ~target~ / ~targetsym~ | ~tce~ |
 | ~symmetry~ / ~densityMatrix~ / ~left~ | ~symmetry~ / ~densmat~ / ~left~ | ~tce~ |
 | ~densityMatrixFile~ | ~file_densmat~ | ~tce~ |
+| ~dipole~ / ~quadrupole~ / ~octupole~ | ~left~ / ~multipole~ | ~tce~ |
 | ~printLevel~ / ~printItems~ | text-only ~print~ line | ~tce~ |
 | ~multipole~ / ~fragment~ / ~recomputeFock~ | ~multipole~ / ~fragment~ / ~recompf~ | ~tce~ |
 | active-space fields | ~active_oa~, ~active_ob~, ~active_va~, ~active_vb~, ~oact~, ~uact~, ~eactmin~, ~eactmax~, ~act_excit_lvl~ | ~tce~ |

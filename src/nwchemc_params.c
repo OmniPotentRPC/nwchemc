@@ -1272,6 +1272,7 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
   capn_text method = tce_method_text(&tce);
   const char *freeze_mode = tce_freeze_keyword(tce.freezeMode);
   const char *print_level = print_level_keyword(tce.printLevel);
+  int has_tce_property = tce.dipole || tce.quadrupole || tce.octupole;
   int nprint_items = pointer_list_len(&tce.printItems);
   if (nprint_items < 0)
     return -1;
@@ -1302,7 +1303,7 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
       tce.eaCcsd == NWChemToggle_enabled ||
       tce.ipCcsd == NWChemToggle_enabled;
   if (!has_directives && !freeze_mode &&
-      !(include_direct_promoted && tce.dipole) &&
+      !(include_direct_promoted && has_tce_property) &&
       !print_level && nprint_items == 0 &&
       !(include_direct_promoted && has_renderable_promoted))
     return 0;
@@ -1313,6 +1314,12 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
     return -1;
   if (include_direct_promoted && tce.dipole &&
       append_format(block, sizeof(block), "  dipole\n") != 0)
+    return -1;
+  if (include_direct_promoted && tce.quadrupole &&
+      append_format(block, sizeof(block), "  quadrupole\n") != 0)
+    return -1;
+  if (include_direct_promoted && tce.octupole &&
+      append_format(block, sizeof(block), "  octupole\n") != 0)
     return -1;
   if (include_direct_promoted) {
     const char *reference = tce_reference_keyword(tce.reference);
