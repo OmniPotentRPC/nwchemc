@@ -220,9 +220,7 @@
           (element = "N", libraryType = teter, libraryName = "N.teter"),
           (allElements = true, libraryType = pspwLibrary, libraryName = "pspw_default")
         ],
-        directives = [
-          (keyword = "pspspin", args = ["off"])
-        ]
+        pspSpin = disabled
       )
     )
   ]

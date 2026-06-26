@@ -189,9 +189,16 @@ struct NWChemPseudopotentialEntry {
   }
 }
 
+enum NWChemPseudopotentialSpinMode {
+  unspecified @0; # Do not emit pspspin.
+  enabled     @1; # Emit pspspin on.
+  disabled    @2; # Emit pspspin off.
+}
+
 struct NWChemPseudopotentialStanza {
   entries    @0 :List(NWChemPseudopotentialEntry);
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
+  pspSpin    @2 :NWChemPseudopotentialSpinMode = unspecified; # Emit pspspin on/off.
 }
 
 struct NWChemKVector {
