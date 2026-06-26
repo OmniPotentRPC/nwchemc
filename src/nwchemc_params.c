@@ -812,6 +812,20 @@ static const char *tce_io_keyword(enum NWChemTceIoAlgorithm io) {
   }
 }
 
+static const char *tce_freeze_keyword(enum NWChemTceFreezeMode freeze_mode) {
+  switch (freeze_mode) {
+  case NWChemTceFreezeMode_atomic:
+    return "freeze atomic";
+  case NWChemTceFreezeMode_core:
+    return "freeze core";
+  case NWChemTceFreezeMode_coreAtomic:
+    return "freeze core atomic";
+  case NWChemTceFreezeMode_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 static capn_text tce_method_text(const struct NWChemTceStanza *tce) {
   if (tce->method.len > 0)
     return tce->method;
@@ -833,6 +847,7 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
   if (has_directives < 0)
     return -1;
   capn_text method = tce_method_text(&tce);
+  const char *freeze_mode = tce_freeze_keyword(tce.freezeMode);
   int has_renderable_promoted =
       tce.reference != NWChemTceReference_unspecified ||
       tce.frozenCore > 0 || tce.frozenVirtual > 0 ||
@@ -859,9 +874,13 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
       tce.tccSpaces == NWChemToggle_enabled ||
       tce.eaCcsd == NWChemToggle_enabled ||
       tce.ipCcsd == NWChemToggle_enabled;
-  if (!has_directives && !(include_direct_promoted && has_renderable_promoted))
+  if (!has_directives && !freeze_mode &&
+      !(include_direct_promoted && has_renderable_promoted))
     return 0;
   if (append_format(block, sizeof(block), "tce\n") != 0)
+    return -1;
+  if (freeze_mode &&
+      append_format(block, sizeof(block), "  %s\n", freeze_mode) != 0)
     return -1;
   if (include_direct_promoted) {
     const char *reference = tce_reference_keyword(tce.reference);
@@ -870,7 +889,7 @@ static int render_tce_stanza(NWChemTceStanza_ptr ptr, char *dst,
     if (reference &&
         append_format(block, sizeof(block), "  %s\n", reference) != 0)
       return -1;
-    if (tce.frozenCore > 0 || tce.frozenVirtual > 0) {
+    if (!freeze_mode && (tce.frozenCore > 0 || tce.frozenVirtual > 0)) {
       if (append_format(block, sizeof(block), "  freeze") != 0)
         return -1;
       if (tce.frozenCore > 0 &&

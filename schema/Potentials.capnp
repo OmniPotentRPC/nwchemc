@@ -244,6 +244,13 @@ enum NWChemTceIoAlgorithm {
   gaEaf       @7; # Emit io ga_eaf; promote tce:ioalg = 6.
 }
 
+enum NWChemTceFreezeMode {
+  unspecified @0; # Do not emit a symbolic TCE freeze directive.
+  atomic      @1; # Emit "freeze atomic".
+  core        @2; # Emit "freeze core".
+  coreAtomic  @3; # Emit "freeze core atomic".
+}
+
 enum NWChemNwpwSmearType {
   unspecified        @0; # Do not emit fractional_smeartype.
   fixed              @1; # NWChem smear fixed.
@@ -402,6 +409,7 @@ struct NWChemTceStanza {
   eaCcsd                @51 :NWChemToggle = unspecified; # Emit/promote tce:eaccsd when enabled.
   ipCcsd                @52 :NWChemToggle = unspecified; # Emit/promote tce:ipccsd when enabled.
   directives            @53 :List(NWChemDirective);
+  freezeMode            @54 :NWChemTceFreezeMode = unspecified; # Emit symbolic freeze directive; not directly promoted.
 }
 
 # @struct NWChemMrccDataStanza
