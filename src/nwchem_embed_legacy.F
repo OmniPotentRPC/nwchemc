@@ -116,6 +116,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     psp_names, set_string_count, set_keys, set_values,
      $     typed_set_count, typed_set_keys, typed_set_types,
      $     typed_set_value_counts, typed_set_values,
+     $     brillouin_has_options, brillouin_zone_name,
+     $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     energy_h, grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
@@ -129,6 +131,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_count
       integer set_string_count
       integer typed_set_count
+      integer brillouin_has_options, brillouin_max_kpoints_print
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
@@ -139,9 +142,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_types(*)
       integer typed_set_types(*)
       integer typed_set_value_counts(*)
+      integer brillouin_monkhorst_pack(3)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
+      character*64 brillouin_zone_name
       character*4096 input_blocks
       character*16 psp_elements(*)
       character*256 psp_names(*)
@@ -194,6 +199,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             return
          endif
       endif
+      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
+     $     brillouin_zone_name, brillouin_monkhorst_pack,
+     $     brillouin_max_kpoints_print, errmsg, status)
+      if (.not. status) return
       call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
      $     set_keys, set_values, errmsg, status)
       if (.not. status) return
@@ -266,6 +275,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     psp_names, set_string_count, set_keys, set_values,
      $     typed_set_count, typed_set_keys, typed_set_types,
      $     typed_set_value_counts, typed_set_values,
+     $     brillouin_has_options, brillouin_zone_name,
+     $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     energy_h, dipole_au, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
@@ -279,6 +290,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_count
       integer set_string_count
       integer typed_set_count
+      integer brillouin_has_options, brillouin_max_kpoints_print
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
@@ -289,9 +301,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_types(*)
       integer typed_set_types(*)
       integer typed_set_value_counts(*)
+      integer brillouin_monkhorst_pack(3)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
+      character*64 brillouin_zone_name
       character*4096 input_blocks
       character*16 psp_elements(*)
       character*256 psp_names(*)
@@ -346,6 +360,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             return
          endif
       endif
+      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
+     $     brillouin_zone_name, brillouin_monkhorst_pack,
+     $     brillouin_max_kpoints_print, errmsg, status)
+      if (.not. status) return
       call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
      $     set_keys, set_values, errmsg, status)
       if (.not. status) return
@@ -407,6 +425,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     psp_names, set_string_count, set_keys, set_values,
      $     typed_set_count, typed_set_keys, typed_set_types,
      $     typed_set_value_counts, typed_set_values,
+     $     brillouin_has_options, brillouin_zone_name,
+     $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
@@ -420,6 +440,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_count
       integer set_string_count
       integer typed_set_count
+      integer brillouin_has_options, brillouin_max_kpoints_print
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
@@ -430,9 +451,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer psp_types(*)
       integer typed_set_types(*)
       integer typed_set_value_counts(*)
+      integer brillouin_monkhorst_pack(3)
       character*64 basis_name
       character*64 theory_name
       character*64 scf_type
+      character*64 brillouin_zone_name
       character*4096 input_blocks
       character*16 psp_elements(*)
       character*256 psp_names(*)
@@ -489,6 +512,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             return
          endif
       endif
+      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
+     $     brillouin_zone_name, brillouin_monkhorst_pack,
+     $     brillouin_max_kpoints_print, errmsg, status)
+      if (.not. status) return
       call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
      $     set_keys, set_values, errmsg, status)
       if (.not. status) return
@@ -936,6 +963,62 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             return
          endif
       enddo
+      ok = .true.
+      return
+      end
+
+      subroutine nwchemc_store_brillouin_zone(rtdb, has_options,
+     $     zone_name, monkhorst_pack, max_kpoints_print, errmsg, ok)
+      implicit none
+#include "rtdb.fh"
+#include "inp.fh"
+      integer rtdb, has_options, max_kpoints_print
+      integer monkhorst_pack(3)
+      character*64 zone_name
+      character*(*) errmsg
+      logical ok
+      logical status
+      integer l, nx, ny, nz
+      character*255 rtdb_name
+      external monkhorst_pack_set
+
+      ok = .false.
+      if (has_options .eq. 0) then
+         ok = .true.
+         return
+      endif
+      if (max_kpoints_print .lt. 0) then
+         errmsg = 'invalid Brillouin-zone print count'
+         return
+      endif
+      l = inp_strlen(zone_name)
+      if (l .le. 0) then
+         zone_name = 'zone_default'
+         l = 12
+      endif
+      status = rtdb_cput(rtdb, 'band:zone_name', 1,
+     $   zone_name(1:l))
+      if (.not. status) then
+         errmsg = 'brillouin zone_name write failed'
+         return
+      endif
+      if (max_kpoints_print .gt. 0) then
+         rtdb_name = zone_name(1:l)//':number_kvectors_print'
+         call nwchemc_rtdb_put_int(rtdb, rtdb_name,
+     $      max_kpoints_print, status)
+         if (.not. status) then
+            errmsg = 'brillouin print count write failed'
+            return
+         endif
+      endif
+      if (monkhorst_pack(1) .ne. 0 .and.
+     $    monkhorst_pack(2) .ne. 0 .and.
+     $    monkhorst_pack(3) .ne. 0) then
+         nx = monkhorst_pack(1)
+         ny = monkhorst_pack(2)
+         nz = monkhorst_pack(3)
+         call monkhorst_pack_set(rtdb, zone_name(1:l), nx, ny, nz)
+      endif
       ok = .true.
       return
       end

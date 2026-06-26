@@ -35,6 +35,10 @@ extern int nwchemc_embed_set_nwpw_direct(int has_options,
                                          double energy_cutoff,
                                          double wavefunction_cutoff,
                                          double ewald_rcut, int ewald_ncut);
+extern int nwchemc_embed_set_brillouin_zone(
+    int has_options, const char *zone_name, int zone_name_len,
+    int monkhorst_pack_x, int monkhorst_pack_y, int monkhorst_pack_z,
+    int max_kpoints_print);
 extern int nwchemc_embed_set_pseudopotentials(const char *elements,
                                               const int *library_types,
                                               const char *library_names,
@@ -856,6 +860,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_nose_ion_temperature, &nwpw_nose_electron_chain_length,
           &nwpw_nose_ion_chain_length) != 0)
     return -1;
+  int brillouin_has_options = 0;
+  capn_text brillouin_zone_name = {0};
+  int brillouin_monkhorst_pack[3] = {0, 0, 0};
+  int brillouin_max_kpoints_print = 0;
+  if (nwchemc_params_extract_direct_brillouin_zone(
+          params_root, &brillouin_has_options, &brillouin_zone_name,
+          brillouin_monkhorst_pack, &brillouin_max_kpoints_print) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -1652,6 +1664,16 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_embed_set_rtdb_values(
           packed_typed_set_keys, typed_set_types, typed_set_value_counts,
           packed_typed_set_values, (int)typed_set_count) != 0)
+    return -1;
+  int brillouin_zone_name_len = 0;
+  const char *brillouin_zone_name_text =
+      text_or_with_len(brillouin_zone_name, "zone_default",
+                       &brillouin_zone_name_len);
+  if (nwchemc_embed_set_brillouin_zone(
+          brillouin_has_options, brillouin_zone_name_text,
+          brillouin_zone_name_len, brillouin_monkhorst_pack[0],
+          brillouin_monkhorst_pack[1], brillouin_monkhorst_pack[2],
+          brillouin_max_kpoints_print) != 0)
     return -1;
   if (nwchemc_embed_set_nwpw_direct(nwpw_has_options, nwpw_energy_cutoff,
                                     nwpw_wavefunction_cutoff,

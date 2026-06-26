@@ -23,6 +23,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_set_scf_direct
   public :: nwchemc_embed_set_driver_direct
   public :: nwchemc_embed_set_nwpw_direct
+  public :: nwchemc_embed_set_brillouin_zone
   public :: nwchemc_embed_set_pseudopotentials
   public :: nwchemc_embed_set_rtdb_strings
   public :: nwchemc_embed_set_rtdb_values
@@ -84,6 +85,10 @@ module nwchem_embed_c_api
   integer, save :: cfg_typed_set_types(max_embed_set_strings) = 0
   integer, save :: cfg_typed_set_value_counts(max_embed_set_strings) = 0
   character(len=set_value_len), save :: cfg_typed_set_values(max_embed_set_values, max_embed_set_strings) = ' '
+  integer, save :: cfg_brillouin_has_options = 0
+  character(len=64), save :: cfg_brillouin_zone_name = 'zone_default'
+  integer, save :: cfg_brillouin_monkhorst_pack(3) = 0
+  integer, save :: cfg_brillouin_max_kpoints_print = 0
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
@@ -109,6 +114,8 @@ module nwchem_embed_c_api
         psp_types, psp_names, set_string_count, set_keys, set_values, &
         typed_set_count, typed_set_keys, typed_set_types, &
         typed_set_value_counts, typed_set_values, &
+        brillouin_has_options, brillouin_zone_name, &
+        brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
         energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -138,6 +145,10 @@ module nwchem_embed_c_api
       integer, intent(in) :: typed_set_types(*)
       integer, intent(in) :: typed_set_value_counts(*)
       character(len=256), intent(in) :: typed_set_values(16,*)
+      integer, intent(in) :: brillouin_has_options
+      character(len=64), intent(in) :: brillouin_zone_name
+      integer, intent(in) :: brillouin_monkhorst_pack(3)
+      integer, intent(in) :: brillouin_max_kpoints_print
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: energy_h
@@ -156,6 +167,8 @@ module nwchem_embed_c_api
         psp_types, psp_names, set_string_count, set_keys, set_values, &
         typed_set_count, typed_set_keys, typed_set_types, &
         typed_set_value_counts, typed_set_values, &
+        brillouin_has_options, brillouin_zone_name, &
+        brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
         energy_h, dipole_au, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -185,6 +198,10 @@ module nwchem_embed_c_api
       integer, intent(in) :: typed_set_types(*)
       integer, intent(in) :: typed_set_value_counts(*)
       character(len=256), intent(in) :: typed_set_values(16,*)
+      integer, intent(in) :: brillouin_has_options
+      character(len=64), intent(in) :: brillouin_zone_name
+      integer, intent(in) :: brillouin_monkhorst_pack(3)
+      integer, intent(in) :: brillouin_max_kpoints_print
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: energy_h
@@ -203,6 +220,8 @@ module nwchem_embed_c_api
         psp_names, set_string_count, set_keys, set_values, &
         typed_set_count, typed_set_keys, typed_set_types, &
         typed_set_value_counts, typed_set_values, &
+        brillouin_has_options, brillouin_zone_name, &
+        brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
         hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
@@ -232,6 +251,10 @@ module nwchem_embed_c_api
       integer, intent(in) :: typed_set_types(*)
       integer, intent(in) :: typed_set_value_counts(*)
       character(len=256), intent(in) :: typed_set_values(16,*)
+      integer, intent(in) :: brillouin_has_options
+      character(len=64), intent(in) :: brillouin_zone_name
+      integer, intent(in) :: brillouin_monkhorst_pack(3)
+      integer, intent(in) :: brillouin_max_kpoints_print
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: hessian_h_bohr2(*)
@@ -420,6 +443,34 @@ contains
       rc = 0_c_int
     end if
   end function nwchemc_embed_set_nwpw_direct
+
+  !> Store structured Brillouin-zone controls for direct RTDB setup.
+  function nwchemc_embed_set_brillouin_zone(has_options, zone_name, &
+      zone_name_len, monkhorst_pack_x, monkhorst_pack_y, monkhorst_pack_z, &
+      max_kpoints_print) result(rc) &
+      bind(C, name='nwchemc_embed_set_brillouin_zone')
+    integer(c_int), intent(in), value :: has_options
+    character(kind=c_char), intent(in) :: zone_name(*)
+    integer(c_int), intent(in), value :: zone_name_len
+    integer(c_int), intent(in), value :: monkhorst_pack_x
+    integer(c_int), intent(in), value :: monkhorst_pack_y
+    integer(c_int), intent(in), value :: monkhorst_pack_z
+    integer(c_int), intent(in), value :: max_kpoints_print
+    integer(c_int) :: rc
+    character(len=64) :: zname
+
+    rc = -1_c_int
+    if (has_options < 0 .or. max_kpoints_print < 0) return
+    call c_chars_to_f(zone_name, zone_name_len, zname)
+    if (len_trim(zname) == 0) zname = 'zone_default'
+    cfg_brillouin_has_options = int(has_options)
+    cfg_brillouin_zone_name = zname
+    cfg_brillouin_monkhorst_pack(1) = int(monkhorst_pack_x)
+    cfg_brillouin_monkhorst_pack(2) = int(monkhorst_pack_y)
+    cfg_brillouin_monkhorst_pack(3) = int(monkhorst_pack_z)
+    cfg_brillouin_max_kpoints_print = int(max_kpoints_print)
+    rc = 0_c_int
+  end function nwchemc_embed_set_brillouin_zone
 
   !> Store direct NWPW pseudopotential library entries extracted from Cap'n Proto.
   function nwchemc_embed_set_pseudopotentials(elements, library_types, &
@@ -622,8 +673,10 @@ contains
         cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
         cfg_set_string_count, cfg_set_keys, cfg_set_values, &
         cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, energy_h, grad, &
-        msg, ok)
+        cfg_typed_set_value_counts, cfg_typed_set_values, &
+        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
+        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
+        energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
       grad_h_bohr(i) = real(grad(i), kind=c_double)
@@ -747,8 +800,10 @@ contains
         cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
         cfg_set_string_count, cfg_set_keys, cfg_set_values, &
         cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, energy_h, &
-        dipole, msg, ok)
+        cfg_typed_set_value_counts, cfg_typed_set_values, &
+        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
+        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
+        energy_h, dipole, msg, ok)
 
     do i = 1, 3
       dipole_au(i) = real(dipole(i), kind=c_double)
@@ -865,7 +920,10 @@ contains
         cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
         cfg_set_string_count, cfg_set_keys, cfg_set_values, &
         cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, hess, msg, ok)
+        cfg_typed_set_value_counts, cfg_typed_set_values, &
+        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
+        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
+        hess, msg, ok)
 
     do i = 1, n2
       hessian_h_bohr2(i) = real(hess(i), kind=c_double)
