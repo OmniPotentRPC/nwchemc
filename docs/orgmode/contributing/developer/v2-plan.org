@@ -154,8 +154,9 @@ type semantics instead of collapsing them to free-form strings.
 
 ** Atom And Geometry Limits
 The fixed-form embed helper currently caps direct geometry and basis setup at 64
-atoms and maps element symbols through krypton. Increase this only by matching
-NWChem geometry/basis allocation behavior, not by widening local arrays alone.
+atoms. Increase this only by matching NWChem geometry/basis allocation behavior,
+not by widening local arrays alone. Atomic-number to element-symbol mapping uses
+the full periodic table through oganesson for direct geometry and basis setup.
 
 ** ABI Surface
 Keep adding calculation entry points around the same ~NWChemParams~ carrier:

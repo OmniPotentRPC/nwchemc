@@ -836,14 +836,21 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       implicit none
       integer z
       character*16 elem
-      character*2 sym(0:36)
+      character*2 sym(0:118)
       data sym /'X ','H ','He','Li','Be','B ','C ','N ','O ','F ',
      $     'Ne','Na','Mg','Al','Si','P ','S ','Cl','Ar','K ','Ca',
      $     'Sc','Ti','V ','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga',
-     $     'Ge','As','Se','Br','Kr'/
+     $     'Ge','As','Se','Br','Kr','Rb','Sr','Y ','Zr','Nb','Mo',
+     $     'Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I ',
+     $     'Xe','Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd',
+     $     'Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W ','Re',
+     $     'Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn',
+     $     'Fr','Ra','Ac','Th','Pa','U ','Np','Pu','Am','Cm','Bk',
+     $     'Cf','Es','Fm','Md','No','Lr','Rf','Db','Sg','Bh','Hs',
+     $     'Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts','Og'/
 C     Left-align element symbol in character*16 (matches geom_input tags).
       elem = ' '
-      if (z .ge. 0 .and. z .le. 36) then
+      if (z .ge. 0 .and. z .le. 118) then
          elem(1:2) = sym(z)
       else
          elem(1:2) = 'X '
