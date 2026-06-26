@@ -39,6 +39,18 @@
     (
       kind = tce,
       tce = (
+        quadrupole = true
+      )
+    ),
+    (
+      kind = tce,
+      tce = (
+        octupole = true
+      )
+    ),
+    (
+      kind = tce,
+      tce = (
         method = "bwccsd"
       )
     )
