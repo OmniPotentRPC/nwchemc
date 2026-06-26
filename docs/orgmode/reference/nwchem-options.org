@@ -115,6 +115,10 @@ the promoted lines and writes the same values as typed RTDB entries:
 | ~oppositeSpinScale~ | ~fos <value>~ | ~ccsd:fos~ |
 | ~printLevel~, ~printItems~, ~noPrintItems~ | ~print <level> <items...>~, ~noprint <items...>~ | rendered input text |
 | ~doa~, ~dob~, ~dog~, ~doh~, ~dojk~, ~dos~, ~dod~ | same-named integer-list switch lines | rendered input text |
+| ~useTriplesDriverNonblocking~ | ~set ccsd:use_trpdrv_nb logical <value>~ | ~ccsd:use_trpdrv_nb~ |
+| ~useCcsdOpenmp~ | ~set ccsd:use_ccsd_omp logical <value>~ | ~ccsd:use_ccsd_omp~ |
+| ~useTriplesDriverOpenmp~ | ~set ccsd:use_trpdrv_omp logical <value>~ | ~ccsd:use_trpdrv_omp~ |
+| ~useTriplesDriverOffload~ | ~set ccsd:use_trpdrv_offload logical <value>~ | ~ccsd:use_trpdrv_offload~ |
 
 ~NWChemTceStanza~ reads the Tensor Contraction Engine coupled-cluster surface
 from the same Cap'n Proto message. Full-deck rendering emits a ~tce~ block.
