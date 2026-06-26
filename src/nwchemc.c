@@ -147,6 +147,15 @@ static capn_text text_from_cstr(const char *s) {
   return text;
 }
 
+static int direct_struct_list_len(capn_ptr *ptr) {
+  capn_resolve(ptr);
+  if (ptr->type == CAPN_NULL)
+    return 0;
+  if (ptr->type != CAPN_LIST)
+    return -1;
+  return ptr->len;
+}
+
 static int append_direct_typed_values(
     capn_text *keys, int *value_types, int *value_counts, capn_text *values,
     size_t key_capacity, size_t value_capacity, size_t *count,
@@ -328,7 +337,7 @@ static int append_tce_direct_values(
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
-  int n = struct_list_len(&view.inputStanzas.p);
+  int n = direct_struct_list_len(&view.inputStanzas.p);
   if (n < 0)
     return -1;
 
