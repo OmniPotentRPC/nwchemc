@@ -203,6 +203,11 @@ def main() -> int:
                 "embed": "runs total traceless quadrupole",
             },
             {
+                "name": "nwchemc_optimize",
+                "stub": "fails ok==0",
+                "embed": "runs geometry optimization",
+            },
+            {
                 "name": "nwchemc_session_create",
                 "stub": "returns NULL",
                 "embed": "creates persistent Cap'n Proto session",
@@ -243,6 +248,11 @@ def main() -> int:
                 "embed": "runs session total traceless quadrupole",
             },
             {
+                "name": "nwchemc_session_optimize",
+                "stub": "fails ok==0",
+                "embed": "runs session geometry optimization",
+            },
+            {
                 "name": "nwchemc_session_calculate_forces",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput energy/forces",
@@ -273,6 +283,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput quadrupole",
             },
             {
+                "name": "nwchemc_calculate_optimize",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput geometry optimization",
+            },
+            {
                 "name": "nwchemc_potential_result_size_for_force_input",
                 "stub": "returns 0",
                 "embed": "sizes session PotentialResult output from ForceInput",
@@ -291,6 +306,11 @@ def main() -> int:
                 "name": "nwchemc_session_calculate_quadrupole",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput quadrupole",
+            },
+            {
+                "name": "nwchemc_session_calculate_optimize",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput geometry optimization",
             },
             {
                 "name": "nwchemc_session_hessian",
