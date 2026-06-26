@@ -899,6 +899,8 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static const char *print_level_keyword(enum NWChemPrintLevel print_level);
+
 static int render_ccsd_stanza(NWChemCcsdStanza_ptr ptr, char *dst,
                               size_t dst_size, int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
@@ -911,12 +913,19 @@ static int render_ccsd_stanza(NWChemCcsdStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(ccsd.directives);
   if (has_directives < 0)
     return -1;
+  const char *print_level = print_level_keyword(ccsd.printLevel);
+  int nprint_items = pointer_list_len(&ccsd.printItems);
+  int nnoprint_items = pointer_list_len(&ccsd.noPrintItems);
+  if (nprint_items < 0 || nnoprint_items < 0)
+    return -1;
   int has_promoted =
       ccsd.maxiter > 0 || ccsd.thresh > 0.0 || ccsd.tol2e > 0.0 ||
       ccsd.iprt > 0 || ccsd.maxDiis > 0 || ccsd.frozenCore > 0 ||
       ccsd.frozenVirtual > 0 || ccsd.useDisk != NWChemToggle_unspecified ||
       ccsd.sameSpinScale > 0.0 || ccsd.oppositeSpinScale > 0.0;
-  int has_remaining = has_directives || (include_direct_promoted && has_promoted);
+  int has_print = print_level || nprint_items > 0 || nnoprint_items > 0;
+  int has_remaining =
+      has_directives || has_print || (include_direct_promoted && has_promoted);
   if (!has_remaining)
     return 0;
   if (append_format(block, sizeof(block), "ccsd\n") != 0)
@@ -961,6 +970,22 @@ static int render_ccsd_stanza(NWChemCcsdStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  fos %.12g\n",
                     ccsd.oppositeSpinScale) != 0)
     return -1;
+  if (print_level || nprint_items > 0) {
+    if (append_format(block, sizeof(block), "  print") != 0)
+      return -1;
+    if (print_level &&
+        append_format(block, sizeof(block), " %s", print_level) != 0)
+      return -1;
+    if (append_text_args(ccsd.printItems, block, sizeof(block)) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (nnoprint_items > 0) {
+    if (append_format(block, sizeof(block), "  noprint") != 0 ||
+        append_text_args(ccsd.noPrintItems, block, sizeof(block)) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(ccsd.directives, block, sizeof(block), "  ") != 0 ||
       append_format(block, sizeof(block), "end") != 0)
     return -1;
