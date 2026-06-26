@@ -28,6 +28,7 @@ static char g_set_keys[8][129];
 static char g_set_values[8][257];
 static char g_typed_set_keys[192][129];
 static char g_typed_set_values[192][4][257];
+static char g_brillouin_zone_name[64];
 static int g_psp_types[8];
 static int g_typed_set_types[192];
 static int g_typed_set_value_counts[192];
@@ -39,6 +40,7 @@ static int g_set_dft_direct_calls = 0;
 static int g_set_scf_direct_calls = 0;
 static int g_set_driver_direct_calls = 0;
 static int g_set_nwpw_direct_calls = 0;
+static int g_set_brillouin_zone_calls = 0;
 static int g_set_pseudopotential_calls = 0;
 static int g_set_rtdb_strings_calls = 0;
 static int g_set_rtdb_values_calls = 0;
@@ -62,6 +64,9 @@ static double g_nwpw_energy_cutoff = 0.0;
 static double g_nwpw_wavefunction_cutoff = 0.0;
 static double g_nwpw_ewald_rcut = 0.0;
 static int g_nwpw_ewald_ncut = 0;
+static int g_brillouin_has_options = 0;
+static int g_brillouin_monkhorst_pack[3] = {0, 0, 0};
+static int g_brillouin_max_kpoints_print = 0;
 static int g_energy_grad_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
@@ -210,6 +215,22 @@ int nwchemc_embed_set_nwpw_direct(int has_options, double energy_cutoff,
   g_nwpw_wavefunction_cutoff = wavefunction_cutoff;
   g_nwpw_ewald_rcut = ewald_rcut;
   g_nwpw_ewald_ncut = ewald_ncut;
+  return 0;
+}
+
+int nwchemc_embed_set_brillouin_zone(int has_options, const char *zone_name,
+                                     int zone_name_len, int monkhorst_pack_x,
+                                     int monkhorst_pack_y,
+                                     int monkhorst_pack_z,
+                                     int max_kpoints_print) {
+  ++g_set_brillouin_zone_calls;
+  g_brillouin_has_options = has_options;
+  copy_span(g_brillouin_zone_name, sizeof(g_brillouin_zone_name), zone_name,
+            zone_name_len);
+  g_brillouin_monkhorst_pack[0] = monkhorst_pack_x;
+  g_brillouin_monkhorst_pack[1] = monkhorst_pack_y;
+  g_brillouin_monkhorst_pack[2] = monkhorst_pack_z;
+  g_brillouin_max_kpoints_print = max_kpoints_print;
   return 0;
 }
 
@@ -466,6 +487,7 @@ static void reset_embed_captures(void) {
   g_set_scf_direct_calls = 0;
   g_set_driver_direct_calls = 0;
   g_set_nwpw_direct_calls = 0;
+  g_set_brillouin_zone_calls = 0;
   g_set_pseudopotential_calls = 0;
   g_set_rtdb_strings_calls = 0;
   g_set_rtdb_values_calls = 0;
@@ -489,6 +511,12 @@ static void reset_embed_captures(void) {
   g_nwpw_wavefunction_cutoff = 0.0;
   g_nwpw_ewald_rcut = 0.0;
   g_nwpw_ewald_ncut = 0;
+  g_brillouin_has_options = 0;
+  g_brillouin_zone_name[0] = '\0';
+  g_brillouin_monkhorst_pack[0] = 0;
+  g_brillouin_monkhorst_pack[1] = 0;
+  g_brillouin_monkhorst_pack[2] = 0;
+  g_brillouin_max_kpoints_print = 0;
   g_energy_grad_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
@@ -649,6 +677,9 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "lcao_skip"));
   assert_null(strstr(g_input_blocks, "ewald_ngrid 9 10 11"));
   assert_null(strstr(g_input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
+  assert_null(strstr(g_input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
+  assert_null(strstr(g_input_blocks, "zone_name zoneA"));
+  assert_null(strstr(g_input_blocks, "max_kpoints_print 12"));
   assert_null(strstr(g_input_blocks, "ccsd\n  maxiter 20"));
   assert_null(strstr(g_input_blocks, "freeze 1 virtual 2"));
   assert_null(strstr(g_input_blocks, "nodisk"));
@@ -894,6 +925,13 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_close(g_nwpw_wavefunction_cutoff, 6.25, 1e-12);
   assert_close(g_nwpw_ewald_rcut, 3.5, 1e-12);
   assert_int_equal(g_nwpw_ewald_ncut, 9);
+  assert_int_equal(g_set_brillouin_zone_calls, 1);
+  assert_int_equal(g_brillouin_has_options, 1);
+  assert_string_equal(g_brillouin_zone_name, "zoneA");
+  assert_int_equal(g_brillouin_monkhorst_pack[0], 3);
+  assert_int_equal(g_brillouin_monkhorst_pack[1], 4);
+  assert_int_equal(g_brillouin_monkhorst_pack[2], -5);
+  assert_int_equal(g_brillouin_max_kpoints_print, 12);
   assert_int_equal(g_set_pseudopotential_calls, 1);
   assert_int_equal(g_psp_count, 6);
   assert_string_equal(g_psp_elements[0], "Si");
