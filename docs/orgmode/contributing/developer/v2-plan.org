@@ -380,6 +380,13 @@ RTDB, calls ~nwchemc_store_pseudopotentials~ directly, and reads back the exact
 test covers ~library~, ~pspw_library~, ~paw_library~, ~cpi~, ~teter~, and
 ~allElements~ entries without routing through NWChem text input.
 
+Top-level text-input parity for the same NWPW pseudopotential stanza requires
+an NWPW-enabled NWChem link. The current embedded test link resolves
+~nwpw_input~ through NWChem's stub object, which aborts before the text input
+handler can populate RTDB. Use the direct RTDB regression above for this build
+and run a matching text/deck parity probe only against a build where
+~src/nwpw/nwpw_input.F~ is linked.
+
 ** Atom And Geometry Limits
 The fixed-form embed helper currently caps direct geometry and basis setup at 64
 atoms. Increase this only by matching NWChem geometry/basis allocation behavior,
