@@ -576,7 +576,7 @@ if get_option('with_tests')
       'nwchem-session-result',
       executable(
         'test_nwchem_session_result',
-        ['tests/test_nwchem_session_result.c'] + nwchemc_params_sources,
+        'tests/test_nwchem_session_result.c',
         include_directories: [inc] + nwchemc_params_includes,
         dependencies: [math_dep, cmocka_dep] + nwchemc_params_deps,
         link_with: nwchemc,

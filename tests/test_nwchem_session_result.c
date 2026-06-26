@@ -1,5 +1,5 @@
 #include "nwchemc.h"
-#include "nwchemc_params.h"
+#include "Potentials.capnp.h"
 
 #include <errno.h>
 #include <math.h>
@@ -16,12 +16,6 @@
 static const char *g_params_path = NULL;
 static const char *g_step_eq_path = NULL;
 static const char *g_step_stretched_path = NULL;
-
-struct decoded_result {
-  double energy;
-  double forces[6];
-  size_t force_count;
-};
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -79,9 +73,9 @@ static void assert_close(double actual, double expected, double tolerance) {
   assert_true(actual < expected + tolerance);
 }
 
-static void decode_potential_result(const unsigned char *message,
-                                    size_t message_size,
-                                    struct decoded_result *decoded) {
+static double assert_potential_result(const unsigned char *message,
+                                      size_t message_size,
+                                      double expected_energy) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -89,38 +83,34 @@ static void decode_potential_result(const unsigned char *message,
   assert_int_equal(root.p.type, CAPN_STRUCT);
   struct PotentialResult result;
   read_PotentialResult(&result, root);
-  decoded->energy = result.energy;
+  assert_close(result.energy, expected_energy, 1.0e-12);
   capn_resolve(&result.forces.p);
   assert_int_equal(result.forces.p.type, CAPN_LIST);
   assert_int_equal(result.forces.p.datasz, 8);
-  assert_true(result.forces.p.len >= 0);
-  assert_true(result.forces.p.len <= 6);
-  decoded->force_count = (size_t)result.forces.p.len;
-  for (size_t i = 0; i < decoded->force_count; ++i)
-    decoded->forces[i] = capn_to_f64(capn_get64(result.forces, (int)i));
+  assert_int_equal(result.forces.p.len, 6);
+  for (int i = 0; i < result.forces.p.len; ++i) {
+    double force = capn_to_f64(capn_get64(result.forces, i));
+    if (!isfinite(force))
+      fail_msg("non-finite force[%d]", i);
+  }
+  double energy = result.energy;
   capn_free(&arena);
+  return energy;
 }
 
 static NWChemCResult calculate_result_step(
     NWChemCSession *session, const unsigned char *step, size_t step_size,
     unsigned char *result_bytes, size_t result_capacity, size_t *result_size,
-    struct decoded_result *decoded) {
+    double *result_energy) {
   *result_size = 0;
   NWChemCResult result =
       nwchemc_session_calculate_result(session, step, step_size, result_bytes,
                                        result_capacity, result_size);
   if (!result.ok)
     fail_msg("nwchemc_session_calculate_result failed: %s", result.message);
-  decode_potential_result(result_bytes, *result_size, decoded);
+  *result_energy =
+      assert_potential_result(result_bytes, *result_size, result.energy_h);
   return result;
-}
-
-static void assert_finite_forces(const struct decoded_result *decoded) {
-  assert_int_equal(decoded->force_count, 6);
-  for (size_t i = 0; i < decoded->force_count; ++i) {
-    if (!isfinite(decoded->forces[i]))
-      fail_msg("non-finite force[%zu]", i);
-  }
 }
 
 static void test_session_calculate_result_accepts_multiple_steps(void **state) {
@@ -152,19 +142,19 @@ static void test_session_calculate_result_accepts_multiple_steps(void **state) {
   size_t eq_result_size = 0;
   size_t stretched_result_size = 0;
   size_t repeated_result_size = 0;
-  struct decoded_result eq;
-  struct decoded_result stretched;
-  struct decoded_result repeated;
+  double eq_energy = 0.0;
+  double stretched_energy = 0.0;
+  double repeated_energy = 0.0;
 
   NWChemCResult eq_status = calculate_result_step(
       session, step_eq, step_eq_size, result_bytes, sizeof(result_bytes),
-      &eq_result_size, &eq);
+      &eq_result_size, &eq_energy);
   NWChemCResult stretched_status = calculate_result_step(
       session, step_stretched, step_stretched_size, result_bytes,
-      sizeof(result_bytes), &stretched_result_size, &stretched);
+      sizeof(result_bytes), &stretched_result_size, &stretched_energy);
   NWChemCResult repeated_status = calculate_result_step(
       session, step_eq, step_eq_size, result_bytes, sizeof(result_bytes),
-      &repeated_result_size, &repeated);
+      &repeated_result_size, &repeated_energy);
 
   assert_int_equal(eq_result_size, expected_eq_size);
   assert_int_equal(stretched_result_size, expected_stretched_size);
@@ -172,14 +162,8 @@ static void test_session_calculate_result_accepts_multiple_steps(void **state) {
   assert_true(isfinite(eq_status.energy_h));
   assert_true(isfinite(stretched_status.energy_h));
   assert_true(isfinite(repeated_status.energy_h));
-  assert_close(eq.energy, eq_status.energy_h, 1.0e-12);
-  assert_close(stretched.energy, stretched_status.energy_h, 1.0e-12);
-  assert_close(repeated.energy, repeated_status.energy_h, 1.0e-12);
-  assert_close(repeated.energy, eq.energy, 1.0e-10);
-  assert_true(fabs(stretched.energy - eq.energy) > 1.0e-5);
-  assert_finite_forces(&eq);
-  assert_finite_forces(&stretched);
-  assert_finite_forces(&repeated);
+  assert_close(repeated_energy, eq_energy, 1.0e-10);
+  assert_true(fabs(stretched_energy - eq_energy) > 1.0e-5);
 
   nwchemc_session_destroy(session);
   free(step_stretched);

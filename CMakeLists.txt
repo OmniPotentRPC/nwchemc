@@ -646,9 +646,16 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     set_tests_properties(nwchem-energy-forces PROPERTIES RUN_SERIAL TRUE)
 
     add_executable(nwchem-session-result tests/test_nwchem_session_result.c)
+    target_sources(nwchem-session-result PRIVATE "${NWCHEMC_POTENTIALS_CAPNP_C}")
+    target_include_directories(nwchem-session-result PRIVATE
+      ${NWCHEMC_INCLUDE_DIRS}
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema"
+      "${NWCHEMC_SCHEMA_BUILD_DIR}"
+      ${CAPNP_C_INCLUDES}
+    )
     target_link_libraries(nwchem-session-result PRIVATE
       nwchemc
-      nwchemc_params
+      capnp_c_runtime
       PkgConfig::CMOCKA
     )
     if(NWCHEMC_M_LIBRARY)
