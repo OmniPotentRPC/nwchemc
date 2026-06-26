@@ -213,6 +213,27 @@
       )
     ),
     (
+      kind = simulationCell,
+      simulationCell = (
+        cellName = "cellA",
+        boundaryConditions = "periodic",
+        latticeVectorsBohr = [
+          1.0, 0.0, 0.0,
+          0.0, 2.0, 0.0,
+          0.0, 0.0, 3.0
+        ],
+        ngridX = 20,
+        ngridY = 22,
+        ngridZ = 24,
+        ngridSmallX = 10,
+        ngridSmallY = 11,
+        ngridSmallZ = 12,
+        boxDeltaBohr = 1.0,
+        boxOrient = true,
+        boxDifferentLengths = true
+      )
+    ),
+    (
       kind = pseudopotential,
       pseudopotential = (
         entries = [

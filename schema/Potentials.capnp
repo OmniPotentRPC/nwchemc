@@ -211,6 +211,31 @@ struct NWChemBrillouinZoneStanza {
   directives        @6 :List(NWChemDirective);
 }
 
+enum NWChemSimulationCellLatticeKind {
+  unspecified @0; # Do not emit a compact cubic lattice directive.
+  sc          @1; # Emit/promote NWChem "sc".
+  fcc         @2; # Emit/promote NWChem "fcc".
+  bcc         @3; # Emit/promote NWChem "bcc".
+}
+
+struct NWChemSimulationCellStanza {
+  cellName            @0  :Text = ""; # NWChem cell_name; empty uses cell_default.
+  boundaryConditions  @1  :Text = ""; # periodic, surface, free-space, ...
+  latticeVectorsBohr  @2  :List(Float64); # Flat 3x3 simulation-cell vectors in Bohr.
+  ngridX              @3  :Int32 = 0; # First ngrid value.
+  ngridY              @4  :Int32 = 0; # Second ngrid value.
+  ngridZ              @5  :Int32 = 0; # Third ngrid value.
+  ngridSmallX         @6  :Int32 = 0; # First ngrid_small value.
+  ngridSmallY         @7  :Int32 = 0; # Second ngrid_small value.
+  ngridSmallZ         @8  :Int32 = 0; # Third ngrid_small value.
+  boxDeltaBohr        @9  :Float64 = 0.0; # box_delta in Bohr.
+  boxOrient           @10 :Bool = false; # Emit/promote box_orient.
+  boxDifferentLengths @11 :Bool = false; # Emit/promote box_different_lengths.
+  latticeKind         @12 :NWChemSimulationCellLatticeKind = unspecified;
+  latticeLengthBohr   @13 :Float64 = 0.0; # sc/fcc/bcc compact lattice length in Bohr.
+  directives          @14 :List(NWChemDirective);
+}
+
 enum NWChemNwpwBalanceMode {
   unspecified @0; # Do not emit balance/nobalance.
   balance     @1; # Emit/promote NWChem "balance".
@@ -520,6 +545,7 @@ struct NWChemInputStanza {
   tce             @15 :NWChemTceStanza;
   mrccData        @16 :NWChemMrccDataStanza;
   brillouinZone   @17 :NWChemBrillouinZoneStanza;
+  simulationCell  @18 :NWChemSimulationCellStanza;
 
   enum Kind {
     generic         @0;
@@ -539,6 +565,7 @@ struct NWChemInputStanza {
     tce             @14;
     mrccData        @15;
     brillouinZone   @16;
+    simulationCell  @17;
   }
 }
 

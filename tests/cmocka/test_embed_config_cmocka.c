@@ -27,7 +27,7 @@ static char g_psp_names[8][257];
 static char g_set_keys[8][129];
 static char g_set_values[8][257];
 static char g_typed_set_keys[192][129];
-static char g_typed_set_values[192][4][257];
+static char g_typed_set_values[192][16][257];
 static char g_brillouin_zone_name[64];
 static double g_brillouin_kvectors[8];
 static int g_psp_types[8];
@@ -284,7 +284,7 @@ int nwchemc_embed_set_rtdb_values(const char *keys, const int *value_types,
               keys + i * 128, 128);
     g_typed_set_types[i] = value_types[i];
     g_typed_set_value_counts[i] = value_counts[i];
-    int nvalues = value_counts[i] < 4 ? value_counts[i] : 4;
+    int nvalues = value_counts[i] < 16 ? value_counts[i] : 16;
     for (int j = 0; j < nvalues; ++j) {
       copy_span(g_typed_set_values[i][j], sizeof(g_typed_set_values[i][j]),
                 values + (i * 16 + j) * 256, 256);
@@ -481,7 +481,7 @@ static void reset_embed_captures(void) {
   }
   for (int i = 0; i < 192; ++i) {
     g_typed_set_keys[i][0] = '\0';
-    for (int j = 0; j < 4; ++j)
+    for (int j = 0; j < 16; ++j)
       g_typed_set_values[i][j][0] = '\0';
     g_typed_set_types[i] = -1;
     g_typed_set_value_counts[i] = 0;
@@ -618,6 +618,17 @@ static void assert_typed_set_triple(const char *key, int value_type,
   assert_string_equal(g_typed_set_values[index][2], third);
 }
 
+static void assert_typed_set_values(const char *key, int value_type,
+                                    int nvalues,
+                                    const char *const *expected) {
+  int index = find_typed_set_key(key);
+  assert_true(index >= 0);
+  assert_int_equal(g_typed_set_types[index], value_type);
+  assert_int_equal(g_typed_set_value_counts[index], nvalues);
+  for (int i = 0; i < nvalues; ++i)
+    assert_string_equal(g_typed_set_values[index][i], expected[i]);
+}
+
 static void test_embed_config_uses_direct_dft_values(void **state) {
   (void)state;
   reset_embed_captures();
@@ -690,6 +701,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_null(strstr(g_input_blocks, "zone_name zoneA"));
   assert_null(strstr(g_input_blocks, "max_kpoints_print 12"));
+  assert_null(strstr(g_input_blocks, "simulation_cell"));
+  assert_null(strstr(g_input_blocks, "boundary_conditions periodic"));
+  assert_null(strstr(g_input_blocks, "lattice_vectors"));
+  assert_null(strstr(g_input_blocks, "ngrid 20 22 24"));
+  assert_null(strstr(g_input_blocks, "ngrid_small 10 11 12"));
+  assert_null(strstr(g_input_blocks, "box_delta 1"));
+  assert_null(strstr(g_input_blocks, "box_orient"));
+  assert_null(strstr(g_input_blocks, "box_different_lengths"));
   assert_null(strstr(g_input_blocks, "ccsd\n  maxiter 20"));
   assert_null(strstr(g_input_blocks, "freeze 1 virtual 2"));
   assert_null(strstr(g_input_blocks, "nodisk"));
@@ -712,7 +731,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 149);
+  assert_int_equal(g_typed_set_count, 156);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -837,6 +856,23 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "3");
   assert_typed_set_scalar("nwpw:Nchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "3");
+  assert_typed_set_scalar("cellA:boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "periodic");
+  const char *unita_values[9] = {"1", "0", "0", "0", "2",
+                                 "0", "0", "0", "3"};
+  assert_typed_set_values("cellA:unita", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, 9,
+                          unita_values);
+  assert_typed_set_triple("cellA:ngrid", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "20", "22", "24");
+  assert_typed_set_triple("cellA:ngrid_small",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "10", "11",
+                          "12");
+  assert_typed_set_scalar("cellA:box_delta",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1");
+  assert_typed_set_scalar("cellA:box_orient",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("cellA:box_type", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "1");
   assert_typed_set_scalar("ccsd:maxiter", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "20");
   assert_typed_set_scalar("ccsd:thresh", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
