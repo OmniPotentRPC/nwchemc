@@ -113,7 +113,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     driver_has_options, driver_maxiter, driver_tolerance_mode,
      $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
      $     driver_xrms_tol, psp_count, psp_elements, psp_types,
-     $     psp_names, energy_h, grad_h_bohr, errmsg, ok)
+     $     psp_names, set_string_count, set_keys, set_values,
+     $     energy_h, grad_h_bohr, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -124,6 +125,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer rtdb, n_atoms, charge, mult, ok
       integer has_cell
       integer psp_count
+      integer set_string_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
@@ -138,6 +140,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*4096 input_blocks
       character*16 psp_elements(*)
       character*256 psp_names(*)
+      character*128 set_keys(*)
+      character*256 set_values(*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
@@ -183,6 +187,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             return
          endif
       endif
+      call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
+     $     set_keys, set_values, errmsg, status)
+      if (.not. status) return
 
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
@@ -245,7 +252,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     driver_has_options, driver_maxiter, driver_tolerance_mode,
      $     driver_gmax_tol, driver_grms_tol, driver_xmax_tol,
      $     driver_xrms_tol, psp_count, psp_elements, psp_types,
-     $     psp_names, hessian_h_bohr2, errmsg, ok)
+     $     psp_names, set_string_count, set_keys, set_values,
+     $     hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -256,6 +264,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer rtdb, n_atoms, charge, mult, ok
       integer has_cell
       integer psp_count
+      integer set_string_count
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
       integer driver_has_options, driver_maxiter
@@ -270,6 +279,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*4096 input_blocks
       character*16 psp_elements(*)
       character*256 psp_names(*)
+      character*128 set_keys(*)
+      character*256 set_values(*)
       double precision dft_smear_sigma
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
@@ -319,6 +330,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             return
          endif
       endif
+      call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
+     $     set_keys, set_values, errmsg, status)
+      if (.not. status) return
 
       call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
@@ -368,6 +382,41 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
  920  continue
       close(unit=69, status='keep')
       errmsg = 'unexpected EOF reading hessian file'
+      return
+      end
+
+      subroutine nwchemc_apply_direct_string_sets(rtdb, set_count,
+     $     set_keys, set_values, errmsg, ok)
+      implicit none
+#include "rtdb.fh"
+#include "inp.fh"
+      integer rtdb, set_count
+      character*128 set_keys(*)
+      character*256 set_values(*)
+      character*(*) errmsg
+      logical ok
+      integer i, l_key, l_value, maxsets
+      parameter (maxsets = 64)
+
+      ok = .false.
+      if (set_count .lt. 0 .or. set_count .gt. maxsets) then
+         errmsg = 'invalid direct set string count'
+         return
+      endif
+      do i = 1, set_count
+         l_key = inp_strlen(set_keys(i))
+         l_value = inp_strlen(set_values(i))
+         if (l_key .le. 0 .or. l_value .le. 0) then
+            errmsg = 'empty direct set string'
+            return
+         endif
+         if (.not. rtdb_cput(rtdb, set_keys(i)(1:l_key), 1,
+     $      set_values(i)(1:l_value))) then
+            errmsg = 'direct set string write failed'
+            return
+         endif
+      enddo
+      ok = .true.
       return
       end
 

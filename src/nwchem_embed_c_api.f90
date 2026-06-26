@@ -23,6 +23,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_set_scf_direct
   public :: nwchemc_embed_set_driver_direct
   public :: nwchemc_embed_set_pseudopotentials
+  public :: nwchemc_embed_set_rtdb_strings
   public :: nwchemc_embed_energy_grad
   public :: nwchemc_embed_energy_grad_cell
   public :: nwchemc_embed_hessian
@@ -63,10 +64,16 @@ module nwchem_embed_c_api
   integer, parameter :: max_embed_pseudopotentials = 64
   integer, parameter :: psp_element_len = 16
   integer, parameter :: psp_name_len = 256
+  integer, parameter :: max_embed_set_strings = 64
+  integer, parameter :: set_key_len = 128
+  integer, parameter :: set_value_len = 256
   integer, save :: cfg_psp_count = 0
   character(len=psp_element_len), save :: cfg_psp_elements(max_embed_pseudopotentials) = ' '
   character(len=psp_name_len), save :: cfg_psp_names(max_embed_pseudopotentials) = ' '
   integer, save :: cfg_psp_types(max_embed_pseudopotentials) = 0
+  integer, save :: cfg_set_string_count = 0
+  character(len=set_key_len), save :: cfg_set_keys(max_embed_set_strings) = ' '
+  character(len=set_value_len), save :: cfg_set_values(max_embed_set_strings) = ' '
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
@@ -89,7 +96,8 @@ module nwchem_embed_c_api
         scf_tol2e, driver_has_options, driver_maxiter, &
         driver_tolerance_mode, driver_gmax_tol, driver_grms_tol, &
         driver_xmax_tol, driver_xrms_tol, psp_count, psp_elements, &
-        psp_types, psp_names, energy_h, grad_h_bohr, errmsg, ok)
+        psp_types, psp_names, set_string_count, set_keys, set_values, &
+        energy_h, grad_h_bohr, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -110,6 +118,9 @@ module nwchem_embed_c_api
       character(len=16), intent(in) :: psp_elements(*)
       integer, intent(in) :: psp_types(*)
       character(len=256), intent(in) :: psp_names(*)
+      integer, intent(in) :: set_string_count
+      character(len=128), intent(in) :: set_keys(*)
+      character(len=256), intent(in) :: set_values(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: energy_h
@@ -125,7 +136,8 @@ module nwchem_embed_c_api
         scf_tol2e, driver_has_options, driver_maxiter, &
         driver_tolerance_mode, driver_gmax_tol, driver_grms_tol, &
         driver_xmax_tol, driver_xrms_tol, psp_count, psp_elements, psp_types, &
-        psp_names, hessian_h_bohr2, errmsg, ok)
+        psp_names, set_string_count, set_keys, set_values, &
+        hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -146,6 +158,9 @@ module nwchem_embed_c_api
       character(len=16), intent(in) :: psp_elements(*)
       integer, intent(in) :: psp_types(*)
       character(len=256), intent(in) :: psp_names(*)
+      integer, intent(in) :: set_string_count
+      character(len=128), intent(in) :: set_keys(*)
+      character(len=256), intent(in) :: set_values(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
       real(real64), intent(out) :: hessian_h_bohr2(*)
@@ -343,6 +358,31 @@ contains
     rc = 0_c_int
   end function nwchemc_embed_set_pseudopotentials
 
+  !> Store text-valued RTDB set directives extracted from Cap'n Proto.
+  function nwchemc_embed_set_rtdb_strings(keys, values, count) result(rc) &
+      bind(C, name='nwchemc_embed_set_rtdb_strings')
+    character(kind=c_char), intent(in) :: keys(*)
+    character(kind=c_char), intent(in) :: values(*)
+    integer(c_int), intent(in), value :: count
+    integer(c_int) :: rc
+    integer :: i, n
+
+    rc = -1_c_int
+    n = int(count)
+    if (n < 0 .or. n > max_embed_set_strings) return
+
+    cfg_set_string_count = n
+    cfg_set_keys = ' '
+    cfg_set_values = ' '
+    do i = 1, n
+      call c_chars_to_f(keys((i - 1) * set_key_len + 1), &
+          int(set_key_len, c_int), cfg_set_keys(i))
+      call c_chars_to_f(values((i - 1) * set_value_len + 1), &
+          int(set_value_len, c_int), cfg_set_values(i))
+    end do
+    rc = 0_c_int
+  end function nwchemc_embed_set_rtdb_strings
+
   !> Energy (Hartree) + nuclear gradient (Hartree/Bohr) for current config.
   function nwchemc_embed_energy_grad(n_atoms, positions_ang, &
       atomic_numbers, charge, mult, energy_h, grad_h_bohr, errmsg, &
@@ -451,7 +491,8 @@ contains
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
         cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        energy_h, grad, msg, ok)
+        cfg_set_string_count, cfg_set_keys, cfg_set_values, energy_h, grad, &
+        msg, ok)
 
     do i = 1, 3 * n
       grad_h_bohr(i) = real(grad(i), kind=c_double)
@@ -566,7 +607,7 @@ contains
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
         cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        hess, msg, ok)
+        cfg_set_string_count, cfg_set_keys, cfg_set_values, hess, msg, ok)
 
     do i = 1, n2
       hessian_h_bohr2(i) = real(hess(i), kind=c_double)

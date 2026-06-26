@@ -847,7 +847,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 int include_direct_promoted_dft,
                                 int include_direct_promoted_scf,
                                 int include_direct_pseudopotentials,
-                                int include_direct_promoted_driver) {
+                                int include_direct_promoted_driver,
+                                int include_direct_set_strings) {
   int n = struct_list_len(&stanzas.p);
   if (n < 0)
     return -1;
@@ -861,7 +862,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
         return -1;
       break;
     case NWChemInputStanza_Kind_set:
-      if (render_set_stanza(stanza.set, dst, dst_size) != 0)
+      if (include_direct_set_strings &&
+          render_set_stanza(stanza.set, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_raw:
@@ -935,7 +937,8 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1, 1) !=
+      0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -947,7 +950,8 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   struct NWChemParams view;
   read_NWChemParams(&view, params);
   dst[0] = '\0';
-  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0) != 0)
+  if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0, 0) !=
+      0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -1151,6 +1155,42 @@ int nwchemc_params_extract_direct_pseudopotentials(
       library_names[*count] = entry.libraryName;
       ++*count;
     }
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_set_strings(NWChemParams_ptr params,
+                                              capn_text *keys,
+                                              capn_text *values,
+                                              size_t capacity,
+                                              size_t *count) {
+  if (params.p.type == CAPN_NULL || !keys || !values || !count)
+    return -1;
+
+  *count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int nstanzas = struct_list_len(&view.inputStanzas.p);
+  if (nstanzas < 0)
+    return -1;
+
+  for (int i = 0; i < nstanzas; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_set ||
+        stanza.set.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemSetDirective set;
+    read_NWChemSetDirective(&set, stanza.set);
+    if (set.key.len <= 0 || set.value.len <= 0)
+      continue;
+    if (*count >= capacity)
+      return -1;
+    keys[*count] = set.key;
+    values[*count] = set.value;
+    ++*count;
   }
   return 0;
 }
