@@ -119,6 +119,9 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "hmotion_filename h.mov"));
   assert_non_null(strstr(input_blocks, "omotion_filename orb.mov"));
   assert_non_null(strstr(input_blocks, "eigmotion_filename eig.mov"));
+  assert_non_null(strstr(input_blocks, "fractional_orbitals 5 6"));
+  assert_non_null(strstr(input_blocks,
+                         "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -193,6 +196,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "hmotion_filename h.mov"));
   assert_null(strstr(input_blocks, "omotion_filename orb.mov"));
   assert_null(strstr(input_blocks, "eigmotion_filename eig.mov"));
+  assert_null(strstr(input_blocks, "fractional_orbitals 5 6"));
+  assert_null(strstr(input_blocks,
+                     "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -347,6 +353,29 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(text_equals(hamiltonian_motion_filename, "h.mov"));
   assert_true(text_equals(orbital_motion_filename, "orb.mov"));
   assert_true(text_equals(eigenvalue_motion_filename, "eig.mov"));
+
+  int has_fractional = 0;
+  int fractional_orbitals_start = 0;
+  int fractional_orbitals_end = 0;
+  int has_smear = 0;
+  double smear_temperature = 0.0;
+  double smear_alpha = 0.0;
+  int smear_type = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_fractional(
+                       params_root, &has_fractional,
+                       &fractional_orbitals_start, &fractional_orbitals_end,
+                       &has_smear, &smear_temperature, &smear_alpha,
+                       &smear_type),
+                   0);
+  assert_int_equal(has_fractional, 1);
+  assert_int_equal(fractional_orbitals_start, 5);
+  assert_int_equal(fractional_orbitals_end, 6);
+  assert_int_equal(has_smear, 1);
+  assert_true(smear_temperature > 0.0199);
+  assert_true(smear_temperature < 0.0201);
+  assert_true(smear_alpha > 0.699);
+  assert_true(smear_alpha < 0.701);
+  assert_int_equal(smear_type, NWChemNwpwSmearType_fermi);
 
   nwchemc_params_release(&arena);
   free(message);

@@ -80,7 +80,12 @@
         electronMotionFilename = "electron.mov",
         hamiltonianMotionFilename = "h.mov",
         orbitalMotionFilename = "orb.mov",
-        eigenvalueMotionFilename = "eig.mov"
+        eigenvalueMotionFilename = "eig.mov",
+        fractionalOrbitalsStart = 5,
+        fractionalOrbitalsEnd = 6,
+        smearTemperature = 0.02,
+        smearAlpha = 0.7,
+        smearType = fermi
       )
     ),
     (

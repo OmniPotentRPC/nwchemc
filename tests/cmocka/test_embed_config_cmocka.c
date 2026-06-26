@@ -642,11 +642,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "hmotion_filename h.mov"));
   assert_null(strstr(g_input_blocks, "omotion_filename orb.mov"));
   assert_null(strstr(g_input_blocks, "eigmotion_filename eig.mov"));
+  assert_null(strstr(g_input_blocks, "fractional_orbitals 5 6"));
+  assert_null(strstr(g_input_blocks,
+                     "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 71);
+  assert_int_equal(g_typed_set_count, 75);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -732,6 +735,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_TEXT, "eig.mov");
   assert_typed_set_scalar("nwpw:eigmotion_filename",
                           NWCHEMC_DIRECT_SET_VALUE_TEXT, "eig.mov");
+  assert_typed_set_pair("nwpw:fractional_orbitals",
+                        NWCHEMC_DIRECT_SET_VALUE_INTEGER, "5", "6");
+  assert_typed_set_scalar("nwpw:fractional_temperature",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.02");
+  assert_typed_set_scalar("nwpw:fractional_alpha",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.7");
+  assert_typed_set_scalar("nwpw:fractional_smeartype",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
   assert_int_equal(g_set_nwpw_direct_calls, 1);
   assert_int_equal(g_nwpw_has_options, 1);
   assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);
