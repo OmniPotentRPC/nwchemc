@@ -190,7 +190,7 @@ def main() -> int:
             {
                 "name": "nwchemc_session_set_params",
                 "stub": "fails non-zero",
-                "embed": "replaces persistent Cap'n Proto params",
+                "embed": "replaces params before topology",
             },
             {
                 "name": "nwchemc_session_destroy",

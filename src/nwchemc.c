@@ -147,36 +147,61 @@ static capn_text text_from_cstr(const char *s) {
   return text;
 }
 
+static int append_direct_typed_values(
+    capn_text *keys, int *value_types, int *value_counts, capn_text *values,
+    size_t key_capacity, size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    const char *key, int value_type, const char *const *value_list,
+    int nvalues) {
+  if (!keys || !value_types || !value_counts || !values || !count || !key ||
+      !value_list || nvalues <= 0 || *count >= key_capacity ||
+      value_capacity == 0 || (size_t)nvalues > value_capacity ||
+      nvalues > NWCHEMC_DIRECT_SET_VALUE_MAX)
+    return -1;
+  int nkey = snprintf(key_storage[*count], NWCHEMC_DIRECT_SET_KEY_LEN, "%s",
+                      key);
+  if (nkey < 0 || (size_t)nkey >= NWCHEMC_DIRECT_SET_KEY_LEN)
+    return -1;
+  keys[*count] = text_from_cstr(key_storage[*count]);
+  value_types[*count] = value_type;
+  value_counts[*count] = nvalues;
+  for (int i = 0; i < nvalues; ++i) {
+    if (!value_list[i])
+      return -1;
+    int nvalue = snprintf(value_storage[*count][i],
+                          NWCHEMC_DIRECT_SET_VALUE_LEN, "%s", value_list[i]);
+    if (nvalue < 0 || (size_t)nvalue >= NWCHEMC_DIRECT_SET_VALUE_LEN)
+      return -1;
+    values[*count * value_capacity + (size_t)i] =
+        text_from_cstr(value_storage[*count][i]);
+  }
+  ++*count;
+  return 0;
+}
+
 static int append_direct_typed_value(
     capn_text *keys, int *value_types, int *value_counts, capn_text *values,
     size_t key_capacity, size_t value_capacity, size_t *count,
     char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
-    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_LEN], const char *key,
-    int value_type, const char *value) {
-  if (!keys || !value_types || !value_counts || !values || !count || !key ||
-      !value || *count >= key_capacity || value_capacity == 0)
-    return -1;
-  int nkey = snprintf(key_storage[*count], NWCHEMC_DIRECT_SET_KEY_LEN, "%s",
-                      key);
-  int nvalue = snprintf(value_storage[*count], NWCHEMC_DIRECT_SET_VALUE_LEN,
-                        "%s", value);
-  if (nkey < 0 || nvalue < 0 ||
-      (size_t)nkey >= NWCHEMC_DIRECT_SET_KEY_LEN ||
-      (size_t)nvalue >= NWCHEMC_DIRECT_SET_VALUE_LEN)
-    return -1;
-  keys[*count] = text_from_cstr(key_storage[*count]);
-  value_types[*count] = value_type;
-  value_counts[*count] = 1;
-  values[*count * value_capacity] = text_from_cstr(value_storage[*count]);
-  ++*count;
-  return 0;
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    const char *key, int value_type, const char *value) {
+  const char *value_list[1] = {value};
+  return append_direct_typed_values(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, key,
+                                    value_type, value_list, 1);
 }
 
 static int append_nwpw_direct_typed_values(
     capn_text *keys, int *value_types, int *value_counts, capn_text *values,
     size_t key_capacity, size_t value_capacity, size_t *count,
     char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
-    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_LEN], const char *suffix,
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    const char *suffix,
     int value_type, const char *value) {
   static const char *prefixes[] = {"cgsd", "band", "cpsd", "cpmd"};
   char key[NWCHEMC_DIRECT_SET_KEY_LEN];
@@ -188,6 +213,28 @@ static int append_nwpw_direct_typed_values(
                                   key_capacity, value_capacity, count,
                                   key_storage, value_storage, key, value_type,
                                   value) != 0)
+      return -1;
+  }
+  return 0;
+}
+
+static int append_nwpw_prefixed_typed_values(
+    capn_text *keys, int *value_types, int *value_counts, capn_text *values,
+    size_t key_capacity, size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    const char *const *prefixes, size_t prefix_count, const char *suffix,
+    int value_type, const char *const *value_list, int nvalues) {
+  char key[NWCHEMC_DIRECT_SET_KEY_LEN];
+  for (size_t i = 0; i < prefix_count; ++i) {
+    int n = snprintf(key, sizeof(key), "%s:%s", prefixes[i], suffix);
+    if (n < 0 || (size_t)n >= sizeof(key))
+      return -1;
+    if (append_direct_typed_values(keys, value_types, value_counts, values,
+                                   key_capacity, value_capacity, count,
+                                   key_storage, value_storage, key,
+                                   value_type, value_list, nvalues) != 0)
       return -1;
   }
   return 0;
@@ -288,6 +335,26 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_wavefunction_cutoff, &nwpw_ewald_rcut,
           &nwpw_ewald_ncut) != 0)
     return -1;
+  int nwpw_state_has_options = 0;
+  capn_text nwpw_cell_name = {0};
+  capn_text nwpw_input_wavefunction_filename = {0};
+  capn_text nwpw_output_wavefunction_filename = {0};
+  double nwpw_fake_mass = 0.0;
+  double nwpw_time_step = 0.0;
+  int nwpw_loop_start = 0;
+  int nwpw_loop_end = 0;
+  int nwpw_has_tolerances = 0;
+  double nwpw_tolerance_energy = 0.0;
+  double nwpw_tolerance_density = 0.0;
+  double nwpw_tolerance_gradient = 0.0;
+  if (nwchemc_params_extract_direct_nwpw_state(
+          params_root, &nwpw_state_has_options, &nwpw_cell_name,
+          &nwpw_input_wavefunction_filename,
+          &nwpw_output_wavefunction_filename, &nwpw_fake_mass,
+          &nwpw_time_step, &nwpw_loop_start, &nwpw_loop_end,
+          &nwpw_has_tolerances, &nwpw_tolerance_energy,
+          &nwpw_tolerance_density, &nwpw_tolerance_gradient) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -305,6 +372,7 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   size_t typed_set_count = 0;
   char nwpw_direct_keys[NWCHEMC_DIRECT_SET_MAX][NWCHEMC_DIRECT_SET_KEY_LEN];
   char nwpw_direct_values[NWCHEMC_DIRECT_SET_MAX]
+                         [NWCHEMC_DIRECT_SET_VALUE_MAX]
                          [NWCHEMC_DIRECT_SET_VALUE_LEN];
   char packed_set_keys[NWCHEMC_DIRECT_SET_MAX * NWCHEMC_DIRECT_SET_KEY_LEN];
   char packed_set_values[NWCHEMC_DIRECT_SET_MAX *
@@ -326,6 +394,8 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           typed_set_values, NWCHEMC_DIRECT_SET_MAX, NWCHEMC_DIRECT_SET_VALUE_MAX,
           &typed_set_count) != 0)
     return -1;
+  static const char *nwpw_cgsd_band_cpsd[] = {"cgsd", "band", "cpsd"};
+  static const char *nwpw_cgsd_band[] = {"cgsd", "band"};
   if (nwpw_energy_cutoff > 0.0) {
     char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
     snprintf(value, sizeof(value), "%.17g", nwpw_energy_cutoff);
@@ -368,6 +438,115 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "ncut", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
             value) != 0)
+      return -1;
+  }
+  if (nwpw_cell_name.len > 0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[1] = {value};
+    copy_text_record(value, sizeof(value), nwpw_cell_name);
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_cgsd_band_cpsd, 3, "cell_name",
+            NWCHEMC_DIRECT_SET_VALUE_TEXT, value_list, 1) != 0)
+      return -1;
+  }
+  if (nwpw_input_wavefunction_filename.len > 0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[1] = {value};
+    copy_text_record(value, sizeof(value), nwpw_input_wavefunction_filename);
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_cgsd_band, 2,
+            "input_wavefunction_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+            value_list, 1) != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw:input vectors",
+            NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "band:input vectors",
+            NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+      return -1;
+  }
+  if (nwpw_output_wavefunction_filename.len > 0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[1] = {value};
+    copy_text_record(value, sizeof(value), nwpw_output_wavefunction_filename);
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_cgsd_band, 2,
+            "output_wavefunction_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+            value_list, 1) != 0)
+      return -1;
+  }
+  if (nwpw_fake_mass > 0.0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[1] = {value};
+    snprintf(value, sizeof(value), "%.17g", nwpw_fake_mass);
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_cgsd_band_cpsd, 3, "fake_mass",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 1) != 0)
+      return -1;
+  }
+  if (nwpw_time_step > 0.0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[1] = {value};
+    snprintf(value, sizeof(value), "%.17g", nwpw_time_step);
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_cgsd_band_cpsd, 3, "time_step",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 1) != 0)
+      return -1;
+  }
+  if (nwpw_loop_start > 0 && nwpw_loop_end > 0) {
+    char start_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char end_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[2] = {start_value, end_value};
+    snprintf(start_value, sizeof(start_value), "%d", nwpw_loop_start);
+    snprintf(end_value, sizeof(end_value), "%d", nwpw_loop_end);
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_cgsd_band_cpsd, 3, "loop",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 2) != 0)
+      return -1;
+  }
+  if (nwpw_has_tolerances) {
+    char energy_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char density_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char gradient_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[3] = {energy_value, density_value, gradient_value};
+    snprintf(energy_value, sizeof(energy_value), "%.17g",
+             nwpw_tolerance_energy);
+    snprintf(density_value, sizeof(density_value), "%.17g",
+             nwpw_tolerance_density);
+    snprintf(gradient_value, sizeof(gradient_value), "%.17g",
+             nwpw_tolerance_gradient);
+    if (append_nwpw_prefixed_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, nwpw_cgsd_band, 2, "tolerances",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 3) != 0)
       return -1;
   }
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));

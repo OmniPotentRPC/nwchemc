@@ -904,6 +904,53 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  ewald_ncut %d\n",
                     nwpw.ewaldNcut) != 0)
     return -1;
+  if (include_direct_promoted && nwpw.cellName.len > 0) {
+    if (append_format(block, sizeof(block), "  cell_name ") != 0 ||
+        append_text(block, sizeof(block), nwpw.cellName) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.inputWavefunctionFilename.len > 0) {
+    if (append_format(block, sizeof(block),
+                      "  input_wavefunction_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.inputWavefunctionFilename) !=
+            0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.outputWavefunctionFilename.len > 0) {
+    if (append_format(block, sizeof(block),
+                      "  output_wavefunction_filename ") != 0 ||
+        append_text(block, sizeof(block), nwpw.outputWavefunctionFilename) !=
+            0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.fakeMass > 0.0 &&
+      append_format(block, sizeof(block), "  fake_mass %.15g\n",
+                    nwpw.fakeMass) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.timeStep > 0.0 &&
+      append_format(block, sizeof(block), "  time_step %.15g\n",
+                    nwpw.timeStep) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.loopStart > 0 && nwpw.loopEnd > 0 &&
+      append_format(block, sizeof(block), "  loop %d %d\n",
+                    nwpw.loopStart, nwpw.loopEnd) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      (nwpw.toleranceEnergy > 0.0 || nwpw.toleranceDensity > 0.0 ||
+       nwpw.toleranceGradient > 0.0)) {
+    double tol_energy =
+        nwpw.toleranceEnergy > 0.0 ? nwpw.toleranceEnergy : 1.0e-7;
+    double tol_density =
+        nwpw.toleranceDensity > 0.0 ? nwpw.toleranceDensity : tol_energy;
+    double tol_gradient =
+        nwpw.toleranceGradient > 0.0 ? nwpw.toleranceGradient : 1.0e-4;
+    if (append_format(block, sizeof(block), "  tolerances %.15g %.15g %.15g\n",
+                      tol_energy, tol_density, tol_gradient) != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -1239,6 +1286,90 @@ int nwchemc_params_extract_direct_nwpw(NWChemParams_ptr params,
     if (nwpw.ewaldNcut > 0) {
       *has_options = 1;
       *ewald_ncut = nwpw.ewaldNcut;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_state(
+    NWChemParams_ptr params, int *has_options, capn_text *cell_name,
+    capn_text *input_wavefunction_filename,
+    capn_text *output_wavefunction_filename, double *fake_mass,
+    double *time_step, int *loop_start, int *loop_end, int *has_tolerances,
+    double *tolerance_energy, double *tolerance_density,
+    double *tolerance_gradient) {
+  if (params.p.type == CAPN_NULL || !has_options || !cell_name ||
+      !input_wavefunction_filename || !output_wavefunction_filename ||
+      !fake_mass || !time_step || !loop_start || !loop_end ||
+      !has_tolerances || !tolerance_energy || !tolerance_density ||
+      !tolerance_gradient)
+    return -1;
+
+  *has_options = 0;
+  *cell_name = (capn_text){0};
+  *input_wavefunction_filename = (capn_text){0};
+  *output_wavefunction_filename = (capn_text){0};
+  *fake_mass = 0.0;
+  *time_step = 0.0;
+  *loop_start = 0;
+  *loop_end = 0;
+  *has_tolerances = 0;
+  *tolerance_energy = 0.0;
+  *tolerance_density = 0.0;
+  *tolerance_gradient = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.cellName.len > 0) {
+      *has_options = 1;
+      *cell_name = nwpw.cellName;
+    }
+    if (nwpw.inputWavefunctionFilename.len > 0) {
+      *has_options = 1;
+      *input_wavefunction_filename = nwpw.inputWavefunctionFilename;
+    }
+    if (nwpw.outputWavefunctionFilename.len > 0) {
+      *has_options = 1;
+      *output_wavefunction_filename = nwpw.outputWavefunctionFilename;
+    }
+    if (nwpw.fakeMass > 0.0) {
+      *has_options = 1;
+      *fake_mass = nwpw.fakeMass;
+    }
+    if (nwpw.timeStep > 0.0) {
+      *has_options = 1;
+      *time_step = nwpw.timeStep;
+    }
+    if (nwpw.loopStart > 0 && nwpw.loopEnd > 0) {
+      *has_options = 1;
+      *loop_start = nwpw.loopStart;
+      *loop_end = nwpw.loopEnd;
+    }
+    if (nwpw.toleranceEnergy > 0.0 || nwpw.toleranceDensity > 0.0 ||
+        nwpw.toleranceGradient > 0.0) {
+      *has_options = 1;
+      *has_tolerances = 1;
+      *tolerance_energy =
+          nwpw.toleranceEnergy > 0.0 ? nwpw.toleranceEnergy : 1.0e-7;
+      *tolerance_density =
+          nwpw.toleranceDensity > 0.0 ? nwpw.toleranceDensity
+                                      : *tolerance_energy;
+      *tolerance_gradient =
+          nwpw.toleranceGradient > 0.0 ? nwpw.toleranceGradient : 1.0e-4;
     }
   }
 

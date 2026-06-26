@@ -53,6 +53,14 @@ int nwchemc_params_extract_direct_nwpw(NWChemParams_ptr params,
                                        double *ewald_rcut,
                                        int *ewald_ncut);
 
+int nwchemc_params_extract_direct_nwpw_state(
+    NWChemParams_ptr params, int *has_options, capn_text *cell_name,
+    capn_text *input_wavefunction_filename,
+    capn_text *output_wavefunction_filename, double *fake_mass,
+    double *time_step, int *loop_start, int *loop_end, int *has_tolerances,
+    double *tolerance_energy, double *tolerance_density,
+    double *tolerance_gradient);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

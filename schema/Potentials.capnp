@@ -200,6 +200,16 @@ struct NWChemNwpwStanza {
   ewaldRcut          @2 :Float64 = 0.0; # Emit/promote NWPW ewald_rcut.
   ewaldNcut          @3 :Int32 = 0;     # Emit/promote NWPW ewald_ncut.
   directives         @4 :List(NWChemDirective);
+  cellName                    @5  :Text = ""; # Emit/promote NWPW cell_name.
+  inputWavefunctionFilename   @6  :Text = ""; # Emit/promote NWPW input_wavefunction_filename.
+  outputWavefunctionFilename  @7  :Text = ""; # Emit/promote NWPW output_wavefunction_filename.
+  fakeMass                    @8  :Float64 = 0.0; # Emit/promote NWPW fake_mass.
+  timeStep                    @9  :Float64 = 0.0; # Emit/promote NWPW time_step.
+  loopStart                   @10 :Int32 = 0;     # First value in NWPW loop.
+  loopEnd                     @11 :Int32 = 0;     # Second value in NWPW loop.
+  toleranceEnergy             @12 :Float64 = 0.0; # First NWPW tolerances value.
+  toleranceDensity            @13 :Float64 = 0.0; # Second NWPW tolerances value.
+  toleranceGradient           @14 :Float64 = 0.0; # Third NWPW tolerances value.
 }
 
 # @struct NWChemScfStanza

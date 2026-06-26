@@ -186,3 +186,4 @@ const char *nwchemc_module_nwchem_name(int module_enum_id) {
   }
   return NULL;
 }
+
