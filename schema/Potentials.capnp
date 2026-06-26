@@ -195,10 +195,32 @@ enum NWChemPseudopotentialSpinMode {
   disabled    @2; # Emit pspspin off.
 }
 
+struct NWChemPseudopotentialSpinRule {
+  channel                  @0 :Channel = up;
+  angularMomentum          @1 :AngularMomentum = s;
+  scale                    @2 :Float64 = 1.0;
+  ionIndices               @3 :List(Int32);
+  hasMagneticQuantumNumber @4 :Bool = false;
+  magneticQuantumNumber    @5 :Int32 = 0;
+
+  enum Channel {
+    up   @0;
+    down @1;
+  }
+
+  enum AngularMomentum {
+    s @0;
+    p @1;
+    d @2;
+    f @3;
+  }
+}
+
 struct NWChemPseudopotentialStanza {
   entries    @0 :List(NWChemPseudopotentialEntry);
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
   pspSpin    @2 :NWChemPseudopotentialSpinMode = unspecified; # Emit pspspin on/off.
+  spinRules  @3 :List(NWChemPseudopotentialSpinRule); # Emit/promote pspspin up/down scaling rules.
 }
 
 struct NWChemKVector {

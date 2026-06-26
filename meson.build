@@ -249,6 +249,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_pspspin_params_bin = custom_target(
+    'nwchem_pspspin_params_bin',
+    input: 'tests/nwchem_params_pspspin.capnp.txt',
+    output: 'nwchem_params_pspspin.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_step_a_bin = custom_target(
     'force_input_step_a_bin',
     input: 'tests/force_input_step_a.capnp.txt',
@@ -424,6 +438,7 @@ if get_option('with_tests')
     args: [
       nwchem_direct_dft_params_bin,
       nwchem_config_options_params_bin,
+      nwchem_pspspin_params_bin,
       force_input_step_a_bin,
       force_input_step_b_bin,
       force_input_step_ev_bin,

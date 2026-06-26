@@ -257,7 +257,18 @@
           (element = "N", libraryType = teter, libraryName = "N.teter"),
           (allElements = true, libraryType = pspwLibrary, libraryName = "pspw_default")
         ],
-        pspSpin = disabled
+        pspSpin = disabled,
+        spinRules = [
+          (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [1, 3]),
+          (
+            channel = down,
+            angularMomentum = d,
+            scale = 0.75,
+            ionIndices = [2],
+            hasMagneticQuantumNumber = true,
+            magneticQuantumNumber = 0
+          )
+        ]
       )
     )
   ]

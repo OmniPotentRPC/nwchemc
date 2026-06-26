@@ -1,0 +1,23 @@
+(
+  basis = "sto-3g",
+  theory = "dft",
+  scfType = "pbe0",
+  inputStanzas = [
+    (
+      kind = pseudopotential,
+      pseudopotential = (
+        spinRules = [
+          (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [1, 3]),
+          (
+            channel = down,
+            angularMomentum = d,
+            scale = 0.75,
+            ionIndices = [2],
+            hasMagneticQuantumNumber = true,
+            magneticQuantumNumber = 0
+          )
+        ]
+      )
+    )
+  ]
+)

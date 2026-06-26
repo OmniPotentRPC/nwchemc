@@ -92,6 +92,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "N teter N.teter"));
   assert_non_null(strstr(input_blocks, "* pspw_library pspw_default"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
+  assert_non_null(strstr(input_blocks, "pspspin up p 1.25 1 3"));
+  assert_non_null(strstr(input_blocks, "pspspin not_m 0 down d 0.75 2"));
   assert_non_null(strstr(input_blocks, "energy_cutoff 12.5"));
   assert_non_null(strstr(input_blocks, "wavefunction_cutoff 6.25"));
   assert_non_null(strstr(input_blocks, "ewald_rcut 3.5"));
