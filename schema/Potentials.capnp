@@ -268,6 +268,15 @@ enum NWChemToggle {
   disabled    @2; # Emit/promote the option as disabled.
 }
 
+enum NWChemPrintLevel {
+  unspecified @0; # Do not emit a print directive.
+  none        @1; # Emit "print none".
+  low         @2; # Emit "print low".
+  medium      @3; # Emit "print medium".
+  high        @4; # Emit "print high".
+  debug       @5; # Emit "print debug".
+}
+
 enum NWChemTceReference {
   unspecified @0; # Do not emit tce reference.
   dft         @1; # Emit DFT; promote tce:reference = 0.
@@ -460,6 +469,8 @@ struct NWChemTceStanza {
   directives            @53 :List(NWChemDirective);
   freezeMode            @54 :NWChemTceFreezeMode = unspecified; # Emit symbolic freeze directive; not directly promoted.
   dipole                @55 :Bool = false; # Emit TCE dipole keyword; not directly promoted.
+  printLevel            @56 :NWChemPrintLevel = unspecified; # Emit TCE print level.
+  printItems            @57 :List(Text); # Extra TCE print names after the level.
 }
 
 # @struct NWChemMrccDataStanza

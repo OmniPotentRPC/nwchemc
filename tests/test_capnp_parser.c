@@ -181,6 +181,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "tilesize 40"));
   assert_non_null(strstr(input_blocks, "cuda 1"));
   assert_non_null(strstr(input_blocks, "tcc_spaces"));
+  assert_non_null(strstr(input_blocks, "print debug tile time"));
   assert_non_null(strstr(input_blocks, "mrccdata\n  se4t"));
   assert_non_null(strstr(input_blocks, "  no_aposteriori\n"));
   assert_non_null(strstr(input_blocks, "  root 1\n"));
@@ -193,7 +194,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "  usspt\n"));
   assert_non_null(
       strstr(input_blocks, "tce\n  freeze core atomic\n  dipole\nend"));
-  assert_non_null(strstr(input_blocks, "print debug"));
+  assert_non_null(strstr(input_blocks, "print debug tile time"));
 
   nwchemc_params_release(&arena);
   free(message);

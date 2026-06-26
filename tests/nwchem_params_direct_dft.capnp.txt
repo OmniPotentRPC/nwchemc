@@ -86,9 +86,8 @@
         tileSize = 40,
         cudaDevices = 1,
         tccSpaces = enabled,
-        directives = [
-          (keyword = "print", args = ["debug"])
-        ]
+        printLevel = debug,
+        printItems = ["tile", "time"]
       )
     ),
     (

@@ -721,13 +721,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nofock"));
   assert_null(strstr(g_input_blocks, "active_oa 5"));
   assert_null(strstr(g_input_blocks, "tcc_spaces"));
+  assert_non_null(strstr(g_input_blocks, "tce\n  print debug tile time\nend"));
   assert_non_null(strstr(g_input_blocks, "mrccdata\n  se4t"));
   assert_non_null(strstr(g_input_blocks, "  cas 2 2\n"));
   assert_non_null(strstr(g_input_blocks, "  2222ba\n"));
   assert_non_null(
       strstr(g_input_blocks, "tce\n  freeze core atomic\n  dipole\nend"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
-  assert_non_null(strstr(g_input_blocks, "print debug"));
+  assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
