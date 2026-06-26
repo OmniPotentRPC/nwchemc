@@ -213,6 +213,12 @@ enum NWChemNwpwToggle {
   disabled    @2; # Emit/promote the option as disabled.
 }
 
+enum NWChemToggle {
+  unspecified @0; # Do not emit the option.
+  enabled     @1; # Emit/promote the option as enabled.
+  disabled    @2; # Emit/promote the option as disabled.
+}
+
 enum NWChemNwpwSmearType {
   unspecified        @0; # Do not emit fractional_smeartype.
   fixed              @1; # NWChem smear fixed.
@@ -298,6 +304,22 @@ struct NWChemScfStanza {
   directives    @6 :List(NWChemDirective);
 }
 
+# @struct NWChemCcsdStanza
+# @brief Classic CCSD block controls backed by stable ccsd:* RTDB keys.
+struct NWChemCcsdStanza {
+  maxiter           @0 :Int32 = 0; # Emit/promote ccsd:maxiter.
+  thresh            @1 :Float64 = 0.0; # Emit/promote ccsd:thresh.
+  tol2e             @2 :Float64 = 0.0; # Emit/promote ccsd:tol2e.
+  iprt              @3 :Int32 = 0; # Emit/promote ccsd:iprt.
+  maxDiis           @4 :Int32 = 0; # Emit/promote ccsd:maxdiis / diisbas.
+  frozenCore        @5 :Int32 = 0; # Emit/promote ccsd:frozen core.
+  frozenVirtual     @6 :Int32 = 0; # Emit/promote ccsd:frozen virtual.
+  useDisk           @7 :NWChemToggle = unspecified; # disabled emits/promotes nodisk.
+  sameSpinScale     @8 :Float64 = 0.0; # Emit/promote ccsd:fss.
+  oppositeSpinScale @9 :Float64 = 0.0; # Emit/promote ccsd:fos.
+  directives        @10 :List(NWChemDirective);
+}
+
 # @struct NWChemTaskStanza
 # @brief Explicit NWChem "task <theory> <operation>" line.
 # Prefer top-level theory/task for embed defaults; use this stanza when emitting
@@ -368,6 +390,7 @@ struct NWChemInputStanza {
   basisStanza     @11 :NWChemBasisStanza;
   geometry        @12 :NWChemGeometryStanza;
   nwpw            @13 :NWChemNwpwStanza;
+  ccsd            @14 :NWChemCcsdStanza;
 
   enum Kind {
     generic         @0;
@@ -383,6 +406,7 @@ struct NWChemInputStanza {
     basis           @10; # NWChemInputStanza.basisStanza
     geometry        @11;
     nwpw            @12;
+    ccsd            @13;
   }
 }
 

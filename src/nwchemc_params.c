@@ -694,6 +694,74 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static int render_ccsd_stanza(NWChemCcsdStanza_ptr ptr, char *dst,
+                              size_t dst_size, int include_direct_promoted) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemCcsdStanza ccsd;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemCcsdStanza(&ccsd, ptr);
+  int has_directives = directives_have_keywords(ccsd.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_promoted =
+      ccsd.maxiter > 0 || ccsd.thresh > 0.0 || ccsd.tol2e > 0.0 ||
+      ccsd.iprt > 0 || ccsd.maxDiis > 0 || ccsd.frozenCore > 0 ||
+      ccsd.frozenVirtual > 0 || ccsd.useDisk != NWChemToggle_unspecified ||
+      ccsd.sameSpinScale > 0.0 || ccsd.oppositeSpinScale > 0.0;
+  int has_remaining = has_directives || (include_direct_promoted && has_promoted);
+  if (!has_remaining)
+    return 0;
+  if (append_format(block, sizeof(block), "ccsd\n") != 0)
+    return -1;
+  if (include_direct_promoted && ccsd.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", ccsd.maxiter) != 0)
+    return -1;
+  if (include_direct_promoted && ccsd.thresh > 0.0 &&
+      append_format(block, sizeof(block), "  thresh %.12g\n", ccsd.thresh) != 0)
+    return -1;
+  if (include_direct_promoted && ccsd.tol2e > 0.0 &&
+      append_format(block, sizeof(block), "  tol2e %.12g\n", ccsd.tol2e) != 0)
+    return -1;
+  if (include_direct_promoted && ccsd.iprt > 0 &&
+      append_format(block, sizeof(block), "  iprt %d\n", ccsd.iprt) != 0)
+    return -1;
+  if (include_direct_promoted && ccsd.maxDiis > 0 &&
+      append_format(block, sizeof(block), "  diisbas %d\n", ccsd.maxDiis) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      (ccsd.frozenCore > 0 || ccsd.frozenVirtual > 0)) {
+    if (append_format(block, sizeof(block), "  freeze") != 0)
+      return -1;
+    if (ccsd.frozenCore > 0 &&
+        append_format(block, sizeof(block), " %d", ccsd.frozenCore) != 0)
+      return -1;
+    if (ccsd.frozenVirtual > 0 &&
+        append_format(block, sizeof(block), " virtual %d",
+                      ccsd.frozenVirtual) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && ccsd.useDisk == NWChemToggle_disabled &&
+      append_format(block, sizeof(block), "  nodisk\n") != 0)
+    return -1;
+  if (include_direct_promoted && ccsd.sameSpinScale > 0.0 &&
+      append_format(block, sizeof(block), "  fss %.12g\n",
+                    ccsd.sameSpinScale) != 0)
+    return -1;
+  if (include_direct_promoted && ccsd.oppositeSpinScale > 0.0 &&
+      append_format(block, sizeof(block), "  fos %.12g\n",
+                    ccsd.oppositeSpinScale) != 0)
+    return -1;
+  if (render_directives(ccsd.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static int render_task_stanza(NWChemTaskStanza_ptr ptr, char *dst,
                               size_t dst_size) {
   if (ptr.p.type == CAPN_NULL)
@@ -1221,6 +1289,11 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                             include_direct_promoted_scf) != 0)
         return -1;
       break;
+    case NWChemInputStanza_Kind_ccsd:
+      if (render_ccsd_stanza(stanza.ccsd, dst, dst_size,
+                             include_direct_promoted_scf) != 0)
+        return -1;
+      break;
     case NWChemInputStanza_Kind_task:
       if (include_task_stanzas &&
           render_task_stanza(stanza.taskStanza, dst, dst_size) != 0)
@@ -1382,6 +1455,88 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
     if (scf.tol2e > 0.0) {
       *has_options = 1;
       *tol2e = scf.tol2e;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_ccsd(
+    NWChemParams_ptr params, int *has_options, int *maxiter, double *thresh,
+    double *tol2e, int *iprt, int *max_diis, int *frozen_core,
+    int *frozen_virtual, int *use_disk, double *same_spin_scale,
+    double *opposite_spin_scale) {
+  if (params.p.type == CAPN_NULL || !has_options || !maxiter || !thresh ||
+      !tol2e || !iprt || !max_diis || !frozen_core || !frozen_virtual ||
+      !use_disk || !same_spin_scale || !opposite_spin_scale)
+    return -1;
+
+  *has_options = 0;
+  *maxiter = 0;
+  *thresh = 0.0;
+  *tol2e = 0.0;
+  *iprt = 0;
+  *max_diis = 0;
+  *frozen_core = 0;
+  *frozen_virtual = 0;
+  *use_disk = NWChemToggle_unspecified;
+  *same_spin_scale = 0.0;
+  *opposite_spin_scale = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_ccsd ||
+        stanza.ccsd.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemCcsdStanza ccsd;
+    read_NWChemCcsdStanza(&ccsd, stanza.ccsd);
+    if (ccsd.maxiter > 0) {
+      *has_options = 1;
+      *maxiter = ccsd.maxiter;
+    }
+    if (ccsd.thresh > 0.0) {
+      *has_options = 1;
+      *thresh = ccsd.thresh;
+    }
+    if (ccsd.tol2e > 0.0) {
+      *has_options = 1;
+      *tol2e = ccsd.tol2e;
+    }
+    if (ccsd.iprt > 0) {
+      *has_options = 1;
+      *iprt = ccsd.iprt;
+    }
+    if (ccsd.maxDiis > 0) {
+      *has_options = 1;
+      *max_diis = ccsd.maxDiis;
+    }
+    if (ccsd.frozenCore > 0) {
+      *has_options = 1;
+      *frozen_core = ccsd.frozenCore;
+    }
+    if (ccsd.frozenVirtual > 0) {
+      *has_options = 1;
+      *frozen_virtual = ccsd.frozenVirtual;
+    }
+    if (ccsd.useDisk != NWChemToggle_unspecified) {
+      *has_options = 1;
+      *use_disk = ccsd.useDisk;
+    }
+    if (ccsd.sameSpinScale > 0.0) {
+      *has_options = 1;
+      *same_spin_scale = ccsd.sameSpinScale;
+    }
+    if (ccsd.oppositeSpinScale > 0.0) {
+      *has_options = 1;
+      *opposite_spin_scale = ccsd.oppositeSpinScale;
     }
   }
 

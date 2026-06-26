@@ -38,6 +38,12 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       int *maxiter, double *thresh,
                                       double *tol2e);
 
+int nwchemc_params_extract_direct_ccsd(
+    NWChemParams_ptr params, int *has_options, int *maxiter, double *thresh,
+    double *tol2e, int *iprt, int *max_diis, int *frozen_core,
+    int *frozen_virtual, int *use_disk, double *same_spin_scale,
+    double *opposite_spin_scale);
+
 int nwchemc_params_extract_direct_driver(NWChemParams_ptr params,
                                          int *has_options, int *maxiter,
                                          int *tolerance_mode,

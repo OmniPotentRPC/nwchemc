@@ -1075,6 +1075,14 @@
       "nwchem_role": "nwpw stanza",
       "stub": true,
       "embed": true
+    },
+    {
+      "kind": "ccsd",
+      "schema_path": "NWChemInputStanza.ccsd",
+      "capnp_type": "ccsd",
+      "nwchem_role": "ccsd stanza",
+      "stub": true,
+      "embed": true
     }
   ],
   "params_fields": [
