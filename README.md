@@ -97,7 +97,9 @@ to the NWPW/CPMD RTDB keys used by NWChem. Execution controls for
 direct RTDB writes in embed builds. NWPW output and motion filename fields are
 also structured and promoted to the paired `cpmd:*` / `nwpw:*` RTDB keys.
 Fractional orbital and NWPW smear controls expose the `nwpw:fractional_*`
-RTDB values directly while preserving structured full-deck rendering.
+RTDB values directly while preserving structured full-deck rendering. Virtual
+orbital counts, LCAO skip/use mode, and Ewald grid dimensions are also
+structured and promoted to direct `nwpw:*` RTDB values.
 
 ## Build
 

@@ -128,6 +128,9 @@ RTDB values directly:
 | ~smearTemperature~ | ~smear temperature <value>~ | ~nwpw:fractional_temperature~ |
 | ~smearAlpha~ | ~smear alpha <value>~ | ~nwpw:fractional_alpha~ |
 | ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ | ~nwpw:fractional_smeartype~ |
+| ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~ | ~virtual_orbitals <start> <end>~ | ~nwpw:excited_ne~ |
+| ~lcaoMode~ | ~lcao~ or ~lcao_skip~ | ~nwpw:lcao_skip~ |
+| ~ewaldGridX~, ~ewaldGridY~, ~ewaldGridZ~ | ~ewald_ngrid <x> <y> <z>~ | ~nwpw:ewald_ngrid~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -239,6 +242,9 @@ controls:
 | ~smearTemperature~ | ~smear temperature <value>~ |
 | ~smearAlpha~ | ~smear alpha <value>~ |
 | ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ |
+| ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~ | ~virtual_orbitals <start> <end>~ |
+| ~lcaoMode~ | ~lcao~ or ~lcao_skip~ |
+| ~ewaldGridX~, ~ewaldGridY~, ~ewaldGridZ~ | ~ewald_ngrid <x> <y> <z>~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem
