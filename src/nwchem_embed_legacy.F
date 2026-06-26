@@ -939,12 +939,12 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          return
       endif
       if (.not. rtdb_get(rtdb, 'vib:frequencies', mt_dbl, n3,
-     $     frequencies_cm1)) then
+     $     frequencies_cm1(1))) then
          errmsg = 'rtdb_get vib:frequencies failed'
          return
       endif
       status = rtdb_get(rtdb, 'vib:intensities', mt_dbl, n3,
-     $     intensities_au)
+     $     intensities_au(1))
 
       errmsg = 'ok'
       ok = 0
