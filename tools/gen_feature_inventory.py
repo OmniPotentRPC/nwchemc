@@ -198,6 +198,11 @@ def main() -> int:
                 "embed": "runs total dipole",
             },
             {
+                "name": "nwchemc_quadrupole",
+                "stub": "fails ok==0",
+                "embed": "runs total traceless quadrupole",
+            },
+            {
                 "name": "nwchemc_session_create",
                 "stub": "returns NULL",
                 "embed": "creates persistent Cap'n Proto session",
@@ -233,6 +238,11 @@ def main() -> int:
                 "embed": "runs session total dipole",
             },
             {
+                "name": "nwchemc_session_quadrupole",
+                "stub": "fails ok==0",
+                "embed": "runs session total traceless quadrupole",
+            },
+            {
                 "name": "nwchemc_session_calculate_forces",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput energy/forces",
@@ -258,6 +268,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput dipole",
             },
             {
+                "name": "nwchemc_calculate_quadrupole",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput quadrupole",
+            },
+            {
                 "name": "nwchemc_potential_result_size_for_force_input",
                 "stub": "returns 0",
                 "embed": "sizes session PotentialResult output from ForceInput",
@@ -271,6 +286,11 @@ def main() -> int:
                 "name": "nwchemc_session_calculate_dipole",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput dipole",
+            },
+            {
+                "name": "nwchemc_session_calculate_quadrupole",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput quadrupole",
             },
             {
                 "name": "nwchemc_session_hessian",

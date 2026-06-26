@@ -129,6 +129,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_energy_forces", "include/nwchemc.h::nwchemc_energy_forces", "stub=fails ok==0; embed=runs energy/forces (negated gradient)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_hessian", "include/nwchemc.h::nwchemc_hessian", "stub=fails ok==0; embed=runs Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_dipole", "include/nwchemc.h::nwchemc_dipole", "stub=fails ok==0; embed=runs total dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_quadrupole", "include/nwchemc.h::nwchemc_quadrupole", "stub=fails ok==0; embed=runs total traceless quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_create", "include/nwchemc.h::nwchemc_session_create", "stub=returns NULL; embed=creates persistent Cap'n Proto session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_set_params", "include/nwchemc.h::nwchemc_session_set_params", "stub=fails non-zero; embed=replaces params before topology", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_destroy", "include/nwchemc.h::nwchemc_session_destroy", "stub=no-op; embed=releases persistent session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -136,21 +137,24 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_energy", "include/nwchemc.h::nwchemc_session_energy", "stub=fails ok==0; embed=runs session energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy_forces", "include/nwchemc.h::nwchemc_session_energy_forces", "stub=fails ok==0; embed=runs session energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_dipole", "include/nwchemc.h::nwchemc_session_dipole", "stub=fails ok==0; embed=runs session total dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_quadrupole", "include/nwchemc.h::nwchemc_session_quadrupole", "stub=fails ok==0; embed=runs session total traceless quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_forces", "include/nwchemc.h::nwchemc_session_calculate_forces", "stub=fails ok==0; embed=runs session ForceInput energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_result", "include/nwchemc.h::nwchemc_session_calculate_result", "stub=fails ok==0; embed=runs session ForceInput energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_result", "include/nwchemc.h::nwchemc_calculate_result", "stub=fails ok==0; embed=runs one-shot ForceInput energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_hessian", "include/nwchemc.h::nwchemc_calculate_hessian", "stub=fails ok==0; embed=runs one-shot ForceInput Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_dipole", "include/nwchemc.h::nwchemc_calculate_dipole", "stub=fails ok==0; embed=runs one-shot ForceInput dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_quadrupole", "include/nwchemc.h::nwchemc_calculate_quadrupole", "stub=fails ok==0; embed=runs one-shot ForceInput quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_potential_result_size_for_force_input", "include/nwchemc.h::nwchemc_potential_result_size_for_force_input", "stub=returns 0; embed=sizes session PotentialResult output from ForceInput", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_hessian", "include/nwchemc.h::nwchemc_session_calculate_hessian", "stub=fails ok==0; embed=runs session ForceInput Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_dipole", "include/nwchemc.h::nwchemc_session_calculate_dipole", "stub=fails ok==0; embed=runs session ForceInput dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_quadrupole", "include/nwchemc.h::nwchemc_session_calculate_quadrupole", "stub=fails ok==0; embed=runs session ForceInput quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_hessian", "include/nwchemc.h::nwchemc_session_hessian", "stub=fails ok==0; embed=runs session Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_available", "include/nwchemc.h::nwchemc_available", "stub=returns 0; embed=returns 1", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_version", "include/nwchemc.h::nwchemc_version", "stub=contains stub; embed=library version", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 145;
+static const size_t k_feature_count = 149;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

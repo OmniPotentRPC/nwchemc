@@ -217,6 +217,23 @@ static void test_calculate_hessian_and_dipole_one_shot(void **state) {
     assert_true(fabs(dipole[i]) < 1.0e-7);
   }
 
+  double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult quadrupole_status = nwchemc_calculate_quadrupole(
+      params, params_size, step_eq, step_eq_size, quadrupole, 6);
+  if (!quadrupole_status.ok)
+    fail_msg("nwchemc_calculate_quadrupole failed: %s",
+             quadrupole_status.message);
+  assert_true(isfinite(quadrupole_status.energy_h));
+  double max_quadrupole_abs = 0.0;
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(quadrupole[i]))
+      fail_msg("non-finite one-shot quadrupole[%d]", i);
+    max_quadrupole_abs = fmax(max_quadrupole_abs, fabs(quadrupole[i]));
+  }
+  assert_true(max_quadrupole_abs > 1.0e-6);
+  double trace = quadrupole[0] + quadrupole[3] + quadrupole[5];
+  assert_true(fabs(trace) < 1.0e-7 * fmax(1.0, max_quadrupole_abs));
+
   free(step_eq);
   free(params);
 }
