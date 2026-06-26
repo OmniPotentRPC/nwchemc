@@ -1065,6 +1065,49 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  if (include_direct_promoted && nwpw.fractionalOrbitalsStart > 0 &&
+      nwpw.fractionalOrbitalsEnd > 0 &&
+      append_format(block, sizeof(block), "  fractional_orbitals %d %d\n",
+                    nwpw.fractionalOrbitalsStart,
+                    nwpw.fractionalOrbitalsEnd) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      (nwpw.smearTemperature > 0.0 || nwpw.smearAlpha > 0.0 ||
+       nwpw.smearType != NWChemNwpwSmearType_unspecified)) {
+    if (append_format(block, sizeof(block), "  smear") != 0)
+      return -1;
+    if (nwpw.smearTemperature > 0.0 &&
+        append_format(block, sizeof(block), " temperature %.15g",
+                      nwpw.smearTemperature) != 0)
+      return -1;
+    if (nwpw.smearAlpha > 0.0 &&
+        append_format(block, sizeof(block), " alpha %.15g",
+                      nwpw.smearAlpha) != 0)
+      return -1;
+    if (nwpw.smearType != NWChemNwpwSmearType_unspecified) {
+      const char *smear_type = NULL;
+      if (nwpw.smearType == NWChemNwpwSmearType_fixed)
+        smear_type = "fixed";
+      else if (nwpw.smearType == NWChemNwpwSmearType_step)
+        smear_type = "step";
+      else if (nwpw.smearType == NWChemNwpwSmearType_fermi)
+        smear_type = "fermi";
+      else if (nwpw.smearType == NWChemNwpwSmearType_gaussian)
+        smear_type = "gaussian";
+      else if (nwpw.smearType == NWChemNwpwSmearType_marzariVanderbilt)
+        smear_type = "marzari-vanderbilt";
+      if (!smear_type ||
+          append_format(block, sizeof(block), " %s", smear_type) != 0)
+        return -1;
+    }
+    if (nwpw.fractionalOrbitalsStart > 0 && nwpw.fractionalOrbitalsEnd > 0 &&
+        append_format(block, sizeof(block), " orbitals %d %d",
+                      nwpw.fractionalOrbitalsStart,
+                      nwpw.fractionalOrbitalsEnd) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -1701,6 +1744,62 @@ int nwchemc_params_extract_direct_nwpw_filenames(
     if (nwpw.eigenvalueMotionFilename.len > 0) {
       *has_options = 1;
       *eigenvalue_motion_filename = nwpw.eigenvalueMotionFilename;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_fractional(
+    NWChemParams_ptr params, int *has_fractional,
+    int *fractional_orbitals_start, int *fractional_orbitals_end,
+    int *has_smear, double *smear_temperature, double *smear_alpha,
+    int *smear_type) {
+  if (params.p.type == CAPN_NULL || !has_fractional ||
+      !fractional_orbitals_start || !fractional_orbitals_end || !has_smear ||
+      !smear_temperature || !smear_alpha || !smear_type)
+    return -1;
+
+  *has_fractional = 0;
+  *fractional_orbitals_start = 0;
+  *fractional_orbitals_end = 0;
+  *has_smear = 0;
+  *smear_temperature = 0.0;
+  *smear_alpha = 0.0;
+  *smear_type = NWChemNwpwSmearType_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.fractionalOrbitalsStart > 0 &&
+        nwpw.fractionalOrbitalsEnd > 0) {
+      *has_fractional = 1;
+      *fractional_orbitals_start = nwpw.fractionalOrbitalsStart;
+      *fractional_orbitals_end = nwpw.fractionalOrbitalsEnd;
+    }
+    if (nwpw.smearTemperature > 0.0 || nwpw.smearAlpha > 0.0 ||
+        nwpw.smearType != NWChemNwpwSmearType_unspecified) {
+      *has_smear = 1;
+      if (!*has_fractional) {
+        *has_fractional = 1;
+        *fractional_orbitals_start = 4;
+        *fractional_orbitals_end = 4;
+      }
+      *smear_temperature = nwpw.smearTemperature;
+      *smear_alpha = nwpw.smearAlpha;
+      *smear_type = nwpw.smearType;
     }
   }
 

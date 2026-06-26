@@ -213,6 +213,15 @@ enum NWChemNwpwToggle {
   disabled    @2; # Emit/promote the option as disabled.
 }
 
+enum NWChemNwpwSmearType {
+  unspecified        @0; # Do not emit fractional_smeartype.
+  fixed              @1; # NWChem smear fixed.
+  step               @2; # NWChem smear step.
+  fermi              @3; # NWChem smear fermi.
+  gaussian           @4; # NWChem smear gaussian.
+  marzariVanderbilt  @5; # NWChem smear marzari-vanderbilt.
+}
+
 struct NWChemNwpwStanza {
   energyCutoff       @0 :Float64 = 0.0; # Emit/promote NWPW energy_cutoff.
   wavefunctionCutoff @1 :Float64 = 0.0; # Emit/promote NWPW wavefunction_cutoff.
@@ -249,6 +258,11 @@ struct NWChemNwpwStanza {
   hamiltonianMotionFilename   @32 :Text = "";       # Emit/promote NWPW hmotion_filename.
   orbitalMotionFilename       @33 :Text = "";       # Emit/promote NWPW omotion_filename.
   eigenvalueMotionFilename    @34 :Text = "";       # Emit/promote NWPW eigmotion_filename.
+  fractionalOrbitalsStart     @35 :Int32 = 0;       # First NWPW fractional_orbitals value.
+  fractionalOrbitalsEnd       @36 :Int32 = 0;       # Second NWPW fractional_orbitals value.
+  smearTemperature            @37 :Float64 = 0.0;   # Emit/promote NWPW smear temperature RTDB value.
+  smearAlpha                  @38 :Float64 = 0.0;   # Emit/promote NWPW smear alpha.
+  smearType                   @39 :NWChemNwpwSmearType = unspecified; # Emit/promote NWPW smear type.
 }
 
 # @struct NWChemScfStanza

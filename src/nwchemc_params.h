@@ -82,6 +82,12 @@ int nwchemc_params_extract_direct_nwpw_filenames(
     capn_text *orbital_motion_filename,
     capn_text *eigenvalue_motion_filename);
 
+int nwchemc_params_extract_direct_nwpw_fractional(
+    NWChemParams_ptr params, int *has_fractional,
+    int *fractional_orbitals_start, int *fractional_orbitals_end,
+    int *has_smear, double *smear_temperature, double *smear_alpha,
+    int *smear_type);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

@@ -400,6 +400,19 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_hamiltonian_motion_filename, &nwpw_orbital_motion_filename,
           &nwpw_eigenvalue_motion_filename) != 0)
     return -1;
+  int nwpw_has_fractional = 0;
+  int nwpw_fractional_orbitals_start = 0;
+  int nwpw_fractional_orbitals_end = 0;
+  int nwpw_has_smear = 0;
+  double nwpw_smear_temperature = 0.0;
+  double nwpw_smear_alpha = 0.0;
+  int nwpw_smear_type = NWChemNwpwSmearType_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_fractional(
+          params_root, &nwpw_has_fractional,
+          &nwpw_fractional_orbitals_start, &nwpw_fractional_orbitals_end,
+          &nwpw_has_smear, &nwpw_smear_temperature, &nwpw_smear_alpha,
+          &nwpw_smear_type) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -809,6 +822,70 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               nwpw_direct_keys, nwpw_direct_values, nwpw_cpmd_nwpw, 2,
               nwpw_filename_keys[i].suffix, NWCHEMC_DIRECT_SET_VALUE_TEXT,
               value_list, 1) != 0)
+        return -1;
+    }
+  }
+  if (nwpw_has_fractional) {
+    char start_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char end_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[2] = {start_value, end_value};
+    snprintf(start_value, sizeof(start_value), "%d",
+             nwpw_fractional_orbitals_start);
+    snprintf(end_value, sizeof(end_value), "%d",
+             nwpw_fractional_orbitals_end);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:fractional_orbitals",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 2) != 0)
+      return -1;
+  }
+  if (nwpw_has_smear) {
+    if (nwpw_smear_temperature > 0.0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.17g", nwpw_smear_temperature);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values,
+              "nwpw:fractional_temperature",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+        return -1;
+    }
+    if (nwpw_smear_alpha > 0.0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.17g", nwpw_smear_alpha);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:fractional_alpha",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+        return -1;
+    }
+    if (nwpw_smear_type != NWChemNwpwSmearType_unspecified) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      int smear_value = 2;
+      if (nwpw_smear_type == NWChemNwpwSmearType_fixed)
+        smear_value = -1;
+      else if (nwpw_smear_type == NWChemNwpwSmearType_step)
+        smear_value = 0;
+      else if (nwpw_smear_type == NWChemNwpwSmearType_fermi)
+        smear_value = 1;
+      else if (nwpw_smear_type == NWChemNwpwSmearType_gaussian)
+        smear_value = 2;
+      else if (nwpw_smear_type == NWChemNwpwSmearType_marzariVanderbilt)
+        smear_value = 4;
+      snprintf(value, sizeof(value), "%d", smear_value);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values,
+              "nwpw:fractional_smeartype",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
         return -1;
     }
   }
