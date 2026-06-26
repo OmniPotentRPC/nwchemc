@@ -123,14 +123,16 @@ the promoted lines and writes the same values as typed RTDB entries:
 ~NWChemTceStanza~ reads the Tensor Contraction Engine coupled-cluster surface
 from the same Cap'n Proto message. Full-deck rendering emits a ~tce~ block.
 Embed rendering omits promoted TCE lines and writes typed ~tce:*~ RTDB entries
-directly. Keep ~method~ as the exact NWChem input token a deck should show
-(examples include ~ccsd(t)~, ~cr-ccsd(t)~, ~creomsd(t)~, ~bwccsd~), and set
-the normalized RTDB fields (~model~, ~perturbative~, ~mrcc~) for direct embed
-state.
+directly. ~method~ is the exact NWChem input token a deck should show
+(examples include ~ccsd(t)~, ~cr-ccsd(t)~, ~creomsd(t)~, ~bwccsd~). For known
+NWChem method tokens, the direct embed path derives the normalized RTDB fields
+(~model~, ~perturbative~, ~ccsdVariant~, ~noTriplesSingles~, ~left~, and
+~mrcc~ where the NWChem parser does). Explicit normalized fields override
+derived method values.
 
 | Field(s) | NWChem text | Embed RTDB key(s) |
 |----------+-------------+-------------------|
-| ~method~ | exact method token | deck text only |
+| ~method~ | exact method token | derives normalized ~tce:*~ keys for known tokens |
 | ~model~ | fallback method token when ~method~ is empty | ~tce:model~ |
 | ~model2e~ | ~2eorb~ / ~2espin~ | ~tce:model2e~ |
 | ~perturbative~ | represented by ~method~ token | ~tce:perturbative~ |
