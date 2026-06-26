@@ -101,6 +101,13 @@ RTDB values directly:
 | ~wavefunctionCutoff~ | ~wavefunction_cutoff <value>~ | ~cgsd:wcut~, ~band:wcut~, ~cpsd:wcut~, ~cpmd:wcut~ |
 | ~ewaldRcut~ | ~ewald_rcut <value>~ | ~cgsd:rcut~, ~band:rcut~, ~cpsd:rcut~, ~cpmd:rcut~ |
 | ~ewaldNcut~ | ~ewald_ncut <value>~ | ~cgsd:ncut~, ~band:ncut~, ~cpsd:ncut~, ~cpmd:ncut~ |
+| ~cellName~ | ~cell_name <name>~ | ~cgsd:cell_name~, ~band:cell_name~, ~cpsd:cell_name~ |
+| ~inputWavefunctionFilename~ | ~input_wavefunction_filename <path>~ | ~cgsd:input_wavefunction_filename~, ~band:input_wavefunction_filename~, ~pspw:input vectors~, ~band:input vectors~ |
+| ~outputWavefunctionFilename~ | ~output_wavefunction_filename <path>~ | ~cgsd:output_wavefunction_filename~, ~band:output_wavefunction_filename~ |
+| ~fakeMass~ | ~fake_mass <value>~ | ~cgsd:fake_mass~, ~band:fake_mass~, ~cpsd:fake_mass~ |
+| ~timeStep~ | ~time_step <value>~ | ~cgsd:time_step~, ~band:time_step~, ~cpsd:time_step~ |
+| ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ | ~cgsd:loop~, ~band:loop~, ~cpsd:loop~ |
+| ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ | ~cgsd:tolerances~, ~band:tolerances~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
@@ -169,7 +176,7 @@ handler names derived from the local NWChem source tree.
   (~positions_ang~, ~atomic_numbers~), not Cap'n Proto atom lists.
 
 * Pseudopotentials
-~NWChemNwpwStanza~ covers scalar NWPW cutoff controls:
+~NWChemNwpwStanza~ covers scalar NWPW cutoff and state controls:
 
 | Field | NWChem text |
 |-------+-------------|
@@ -177,10 +184,17 @@ handler names derived from the local NWChem source tree.
 | ~wavefunctionCutoff~ | ~wavefunction_cutoff <value>~ |
 | ~ewaldRcut~ | ~ewald_rcut <value>~ |
 | ~ewaldNcut~ | ~ewald_ncut <value>~ |
+| ~cellName~ | ~cell_name <name>~ |
+| ~inputWavefunctionFilename~ | ~input_wavefunction_filename <path>~ |
+| ~outputWavefunctionFilename~ | ~output_wavefunction_filename <path>~ |
+| ~fakeMass~ | ~fake_mass <value>~ |
+| ~timeStep~ | ~time_step <value>~ |
+| ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ |
+| ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
-The embed path promotes these cutoff fields to the stable RTDB keys used by the
-NWChem NWPW input handler and leaves only extra directives in rendered text.
+The embed path promotes these fields to the stable RTDB keys used by the NWChem
+NWPW input handler and leaves only extra directives in rendered text.
 
 ~NWChemPseudopotentialStanza~ provides a structured representation for NWPW
 pseudopotential selection:

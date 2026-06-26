@@ -84,7 +84,9 @@ geometry, module, pseudopotential, set, generic), and escape hatches (`raw`,
 write typed SCF and driver scalar controls directly to RTDB, including driver
 `maxiter`, `tight` / `loose`, and explicit `gmax` / `grms` / `xmax` / `xrms`
 tolerances. Structured NWPW cutoff controls are also promoted directly to the
-matching PSPW/BAND RTDB keys instead of going through rendered text.
+matching PSPW/BAND RTDB keys instead of going through rendered text, including
+NWPW cell names, wavefunction filenames, fake mass, time step, loop, and
+tolerance controls.
 
 ## Build
 

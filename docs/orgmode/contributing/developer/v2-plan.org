@@ -189,6 +189,14 @@ module prefix:
 | ~wavefunctionCutoff~ | ~wcut~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
 | ~ewaldRcut~ | ~rcut~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
 | ~ewaldNcut~ | ~ncut~ | ~cgsd~, ~band~, ~cpsd~, ~cpmd~ |
+| ~cellName~ | ~cell_name~ | ~cgsd~, ~band~, ~cpsd~ |
+| ~inputWavefunctionFilename~ | ~input_wavefunction_filename~ | ~cgsd~, ~band~ |
+| ~inputWavefunctionFilename~ | ~input vectors~ | ~pspw~, ~band~ |
+| ~outputWavefunctionFilename~ | ~output_wavefunction_filename~ | ~cgsd~, ~band~ |
+| ~fakeMass~ | ~fake_mass~ | ~cgsd~, ~band~, ~cpsd~ |
+| ~timeStep~ | ~time_step~ | ~cgsd~, ~band~, ~cpsd~ |
+| ~loopStart~ / ~loopEnd~ | ~loop~ | ~cgsd~, ~band~, ~cpsd~ |
+| ~toleranceEnergy~ / ~toleranceDensity~ / ~toleranceGradient~ | ~tolerances~ | ~cgsd~, ~band~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes
