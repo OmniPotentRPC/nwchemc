@@ -103,6 +103,16 @@ extern int nwchemc_embed_optimize_cell(
     const int *atomic_numbers, const double *cell_ang, const int *has_cell,
     const int *charge, const int *multiplicity, double *energy_h,
     double *optimized_positions_ang, char *errmsg, int errmsg_len);
+extern int nwchemc_embed_frequencies(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const int *charge, const int *multiplicity,
+    double *frequencies_cm1, double *intensities_au, char *errmsg,
+    int errmsg_len);
+extern int nwchemc_embed_frequencies_cell(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *frequencies_cm1,
+    double *intensities_au, char *errmsg, int errmsg_len);
 extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
@@ -2641,6 +2651,71 @@ NWChemCResult nwchemc_optimize(
   return r;
 }
 
+NWChemCResult nwchemc_frequencies(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+
+  if (n_atoms <= 0 || !positions_ang || !atomic_numbers || !frequencies_cm1 ||
+      n_atoms > INT_MAX / 3) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                          &params_root) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
+    return r;
+  }
+
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
+  if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  g_active_session = NULL;
+
+  size_t ndof = (size_t)n_atoms * 3u;
+  double *scratch_intensities = NULL;
+  double *intensity_arg = intensities_au;
+  if (!intensity_arg) {
+    scratch_intensities = (double *)calloc(ndof, sizeof(double));
+    if (!scratch_intensities) {
+      nwchemc_params_release(&arena);
+      snprintf(r.message, sizeof(r.message), "out of memory");
+      return r;
+    }
+    intensity_arg = scratch_intensities;
+  }
+
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = params.charge;
+  int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  int rc = nwchemc_embed_frequencies(&n, positions_ang, atomic_numbers, &ch,
+                                     &mult, frequencies_cm1, intensity_arg,
+                                     errmsg, (int)sizeof(errmsg) - 1);
+  free(scratch_intensities);
+  nwchemc_params_release(&arena);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed frequencies failed");
+    return r;
+  }
+  r.ok = 1;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
 static void session_clear_params(NWChemCSession *session) {
   if (!session)
     return;
@@ -3128,6 +3203,78 @@ NWChemCResult nwchemc_session_optimize(NWChemCSession *session, int n_atoms,
                                        double *optimized_positions_ang) {
   return session_optimize_cell(session, n_atoms, positions_ang, atomic_numbers,
                                NULL, 0, optimized_positions_ang);
+}
+
+static NWChemCResult session_frequencies_cell(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, int has_cell,
+    double *frequencies_cm1, double *intensities_au) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !frequencies_cm1 || n_atoms > INT_MAX / 3) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  int topology_status =
+      session_check_topology(session, (size_t)n_atoms, atomic_numbers);
+  if (topology_status < 0) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  if (topology_status > 0) {
+    snprintf(r.message, sizeof(r.message), "session topology mismatch");
+    return r;
+  }
+  if (session_apply_config(session) != 0) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  ensure_init();
+  size_t ndof = (size_t)n_atoms * 3u;
+  double *scratch_intensities = NULL;
+  double *intensity_arg = intensities_au;
+  if (!intensity_arg) {
+    scratch_intensities = (double *)calloc(ndof, sizeof(double));
+    if (!scratch_intensities) {
+      snprintf(r.message, sizeof(r.message), "out of memory");
+      return r;
+    }
+    intensity_arg = scratch_intensities;
+  }
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = 0;
+  int mult = 1;
+  session_charge_multiplicity(session, &ch, &mult);
+  int cell_flag = has_cell ? 1 : 0;
+  double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0};
+  const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  int rc = nwchemc_embed_frequencies_cell(
+      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
+      frequencies_cm1, intensity_arg, errmsg, (int)sizeof(errmsg) - 1);
+  free(scratch_intensities);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed frequencies failed");
+    return r;
+  }
+  r.ok = 1;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
+NWChemCResult nwchemc_session_frequencies(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *frequencies_cm1,
+    double *intensities_au) {
+  return session_frequencies_cell(session, n_atoms, positions_ang,
+                                  atomic_numbers, NULL, 0, frequencies_cm1,
+                                  intensities_au);
 }
 
 NWChemCResult nwchemc_session_calculate_forces(
@@ -3643,6 +3790,60 @@ NWChemCResult nwchemc_session_calculate_optimize(
       optimized_positions_ang);
 }
 
+NWChemCResult nwchemc_session_calculate_frequencies(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *frequencies_cm1,
+    size_t frequencies_len, double *intensities_au, size_t intensities_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !frequencies_cm1) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || n_atoms > SIZE_MAX / 3u ||
+      frequencies_len < n_atoms * 3u ||
+      (intensities_au && intensities_len < n_atoms * 3u)) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  return session_frequencies_cell(
+      session, (int)n_atoms, session->step_positions_ang,
+      session->step_atomic_numbers, cell_ang, has_cell, frequencies_cm1,
+      intensities_au);
+}
+
 NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -3785,6 +3986,42 @@ NWChemCResult nwchemc_calculate_optimize(
   r = nwchemc_session_calculate_optimize(
       session, force_input_capnp, force_input_capnp_size_bytes,
       optimized_positions_ang, optimized_positions_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_frequencies(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !frequencies_cm1) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      n_atoms > SIZE_MAX / 3u || frequencies_len < n_atoms * 3u ||
+      (intensities_au && intensities_len < n_atoms * 3u)) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
+    return r;
+  }
+  r = nwchemc_session_calculate_frequencies(
+      session, force_input_capnp, force_input_capnp_size_bytes, frequencies_cm1,
+      frequencies_len, intensities_au, intensities_len);
   nwchemc_session_destroy(session);
   return r;
 }
