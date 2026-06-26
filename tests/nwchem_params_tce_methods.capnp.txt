@@ -1,0 +1,40 @@
+(
+  basis = "sto-3g",
+  theory = "dft",
+  scfType = "pbe0",
+  charge = 0,
+  multiplicity = 1,
+  task = "gradient",
+  inputStanzas = [
+    (
+      kind = tce,
+      tce = (
+        method = "multi"
+      )
+    ),
+    (
+      kind = tce,
+      tce = (
+        method = "eionly"
+      )
+    ),
+    (
+      kind = tce,
+      tce = (
+        method = "cc2"
+      )
+    ),
+    (
+      kind = tce,
+      tce = (
+        method = "lambda-ccsd(t)"
+      )
+    ),
+    (
+      kind = tce,
+      tce = (
+        method = "bwccsd"
+      )
+    )
+  ]
+)

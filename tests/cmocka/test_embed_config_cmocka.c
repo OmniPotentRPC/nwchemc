@@ -18,6 +18,7 @@ static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
 static const char *g_force_step_ev_path = NULL;
 static const char *g_force_step_changed_species_path = NULL;
+static const char *g_tce_methods_path = NULL;
 
 static char g_basis[64];
 static char g_theory[64];
@@ -745,6 +746,19 @@ static void assert_typed_set_scalar(const char *key, int value_type,
   assert_string_equal(g_typed_set_values[index][0], value);
 }
 
+static void assert_typed_set_scalar_entry(const char *key, int value_type,
+                                          const char *value) {
+  for (int i = 0; i < g_typed_set_count && i < 192; ++i) {
+    if (strcmp(g_typed_set_keys[i], key) != 0)
+      continue;
+    if (g_typed_set_types[i] == value_type &&
+        g_typed_set_value_counts[i] == 1 &&
+        strcmp(g_typed_set_values[i][0], value) == 0)
+      return;
+  }
+  fail_msg("missing typed RTDB scalar %s=%s", key, value);
+}
+
 static void assert_typed_set_pair(const char *key, int value_type,
                                   const char *first, const char *second) {
   int index = find_typed_set_key(key);
@@ -1189,6 +1203,43 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                    NWChemPseudopotentialEntry_LibraryType_pspwLibrary);
   assert_string_equal(g_psp_names[5], "pspw_default");
 
+  free(message);
+}
+
+static void test_embed_config_promotes_tce_method_tokens(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_tce_methods_path, &message_size);
+  assert_non_null(message);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+
+  assert_int_equal(result.ok, 1);
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 10);
+  assert_typed_set_scalar_entry("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                "multi");
+  assert_typed_set_scalar_entry("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                "eionly");
+  assert_typed_set_scalar_entry("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                "ccsd");
+  assert_typed_set_scalar_entry("tce:ccsdvar", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                "cc2");
+  assert_typed_set_scalar_entry("tce:nts", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                                "false");
+  assert_typed_set_scalar_entry("tce:perturbative",
+                                NWCHEMC_DIRECT_SET_VALUE_TEXT, "lambda(t)");
+  assert_typed_set_scalar_entry("tce:left", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                                "true");
+  assert_typed_set_scalar_entry("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                                "bwccsd");
+  assert_typed_set_scalar_entry("tce:mrcc", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                                "1");
   free(message);
 }
 
@@ -2001,11 +2052,12 @@ static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 9) {
+  if (argc != 10) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
             "PSPSPIN_MANY_PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
-            "FORCE_STEP_EV_BIN FORCE_STEP_CHANGED_SPECIES_BIN\n",
+            "FORCE_STEP_EV_BIN FORCE_STEP_CHANGED_SPECIES_BIN "
+            "TCE_METHODS_BIN\n",
             argv[0]);
     return 2;
   }
@@ -2017,8 +2069,10 @@ int main(int argc, char **argv) {
   g_force_step_b_path = argv[6];
   g_force_step_ev_path = argv[7];
   g_force_step_changed_species_path = argv[8];
+  g_tce_methods_path = argv[9];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
+      cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
       cmocka_unit_test(test_embed_config_promotes_pspspin_rules),
       cmocka_unit_test(test_embed_config_promotes_large_pspspin_ion_list),
