@@ -630,12 +630,16 @@ if get_option('with_tests')
       'nwchem-pseudopotential-rtdb',
       executable(
         'test_nwchem_pseudopotential_rtdb',
-        'tests/test_nwchem_pseudopotential_rtdb.c',
+        [
+          'tests/test_nwchem_pseudopotential_rtdb.c',
+          'tests/nwchem_pseudopotential_rtdb_probe.F',
+        ],
         include_directories: inc,
         dependencies: [cmocka_dep],
         link_with: nwchemc_legacy,
         link_args: nwchem_link_args,
         c_args: common_c_args,
+        fortran_args: nwchem_legacy_args,
       ),
       is_parallel: false,
     )
