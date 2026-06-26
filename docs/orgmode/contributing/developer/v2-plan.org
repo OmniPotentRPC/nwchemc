@@ -344,18 +344,27 @@ Each migrated option needs a cmocka parser test, a real NWChem test that proves
 the direct path still computes finite outputs, and a reference to the upstream
 NWChem input routine or RTDB key being matched.
 
-** Pseudopotential Direct Path
-Keep the structured pseudopotential Cap'n Proto stanza. Replace the rendered
-~nwpw~ pseudopotential block only where NWChem exposes a direct API or stable
-RTDB representation that exactly matches the input handler. Pseudopotentials are
-used by PSPW/NWPW and related rgpot potential workflows, so preserve library
-type semantics instead of collapsing them to free-form strings.
+** DONE Pseudopotential Entry Direct Path
+~NWChemPseudopotentialStanza~ carries ~library~, ~pspw_library~,
+~paw_library~, ~cpi~, ~teter~, and ~allElements~ entries. The C layer extracts
+those entries with ~nwchemc_params_extract_direct_pseudopotentials~ and passes
+them to ~nwchemc_embed_set_pseudopotentials~. Embed rendering omits the
+structured library entries and keeps only extra directives such as ~pspspin~ in
+text.
 
-The structured entry coverage includes ~library~, ~pspw_library~, ~paw_library~,
-~cpi~, ~teter~, and the ~allElements~ default target. Pick-up tasks are:
-confirm the exact RTDB keys written by the NWPW pseudopotential input handler
-for every entry type, add cmocka capture tests for those keys, then route only
-the confirmed entries around ~nw_inp_from_character~.
+The fixed-form bridge writes:
+
+| Entry type | RTDB keys |
+|------------+-----------|
+| ~library~ / ~pspw_library~ | ~<element>:pspw_library~, ~<element>:pspw_library_type~ = 0, ~<element>:psp_reset~ = true |
+| ~paw_library~ | ~<element>:paw_library~, ~<element>:psp_reset~ = true |
+| ~cpi~ | ~<element>:pspw_library~, ~<element>:pspw_library_type~ = 2, ~<element>:psp_reset~ = true |
+| ~teter~ | ~<element>:pspw_library~, ~<element>:pspw_library_type~ = 3, ~<element>:psp_reset~ = true |
+| ~allElements~ | same keys with ~*~ as the element target |
+
+Pickup checks: compare direct and text pseudopotential paths on a real NWChem
+PSPW/BAND input, and add a Fortran-facing regression that observes the exact
+RTDB keys after ~nwchemc_store_pseudopotentials~ runs.
 
 ** Atom And Geometry Limits
 The fixed-form embed helper currently caps direct geometry and basis setup at 64
