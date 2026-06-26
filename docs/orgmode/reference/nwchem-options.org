@@ -142,6 +142,7 @@ state.
 | ~nroots~, ~target~, ~targetSymmetry~, ~symmetry~ | ~nroots~, ~target~, ~targetsym~, ~symmetry~ | ~tce:nroots~, ~tce:target~, ~tce:targetsym~, ~tce:symmetry~ |
 | ~densityMatrix~, ~densityMatrixFile~, ~left~ | ~densmat [file]~ | ~tce:densmat~, ~tce:file_densmat~, ~tce:left~ |
 | ~dipole~ | ~dipole~ | rendered input text |
+| ~printLevel~, ~printItems~ | ~print <level> <items...>~ | rendered input text |
 | ~multipole~, ~fragment~, ~recomputeFock~ | ~multipole~, ~fragment~, ~fock~ / ~nofock~ | ~tce:multipole~, ~tce:fragment~, ~tce:recompf~ |
 | ~activeOccupiedAlpha~, ~activeOccupiedBeta~ | ~active_oa~, ~active_ob~ | ~tce:active_oa~, ~tce:active_ob~ |
 | ~activeVirtualAlpha~, ~activeVirtualBeta~ | ~active_va~, ~active_vb~ | ~tce:active_va~, ~tce:active_vb~ |
