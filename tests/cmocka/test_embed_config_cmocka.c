@@ -633,11 +633,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "bo_algorithm velocity-verlet"));
   assert_null(strstr(g_input_blocks, "bo_fake_mass 333"));
   assert_null(strstr(g_input_blocks, "scaling 1.5 2.5"));
+  assert_null(strstr(g_input_blocks, "np_dimensions 2 3 4"));
+  assert_null(strstr(g_input_blocks, "spin_orbit off"));
+  assert_null(strstr(g_input_blocks, "parallel_io on"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 54);
+  assert_int_equal(g_typed_set_count, 59);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -689,6 +692,16 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                         "2.5");
   assert_typed_set_pair("cpmd:scaling", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.5",
                         "2.5");
+  assert_typed_set_triple("nwpw:np_dimensions",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2", "3", "4");
+  assert_typed_set_scalar("nwpw:spin_orbit", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "false");
+  assert_typed_set_scalar("pspw:spin_orbit", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "false");
+  assert_typed_set_scalar("band:spin_orbit", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "false");
+  assert_typed_set_scalar("nwpw:parallel_io", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
   assert_int_equal(g_set_nwpw_direct_calls, 1);
   assert_int_equal(g_nwpw_has_options, 1);
   assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);

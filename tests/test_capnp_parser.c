@@ -110,6 +110,9 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "bo_algorithm velocity-verlet"));
   assert_non_null(strstr(input_blocks, "bo_fake_mass 333"));
   assert_non_null(strstr(input_blocks, "scaling 1.5 2.5"));
+  assert_non_null(strstr(input_blocks, "np_dimensions 2 3 4"));
+  assert_non_null(strstr(input_blocks, "spin_orbit off"));
+  assert_non_null(strstr(input_blocks, "parallel_io on"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -175,6 +178,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "bo_algorithm velocity-verlet"));
   assert_null(strstr(input_blocks, "bo_fake_mass 333"));
   assert_null(strstr(input_blocks, "scaling 1.5 2.5"));
+  assert_null(strstr(input_blocks, "np_dimensions 2 3 4"));
+  assert_null(strstr(input_blocks, "spin_orbit off"));
+  assert_null(strstr(input_blocks, "parallel_io on"));
   assert_non_null(strstr(input_blocks, "nwpw"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(strstr(input_blocks, "dft"));
@@ -291,6 +297,23 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(scaling_first < 1.501);
   assert_true(scaling_second > 2.499);
   assert_true(scaling_second < 2.501);
+
+  int has_execution = 0;
+  int np_fft = 0;
+  int np_orbital = 0;
+  int np_kspace = 0;
+  int spin_orbit = 0;
+  int parallel_io = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_execution(
+                       params_root, &has_execution, &np_fft, &np_orbital,
+                       &np_kspace, &spin_orbit, &parallel_io),
+                   0);
+  assert_int_equal(has_execution, 1);
+  assert_int_equal(np_fft, 2);
+  assert_int_equal(np_orbital, 3);
+  assert_int_equal(np_kspace, 4);
+  assert_int_equal(spin_orbit, NWChemNwpwToggle_disabled);
+  assert_int_equal(parallel_io, NWChemNwpwToggle_enabled);
 
   nwchemc_params_release(&arena);
   free(message);

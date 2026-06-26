@@ -69,7 +69,12 @@
         boAlgorithm = velocityVerlet,
         boFakeMass = 333.0,
         scalingFirst = 1.5,
-        scalingSecond = 2.5
+        scalingSecond = 2.5,
+        npFftProcesses = 2,
+        npOrbitalProcesses = 3,
+        npKspaceProcesses = 4,
+        spinOrbit = disabled,
+        parallelIo = enabled
       )
     ),
     (
