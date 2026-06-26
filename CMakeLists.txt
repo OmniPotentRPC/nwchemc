@@ -725,6 +725,25 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     )
     set_tests_properties(nwchem-hessian PROPERTIES RUN_SERIAL TRUE)
 
+    add_executable(nwchem-geometry-basis-rtdb
+      tests/test_nwchem_geometry_basis_rtdb.c
+      tests/nwchem_geometry_basis_rtdb_probe.F
+    )
+    target_link_libraries(nwchem-geometry-basis-rtdb PRIVATE
+      nwchemc_legacy
+      ${NWCHEM_LINK_ITEMS}
+      PkgConfig::CMOCKA
+    )
+    target_compile_options(nwchem-geometry-basis-rtdb PRIVATE
+      ${NWCHEMC_COMMON_C_WARNINGS}
+      $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+    )
+    add_test(
+      NAME nwchem-geometry-basis-rtdb
+      COMMAND nwchem-geometry-basis-rtdb
+    )
+    set_tests_properties(nwchem-geometry-basis-rtdb PROPERTIES RUN_SERIAL TRUE)
+
     find_program(MPIRUN_EXECUTABLE mpirun)
     if(MPIRUN_EXECUTABLE)
       add_executable(nwchem-energy-gradient-mpi

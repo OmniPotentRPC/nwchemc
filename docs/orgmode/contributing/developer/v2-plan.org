@@ -407,10 +407,14 @@ and run a matching text/deck parity probe only against a build where
 ~src/nwpw/nwpw_input.F~ is linked.
 
 ** Atom And Geometry Limits
-The fixed-form embed helper currently caps direct geometry and basis setup at 64
-atoms. Increase this only by matching NWChem geometry/basis allocation behavior,
-not by widening local arrays alone. Atomic-number to element-symbol mapping uses
-the full periodic table through oganesson for direct geometry and basis setup.
+Direct geometry and library-basis setup use ~n_atoms~-sized storage instead of
+an embed-local atom cap. The C-facing Fortran allocates per-call arrays, and the
+fixed-form RTDB helpers allocate geometry/basis tag storage from ~n_atoms~
+before calling NWChem geometry/basis routines. The
+~nwchem-geometry-basis-rtdb~ probe stores a 65-atom geometry and library basis
+directly in RTDB without running SCF. Atomic-number to element-symbol mapping
+uses the full periodic table through oganesson for direct geometry and basis
+setup.
 
 ** ABI Surface
 Keep adding calculation entry points around the same ~NWChemParams~ carrier:
@@ -435,11 +439,12 @@ env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchem
   meson test -C /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-real-red \
   nwchem-energy-gradient nwchem-energy-gradient-input-blocks \
   nwchem-energy-gradient-structured nwchem-energy-forces nwchem-hessian \
+  nwchem-geometry-basis-rtdb \
   --print-errorlogs
 
 env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-cmake \
   ctest --test-dir /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-cmake \
-  -R '^(stub-abi|capnp-parser|nwchem-energy-gradient|nwchem-energy-gradient-input-blocks|nwchem-energy-gradient-structured|nwchem-energy-forces|nwchem-hessian)$' \
+  -R '^(stub-abi|capnp-parser|nwchem-energy-gradient|nwchem-energy-gradient-input-blocks|nwchem-energy-gradient-structured|nwchem-energy-forces|nwchem-hessian|nwchem-geometry-basis-rtdb)$' \
   --output-on-failure
 #+end_src
 

@@ -71,7 +71,6 @@ module nwchem_embed_c_api
   real(real64), save :: cfg_driver_grms_tol = 0.0_real64
   real(real64), save :: cfg_driver_xmax_tol = 0.0_real64
   real(real64), save :: cfg_driver_xrms_tol = 0.0_real64
-  integer, parameter :: max_embed_atoms = 64
   integer, parameter :: max_embed_pseudopotentials = 64
   integer, parameter :: psp_element_len = 16
   integer, parameter :: psp_name_len = 256
@@ -843,11 +842,6 @@ contains
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
       return
     end if
-    if (n > max_embed_atoms) then
-      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
-      return
-    end if
-
     allocate (pos(3 * n), grad(3 * n), cell(9), z(n))
     do i = 1, 3 * n
       pos(i) = real(positions_ang(i), kind=real64)
@@ -973,11 +967,6 @@ contains
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
       return
     end if
-    if (n > max_embed_atoms) then
-      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
-      return
-    end if
-
     allocate (pos(3 * n), dipole(3), cell(9), z(n))
     do i = 1, 3 * n
       pos(i) = real(positions_ang(i), kind=real64)
@@ -1106,11 +1095,6 @@ contains
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
       return
     end if
-    if (n > max_embed_atoms) then
-      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
-      return
-    end if
-
     allocate (pos(3 * n), quadrupole(6), cell(9), z(n))
     do i = 1, 3 * n
       pos(i) = real(positions_ang(i), kind=real64)
@@ -1237,11 +1221,6 @@ contains
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
       return
     end if
-    if (n > max_embed_atoms) then
-      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
-      return
-    end if
-
     allocate (pos(3 * n), optpos(3 * n), cell(9), z(n))
     do i = 1, 3 * n
       pos(i) = real(positions_ang(i), kind=real64)
@@ -1366,11 +1345,6 @@ contains
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
       return
     end if
-    if (n > max_embed_atoms) then
-      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
-      return
-    end if
-
     ndof = 3 * n
     allocate (pos(ndof), freq(ndof), intensity(ndof), cell(9), z(n))
     do i = 1, ndof
@@ -1494,11 +1468,6 @@ contains
       call set_c_errmsg(errmsg, errmsg_len, 'n_atoms must be positive')
       return
     end if
-    if (n > max_embed_atoms) then
-      call set_c_errmsg(errmsg, errmsg_len, 'n_atoms exceeds embed max')
-      return
-    end if
-
     n2 = (3 * n) * (3 * n)
     allocate (pos(3 * n), hess(n2), cell(9), z(n))
     do i = 1, 3 * n

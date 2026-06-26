@@ -166,8 +166,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*(*) errmsg
       integer n3, i
       integer l_grad, k_grad
-      integer maxat
-      parameter (maxat = 64)
       logical status
       external task_energy, task_gradient
       logical task_energy, task_gradient
@@ -181,11 +179,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-      if (n_atoms .gt. maxat) then
-         errmsg = 'n_atoms exceeds embed maxat=64'
-         return
-      endif
-
       call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
      $     atmnrs, cell_ang, has_cell, errmsg, status)
       if (.not. status) return
@@ -328,8 +321,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision dipole_au(*)
       character*(*) errmsg
       integer i
-      integer maxat
-      parameter (maxat = 64)
       logical status
       external task_energy
       logical task_energy
@@ -346,11 +337,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-      if (n_atoms .gt. maxat) then
-         errmsg = 'n_atoms exceeds embed maxat=64'
-         return
-      endif
-
       call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
      $     atmnrs, cell_ang, has_cell, errmsg, status)
       if (.not. status) return
@@ -484,8 +470,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision quadrupole_au(*)
       character*(*) errmsg
       integer i
-      integer maxat
-      parameter (maxat = 64)
       integer geom, basis
       double precision mtpval(10,3)
       character*255 vectors_in
@@ -508,11 +492,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-      if (n_atoms .gt. maxat) then
-         errmsg = 'n_atoms exceeds embed maxat=64'
-         return
-      endif
-
       call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
      $     atmnrs, cell_ang, has_cell, errmsg, status)
       if (.not. status) return
@@ -699,8 +678,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision hessian_h_bohr2(*)
       character*(*) errmsg
       integer n3, i, j
-      integer maxat, idxij, idxji
-      parameter (maxat = 64)
+      integer idxij, idxji
       logical status
       double precision hval
       character*255 filehess
@@ -715,11 +693,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-      if (n_atoms .gt. maxat) then
-         errmsg = 'n_atoms exceeds embed maxat=64'
-         return
-      endif
-
       n3 = 3 * n_atoms
       do i = 1, n3 * n3
          hessian_h_bohr2(i) = 0.0d0
@@ -865,8 +838,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision intensities_au(*)
       character*(*) errmsg
       integer n3, i
-      integer maxat
-      parameter (maxat = 64)
       logical status, ignore
       external task_freq
       logical task_freq
@@ -879,11 +850,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-      if (n_atoms .gt. maxat) then
-         errmsg = 'n_atoms exceeds embed maxat=64'
-         return
-      endif
-
       n3 = 3 * n_atoms
       do i = 1, n3
          frequencies_cm1(i) = 0.0d0
@@ -1012,12 +978,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision optimized_pos_ang(*)
       character*(*) errmsg
       integer i, iat, n3
-      integer maxat, geom, ncent
-      parameter (maxat = 64)
-      double precision coords(3,maxat)
-      double precision zcharge(maxat)
+      integer geom, ncent, alloc_status
+      double precision, allocatable :: coords(:,:)
+      double precision, allocatable :: zcharge(:)
       double precision scale
-      character*16 tags(maxat)
+      character*16, allocatable :: tags(:)
       logical status
       external task_optimize
       logical task_optimize
@@ -1029,10 +994,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       errmsg = ' '
       if (rtdb .lt. 0 .or. n_atoms .le. 0) then
          errmsg = 'invalid rtdb or n_atoms'
-         return
-      endif
-      if (n_atoms .gt. maxat) then
-         errmsg = 'n_atoms exceeds embed maxat=64'
          return
       endif
       n3 = 3 * n_atoms
@@ -1121,14 +1082,23 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          status = geom_destroy(geom)
          return
       endif
+      allocate(coords(3,n_atoms), zcharge(n_atoms), tags(n_atoms),
+     $     stat=alloc_status)
+      if (alloc_status .ne. 0) then
+         errmsg = 'optimized geometry allocation failed'
+         status = geom_destroy(geom)
+         return
+      endif
       ncent = n_atoms
       if (.not. geom_cart_get(geom, ncent, tags, coords, zcharge)) then
          errmsg = 'geom_cart_get optimized geometry failed'
+         deallocate(coords, zcharge, tags)
          status = geom_destroy(geom)
          return
       endif
       if (ncent .ne. n_atoms) then
          errmsg = 'optimized geometry atom count mismatch'
+         deallocate(coords, zcharge, tags)
          status = geom_destroy(geom)
          return
       endif
@@ -1140,6 +1110,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          optimized_pos_ang(3 * (iat - 1) + 3) =
      $      coords(3,iat) / scale
       enddo
+      deallocate(coords, zcharge, tags)
       if (.not. geom_destroy(geom)) then
          errmsg = 'geom_destroy optimized geometry failed'
          return
@@ -1801,14 +1772,13 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer atmnrs(*)
       character*(*) errmsg
       logical ok
-      integer iat, i, j, geom, maxat
-      parameter (maxat = 64)
-      double precision coords(3,maxat)
-      double precision charge(maxat)
-      double precision mass(maxat)
+      integer iat, i, j, geom, alloc_status
+      double precision, allocatable :: coords(:,:)
+      double precision, allocatable :: charge(:)
+      double precision, allocatable :: mass(:)
       double precision amat(3,3)
       double precision scale
-      character*16 tags(maxat)
+      character*16, allocatable :: tags(:)
       logical status
       external geom_create, geom_destroy, geom_set_user_units
       external geom_get_user_scale, geom_cart_set, geom_masses_set
@@ -1820,21 +1790,30 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       logical geom_amatrix_set, geom_isystype_set, geom_P1_set
 
       ok = .false.
-      if (n_atoms .le. 0 .or. n_atoms .gt. maxat) then
+      if (n_atoms .le. 0) then
          errmsg = 'invalid geometry atom count'
+         return
+      endif
+      allocate(coords(3,n_atoms), charge(n_atoms), mass(n_atoms),
+     $     tags(n_atoms), stat=alloc_status)
+      if (alloc_status .ne. 0) then
+         errmsg = 'geometry allocation failed'
          return
       endif
       if (.not. geom_create(geom, 'geometry')) then
          errmsg = 'geom_create failed'
+         deallocate(coords, charge, mass, tags)
          return
       endif
       if (.not. geom_set_user_units(geom, 'angstroms')) then
          errmsg = 'geom_set_user_units failed'
+         deallocate(coords, charge, mass, tags)
          status = geom_destroy(geom)
          return
       endif
       if (.not. geom_get_user_scale(geom, scale)) then
          errmsg = 'geom_get_user_scale failed'
+         deallocate(coords, charge, mass, tags)
          status = geom_destroy(geom)
          return
       endif
@@ -1846,16 +1825,19 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          enddo
          if (.not. geom_amatrix_set(geom, amat)) then
             errmsg = 'geom_amatrix_set failed'
+            deallocate(coords, charge, mass, tags)
             status = geom_destroy(geom)
             return
          endif
          if (.not. geom_isystype_set(geom, 3)) then
             errmsg = 'geom_isystype_set failed'
+            deallocate(coords, charge, mass, tags)
             status = geom_destroy(geom)
             return
          endif
          if (.not. geom_P1_set(geom)) then
             errmsg = 'geom_P1_set failed'
+            deallocate(coords, charge, mass, tags)
             status = geom_destroy(geom)
             return
          endif
@@ -1871,14 +1853,17 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       enddo
       if (.not. geom_cart_set(geom, n_atoms, tags, coords, charge)) then
          errmsg = 'geom_cart_set failed'
+         deallocate(coords, charge, mass, tags)
          status = geom_destroy(geom)
          return
       endif
       if (.not. geom_masses_set(geom, n_atoms, mass)) then
          errmsg = 'geom_masses_set failed'
+         deallocate(coords, charge, mass, tags)
          status = geom_destroy(geom)
          return
       endif
+      deallocate(coords, charge, mass, tags)
       call geom_compute_values(geom)
       if (.not. geom_rtdb_store(rtdb, geom, 'geometry')) then
          errmsg = 'geom_rtdb_store failed'
@@ -1906,9 +1891,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*(*) basis_name
       character*(*) errmsg
       logical ok
-      integer iat, j, nlib, ntags, basis, maxat
-      parameter (maxat = 64)
-      character*16 tags(maxat)
+      integer iat, j, nlib, ntags, basis, alloc_status
+      character*16, allocatable :: tags(:)
       character*16 tag
       character*255 mydir
       character*255 standard
@@ -1925,28 +1909,37 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       logical bas_set_spherical, bas_set_upcase
 
       ok = .false.
-      if (n_atoms .le. 0 .or. n_atoms .gt. maxat) then
+      if (n_atoms .le. 0) then
          errmsg = 'invalid basis atom count'
+         return
+      endif
+      allocate(tags(n_atoms), stat=alloc_status)
+      if (alloc_status .ne. 0) then
+         errmsg = 'basis tag allocation failed'
          return
       endif
       mydir = ' '
       call bas_set_library_name(mydir)
       if (.not. bas_create(basis, 'ao basis')) then
          errmsg = 'bas_create failed'
+         deallocate(tags)
          return
       endif
       if (.not. bas_add_ucnt_init(basis)) then
          errmsg = 'bas_add_ucnt_init failed'
+         deallocate(tags)
          status = bas_do_destroy(basis)
          return
       endif
       if (.not. bas_set_spherical(basis, .false.)) then
          errmsg = 'bas_set_spherical failed'
+         deallocate(tags)
          status = bas_do_destroy(basis)
          return
       endif
       if (.not. bas_set_upcase(basis, .false.)) then
          errmsg = 'bas_set_upcase failed'
+         deallocate(tags)
          status = bas_do_destroy(basis)
          return
       endif
@@ -1974,6 +1967,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $           filename, oshell_is_rel, read_sphere)
          endif
       enddo
+      deallocate(tags)
       if (.not. bas_rtdb_store(rtdb, 'ao basis', basis)) then
          errmsg = 'bas_rtdb_store failed'
          status = bas_do_destroy(basis)
