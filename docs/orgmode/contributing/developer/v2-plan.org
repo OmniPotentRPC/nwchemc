@@ -92,6 +92,10 @@ The schema contains typed stanzas for:
   two-electron tolerance scalars
 - classic ~ccsd~ scalar controls for max iterations, thresholds, DIIS,
   frozen-orbital counts, disk use, and SCS scaling
+- ~tce~ controls for coupled-cluster/CI/MBPT/EOM method identity,
+  perturbative triples, freeze counts, convergence/level shifts, DIIS, EOM
+  roots/targets, density/multipole flags, active spaces, transform controls,
+  TCE-MRCC, and direct ~tce:*~ RTDB writes
 - ~driver~ blocks including direct max-iteration promotion and text fallback
   for other optimization controls
 - ~set~ directives
@@ -111,8 +115,7 @@ The schema contains typed stanzas for:
 - ~nwpw~ virtual orbital, LCAO, and Ewald grid controls
 - ~nwpw~ Nose-Hoover thermostat controls
 - coupled-cluster module coverage through generic ~ccsd~, ~tce~, and
-  ~tceMrcc~ module stanzas, with structured CC controls tracked as schema/API
-  parity work
+  ~tceMrcc~ module stanzas, plus structured classic ~ccsd~ and TCE controls
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
@@ -262,6 +265,25 @@ module prefix:
 | ~useDisk~ | ~usedisk~ | ~ccsd~ |
 | ~sameSpinScale~ | ~fss~ | ~ccsd~ |
 | ~oppositeSpinScale~ | ~fos~ | ~ccsd~ |
+| ~model~ | ~model~ | ~tce~ |
+| ~model2e~ | ~model2e~ | ~tce~ |
+| ~perturbative~ | ~perturbative~ | ~tce~ |
+| ~reference~ | ~reference~ | ~tce~ |
+| ~frozenCore~ / ~frozenVirtual~ | ~frozen core~ / ~frozen virtual~ | ~tce~ |
+| ~thresh~ / ~maxiter~ / ~maxDiff~ | ~thresh~ / ~maxiter~ / ~maxdiff~ | ~tce~ |
+| ~levelShift~ / ~leftLevelShift~ | ~zlshift~ / ~zlshiftl~ | ~tce~ |
+| ~levelShift2Alpha~ / ~levelShift2Beta~ | ~zlshift2~ | ~tce~ |
+| ~levelShift3Alpha~ / ~levelShift3Beta~ | ~zlshift3~ | ~tce~ |
+| ~ioAlgorithm~ | ~ioalg~ | ~tce~ |
+| ~diis~ / ~diis2~ / ~diis3~ | ~diis~ / ~diis2~ / ~diis3~ | ~tce~ |
+| ~eomSolver~ / ~hbarDimension~ | ~eoms~ / ~hbard~ | ~tce~ |
+| ~nroots~ / ~target~ / ~targetSymmetry~ | ~nroots~ / ~target~ / ~targetsym~ | ~tce~ |
+| ~symmetry~ / ~densityMatrix~ / ~left~ | ~symmetry~ / ~densmat~ / ~left~ | ~tce~ |
+| ~densityMatrixFile~ | ~file_densmat~ | ~tce~ |
+| ~multipole~ / ~fragment~ / ~recomputeFock~ | ~multipole~ / ~fragment~ / ~recompf~ | ~tce~ |
+| active-space fields | ~active_oa~, ~active_ob~, ~active_va~, ~active_vb~, ~oact~, ~uact~, ~eactmin~, ~eactmax~, ~act_excit_lvl~ | ~tce~ |
+| transform/execution fields | ~maxs~, ~ichopx~, ~i4im~, ~idiskx~, ~tilesize~, ~cuda~ | ~tce~ |
+| ~mrcc~ / ~tccSpaces~ / ~eaCcsd~ / ~ipCcsd~ | ~mrcc~ / ~ltcc~ / ~eaccsd~ / ~ipccsd~ | ~tce~ |
 
 Embed rendering omits explicit ~NWChemTaskStanza~ text. Full-deck rendering
 keeps ~task theory operation~ lines, but C ABI evaluation writes

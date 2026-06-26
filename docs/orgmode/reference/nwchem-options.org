@@ -52,6 +52,7 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 | DFT | ~NWChemDftStanza~ | ~dft~, typed DFT controls, extra directives, then ~end~. |
 | SCF | ~NWChemScfStanza~ | ~scf~, vectors/maxiter/thresh/tol2e/noprint, directives, ~end~. |
 | CCSD | ~NWChemCcsdStanza~ | ~ccsd~, scalar controls and directives, then ~end~. |
+| TCE | ~NWChemTceStanza~ | ~tce~, coupled-cluster/CI/MBPT/EOM controls, directives, then ~end~. |
 | Task line | ~NWChemTaskStanza~ | ~task [theory] [operation] [ignore]~ (explicit deck task). |
 | Driver | ~NWChemDriverStanza~ | ~driver~, maxiter/tight/loose/gmax/grms/xmax/xrms/xyz, directives, ~end~. |
 | Property | ~NWChemPropertyStanza~ | ~property~, dipole/mulliken/quadrupole, directives, ~end~. |
@@ -65,7 +66,7 @@ with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
 * Direct embed apply
 When ~apply_config_to_embed~ runs (embed builds only), typed
 ~NWChemDftStanza~, ~NWChemScfStanza~, ~NWChemCcsdStanza~,
-~NWChemDriverStanza~,
+~NWChemTceStanza~, ~NWChemDriverStanza~,
 ~NWChemNwpwStanza~, ~NWChemPseudopotentialStanza~, and text-valued
 ~NWChemSetDirective~ fields are
 applied outside rendered text where the bridge has a direct RTDB/API path.
@@ -108,6 +109,42 @@ the promoted lines and writes the same values as typed RTDB entries:
 | ~useDisk~ | ~nodisk~ when disabled | ~ccsd:usedisk~ |
 | ~sameSpinScale~ | ~fss <value>~ | ~ccsd:fss~ |
 | ~oppositeSpinScale~ | ~fos <value>~ | ~ccsd:fos~ |
+
+~NWChemTceStanza~ reads the Tensor Contraction Engine coupled-cluster surface
+from the same Cap'n Proto message. Full-deck rendering emits a ~tce~ block.
+Embed rendering omits promoted TCE lines and writes typed ~tce:*~ RTDB entries
+directly. Keep ~method~ as the exact NWChem input token a deck should show
+(examples include ~ccsd(t)~, ~cr-ccsd(t)~, ~creomsd(t)~, ~bwccsd~), and set
+the normalized RTDB fields (~model~, ~perturbative~, ~mrcc~) for direct embed
+state.
+
+| Field(s) | NWChem text | Embed RTDB key(s) |
+|----------+-------------+-------------------|
+| ~method~ | exact method token | deck text only |
+| ~model~ | fallback method token when ~method~ is empty | ~tce:model~ |
+| ~model2e~ | ~2eorb~ / ~2espin~ | ~tce:model2e~ |
+| ~perturbative~ | represented by ~method~ token | ~tce:perturbative~ |
+| ~ccsdVariant~, ~noTriplesSingles~ | represented by ~method~ token | ~tce:ccsdvar~, ~tce:nts~ |
+| ~reference~ | ~dft~, ~hf~, or ~scf~ | ~tce:reference~ |
+| ~frozenCore~, ~frozenVirtual~ | ~freeze <core> virtual <virtual>~ | ~tce:frozen core~, ~tce:frozen virtual~ |
+| ~thresh~, ~maxiter~, ~maxDiff~ | ~thresh~, ~maxiter~, ~maxdiff~ | ~tce:thresh~, ~tce:maxiter~, ~tce:maxdiff~ |
+| ~levelShift~, ~leftLevelShift~ | ~lshift~, ~lshiftl~ | ~tce:zlshift~, ~tce:zlshiftl~ |
+| ~levelShift2Alpha~ / ~levelShift2Beta~ | ~lshift2 <a> <b>~ | ~tce:zlshift2~ |
+| ~levelShift3Alpha~ / ~levelShift3Beta~ | ~lshift3 <a> <b>~ | ~tce:zlshift3~ |
+| ~ioAlgorithm~ | ~io fortran/eaf/ga/sf/replicated/dra/ga_eaf~ | ~tce:ioalg~ |
+| ~diis~, ~diis2~, ~diis3~ | ~diis~, ~diis2~, ~diis3~ | ~tce:diis~, ~tce:diis2~, ~tce:diis3~ |
+| ~eomSolver~, ~hbarDimension~ | ~eomsol~, ~hbard~ | ~tce:eoms~, ~tce:hbard~ |
+| ~nroots~, ~target~, ~targetSymmetry~, ~symmetry~ | ~nroots~, ~target~, ~targetsym~, ~symmetry~ | ~tce:nroots~, ~tce:target~, ~tce:targetsym~, ~tce:symmetry~ |
+| ~densityMatrix~, ~densityMatrixFile~, ~left~ | ~densmat [file]~ | ~tce:densmat~, ~tce:file_densmat~, ~tce:left~ |
+| ~multipole~, ~fragment~, ~recomputeFock~ | ~multipole~, ~fragment~, ~fock~ / ~nofock~ | ~tce:multipole~, ~tce:fragment~, ~tce:recompf~ |
+| ~activeOccupiedAlpha~, ~activeOccupiedBeta~ | ~active_oa~, ~active_ob~ | ~tce:active_oa~, ~tce:active_ob~ |
+| ~activeVirtualAlpha~, ~activeVirtualBeta~ | ~active_va~, ~active_vb~ | ~tce:active_va~, ~tce:active_vb~ |
+| ~activeOccupied~, ~activeUnoccupied~ | ~oact~, ~uact~ | ~tce:oact~, ~tce:uact~ |
+| ~activeEnergyMin~, ~activeEnergyMax~ | ~emin_act~, ~emax_act~ | ~tce:eactmin~, ~tce:eactmax~ |
+| ~activeExcitationLevel~ | ~t3a_lvl~ | ~tce:act_excit_lvl~ |
+| ~atomicTileSize~, ~split~, ~twoElectronMethod~, ~diskBackend~ | ~attilesize~, ~split~, ~2emet~, ~idiskx~ | ~tce:maxs~, ~tce:ichopx~, ~tce:i4im~, ~tce:idiskx~ |
+| ~tileSize~, ~cudaDevices~ | ~tilesize~, ~cuda~ | ~tce:tilesize~, ~tce:cuda~ |
+| ~mrcc~, ~tccSpaces~, ~eaCcsd~, ~ipCcsd~ | ~tcc_spaces~, ~eaccsd~, ~ipccsd~ where accepted by NWChem input | ~tce:mrcc~, ~tce:ltcc~, ~tce:eaccsd~, ~tce:ipccsd~ |
 
 ~nwchemc_params_extract_direct_nwpw~ reads structured cutoff controls from
 ~NWChemNwpwStanza~. Full-deck rendering emits NWPW text lines, while embed
@@ -227,9 +264,12 @@ handler names derived from the local NWChem source tree.
 | ~oppositeSpinScale~ | ~fos <value>~ |
 | ~directives~ | Extra CCSD directives, including debug term switches. |
 
-TCE, EOM-CC, CR-EOMCC, MRCC, and atomic freeze controls are represented by
-generic/module stanzas or typed RTDB set values; their structured stanza slices
-are part of the v2 parity plan.
+* TCE Controls
+~NWChemTceStanza~ covers Tensor Contraction Engine coupled-cluster, CI, MBPT,
+EOM-CC, CR-EOMCC, TCE-MRCC, perturbative triples, frozen orbitals, active
+spaces, density/multipole controls, and EOM targeting through stable ~tce:*~
+RTDB keys from ~tce_input.F~. Use ~directives~ for parser-only print/debug
+keywords and method-specific cards that do not own a stable scalar RTDB key.
 
 * Task / Driver / Property / Basis / Geometry Stanzas
 - *Task* (~NWChemTaskStanza~): emit an explicit ~task theory operation~ line when
