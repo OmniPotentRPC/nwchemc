@@ -652,11 +652,21 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "ccsd\n  maxiter 20"));
   assert_null(strstr(g_input_blocks, "freeze 1 virtual 2"));
   assert_null(strstr(g_input_blocks, "nodisk"));
+  assert_null(strstr(g_input_blocks, "tce\n  dft"));
+  assert_null(strstr(g_input_blocks, "cr-ccsd(t)"));
+  assert_null(strstr(g_input_blocks, "lshift 0.01"));
+  assert_null(strstr(g_input_blocks, "lshift2 0.03 0.04"));
+  assert_null(strstr(g_input_blocks, "io ga_eaf"));
+  assert_null(strstr(g_input_blocks, "densmat dens.dat"));
+  assert_null(strstr(g_input_blocks, "nofock"));
+  assert_null(strstr(g_input_blocks, "active_oa 5"));
+  assert_null(strstr(g_input_blocks, "tcc_spaces"));
   assert_non_null(strstr(g_input_blocks, "pspspin off"));
+  assert_non_null(strstr(g_input_blocks, "print debug"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 104);
+  assert_int_equal(g_typed_set_count, 149);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -798,6 +808,81 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "false");
   assert_typed_set_scalar("ccsd:fss", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.2");
   assert_typed_set_scalar("ccsd:fos", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.8");
+  assert_typed_set_scalar("tce:model", NWCHEMC_DIRECT_SET_VALUE_TEXT, "ccsd");
+  assert_typed_set_scalar("tce:model2e", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "2eorb");
+  assert_typed_set_scalar("tce:perturbative", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "cr_(t)");
+  assert_typed_set_scalar("tce:reference", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "0");
+  assert_typed_set_scalar("tce:frozen core",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar("tce:frozen virtual",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  assert_typed_set_scalar("tce:thresh", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "1e-08");
+  assert_typed_set_scalar("tce:zlshift", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "0.01");
+  assert_typed_set_scalar("tce:zlshiftl", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "0.02");
+  assert_typed_set_pair("tce:zlshift2", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                        "0.03", "0.04");
+  assert_typed_set_pair("tce:zlshift3", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                        "0.05", "0.06");
+  assert_typed_set_scalar("tce:maxiter", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "30");
+  assert_typed_set_scalar("tce:ioalg", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "6");
+  assert_typed_set_scalar("tce:diis", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "7");
+  assert_typed_set_scalar("tce:diis2", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "8");
+  assert_typed_set_scalar("tce:diis3", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "9");
+  assert_typed_set_scalar("tce:eoms", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  assert_typed_set_scalar("tce:hbard", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "600");
+  assert_typed_set_scalar("tce:nroots", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "4");
+  assert_typed_set_scalar("tce:target", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3");
+  assert_typed_set_scalar("tce:targetsym", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "b2");
+  assert_typed_set_scalar("tce:symmetry", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("tce:densmat", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("tce:file_densmat", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+                          "dens.dat");
+  assert_typed_set_scalar("tce:left", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("tce:multipole", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
+  assert_typed_set_scalar("tce:fragment", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
+  assert_typed_set_scalar("tce:recompf", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "false");
+  assert_typed_set_scalar("tce:active_oa",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "5");
+  assert_typed_set_scalar("tce:active_ob",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "4");
+  assert_typed_set_scalar("tce:active_va",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "6");
+  assert_typed_set_scalar("tce:active_vb",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "7");
+  assert_typed_set_scalar("tce:oact", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "8");
+  assert_typed_set_scalar("tce:uact", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "9");
+  assert_typed_set_scalar("tce:eactmin", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "0.1");
+  assert_typed_set_scalar("tce:eactmax", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "0.9");
+  assert_typed_set_scalar("tce:act_excit_lvl",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  assert_typed_set_scalar("tce:maxdiff", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "0.25");
+  assert_typed_set_scalar("tce:maxs", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "44");
+  assert_typed_set_scalar("tce:ichopx", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  assert_typed_set_scalar("tce:i4im", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3");
+  assert_typed_set_scalar("tce:idiskx", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar("tce:tilesize", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "40");
+  assert_typed_set_scalar("tce:cuda", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar("tce:ltcc", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
   assert_int_equal(g_set_nwpw_direct_calls, 1);
   assert_int_equal(g_nwpw_has_options, 1);
   assert_close(g_nwpw_energy_cutoff, 12.5, 1e-12);
