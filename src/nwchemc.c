@@ -355,6 +355,11 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_has_tolerances, &nwpw_tolerance_energy,
           &nwpw_tolerance_density, &nwpw_tolerance_gradient) != 0)
     return -1;
+  int nwpw_has_xc = 0;
+  capn_text nwpw_exchange_correlation = {0};
+  if (nwchemc_params_extract_direct_nwpw_xc(
+          params_root, &nwpw_has_xc, &nwpw_exchange_correlation) != 0)
+    return -1;
   capn_text psp_elements[64];
   capn_text psp_names[64];
   int psp_types[64];
@@ -547,6 +552,66 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, nwpw_cgsd_band, 2, "tolerances",
             NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 3) != 0)
+      return -1;
+  }
+  if (nwpw_has_xc && nwpw_exchange_correlation.len > 0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    copy_text_record(value, sizeof(value), nwpw_exchange_correlation);
+    if (append_nwpw_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "exchange_correlation",
+            NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw:SIC_all",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false") != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw:HFX", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+            "false") != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "band:HFX", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+            "false") != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw:SIC_xc_parameter",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1") != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw:SIC_h_parameter",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1") != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw:HFX_parameter",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1") != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "band:HFX_parameter",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1") != 0)
       return -1;
   }
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));

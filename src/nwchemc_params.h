@@ -61,6 +61,10 @@ int nwchemc_params_extract_direct_nwpw_state(
     double *tolerance_energy, double *tolerance_density,
     double *tolerance_gradient);
 
+int nwchemc_params_extract_direct_nwpw_xc(NWChemParams_ptr params,
+                                          int *has_options,
+                                          capn_text *exchange_correlation);
+
 int nwchemc_params_extract_direct_pseudopotentials(
     NWChemParams_ptr params, capn_text *elements, int *library_types,
     capn_text *library_names, size_t capacity, size_t *count);

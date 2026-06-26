@@ -210,6 +210,7 @@ struct NWChemNwpwStanza {
   toleranceEnergy             @12 :Float64 = 0.0; # First NWPW tolerances value.
   toleranceDensity            @13 :Float64 = 0.0; # Second NWPW tolerances value.
   toleranceGradient           @14 :Float64 = 0.0; # Third NWPW tolerances value.
+  exchangeCorrelation         @15 :Text = "";      # Emit/promote NWPW exchange_correlation.
 }
 
 # @struct NWChemScfStanza
