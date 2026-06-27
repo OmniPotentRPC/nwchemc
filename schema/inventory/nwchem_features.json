@@ -3987,6 +3987,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.spinMode",
+      "schema_path": "NWChemNwpwStanza.spinMode",
+      "struct": "NWChemNwpwStanza",
+      "name": "spinMode",
+      "field_id": 142,
+      "type": "NWChemNwpwSpinMode = unspecified",
+      "role": "NWChemNwpwStanza.spinMode Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

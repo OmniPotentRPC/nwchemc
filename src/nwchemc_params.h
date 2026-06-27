@@ -183,6 +183,13 @@ int nwchemc_params_extract_direct_nwpw_auxiliary_potentials(
 int nwchemc_params_extract_direct_nwpw_multiplicity(
     NWChemParams_ptr params, int *has_options, int *multiplicity, int *ispin);
 
+int nwchemc_params_extract_direct_nwpw_spin_mode(NWChemParams_ptr params,
+                                                 int *has_options,
+                                                 int *spin_mode, int *ispin);
+
+int nwchemc_params_extract_direct_nwpw_spin_ispins(
+    NWChemParams_ptr params, int *ispins, size_t capacity, size_t *count);
+
 int nwchemc_params_extract_direct_nwpw_dos(
     NWChemParams_ptr params, int *has_options, int *dos_alpha_set,
     double *dos_alpha, int *dos_npoints_set, int *dos_npoints,

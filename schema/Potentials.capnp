@@ -308,6 +308,12 @@ enum NWChemNwpwBoAlgorithm {
   leapFrog       @3; # NWChem bo_algorithm leap-frog.
 }
 
+enum NWChemNwpwSpinMode {
+  unspecified  @0; # Do not emit/promote dft/odft.
+  restricted   @1; # Emit dft; promote CGSD/BAND/CPSD ispin = 1.
+  unrestricted @2; # Emit odft; promote CGSD/BAND/CPSD ispin = 2.
+}
+
 enum NWChemNwpwMinimizer {
   unspecified   @0; # Do not emit/promote nwpw:minimizer.
   cgGrassman    @1; # Emit cg grassman; promote nwpw:minimizer = 1.
@@ -553,6 +559,7 @@ struct NWChemNwpwStanza {
   geometryOptimize            @139 :Bool = false;   # Emit/promote NWPW geometry_optimize.
   auxiliaryPotentials         @140 :Bool = false;   # Emit/promote NWPW auxiliary_potentials.
   multiplicity                @141 :Int32 = 0;      # Emit/promote NWPW mult.
+  spinMode                    @142 :NWChemNwpwSpinMode = unspecified; # Emit/promote NWPW dft/odft.
 }
 
 # @struct NWChemScfStanza

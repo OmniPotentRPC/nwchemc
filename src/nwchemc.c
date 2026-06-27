@@ -1870,6 +1870,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_multiplicity_has_options, &nwpw_multiplicity,
           &nwpw_ispin) != 0)
     return -1;
+  int nwpw_spin_ispins[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0};
+  size_t nwpw_spin_ispin_count = 0;
+  if (nwchemc_params_extract_direct_nwpw_spin_ispins(
+          params_root, nwpw_spin_ispins, NWCHEMC_DIRECT_SET_VALUE_MAX,
+          &nwpw_spin_ispin_count) != 0)
+    return -1;
   int nwpw_dos_has_options = 0;
   int nwpw_dos_alpha_set = 0;
   double nwpw_dos_alpha = 0.0;
@@ -3296,6 +3302,23 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
         return -1;
       snprintf(key, sizeof(key), "%s:mult", spin_prefixes[i]);
       snprintf(value, sizeof(value), "%d", nwpw_multiplicity);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, key,
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+  }
+  for (size_t i = 0; i < nwpw_spin_ispin_count; ++i) {
+    static const char *spin_prefixes[] = {"cgsd", "band", "cpsd"};
+    for (size_t j = 0; j < sizeof(spin_prefixes) / sizeof(spin_prefixes[0]);
+         ++j) {
+      char key[NWCHEMC_DIRECT_SET_KEY_LEN];
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(key, sizeof(key), "%s:ispin", spin_prefixes[j]);
+      snprintf(value, sizeof(value), "%d", nwpw_spin_ispins[i]);
       if (append_direct_typed_value(
               typed_set_keys, typed_set_types, typed_set_value_counts,
               typed_set_values, NWCHEMC_DIRECT_SET_MAX,

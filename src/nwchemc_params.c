@@ -1115,6 +1115,31 @@ nwpw_toggle_logical_keyword(enum NWChemNwpwToggle toggle) {
 }
 
 static const char *
+nwpw_spin_mode_keyword(enum NWChemNwpwSpinMode spin_mode) {
+  switch (spin_mode) {
+  case NWChemNwpwSpinMode_restricted:
+    return "dft";
+  case NWChemNwpwSpinMode_unrestricted:
+    return "odft";
+  case NWChemNwpwSpinMode_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static int nwpw_spin_mode_ispin(enum NWChemNwpwSpinMode spin_mode) {
+  switch (spin_mode) {
+  case NWChemNwpwSpinMode_restricted:
+    return 1;
+  case NWChemNwpwSpinMode_unrestricted:
+    return 2;
+  case NWChemNwpwSpinMode_unspecified:
+  default:
+    return 0;
+  }
+}
+
+static const char *
 nwpw_minimizer_command(enum NWChemNwpwMinimizer minimizer) {
   switch (minimizer) {
   case NWChemNwpwMinimizer_cgGrassman:
@@ -2467,6 +2492,10 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && nwpw.multiplicity > 0 &&
       append_format(block, sizeof(block), "  mult %d\n", nwpw.multiplicity) !=
           0)
+    return -1;
+  const char *spin_mode = nwpw_spin_mode_keyword(nwpw.spinMode);
+  if (include_direct_promoted && spin_mode &&
+      append_format(block, sizeof(block), "  %s\n", spin_mode) != 0)
     return -1;
   const int has_dos_scalars = nwpw.dosAlphaSet || nwpw.dosNpointsSet ||
                               nwpw.dosEminSet || nwpw.dosEmaxSet;
@@ -4323,6 +4352,77 @@ int nwchemc_params_extract_direct_nwpw_multiplicity(
     *has_options = 1;
     *multiplicity = nwpw.multiplicity;
     *ispin = nwpw.multiplicity > 1 ? 2 : 1;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_spin_mode(NWChemParams_ptr params,
+                                                 int *has_options,
+                                                 int *spin_mode, int *ispin) {
+  if (params.p.type == CAPN_NULL || !has_options || !spin_mode || !ispin)
+    return -1;
+
+  *has_options = 0;
+  *spin_mode = NWChemNwpwSpinMode_unspecified;
+  *ispin = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    int current_ispin = nwpw_spin_mode_ispin(nwpw.spinMode);
+    if (current_ispin == 0)
+      continue;
+
+    *has_options = 1;
+    *spin_mode = nwpw.spinMode;
+    *ispin = current_ispin;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_spin_ispins(
+    NWChemParams_ptr params, int *ispins, size_t capacity, size_t *count) {
+  if (params.p.type == CAPN_NULL || !ispins || !count)
+    return -1;
+
+  *count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    int current_ispin = nwpw_spin_mode_ispin(nwpw.spinMode);
+    if (current_ispin == 0)
+      continue;
+    if (*count >= capacity)
+      return -1;
+    ispins[*count] = current_ispin;
+    ++(*count);
   }
 
   return 0;

@@ -239,6 +239,7 @@ RTDB values directly:
 | ~geometryOptimize~ | ~geometry_optimize~ | ~cgsd:geometry_optimize~, ~cpsd:geometry_optimize~, ~band:geometry_optimize~ |
 | ~auxiliaryPotentials~ | ~auxiliary_potentials~ | ~pspw_qmmm_auxon~ |
 | ~multiplicity~ | ~mult <value>~ | ~cgsd:ispin~, ~band:ispin~, ~cpsd:ispin~, ~cgsd:mult~, ~band:mult~, ~cpsd:mult~ |
+| ~spinMode~ | ~dft~ or ~odft~ | ~cgsd:ispin~, ~band:ispin~, ~cpsd:ispin~ |
 | ~dosAlpha~ | first argument in ~dos <alpha> ...~ | ~dos:alpha~ |
 | ~dosNpoints~ | second argument in ~dos <alpha> <npoints> ...~ | ~dos:npoints~ |
 | ~dosEmin~ | third argument in ~dos <alpha> <npoints> <emin> ...~ | ~dos:emin~ |
