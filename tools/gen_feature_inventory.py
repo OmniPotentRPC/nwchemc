@@ -398,9 +398,19 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput energy/forces",
             },
             {
+                "name": "nwchemc_calculate_forces_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig energy/forces",
+            },
+            {
                 "name": "nwchemc_calculate_energy",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput energy-only",
+            },
+            {
+                "name": "nwchemc_calculate_energy_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig energy-only",
             },
             {
                 "name": "nwchemc_energy_result_size_for_force_input",
@@ -463,6 +473,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput Hessian",
             },
             {
+                "name": "nwchemc_calculate_hessian_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig Hessian",
+            },
+            {
                 "name": "nwchemc_hessian_result_size_for_force_input",
                 "stub": "returns 0",
                 "embed": "sizes ForceInput Hessian PotentialResult",
@@ -486,6 +501,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_dipole",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput dipole",
+            },
+            {
+                "name": "nwchemc_calculate_dipole_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig dipole",
             },
             {
                 "name": "nwchemc_dipole_result_size_for_force_input",
@@ -513,6 +533,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput quadrupole",
             },
             {
+                "name": "nwchemc_calculate_quadrupole_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig quadrupole",
+            },
+            {
                 "name": "nwchemc_quadrupole_result_size_for_force_input",
                 "stub": "returns 0",
                 "embed": "sizes ForceInput quadrupole PotentialResult",
@@ -536,6 +561,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_stress",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput stress",
+            },
+            {
+                "name": "nwchemc_calculate_stress_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig stress",
             },
             {
                 "name": "nwchemc_stress_result_size_for_force_input",
@@ -563,6 +593,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput geometry optimization",
             },
             {
+                "name": "nwchemc_calculate_optimize_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig geometry optimization",
+            },
+            {
                 "name": "nwchemc_optimize_result_size_for_force_input",
                 "stub": "returns 0",
                 "embed": "sizes ForceInput optimization PotentialResult",
@@ -586,6 +621,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_frequencies",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput harmonic frequencies",
+            },
+            {
+                "name": "nwchemc_calculate_frequencies_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig harmonic frequencies",
             },
             {
                 "name": "nwchemc_frequencies_result_size_for_force_input",

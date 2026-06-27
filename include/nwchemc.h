@@ -342,6 +342,14 @@ NWChemCResult nwchemc_calculate_forces(
     double *forces_h_bohr, size_t forces_len);
 
 /**
+ * @brief One-shot `PotentialConfig + ForceInput -> raw forces`.
+ */
+NWChemCResult nwchemc_calculate_forces_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len);
+
+/**
  * @brief Compute one `ForceInput` step and return scalar energy.
  *
  * This is the one-shot Cap'n Proto energy entry point for callers that do not
@@ -349,6 +357,13 @@ NWChemCResult nwchemc_calculate_forces(
  */
 NWChemCResult nwchemc_calculate_energy(
     const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief One-shot `PotentialConfig + ForceInput -> scalar energy`.
+ */
+NWChemCResult nwchemc_calculate_energy_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 
 /**
@@ -505,6 +520,14 @@ NWChemCResult nwchemc_calculate_hessian(
     double *hessian_h_bohr2, size_t hessian_len);
 
 /**
+ * @brief One-shot `PotentialConfig + ForceInput -> raw Hessian`.
+ */
+NWChemCResult nwchemc_calculate_hessian_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len);
+
+/**
  * @brief Return the byte count needed for a Hessian `PotentialResult`.
  *
  * This parses the serialized `ForceInput` geometry and returns the size of the
@@ -557,6 +580,12 @@ NWChemCResult nwchemc_calculate_dipole(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len);
 
+/** @brief One-shot `PotentialConfig + ForceInput -> raw dipole`. */
+NWChemCResult nwchemc_calculate_dipole_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len);
+
 /** @brief Return the byte count needed for a dipole `PotentialResult`. */
 size_t nwchemc_dipole_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
@@ -593,6 +622,12 @@ NWChemCResult nwchemc_calculate_dipole_result_from_config(
  */
 NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *quadrupole_au, size_t quadrupole_len);
+
+/** @brief One-shot `PotentialConfig + ForceInput -> raw quadrupole`. */
+NWChemCResult nwchemc_calculate_quadrupole_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *quadrupole_au, size_t quadrupole_len);
 
@@ -640,6 +675,12 @@ NWChemCResult nwchemc_calculate_stress(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *stress_au, size_t stress_len);
 
+/** @brief One-shot `PotentialConfig + ForceInput -> raw stress`. */
+NWChemCResult nwchemc_calculate_stress_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *stress_au, size_t stress_len);
+
 /** @brief Return the byte count needed for a stress `PotentialResult`. */
 size_t nwchemc_stress_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
@@ -681,6 +722,12 @@ NWChemCResult nwchemc_calculate_stress_result_from_config(
  */
 NWChemCResult nwchemc_calculate_optimize(
     const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *optimized_positions_ang, size_t optimized_positions_len);
+
+/** @brief One-shot `PotentialConfig + ForceInput -> raw optimized positions`. */
+NWChemCResult nwchemc_calculate_optimize_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *optimized_positions_ang, size_t optimized_positions_len);
 
@@ -730,6 +777,15 @@ NWChemCResult nwchemc_calculate_optimize_result_from_config(
  */
 NWChemCResult nwchemc_calculate_frequencies(
     const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len);
+
+/**
+ * @brief One-shot `PotentialConfig + ForceInput -> raw harmonic frequencies`.
+ */
+NWChemCResult nwchemc_calculate_frequencies_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
     size_t intensities_len);

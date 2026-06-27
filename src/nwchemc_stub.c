@@ -568,11 +568,34 @@ NWChemCResult nwchemc_calculate_forces(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_forces_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)forces_h_bohr;
+  (void)forces_len;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_calculate_energy(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_energy_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
   return stub_fail();
@@ -584,6 +607,19 @@ NWChemCResult nwchemc_calculate_hessian(
     double *hessian_h_bohr2, size_t hessian_len) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)hessian_h_bohr2;
+  (void)hessian_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_hessian_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
   (void)hessian_h_bohr2;
@@ -655,6 +691,19 @@ NWChemCResult nwchemc_calculate_dipole(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_dipole_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)dipole_au;
+  (void)dipole_len;
+  return stub_fail();
+}
+
 size_t nwchemc_dipole_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
@@ -698,6 +747,19 @@ NWChemCResult nwchemc_calculate_quadrupole(
     double *quadrupole_au, size_t quadrupole_len) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)quadrupole_au;
+  (void)quadrupole_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_quadrupole_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *quadrupole_au, size_t quadrupole_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
   (void)quadrupole_au;
@@ -755,6 +817,19 @@ NWChemCResult nwchemc_calculate_stress(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_stress_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *stress_au, size_t stress_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)stress_au;
+  (void)stress_len;
+  return stub_fail();
+}
+
 size_t nwchemc_stress_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
@@ -798,6 +873,19 @@ NWChemCResult nwchemc_calculate_optimize(
     double *optimized_positions_ang, size_t optimized_positions_len) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  (void)optimized_positions_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_optimize_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *optimized_positions_ang, size_t optimized_positions_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
   (void)optimized_positions_ang;
@@ -849,6 +937,22 @@ NWChemCResult nwchemc_calculate_frequencies(
     size_t intensities_len) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)frequencies_len;
+  (void)intensities_au;
+  (void)intensities_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_frequencies_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
   (void)frequencies_cm1;
