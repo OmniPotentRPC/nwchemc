@@ -135,6 +135,143 @@ static double assert_potential_result_energy_only(const unsigned char *message,
   return energy;
 }
 
+static double assert_f64_list(const char *label, capn_list64 list,
+                              int expected_len, double *values) {
+  capn_resolve(&list.p);
+  assert_int_equal(list.p.type, CAPN_LIST);
+  assert_int_equal(list.p.datasz, 8);
+  assert_int_equal(list.p.len, expected_len);
+
+  double max_abs = 0.0;
+  for (int i = 0; i < list.p.len; ++i) {
+    double value = capn_to_f64(capn_get64(list, i));
+    if (!isfinite(value))
+      fail_msg("non-finite %s[%d]", label, i);
+    if (values)
+      values[i] = value;
+    max_abs = fmax(max_abs, fabs(value));
+  }
+  return max_abs;
+}
+
+static void assert_potential_result_hessian(const unsigned char *message,
+                                            size_t message_size,
+                                            double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  const int ncoord = 6;
+  double hessian[36];
+  double max_abs = assert_f64_list("hessian", result.hessian, 36, hessian);
+  for (int i = 0; i < ncoord; ++i) {
+    for (int j = 0; j < ncoord; ++j) {
+      double hij = hessian[i * ncoord + j];
+      double hji = hessian[j * ncoord + i];
+      double scale = fmax(1.0, fmax(fabs(hij), fabs(hji)));
+      if (fabs(hij - hji) > 1e-7 * scale)
+        fail_msg("hessian symmetry mismatch at %d,%d", i, j);
+    }
+  }
+  assert_true(max_abs >= 1e-6);
+
+  capn_free(&arena);
+}
+
+static void assert_potential_result_dipole(const unsigned char *message,
+                                           size_t message_size,
+                                           double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  double dipole[3];
+  assert_f64_list("dipole", result.dipole, 3, dipole);
+  for (int i = 0; i < 3; ++i)
+    assert_true(fabs(dipole[i]) < 1.0e-7);
+
+  capn_free(&arena);
+}
+
+static void assert_potential_result_quadrupole(const unsigned char *message,
+                                               size_t message_size,
+                                               double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  double quadrupole[6];
+  double max_abs =
+      assert_f64_list("quadrupole", result.quadrupole, 6, quadrupole);
+  assert_true(max_abs > 1.0e-6);
+  double trace = quadrupole[0] + quadrupole[3] + quadrupole[5];
+  assert_true(fabs(trace) < 1.0e-7 * fmax(1.0, max_abs));
+
+  capn_free(&arena);
+}
+
+static void assert_potential_result_optimized(const unsigned char *message,
+                                              size_t message_size,
+                                              double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  double optimized_positions[6];
+  assert_f64_list("optimized position", result.optimizedPos, 6,
+                  optimized_positions);
+  double bond = h2_bond_length(optimized_positions);
+  assert_true(bond > 0.5);
+  assert_true(bond < 1.0);
+
+  capn_free(&arena);
+}
+
+static void assert_potential_result_frequencies(const unsigned char *message,
+                                                size_t message_size,
+                                                double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  double max_frequency_abs =
+      assert_f64_list("frequency", result.frequencies, 6, NULL);
+  assert_f64_list("intensity", result.intensities, 6, NULL);
+  assert_true(max_frequency_abs > 1.0);
+
+  capn_free(&arena);
+}
+
 static NWChemCResult calculate_result_step(
     NWChemCSession *session, const unsigned char *step, size_t step_size,
     unsigned char *result_bytes, size_t result_capacity, size_t *result_size,
@@ -280,6 +417,120 @@ static void test_session_named_energy_and_forces_results_reuse_config(
       result_bytes, result_size, repeated_energy_status.energy_h);
   assert_close(repeated_energy, eq_energy, 1.0e-10);
 
+  nwchemc_session_destroy(session);
+  free(step_stretched);
+  free(step_eq);
+  free(params);
+}
+
+static void test_session_named_property_and_structural_results(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  size_t step_eq_size = 0;
+  size_t step_stretched_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  unsigned char *step_eq = read_file(g_step_eq_path, &step_eq_size);
+  unsigned char *step_stretched =
+      read_file(g_step_stretched_path, &step_stretched_size);
+  assert_non_null(params);
+  assert_non_null(step_eq);
+  assert_non_null(step_stretched);
+
+  NWChemCSession *session = nwchemc_session_create(params, params_size);
+  assert_non_null(session);
+
+  size_t hessian_capacity =
+      nwchemc_hessian_result_size_for_force_input(step_eq, step_eq_size);
+  assert_true(hessian_capacity > 0);
+  unsigned char *hessian_bytes = (unsigned char *)malloc(hessian_capacity);
+  assert_non_null(hessian_bytes);
+  size_t hessian_size = 0;
+  NWChemCResult hessian_status = nwchemc_session_calculate_hessian_result(
+      session, step_eq, step_eq_size, hessian_bytes, hessian_capacity,
+      &hessian_size);
+  if (!hessian_status.ok)
+    fail_msg("nwchemc_session_calculate_hessian_result failed: %s",
+             hessian_status.message);
+  assert_int_equal(hessian_size, hessian_capacity);
+  assert_potential_result_hessian(hessian_bytes, hessian_size,
+                                  hessian_status.energy_h);
+
+  size_t dipole_capacity =
+      nwchemc_dipole_result_size_for_force_input(step_eq, step_eq_size);
+  assert_true(dipole_capacity > 0);
+  unsigned char *dipole_bytes = (unsigned char *)malloc(dipole_capacity);
+  assert_non_null(dipole_bytes);
+  size_t dipole_size = 0;
+  NWChemCResult dipole_status = nwchemc_session_calculate_dipole_result(
+      session, step_eq, step_eq_size, dipole_bytes, dipole_capacity,
+      &dipole_size);
+  if (!dipole_status.ok)
+    fail_msg("nwchemc_session_calculate_dipole_result failed: %s",
+             dipole_status.message);
+  assert_int_equal(dipole_size, dipole_capacity);
+  assert_potential_result_dipole(dipole_bytes, dipole_size,
+                                 dipole_status.energy_h);
+
+  size_t quadrupole_capacity =
+      nwchemc_quadrupole_result_size_for_force_input(step_eq, step_eq_size);
+  assert_true(quadrupole_capacity > 0);
+  unsigned char *quadrupole_bytes =
+      (unsigned char *)malloc(quadrupole_capacity);
+  assert_non_null(quadrupole_bytes);
+  size_t quadrupole_size = 0;
+  NWChemCResult quadrupole_status =
+      nwchemc_session_calculate_quadrupole_result(
+          session, step_eq, step_eq_size, quadrupole_bytes,
+          quadrupole_capacity, &quadrupole_size);
+  if (!quadrupole_status.ok)
+    fail_msg("nwchemc_session_calculate_quadrupole_result failed: %s",
+             quadrupole_status.message);
+  assert_int_equal(quadrupole_size, quadrupole_capacity);
+  assert_potential_result_quadrupole(quadrupole_bytes, quadrupole_size,
+                                     quadrupole_status.energy_h);
+
+  size_t optimize_capacity =
+      nwchemc_optimize_result_size_for_force_input(step_stretched,
+                                                   step_stretched_size);
+  assert_true(optimize_capacity > 0);
+  unsigned char *optimize_bytes = (unsigned char *)malloc(optimize_capacity);
+  assert_non_null(optimize_bytes);
+  size_t optimize_size = 0;
+  NWChemCResult optimize_status = nwchemc_session_calculate_optimize_result(
+      session, step_stretched, step_stretched_size, optimize_bytes,
+      optimize_capacity, &optimize_size);
+  if (!optimize_status.ok)
+    fail_msg("nwchemc_session_calculate_optimize_result failed: %s",
+             optimize_status.message);
+  assert_int_equal(optimize_size, optimize_capacity);
+  assert_potential_result_optimized(optimize_bytes, optimize_size,
+                                    optimize_status.energy_h);
+
+  size_t frequencies_capacity =
+      nwchemc_frequencies_result_size_for_force_input(step_eq, step_eq_size);
+  assert_true(frequencies_capacity > 0);
+  unsigned char *frequencies_bytes =
+      (unsigned char *)malloc(frequencies_capacity);
+  assert_non_null(frequencies_bytes);
+  size_t frequencies_size = 0;
+  NWChemCResult frequencies_status =
+      nwchemc_session_calculate_frequencies_result(
+          session, step_eq, step_eq_size, frequencies_bytes,
+          frequencies_capacity, &frequencies_size);
+  if (!frequencies_status.ok)
+    fail_msg("nwchemc_session_calculate_frequencies_result failed: %s",
+             frequencies_status.message);
+  assert_int_equal(frequencies_size, frequencies_capacity);
+  assert_potential_result_frequencies(frequencies_bytes, frequencies_size,
+                                      frequencies_status.energy_h);
+
+  free(frequencies_bytes);
+  free(optimize_bytes);
+  free(quadrupole_bytes);
+  free(dipole_bytes);
+  free(hessian_bytes);
   nwchemc_session_destroy(session);
   free(step_stretched);
   free(step_eq);
@@ -440,6 +691,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_calculate_result_accepts_multiple_steps),
       cmocka_unit_test(
           test_session_named_energy_and_forces_results_reuse_config),
+      cmocka_unit_test(test_session_named_property_and_structural_results),
       cmocka_unit_test(test_calculate_hessian_and_dipole_one_shot),
       cmocka_unit_test(test_calculate_optimize_returns_final_geometry),
   };
