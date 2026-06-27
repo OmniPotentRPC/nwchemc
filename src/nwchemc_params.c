@@ -2523,12 +2523,19 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  symmetry %s\n",
                     rho_use_symmetry_logical) != 0)
     return -1;
-  if (include_direct_promoted && nwpw.oneElectronGuessSet &&
-      append_format(block, sizeof(block), "  one_electron_guess %d %d %d\n",
-                    nwpw.oneElectronGuessItIn,
-                    nwpw.oneElectronGuessItOut,
-                    nwpw.oneElectronGuessItOrtho) != 0)
-    return -1;
+  if (include_direct_promoted && nwpw.oneElectronGuessSet) {
+    int it_in =
+        nwpw.oneElectronGuessItIn > 0 ? nwpw.oneElectronGuessItIn : 50;
+    int it_out =
+        nwpw.oneElectronGuessItOut > 0 ? nwpw.oneElectronGuessItOut : 1;
+    int it_ortho = nwpw.oneElectronGuessItOrtho > 0
+                       ? nwpw.oneElectronGuessItOrtho
+                       : 1;
+    if (append_format(block, sizeof(block),
+                      "  one_electron_guess %d %d %d\n", it_in, it_out,
+                      it_ortho) != 0)
+      return -1;
+  }
   const int has_fmm = nwpw.fmm != NWChemNwpwToggle_unspecified ||
                       nwpw.fmmLmax > 0 || nwpw.fmmLongRange > 0;
   if (include_direct_promoted && has_fmm) {
@@ -4271,9 +4278,10 @@ int nwchemc_params_extract_direct_nwpw_one_electron_guess(
       continue;
 
     *has_options = 1;
-    *it_in = nwpw.oneElectronGuessItIn;
-    *it_out = nwpw.oneElectronGuessItOut;
-    *it_ortho = nwpw.oneElectronGuessItOrtho;
+    *it_in = nwpw.oneElectronGuessItIn > 0 ? nwpw.oneElectronGuessItIn : 50;
+    *it_out = nwpw.oneElectronGuessItOut > 0 ? nwpw.oneElectronGuessItOut : 1;
+    *it_ortho =
+        nwpw.oneElectronGuessItOrtho > 0 ? nwpw.oneElectronGuessItOrtho : 1;
   }
 
   return 0;
