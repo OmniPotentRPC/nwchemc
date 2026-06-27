@@ -595,6 +595,21 @@ pseudopotential_entry_target(const struct NWChemPseudopotentialEntry *entry) {
   return entry->element;
 }
 
+static int pseudopotential_entries_have_renderable(
+    NWChemPseudopotentialEntry_list entries) {
+  int n = struct_list_len(&entries.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemPseudopotentialEntry entry;
+    get_NWChemPseudopotentialEntry(&entry, entries, i);
+    capn_text target = pseudopotential_entry_target(&entry);
+    if (target.len > 0 && entry.libraryName.len > 0)
+      return 1;
+  }
+  return 0;
+}
+
 static int render_pseudopotential_entries(
     NWChemPseudopotentialEntry_list entries, char *dst, size_t dst_size) {
   int n = struct_list_len(&entries.p);
@@ -772,12 +787,13 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   char block[4096];
   block[0] = '\0';
   read_NWChemPseudopotentialStanza(&pseudopotential, ptr);
-  int nentries = struct_list_len(&pseudopotential.entries.p);
-  if (nentries < 0)
+  int has_entries = pseudopotential_entries_have_renderable(
+      pseudopotential.entries);
+  if (has_entries < 0)
     return -1;
   if (append_format(block, sizeof(block), "nwpw\n") != 0)
     return -1;
-  if (include_direct_entries && nentries > 0) {
+  if (include_direct_entries && has_entries) {
     if (append_format(block, sizeof(block), "  pseudopotentials\n") != 0 ||
         render_pseudopotential_entries(pseudopotential.entries, block,
                                        sizeof(block)) != 0 ||
