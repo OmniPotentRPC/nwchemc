@@ -159,6 +159,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "socket ipi_client 127.0.0.1:31415"));
   assert_non_null(strstr(input_blocks, "apc 1.25 0.5 0.25 0.125"));
   assert_non_null(strstr(input_blocks, "translation false"));
+  assert_non_null(strstr(input_blocks, "lmbfgs stiefel"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -422,6 +423,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw_APC:Gc"));
   assert_null(strstr(input_blocks, "translation false"));
   assert_null(strstr(input_blocks, "cgsd:allow_translation"));
+  assert_null(strstr(input_blocks, "lmbfgs stiefel"));
+  assert_null(strstr(input_blocks, "nwpw:minimizer"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -924,6 +927,14 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_translation, 1);
   assert_int_equal(translation, NWChemNwpwToggle_disabled);
+
+  int has_minimizer = 0;
+  int minimizer = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_minimizer(
+                       params_root, &has_minimizer, &minimizer),
+                   0);
+  assert_int_equal(has_minimizer, 1);
+  assert_int_equal(minimizer, NWChemNwpwMinimizer_lmbfgsStiefel);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

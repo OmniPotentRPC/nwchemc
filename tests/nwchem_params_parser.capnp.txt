@@ -262,7 +262,8 @@
         apcSet = true,
         apcGc = 1.25,
         apcGamma = [0.5, 0.25, 0.125],
-        translation = disabled
+        translation = disabled,
+        minimizer = lmbfgsStiefel
       )
     ),
     (
