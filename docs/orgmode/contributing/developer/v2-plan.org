@@ -353,11 +353,9 @@ and embed builds promote stable RTDB state directly through
 ~test_parser_renders_structured_input~ and
 ~test_embed_config_uses_direct_dft_values~ cover full rendering, embed text
 omission, and typed RTDB values.
-
-Compact lattice directives (~sc~, ~fcc~, and ~bcc~) render as full input when
-provided through ~latticeKind~ plus ~latticeLengthBohr~. A direct numeric path
-for those compact forms needs an exact match to NWChem's unit-cell helper
-matrices before promotion to ~<cell>:unita~.
+Compact lattice directives (~sc~, ~fcc~, and ~bcc~) also promote directly to
+~<cell>:unita~ from ~latticeKind~ plus ~latticeLengthBohr~, using the same
+primitive-vector assignments as NWChem's ~simulation_cell_input.F~ parser.
 
 ** Expand Direct RTDB Settings
 Move additional scalar options that have stable NWChem RTDB keys out of rendered

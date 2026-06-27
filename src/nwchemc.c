@@ -368,6 +368,46 @@ static int append_simulation_cell_direct_scalar(
       value_list, 1);
 }
 
+static int compact_lattice_unita(enum NWChemSimulationCellLatticeKind kind,
+                                 double length_bohr, double unita[9]) {
+  if (!unita || length_bohr <= 0.0)
+    return 0;
+
+  double half = 0.5 * length_bohr;
+  for (int i = 0; i < 9; ++i)
+    unita[i] = 0.0;
+
+  switch (kind) {
+  case NWChemSimulationCellLatticeKind_sc:
+    unita[0] = length_bohr;
+    unita[4] = length_bohr;
+    unita[8] = length_bohr;
+    return 1;
+  case NWChemSimulationCellLatticeKind_fcc:
+    unita[0] = half;
+    unita[1] = half;
+    unita[3] = half;
+    unita[5] = half;
+    unita[7] = half;
+    unita[8] = half;
+    return 1;
+  case NWChemSimulationCellLatticeKind_bcc:
+    unita[0] = -half;
+    unita[1] = half;
+    unita[2] = half;
+    unita[3] = half;
+    unita[4] = -half;
+    unita[5] = half;
+    unita[6] = half;
+    unita[7] = half;
+    unita[8] = -half;
+    return 1;
+  case NWChemSimulationCellLatticeKind_unspecified:
+  default:
+    return 0;
+  }
+}
+
 static int tce_reference_value(enum NWChemTceReference reference, int *value) {
   if (!value)
     return 0;
@@ -749,6 +789,9 @@ static int append_simulation_cell_direct_values(
     }
     if (nvector != 0 && nvector != 9)
       return -1;
+    double compact_unita[9];
+    int has_compact_unita = compact_lattice_unita(
+        cell.latticeKind, cell.latticeLengthBohr, compact_unita);
     if (cell.boundaryConditions.len > 0) {
       char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
       copy_text_record(value, sizeof(value), cell.boundaryConditions);
@@ -758,12 +801,26 @@ static int append_simulation_cell_direct_values(
               "boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT, value) != 0)
         return -1;
     }
-    if (nvector == 9) {
+    if (nvector == 9 && !has_compact_unita) {
       char value_text[9][NWCHEMC_DIRECT_SET_VALUE_LEN];
       const char *value_list[9];
       for (int j = 0; j < 9; ++j) {
         snprintf(value_text[j], sizeof(value_text[j]), "%.15g",
                  capn_to_f64(capn_get64(lattice_vectors, j)));
+        value_list[j] = value_text[j];
+      }
+      if (append_simulation_cell_direct_value(
+              keys, value_types, value_counts, values, key_capacity,
+              value_capacity, count, key_storage, value_storage, cell.cellName,
+              "unita", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 9) != 0)
+        return -1;
+    }
+    if (has_compact_unita) {
+      char value_text[9][NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *value_list[9];
+      for (int j = 0; j < 9; ++j) {
+        snprintf(value_text[j], sizeof(value_text[j]), "%.15g",
+                 compact_unita[j]);
         value_list[j] = value_text[j];
       }
       if (append_simulation_cell_direct_value(
