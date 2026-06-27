@@ -183,6 +183,9 @@ int nwchemc_params_extract_direct_nwpw_auxiliary_potentials(
 int nwchemc_params_extract_direct_nwpw_multiplicity(
     NWChemParams_ptr params, int *has_options, int *multiplicity, int *ispin);
 
+int nwchemc_params_extract_direct_nwpw_allow_translation(
+    NWChemParams_ptr params, int *has_options, int *allow_translation);
+
 int nwchemc_params_extract_direct_nwpw_spin_mode(NWChemParams_ptr params,
                                                  int *has_options,
                                                  int *spin_mode, int *ispin);

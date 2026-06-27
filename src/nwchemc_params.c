@@ -2489,6 +2489,9 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && nwpw.auxiliaryPotentials &&
       append_format(block, sizeof(block), "  auxiliary_potentials\n") != 0)
     return -1;
+  if (include_direct_promoted && nwpw.allowTranslation &&
+      append_format(block, sizeof(block), "  allow_translation\n") != 0)
+    return -1;
   if (include_direct_promoted && nwpw.multiplicity > 0 &&
       append_format(block, sizeof(block), "  mult %d\n", nwpw.multiplicity) !=
           0)
@@ -4352,6 +4355,39 @@ int nwchemc_params_extract_direct_nwpw_multiplicity(
     *has_options = 1;
     *multiplicity = nwpw.multiplicity;
     *ispin = nwpw.multiplicity > 1 ? 2 : 1;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_allow_translation(
+    NWChemParams_ptr params, int *has_options, int *allow_translation) {
+  if (params.p.type == CAPN_NULL || !has_options || !allow_translation)
+    return -1;
+
+  *has_options = 0;
+  *allow_translation = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (!nwpw.allowTranslation)
+      continue;
+
+    *has_options = 1;
+    *allow_translation = 1;
   }
 
   return 0;

@@ -1863,6 +1863,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_auxiliary_potentials_has_options,
           &nwpw_auxiliary_potentials) != 0)
     return -1;
+  int nwpw_allow_translation_has_options = 0;
+  int nwpw_allow_translation = 0;
+  if (nwchemc_params_extract_direct_nwpw_allow_translation(
+          params_root, &nwpw_allow_translation_has_options,
+          &nwpw_allow_translation) != 0)
+    return -1;
   int nwpw_multiplicity_has_options = 0;
   int nwpw_multiplicity = 0;
   int nwpw_ispin = 0;
@@ -3282,6 +3288,22 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             typed_set_values, NWCHEMC_DIRECT_SET_MAX,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "pspw_qmmm_auxon",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+      return -1;
+  }
+  if (nwpw_allow_translation_has_options && nwpw_allow_translation) {
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "cgsd:allow_translation",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "band:allow_translation",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
       return -1;
   }

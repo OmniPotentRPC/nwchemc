@@ -218,7 +218,8 @@ expose `nwpw:born`, `nwpw:born_dielec`, `nwpw:born_relax`, and
 `band:geometry_optimize` directly. Auxiliary potentials expose
 `pspw_qmmm_auxon` directly. NWPW multiplicity exposes the CGSD/BAND/CPSD
 `ispin` and `mult` keys directly, and spin mode exposes the CGSD/BAND/CPSD
-`ispin` keys directly. DOS controls expose `dos:alpha`,
+`ispin` keys directly. The standalone allow-translation alias exposes the
+CGSD/BAND `allow_translation` keys directly. DOS controls expose `dos:alpha`,
 `dos:npoints`, `dos:emin`, `dos:emax`, and `nwpw:dos:filename` directly. CPMD
 property and grid-comparison flags expose `nwpw:cpmd_properties` and
 `nwpw:use_grid_cmp` directly. Director controls

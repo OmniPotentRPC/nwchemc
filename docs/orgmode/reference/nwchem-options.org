@@ -238,6 +238,7 @@ RTDB values directly:
 | ~singlePrecisionHfx~ | ~single_precision_hfx~ | ~pspw:HFX_single_precision~ |
 | ~geometryOptimize~ | ~geometry_optimize~ | ~cgsd:geometry_optimize~, ~cpsd:geometry_optimize~, ~band:geometry_optimize~ |
 | ~auxiliaryPotentials~ | ~auxiliary_potentials~ | ~pspw_qmmm_auxon~ |
+| ~allowTranslation~ | ~allow_translation~ | ~cgsd:allow_translation~, ~band:allow_translation~ |
 | ~multiplicity~ | ~mult <value>~ | ~cgsd:ispin~, ~band:ispin~, ~cpsd:ispin~, ~cgsd:mult~, ~band:mult~, ~cpsd:mult~ |
 | ~spinMode~ | ~dft~ or ~odft~ | ~cgsd:ispin~, ~band:ispin~, ~cpsd:ispin~ |
 | ~dosAlpha~ | first argument in ~dos <alpha> ...~ | ~dos:alpha~ |

@@ -560,6 +560,7 @@ struct NWChemNwpwStanza {
   auxiliaryPotentials         @140 :Bool = false;   # Emit/promote NWPW auxiliary_potentials.
   multiplicity                @141 :Int32 = 0;      # Emit/promote NWPW mult.
   spinMode                    @142 :NWChemNwpwSpinMode = unspecified; # Emit/promote NWPW dft/odft.
+  allowTranslation            @143 :Bool = false;   # Emit/promote NWPW allow_translation alias.
 }
 
 # @struct NWChemScfStanza
