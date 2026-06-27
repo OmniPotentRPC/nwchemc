@@ -1,0 +1,13 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = nwpw,
+      nwpw = (
+        virtualOrbitalsStart = 8
+      )
+    )
+  ]
+)
