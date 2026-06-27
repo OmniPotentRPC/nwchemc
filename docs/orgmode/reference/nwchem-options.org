@@ -233,6 +233,8 @@ RTDB values directly:
 | ~bornDielectric~ | first numeric argument in ~born <dielec> ...~ | ~nwpw:born_dielec~ |
 | ~bornRelax~ | ~relax true~ or ~false~ in ~born~ | ~nwpw:born_relax~ |
 | ~bornVRadiiAngstrom~ | trailing input radii in ~born~ | ~nwpw:born_vradii~ in Bohr |
+| ~cpmdProperties~ | ~cpmd_properties true~ or ~false~ | ~nwpw:cpmd_properties~ |
+| ~useGridComparison~ | ~use_grid_cmp true~ or ~false~ | ~nwpw:use_grid_cmp~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

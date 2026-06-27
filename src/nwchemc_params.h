@@ -150,6 +150,10 @@ int nwchemc_params_extract_direct_nwpw_born(
     int *relax, double *vradii_angstrom, size_t vradii_capacity,
     size_t *vradii_count);
 
+int nwchemc_params_extract_direct_nwpw_cpmd_grid(
+    NWChemParams_ptr params, int *has_options, int *cpmd_properties,
+    int *use_grid_comparison);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

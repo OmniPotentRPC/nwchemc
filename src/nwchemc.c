@@ -1588,6 +1588,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           nwpw_born_vradii_angstrom, NWCHEMC_DIRECT_SET_VALUE_MAX,
           &nwpw_born_vradii_count) != 0)
     return -1;
+  int nwpw_cpmd_grid_has_options = 0;
+  int nwpw_cpmd_properties = NWChemNwpwToggle_unspecified;
+  int nwpw_use_grid_comparison = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_cpmd_grid(
+          params_root, &nwpw_cpmd_grid_has_options, &nwpw_cpmd_properties,
+          &nwpw_use_grid_comparison) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2729,6 +2736,29 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               nwpw_born_vradii_count) != 0)
         return -1;
     }
+  }
+  if (nwpw_cpmd_grid_has_options) {
+    const char *cpmd_properties_value = nwpw_toggle_logical_value(
+        (enum NWChemNwpwToggle)nwpw_cpmd_properties);
+    if (cpmd_properties_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:cpmd_properties",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, cpmd_properties_value) != 0)
+      return -1;
+    const char *use_grid_comparison_value = nwpw_toggle_logical_value(
+        (enum NWChemNwpwToggle)nwpw_use_grid_comparison);
+    if (use_grid_comparison_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:use_grid_cmp",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+            use_grid_comparison_value) != 0)
+      return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

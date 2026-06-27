@@ -211,7 +211,8 @@ structured and promoted to direct `nwpw:*` RTDB values. Nose-Hoover thermostat
 controls expose the paired `cpmd:*` / `nwpw:*` nose, restart, period,
 temperature, and chain-length RTDB keys directly. Born solvation controls
 expose `nwpw:born`, `nwpw:born_dielec`, `nwpw:born_relax`, and
-`nwpw:born_vradii` directly. NWPW Brillouin-zone and
+`nwpw:born_vradii` directly. CPMD property and grid-comparison flags expose
+`nwpw:cpmd_properties` and `nwpw:use_grid_cmp` directly. NWPW Brillouin-zone and
 simulation-cell stanzas cover k-point grids, explicit k-vectors, boundary
 conditions, 3x3 cell vectors, FFT grids, and related periodic-cell RTDB state.
 Classic CCSD scalar controls cover iteration, threshold, DIIS, frozen-orbital,

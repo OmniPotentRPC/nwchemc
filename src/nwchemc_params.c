@@ -2269,6 +2269,18 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         return -1;
     }
   }
+  const char *cpmd_properties_logical =
+      nwpw_toggle_logical_keyword(nwpw.cpmdProperties);
+  if (include_direct_promoted && cpmd_properties_logical &&
+      append_format(block, sizeof(block), "  cpmd_properties %s\n",
+                    cpmd_properties_logical) != 0)
+    return -1;
+  const char *use_grid_comparison_logical =
+      nwpw_toggle_logical_keyword(nwpw.useGridComparison);
+  if (include_direct_promoted && use_grid_comparison_logical &&
+      append_format(block, sizeof(block), "  use_grid_cmp %s\n",
+                    use_grid_comparison_logical) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3701,6 +3713,45 @@ int nwchemc_params_extract_direct_nwpw_born(
         return -1;
       for (int j = 0; j < nradii; ++j)
         vradii_angstrom[j] = capn_to_f64(capn_get64(born_vradii, j));
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_cpmd_grid(
+    NWChemParams_ptr params, int *has_options, int *cpmd_properties,
+    int *use_grid_comparison) {
+  if (params.p.type == CAPN_NULL || !has_options || !cpmd_properties ||
+      !use_grid_comparison)
+    return -1;
+
+  *has_options = 0;
+  *cpmd_properties = NWChemNwpwToggle_unspecified;
+  *use_grid_comparison = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.cpmdProperties != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *cpmd_properties = nwpw.cpmdProperties;
+    }
+    if (nwpw.useGridComparison != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *use_grid_comparison = nwpw.useGridComparison;
     }
   }
 

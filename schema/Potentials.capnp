@@ -449,6 +449,8 @@ struct NWChemNwpwStanza {
   bornDielectric              @80 :Float64 = 0.0;   # NWPW born dielectric value.
   bornRelax                   @81 :NWChemNwpwToggle = unspecified; # NWPW born relax flag.
   bornVRadiiAngstrom          @82 :List(Float64);    # NWPW born input radii in Angstrom.
+  cpmdProperties              @83 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW cpmd_properties.
+  useGridComparison           @84 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW use_grid_cmp.
 }
 
 # @struct NWChemScfStanza

@@ -3183,6 +3183,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.cpmdProperties",
+      "schema_path": "NWChemNwpwStanza.cpmdProperties",
+      "struct": "NWChemNwpwStanza",
+      "name": "cpmdProperties",
+      "field_id": 83,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.cpmdProperties Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.useGridComparison",
+      "schema_path": "NWChemNwpwStanza.useGridComparison",
+      "struct": "NWChemNwpwStanza",
+      "name": "useGridComparison",
+      "field_id": 84,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.useGridComparison Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",
