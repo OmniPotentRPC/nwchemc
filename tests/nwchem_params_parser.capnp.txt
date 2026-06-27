@@ -339,6 +339,10 @@
         ],
         pspSpin = disabled,
         semicoreSmall = enabled,
+        uterm = enabled,
+        utermRules = [
+          (angularMomentum = d, uScale = 1.4, jScale = 0.2, ionIndices = [4, 6])
+        ],
         spinRules = [
           (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [1, 3]),
           (

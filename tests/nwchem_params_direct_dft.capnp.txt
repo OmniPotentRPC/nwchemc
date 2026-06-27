@@ -314,7 +314,11 @@
           (allElements = true, libraryType = pspwLibrary, libraryName = "pspw_default")
         ],
         pspSpin = disabled,
-        semicoreSmall = enabled
+        semicoreSmall = enabled,
+        uterm = enabled,
+        utermRules = [
+          (angularMomentum = d, uScale = 1.4, jScale = 0.2, ionIndices = [4, 6])
+        ]
       )
     )
   ]

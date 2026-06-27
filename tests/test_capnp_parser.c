@@ -94,6 +94,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "pspspin off"));
   assert_non_null(
       strstr(input_blocks, "set nwpw:psp:semicore_small logical true"));
+  assert_non_null(strstr(input_blocks, "uterm d 1.4 0.2 4 6"));
   assert_non_null(strstr(input_blocks, "pspspin up p 1.25 1 3"));
   assert_non_null(strstr(input_blocks, "pspspin not_m 0 down d 0.75 2"));
   assert_non_null(strstr(input_blocks, "energy_cutoff 12.5"));
@@ -1137,6 +1138,17 @@ static void test_parser_extracts_direct_pseudopotentials(void **state) {
   assert_int_equal(pspspin_enabled, 0);
   assert_int_equal(pspspin_count, 0);
   assert_int_equal(semicore_small, NWChemToggle_enabled);
+
+  int has_uterm = 0;
+  int uterm_enabled = 0;
+  int uterm_count = 0;
+  assert_int_equal(nwchemc_params_extract_direct_pseudopotential_uterm(
+                       params_root, &has_uterm, &uterm_enabled,
+                       &uterm_count),
+                   0);
+  assert_int_equal(has_uterm, 1);
+  assert_int_equal(uterm_enabled, 1);
+  assert_int_equal(uterm_count, 1);
 
   nwchemc_params_release(&arena);
   free(message);

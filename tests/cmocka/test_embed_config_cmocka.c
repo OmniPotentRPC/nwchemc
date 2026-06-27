@@ -1208,6 +1208,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "C cpi C.cpi"));
   assert_null(strstr(g_input_blocks, "N teter N.teter"));
   assert_null(strstr(g_input_blocks, "* pspw_library pspw_default"));
+  assert_null(strstr(g_input_blocks, "uterm d 1.4"));
   assert_null(strstr(g_input_blocks, "energy_cutoff 12.5"));
   assert_null(strstr(g_input_blocks, "wavefunction_cutoff 6.25"));
   assert_null(strstr(g_input_blocks, "ewald_rcut 3.5"));
@@ -1352,7 +1353,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_set_string("band_structure:zone_name", "structureA");
   assert_set_string("band_fft:zone_name", "fftA");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 229);
+  assert_int_equal(g_typed_set_count, 235);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1420,6 +1421,19 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_INTEGER, "0");
   assert_typed_set_scalar("nwpw:psp:semicore_small",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("nwpw:uterm", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("nwpw:nuterms", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "1");
+  assert_typed_set_scalar("nwpw:uterm_scale:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.4");
+  assert_typed_set_scalar("nwpw:jterm_scale:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.2");
+  assert_typed_set_scalar("nwpw:uterm_l:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  const char *uterm_ions[2] = {"4", "6"};
+  assert_typed_set_values("nwpw:uterm_ions:_000001",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, 2, uterm_ions);
   assert_typed_set_scalar("cpmd:xyz_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "traj.xyz");
   assert_typed_set_scalar("nwpw:xyz_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
