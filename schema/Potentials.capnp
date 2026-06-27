@@ -457,6 +457,8 @@ struct NWChemNwpwStanza {
   cellExpandY                 @88 :Int32 = 0;       # Second NWPW expand_cell value.
   cellExpandZ                 @89 :Int32 = 0;       # Third NWPW expand_cell value.
   mapping                     @90 :Int32 = 0;       # NWPW mapping value.
+  rotation                    @91 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW rotation.
+  lmaxMultipole               @92 :Int32 = -1;      # NWPW integrate_mult_l / lmax_multipole value.
 }
 
 # @struct NWChemScfStanza

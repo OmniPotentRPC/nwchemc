@@ -2307,6 +2307,15 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && nwpw.mapping > 0 &&
       append_format(block, sizeof(block), "  mapping %d\n", nwpw.mapping) != 0)
     return -1;
+  const char *rotation_logical = nwpw_toggle_logical_keyword(nwpw.rotation);
+  if (include_direct_promoted && rotation_logical &&
+      append_format(block, sizeof(block), "  rotation %s\n",
+                    rotation_logical) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.lmaxMultipole >= 0 &&
+      append_format(block, sizeof(block), "  integrate_mult_l %d\n",
+                    nwpw.lmaxMultipole) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3862,6 +3871,45 @@ int nwchemc_params_extract_direct_nwpw_cell_mapping(
     if (nwpw.mapping > 0) {
       *has_options = 1;
       *mapping = nwpw.mapping;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_rotation_multipole(
+    NWChemParams_ptr params, int *has_options, int *rotation,
+    int *lmax_multipole) {
+  if (params.p.type == CAPN_NULL || !has_options || !rotation ||
+      !lmax_multipole)
+    return -1;
+
+  *has_options = 0;
+  *rotation = NWChemNwpwToggle_unspecified;
+  *lmax_multipole = -1;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.rotation != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *rotation = nwpw.rotation;
+    }
+    if (nwpw.lmaxMultipole >= 0) {
+      *has_options = 1;
+      *lmax_multipole = nwpw.lmaxMultipole;
     }
   }
 

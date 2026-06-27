@@ -239,6 +239,8 @@ RTDB values directly:
 | ~directorFilename~ | filename token in ~director <filename>~ | ~nwpw:director_filename~ |
 | ~cellExpandX~, ~cellExpandY~, ~cellExpandZ~ | ~expand_cell <x> <y> <z>~ | ~nwpw:cell_expand~ |
 | ~mapping~ | ~mapping <value>~ | ~nwpw:mapping~ |
+| ~rotation~ | ~rotation true~ or ~false~ | ~nwpw:rotation~ |
+| ~lmaxMultipole~ | ~integrate_mult_l <value>~ | ~nwpw:lmax_multipole~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

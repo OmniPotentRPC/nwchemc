@@ -120,7 +120,8 @@ and grid-comparison controls write ~nwpw:cpmd_properties~ and
 ~nwpw:use_grid_cmp~ directly. Director controls write
 ~nwpw:use_director~ and optional ~nwpw:director_filename~ directly. Cell
 expansion and mapping controls write ~nwpw:cell_expand~ and ~nwpw:mapping~
-directly. Structured
+directly. Rotation and multipole controls write ~nwpw:rotation~ and
+~nwpw:lmax_multipole~ directly. Structured
 simulation-cell controls write boundary conditions, 3x3 cell vectors, FFT
 grids, small grids, box delta, box orientation, and box-type state to the
 matching ~<cell>:*~ RTDB keys.
@@ -343,6 +344,8 @@ module prefix:
 | ~directorFilename~ | ~director_filename~ | ~nwpw~ |
 | ~cellExpandX~ / ~cellExpandY~ / ~cellExpandZ~ | ~cell_expand~ | ~nwpw~ |
 | ~mapping~ | ~mapping~ | ~nwpw~ |
+| ~rotation~ | ~rotation~ | ~nwpw~ |
+| ~lmaxMultipole~ | ~lmax_multipole~ | ~nwpw~ |
 | ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
 | ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
 | ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |

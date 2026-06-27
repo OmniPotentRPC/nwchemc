@@ -1609,6 +1609,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_cell_mapping_has_options, nwpw_cell_expand,
           &nwpw_mapping) != 0)
     return -1;
+  int nwpw_rotation_multipole_has_options = 0;
+  int nwpw_rotation = NWChemNwpwToggle_unspecified;
+  int nwpw_lmax_multipole = -1;
+  if (nwchemc_params_extract_direct_nwpw_rotation_multipole(
+          params_root, &nwpw_rotation_multipole_has_options, &nwpw_rotation,
+          &nwpw_lmax_multipole) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2824,6 +2831,29 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
               nwpw_direct_keys, nwpw_direct_values, "nwpw:mapping",
               NWCHEMC_DIRECT_SET_VALUE_INTEGER, mapping_value) != 0)
+        return -1;
+    }
+  }
+  if (nwpw_rotation_multipole_has_options) {
+    const char *rotation_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_rotation);
+    if (rotation_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:rotation",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, rotation_value) != 0)
+      return -1;
+    if (nwpw_lmax_multipole >= 0) {
+      char lmax_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(lmax_value, sizeof(lmax_value), "%d", nwpw_lmax_multipole);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:lmax_multipole",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, lmax_value) != 0)
         return -1;
     }
   }

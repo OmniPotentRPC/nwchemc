@@ -3279,6 +3279,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.rotation",
+      "schema_path": "NWChemNwpwStanza.rotation",
+      "struct": "NWChemNwpwStanza",
+      "name": "rotation",
+      "field_id": 91,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.rotation Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lmaxMultipole",
+      "schema_path": "NWChemNwpwStanza.lmaxMultipole",
+      "struct": "NWChemNwpwStanza",
+      "name": "lmaxMultipole",
+      "field_id": 92,
+      "type": "Int32 = -1",
+      "role": "NWChemNwpwStanza.lmaxMultipole Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",
