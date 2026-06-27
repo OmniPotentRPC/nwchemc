@@ -211,6 +211,12 @@ if get_option('with_tests')
     suite: ['cmocka', 'inventory'],
   )
   test(
+    'readme-abi-surface',
+    python,
+    args: [meson.current_source_dir() / 'tests/test_readme_abi_surface.py'],
+    suite: ['inventory', 'docs'],
+  )
+  test(
     'features-cmocka',
     executable(
       'test_features_cmocka',
