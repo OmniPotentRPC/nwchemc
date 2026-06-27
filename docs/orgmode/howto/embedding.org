@@ -81,6 +81,9 @@ and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
 ~nwchemc_session_calculate_hessian_result~ fills ~PotentialResult.hessian~ with
 the dense row-major Cartesian Hessian in
 ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
+~nwchemc_session_calculate_dipole_result~ and
+~nwchemc_session_calculate_quadrupole_result~ fill ~PotentialResult.dipole~ and
+~PotentialResult.quadrupole~ in atomic units.
 
 The first successful session evaluation establishes the session topology: atom
 count and the ordered atomic-number list. Later session calls may change
@@ -95,7 +98,9 @@ returns the result byte count without evaluating NWChem. If the output buffer is
 too small, ~nwchemc_session_calculate_result~ reports the required byte count
 through ~potential_result_size~ and does not evaluate NWChem.
 ~nwchemc_hessian_result_size_for_force_input~ provides the same preflight size
-for Hessian result messages. ~hessian_h_bohr2~ is filled in Hartree per Bohr
+for Hessian result messages. ~nwchemc_dipole_result_size_for_force_input~ and
+~nwchemc_quadrupole_result_size_for_force_input~ provide the fixed-size
+property result preflight. ~hessian_h_bohr2~ is filled in Hartree per Bohr
 squared. ~dipole_au~ is filled with a three-element total dipole vector in
 atomic units. ~quadrupole_au~ is filled with six total traceless quadrupole
 tensor components in atomic units, ordered ~xx, xy, xz, yy, yz, zz~.
@@ -110,6 +115,9 @@ one-shot ~NWChemParams~ + ~ForceInput~ carrier for native Hessian and dipole
 buffers. ~nwchemc_calculate_quadrupole~ provides the same carrier for the
 six-component quadrupole buffer. ~nwchemc_calculate_hessian_result~ uses the
 same one-shot carrier and writes the Hessian to ~PotentialResult.hessian~.
+~nwchemc_calculate_dipole_result~ and
+~nwchemc_calculate_quadrupole_result~ write the corresponding property lists to
+~PotentialResult~.
 
 * Parameter Ownership
 ~nwchemc~ reads the message with generated ~capnp-c~ bindings.
@@ -139,9 +147,16 @@ Hartree per Bohr squared, with length ~(natoms * 3) * (natoms * 3)~.
 ~nwchemc_session_calculate_dipole()~, and ~nwchemc_calculate_dipole()~ fill a
 three-element total dipole vector in atomic units and keep
 ~NWChemCResult.energy_h~ in Hartree.
+~nwchemc_session_calculate_dipole_result()~ and
+~nwchemc_calculate_dipole_result()~ write the same vector to
+~PotentialResult.dipole~.
 ~nwchemc_quadrupole()~, ~nwchemc_session_quadrupole()~,
 ~nwchemc_session_calculate_quadrupole()~, and ~nwchemc_calculate_quadrupole()~
 fill six total traceless quadrupole components in atomic units as
+~xx, xy, xz, yy, yz, zz~.
+~nwchemc_session_calculate_quadrupole_result()~ and
+~nwchemc_calculate_quadrupole_result()~ write those components to
+~PotentialResult.quadrupole~.
 ~xx, xy, xz, yy, yz, zz~ and keep ~NWChemCResult.energy_h~ in Hartree.
 Input coordinates are Angstrom values in a flat ~[natoms * 3]~ array.
 

@@ -3539,6 +3539,42 @@ size_t nwchemc_hessian_result_size_for_force_input(
   return result_size;
 }
 
+static size_t fixed_property_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    size_t result_size) {
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0)
+    return 0;
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX) {
+    nwchemc_params_release(&arena);
+    return 0;
+  }
+  (void)n_atoms;
+  (void)has_cell;
+  nwchemc_params_release(&arena);
+  return result_size;
+}
+
+size_t nwchemc_dipole_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  return fixed_property_result_size_for_force_input(
+      force_input_capnp, force_input_capnp_size_bytes,
+      nwchemc_dipole_result_flat_size());
+}
+
+size_t nwchemc_quadrupole_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  return fixed_property_result_size_for_force_input(
+      force_input_capnp, force_input_capnp_size_bytes,
+      nwchemc_quadrupole_result_flat_size());
+}
+
 static int force_input_step_atom_count(const void *force_input_capnp,
                                        size_t force_input_capnp_size_bytes,
                                        size_t *n_atoms) {
@@ -3826,6 +3862,48 @@ NWChemCResult nwchemc_session_calculate_dipole(
                              dipole_au);
 }
 
+NWChemCResult nwchemc_session_calculate_dipole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes =
+      nwchemc_dipole_result_size_for_force_input(force_input_capnp,
+                                                 force_input_capnp_size_bytes);
+  if (*potential_result_capnp_size_bytes == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes <
+          *potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  double dipole[3] = {0.0, 0.0, 0.0};
+  r = nwchemc_session_calculate_dipole(
+      session, force_input_capnp, force_input_capnp_size_bytes, dipole, 3);
+  if (r.ok &&
+      nwchemc_potential_result_write_dipole(
+          r.energy_h, dipole, potential_result_capnp,
+          potential_result_capnp_capacity_bytes,
+          potential_result_capnp_size_bytes) != 0) {
+    r.ok = 0;
+    snprintf(r.message, sizeof(r.message), "PotentialResult write failed");
+  }
+  return r;
+}
+
 NWChemCResult nwchemc_session_calculate_quadrupole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *quadrupole_au,
@@ -3875,6 +3953,48 @@ NWChemCResult nwchemc_session_calculate_quadrupole(
   return session_quadrupole_cell(
       session, (int)n_atoms, session->step_positions_ang,
       session->step_atomic_numbers, cell_ang, has_cell, quadrupole_au);
+}
+
+NWChemCResult nwchemc_session_calculate_quadrupole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes =
+      nwchemc_quadrupole_result_size_for_force_input(
+          force_input_capnp, force_input_capnp_size_bytes);
+  if (*potential_result_capnp_size_bytes == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes <
+          *potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  r = nwchemc_session_calculate_quadrupole(
+      session, force_input_capnp, force_input_capnp_size_bytes, quadrupole, 6);
+  if (r.ok &&
+      nwchemc_potential_result_write_quadrupole(
+          r.energy_h, quadrupole, potential_result_capnp,
+          potential_result_capnp_capacity_bytes,
+          potential_result_capnp_size_bytes) != 0) {
+    r.ok = 0;
+    snprintf(r.message, sizeof(r.message), "PotentialResult write failed");
+  }
+  return r;
 }
 
 NWChemCResult nwchemc_session_calculate_optimize(
@@ -4103,6 +4223,49 @@ NWChemCResult nwchemc_calculate_dipole(
   return r;
 }
 
+NWChemCResult nwchemc_calculate_dipole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes =
+      nwchemc_dipole_result_size_for_force_input(force_input_capnp,
+                                                 force_input_capnp_size_bytes);
+  if (*potential_result_capnp_size_bytes == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes <
+          *potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_dipole_result(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      potential_result_capnp, potential_result_capnp_capacity_bytes,
+      potential_result_capnp_size_bytes);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
 NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -4135,6 +4298,49 @@ NWChemCResult nwchemc_calculate_quadrupole(
   r = nwchemc_session_calculate_quadrupole(
       session, force_input_capnp, force_input_capnp_size_bytes, quadrupole_au,
       quadrupole_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_quadrupole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes =
+      nwchemc_quadrupole_result_size_for_force_input(
+          force_input_capnp, force_input_capnp_size_bytes);
+  if (*potential_result_capnp_size_bytes == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes <
+          *potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_quadrupole_result(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      potential_result_capnp, potential_result_capnp_capacity_bytes,
+      potential_result_capnp_size_bytes);
   nwchemc_session_destroy(session);
   return r;
 }

@@ -53,6 +53,9 @@ calculation without touching the NWChem runtime, which lets long-running loops
 allocate or grow the result buffer from the per-step ~ForceInput~ alone.
 ~nwchemc_hessian_result_size_for_force_input()~ does the same for
 ~PotentialResult.hessian~.
+Dipole and quadrupole result-size helpers validate the same ~ForceInput~ carrier
+and return the fixed property result sizes for ~PotentialResult.dipole~ and
+~PotentialResult.quadrupole~.
 ~nwchemc_calculate_result()~ creates a temporary session for callers with a
 single step and performs the same output-size check before NWChem
 configuration or evaluation.
@@ -74,6 +77,8 @@ arrays with explicit unit conversion, then handed to the Fortran bridge.
 ~PotentialResult.energy~ and ~PotentialResult.forces~ are converted to the
 caller units named by ~ForceInput.energyUnit~ and ~ForceInput.lengthUnit~.
 ~PotentialResult.hessian~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
+~PotentialResult.dipole~ and ~PotentialResult.quadrupole~ use NWChem atomic
+units.
 Native C buffers keep NWChem units for callers that want direct numerical
 storage.
 

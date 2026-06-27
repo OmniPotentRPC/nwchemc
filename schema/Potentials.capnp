@@ -29,6 +29,8 @@ struct PotentialResult {
   energy  @0 :Float64;       # @brief The calculated potential energy.
   forces  @1 :List(Float64); # @brief Flat array of atomic forces [natoms * 3].
   hessian @2 :List(Float64); # @brief Dense Cartesian Hessian [natoms * 3]^2.
+  dipole  @3 :List(Float64); # @brief Total dipole vector [3] in atomic units.
+  quadrupole @4 :List(Float64); # @brief Traceless quadrupole [6] in atomic units.
 }
 
 # @struct NWChemParams

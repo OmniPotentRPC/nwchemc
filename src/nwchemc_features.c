@@ -131,6 +131,8 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.PotentialResult.energy", "PotentialResult.energy", "PotentialResult.energy Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.PotentialResult.forces", "PotentialResult.forces", "PotentialResult.forces Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.PotentialResult.hessian", "PotentialResult.hessian", "PotentialResult.hessian Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
+    {"field.PotentialResult.dipole", "PotentialResult.dipole", "PotentialResult.dipole Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 1},
+    {"field.PotentialResult.quadrupole", "PotentialResult.quadrupole", "PotentialResult.quadrupole Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 1},
     {"field.NWChemDirective.keyword", "NWChemDirective.keyword", "NWChemDirective.keyword Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemDirective.args", "NWChemDirective.args", "NWChemDirective.args Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemGenericStanza.name", "NWChemGenericStanza.name", "NWChemGenericStanza.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
@@ -433,7 +435,13 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_calculate_hessian_result", "include/nwchemc.h::nwchemc_session_calculate_hessian_result", "stub=fails ok==0; embed=runs session ForceInput Hessian into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_hessian_result", "include/nwchemc.h::nwchemc_calculate_hessian_result", "stub=fails ok==0; embed=runs one-shot ForceInput Hessian into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_dipole", "include/nwchemc.h::nwchemc_calculate_dipole", "stub=fails ok==0; embed=runs one-shot ForceInput dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_dipole_result_size_for_force_input", "include/nwchemc.h::nwchemc_dipole_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput dipole PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_dipole_result", "include/nwchemc.h::nwchemc_session_calculate_dipole_result", "stub=fails ok==0; embed=runs session ForceInput dipole into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_dipole_result", "include/nwchemc.h::nwchemc_calculate_dipole_result", "stub=fails ok==0; embed=runs one-shot ForceInput dipole into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_quadrupole", "include/nwchemc.h::nwchemc_calculate_quadrupole", "stub=fails ok==0; embed=runs one-shot ForceInput quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_quadrupole_result_size_for_force_input", "include/nwchemc.h::nwchemc_quadrupole_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput quadrupole PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_quadrupole_result", "include/nwchemc.h::nwchemc_session_calculate_quadrupole_result", "stub=fails ok==0; embed=runs session ForceInput quadrupole into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_quadrupole_result", "include/nwchemc.h::nwchemc_calculate_quadrupole_result", "stub=fails ok==0; embed=runs one-shot ForceInput quadrupole into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_optimize", "include/nwchemc.h::nwchemc_calculate_optimize", "stub=fails ok==0; embed=runs one-shot ForceInput geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_frequencies", "include/nwchemc.h::nwchemc_calculate_frequencies", "stub=fails ok==0; embed=runs one-shot ForceInput harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_potential_result_size_for_force_input", "include/nwchemc.h::nwchemc_potential_result_size_for_force_input", "stub=returns 0; embed=sizes session PotentialResult output from ForceInput", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -448,7 +456,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 443;
+static const size_t k_feature_count = 451;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

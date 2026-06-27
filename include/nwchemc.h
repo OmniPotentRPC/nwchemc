@@ -365,6 +365,25 @@ NWChemCResult nwchemc_calculate_dipole(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len);
 
+/** @brief Return the byte count needed for a dipole `PotentialResult`. */
+size_t nwchemc_dipole_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/** @brief Compute one `ForceInput` dipole and write `PotentialResult.dipole`. */
+NWChemCResult nwchemc_session_calculate_dipole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/** @brief One-shot `NWChemParams + ForceInput -> PotentialResult.dipole`. */
+NWChemCResult nwchemc_calculate_dipole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
 /**
  * @brief Compute one `ForceInput` step and write a quadrupole tensor.
  *
@@ -376,6 +395,28 @@ NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *quadrupole_au, size_t quadrupole_len);
+
+/** @brief Return the byte count needed for a quadrupole `PotentialResult`. */
+size_t nwchemc_quadrupole_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Compute one `ForceInput` quadrupole and write
+ * `PotentialResult.quadrupole`.
+ */
+NWChemCResult nwchemc_session_calculate_quadrupole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/** @brief One-shot `NWChemParams + ForceInput -> PotentialResult.quadrupole`. */
+NWChemCResult nwchemc_calculate_quadrupole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 
 /**
  * @brief Optimize one `ForceInput` step and write final coordinates.

@@ -62,6 +62,34 @@ NWChemCResult nwchemc_calculate_dipole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len);
+size_t nwchemc_dipole_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_dipole_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_dipole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+size_t nwchemc_quadrupole_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_quadrupole_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_quadrupole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 void nwchemc_session_destroy(NWChemCSession *session);
 ```
 
@@ -90,9 +118,11 @@ carrier for one-shot callers and delegates through the session result path;
 callers with multiple steps should reuse `NWChemCSession`.
 `nwchemc_session_calculate_hessian_result()` and
 `nwchemc_calculate_hessian_result()` populate `PotentialResult.hessian` in
-`ForceInput.energyUnit / ForceInput.lengthUnit^2`; raw Hessian and dipole
-wrappers use the same `NWChemParams + ForceInput` carrier for callers that want
-native C buffers.
+`ForceInput.energyUnit / ForceInput.lengthUnit^2`. Dipole and quadrupole
+result-carrier wrappers populate `PotentialResult.dipole` and
+`PotentialResult.quadrupole` in atomic units. Raw Hessian, dipole, and
+quadrupole wrappers use the same `NWChemParams + ForceInput` carrier for
+callers that want native C buffers.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,

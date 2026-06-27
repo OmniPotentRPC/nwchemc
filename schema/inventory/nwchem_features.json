@@ -1371,6 +1371,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.PotentialResult.dipole",
+      "schema_path": "PotentialResult.dipole",
+      "struct": "PotentialResult",
+      "name": "dipole",
+      "field_id": 3,
+      "type": "List(Float64)",
+      "role": "PotentialResult.dipole Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.quadrupole",
+      "schema_path": "PotentialResult.quadrupole",
+      "struct": "PotentialResult",
+      "name": "quadrupole",
+      "field_id": 4,
+      "type": "List(Float64)",
+      "role": "PotentialResult.quadrupole Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDirective.keyword",
       "schema_path": "NWChemDirective.keyword",
       "struct": "NWChemDirective",
@@ -4808,9 +4832,39 @@
       "embed": "runs one-shot ForceInput dipole"
     },
     {
+      "name": "nwchemc_dipole_result_size_for_force_input",
+      "stub": "returns 0",
+      "embed": "sizes ForceInput dipole PotentialResult"
+    },
+    {
+      "name": "nwchemc_session_calculate_dipole_result",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput dipole into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_dipole_result",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput dipole into PotentialResult"
+    },
+    {
       "name": "nwchemc_calculate_quadrupole",
       "stub": "fails ok==0",
       "embed": "runs one-shot ForceInput quadrupole"
+    },
+    {
+      "name": "nwchemc_quadrupole_result_size_for_force_input",
+      "stub": "returns 0",
+      "embed": "sizes ForceInput quadrupole PotentialResult"
+    },
+    {
+      "name": "nwchemc_session_calculate_quadrupole_result",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput quadrupole into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_quadrupole_result",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput quadrupole into PotentialResult"
     },
     {
       "name": "nwchemc_calculate_optimize",

@@ -3514,34 +3514,48 @@ int nwchemc_force_input_hessian_result_factors(ForceInput_ptr force_input,
 }
 
 size_t nwchemc_potential_result_flat_size(size_t force_count) {
-  if (force_count > (SIZE_MAX - 40u) / 8u)
+  if (force_count > (SIZE_MAX - 56u) / 8u)
     return 0;
-  return 40u + force_count * 8u;
+  return 56u + force_count * 8u;
 }
 
 size_t nwchemc_hessian_result_flat_size(size_t hessian_count) {
-  if (hessian_count > (SIZE_MAX - 40u) / 8u)
+  if (hessian_count > (SIZE_MAX - 56u) / 8u)
     return 0;
-  return 40u + hessian_count * 8u;
+  return 56u + hessian_count * 8u;
 }
+
+size_t nwchemc_dipole_result_flat_size(void) { return 56u + 3u * 8u; }
+
+size_t nwchemc_quadrupole_result_flat_size(void) { return 56u + 6u * 8u; }
 
 static int nwchemc_potential_result_write_lists(
     double energy, const double *forces, size_t force_count,
-    const double *hessian, size_t hessian_count, void *potential_result_capnp,
-    size_t potential_result_capacity_bytes,
+    const double *hessian, size_t hessian_count, const double *dipole,
+    size_t dipole_count, const double *quadrupole, size_t quadrupole_count,
+    void *potential_result_capnp, size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes) {
   if (!potential_result_capnp || !potential_result_size_bytes ||
       force_count > (size_t)INT_MAX || hessian_count > (size_t)INT_MAX ||
-      (force_count > 0 && !forces) || (hessian_count > 0 && !hessian))
+      dipole_count > (size_t)INT_MAX || quadrupole_count > (size_t)INT_MAX ||
+      (force_count > 0 && !forces) || (hessian_count > 0 && !hessian) ||
+      (dipole_count > 0 && !dipole) ||
+      (quadrupole_count > 0 && !quadrupole))
     return -1;
 
-  size_t required = 40u;
+  size_t required = 56u;
   if (force_count > (SIZE_MAX - required) / 8u)
     return -1;
   required += force_count * 8u;
   if (hessian_count > (SIZE_MAX - required) / 8u)
     return -1;
   required += hessian_count * 8u;
+  if (dipole_count > (SIZE_MAX - required) / 8u)
+    return -1;
+  required += dipole_count * 8u;
+  if (quadrupole_count > (SIZE_MAX - required) / 8u)
+    return -1;
+  required += quadrupole_count * 8u;
   *potential_result_size_bytes = required;
   if (required == 0 || potential_result_capacity_bytes < required)
     return -1;
@@ -3557,13 +3571,21 @@ static int nwchemc_potential_result_write_lists(
   PotentialResult_ptr result = new_PotentialResult(root.seg);
   capn_list64 force_list = {0};
   capn_list64 hessian_list = {0};
+  capn_list64 dipole_list = {0};
+  capn_list64 quadrupole_list = {0};
   if (force_count > 0)
     force_list = capn_new_list64(root.seg, (int)force_count);
   if (hessian_count > 0)
     hessian_list = capn_new_list64(root.seg, (int)hessian_count);
+  if (dipole_count > 0)
+    dipole_list = capn_new_list64(root.seg, (int)dipole_count);
+  if (quadrupole_count > 0)
+    quadrupole_list = capn_new_list64(root.seg, (int)quadrupole_count);
   if (result.p.type == CAPN_NULL ||
       (force_count > 0 && force_list.p.type == CAPN_NULL) ||
-      (hessian_count > 0 && hessian_list.p.type == CAPN_NULL)) {
+      (hessian_count > 0 && hessian_list.p.type == CAPN_NULL) ||
+      (dipole_count > 0 && dipole_list.p.type == CAPN_NULL) ||
+      (quadrupole_count > 0 && quadrupole_list.p.type == CAPN_NULL)) {
     capn_free(&arena);
     return -1;
   }
@@ -3571,12 +3593,18 @@ static int nwchemc_potential_result_write_lists(
     capn_set64(force_list, (int)i, capn_from_f64(forces[i]));
   for (size_t i = 0; i < hessian_count; ++i)
     capn_set64(hessian_list, (int)i, capn_from_f64(hessian[i]));
+  for (size_t i = 0; i < dipole_count; ++i)
+    capn_set64(dipole_list, (int)i, capn_from_f64(dipole[i]));
+  for (size_t i = 0; i < quadrupole_count; ++i)
+    capn_set64(quadrupole_list, (int)i, capn_from_f64(quadrupole[i]));
 
   struct PotentialResult view;
   memset(&view, 0, sizeof(view));
   view.energy = energy;
   view.forces = force_list;
   view.hessian = hessian_list;
+  view.dipole = dipole_list;
+  view.quadrupole = quadrupole_list;
   write_PotentialResult(&view, result);
   if (capn_setp(root, 0, result.p) != 0) {
     capn_free(&arena);
@@ -3598,8 +3626,9 @@ int nwchemc_potential_result_write(double energy, const double *forces,
                                    size_t potential_result_capacity_bytes,
                                    size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
-      energy, forces, force_count, NULL, 0, potential_result_capnp,
-      potential_result_capacity_bytes, potential_result_size_bytes);
+      energy, forces, force_count, NULL, 0, NULL, 0, NULL, 0,
+      potential_result_capnp, potential_result_capacity_bytes,
+      potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_hessian(
@@ -3607,8 +3636,28 @@ int nwchemc_potential_result_write_hessian(
     void *potential_result_capnp, size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
-      energy, NULL, 0, hessian, hessian_count, potential_result_capnp,
+      energy, NULL, 0, hessian, hessian_count, NULL, 0, NULL, 0,
+      potential_result_capnp, potential_result_capacity_bytes,
+      potential_result_size_bytes);
+}
+
+int nwchemc_potential_result_write_dipole(
+    double energy, const double *dipole, void *potential_result_capnp,
+    size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes) {
+  return nwchemc_potential_result_write_lists(
+      energy, NULL, 0, NULL, 0, dipole, 3, NULL, 0, potential_result_capnp,
       potential_result_capacity_bytes, potential_result_size_bytes);
+}
+
+int nwchemc_potential_result_write_quadrupole(
+    double energy, const double *quadrupole, void *potential_result_capnp,
+    size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes) {
+  return nwchemc_potential_result_write_lists(
+      energy, NULL, 0, NULL, 0, NULL, 0, quadrupole, 6,
+      potential_result_capnp, potential_result_capacity_bytes,
+      potential_result_size_bytes);
 }
 
 int nwchemc_params_root(const void *params_capnp,
