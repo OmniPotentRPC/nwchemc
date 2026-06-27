@@ -2670,8 +2670,9 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && spin_mode &&
       append_format(block, sizeof(block), "  %s\n", spin_mode) != 0)
     return -1;
-  const int has_dos_scalars = nwpw.dosAlphaSet || nwpw.dosNpointsSet ||
-                              nwpw.dosEminSet || nwpw.dosEmaxSet;
+  const int has_dos_scalars = nwpw.dosSet || nwpw.dosAlphaSet ||
+                              nwpw.dosNpointsSet || nwpw.dosEminSet ||
+                              nwpw.dosEmaxSet;
   if (include_direct_promoted && has_dos_scalars) {
     double alpha =
         nwpw.dosAlphaSet ? nwpw.dosAlpha : nwpw_dos_default_alpha();
@@ -4748,8 +4749,9 @@ int nwchemc_params_extract_direct_nwpw_dos(
 
     struct NWChemNwpwStanza nwpw;
     read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
-    const int has_dos_scalars = nwpw.dosAlphaSet || nwpw.dosNpointsSet ||
-                                nwpw.dosEminSet || nwpw.dosEmaxSet;
+    const int has_dos_scalars = nwpw.dosSet || nwpw.dosAlphaSet ||
+                                nwpw.dosNpointsSet || nwpw.dosEminSet ||
+                                nwpw.dosEmaxSet;
     const int has_dos = has_dos_scalars || nwpw.dosFilename.len > 0;
     if (!has_dos)
       continue;

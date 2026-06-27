@@ -601,6 +601,7 @@ struct NWChemNwpwStanza {
   npDimensionsSet             @166 :Bool = false;   # Emit/promote NWPW np_dimensions with default values when all dimensions are unset.
   tolerancesSet               @167 :Bool = false;   # Emit/promote NWPW tolerances with default values when all tolerance fields are unset.
   mappingSet                  @168 :Bool = false;   # Emit/promote NWPW mapping with the default value when mapping is unset.
+  dosSet                      @169 :Bool = false;   # Emit/promote NWPW dos with the default alpha when DOS scalar fields are unset.
 }
 
 # @struct NWChemScfStanza

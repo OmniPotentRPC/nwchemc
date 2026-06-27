@@ -4407,6 +4407,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.dosSet",
+      "schema_path": "NWChemNwpwStanza.dosSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "dosSet",
+      "field_id": 169,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.dosSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

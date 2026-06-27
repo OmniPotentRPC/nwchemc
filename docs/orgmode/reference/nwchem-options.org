@@ -244,7 +244,7 @@ RTDB values directly:
 | ~allowTranslation~ | ~allow_translation~ | ~cgsd:allow_translation~, ~band:allow_translation~ |
 | ~multiplicity~ | ~mult <value>~ | ~cgsd:ispin~, ~band:ispin~, ~cpsd:ispin~, ~cgsd:mult~, ~band:mult~, ~cpsd:mult~ |
 | ~spinMode~ | ~dft~ or ~odft~ | ~cgsd:ispin~, ~band:ispin~, ~cpsd:ispin~ |
-| ~dosAlpha~ | first argument in ~dos <alpha> ...~ | ~dos:alpha~ |
+| ~dosSet~, ~dosAlphaSet~, ~dosAlpha~ | ~dos [alpha] ...~; omitted ~alpha~ defaults to ~0.05/27.2116~ | ~dos:alpha~ |
 | ~dosNpoints~ | second argument in ~dos <alpha> <npoints> ...~ | ~dos:npoints~ |
 | ~dosEmin~ | third argument in ~dos <alpha> <npoints> <emin> ...~ | ~dos:emin~ |
 | ~dosEmax~ | fourth argument in ~dos <alpha> <npoints> <emin> <emax>~ | ~dos:emax~ |
