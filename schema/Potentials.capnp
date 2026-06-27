@@ -415,6 +415,8 @@ struct NWChemNwpwStanza {
   noseIonChainLength          @53 :Int32 = 0;       # Nose-Hoover Nchain value.
   atomEfield                  @54 :NWChemNwpwToggle = unspecified; # Emit/promote atom_efield.
   atomEfieldGradient          @55 :NWChemNwpwToggle = unspecified; # Emit/promote atom_efield_grad.
+  mulliken                    @56 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW mulliken/off.
+  mullikenKawai               @57 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW mulliken kawai.
 }
 
 # @struct NWChemScfStanza

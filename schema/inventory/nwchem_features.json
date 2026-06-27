@@ -2859,6 +2859,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.mulliken",
+      "schema_path": "NWChemNwpwStanza.mulliken",
+      "struct": "NWChemNwpwStanza",
+      "name": "mulliken",
+      "field_id": 56,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.mulliken Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mullikenKawai",
+      "schema_path": "NWChemNwpwStanza.mullikenKawai",
+      "struct": "NWChemNwpwStanza",
+      "name": "mullikenKawai",
+      "field_id": 57,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.mullikenKawai Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

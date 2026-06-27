@@ -622,6 +622,18 @@ static const char *toggle_logical_value(enum NWChemToggle toggle) {
   }
 }
 
+static const char *nwpw_toggle_logical_value(enum NWChemNwpwToggle toggle) {
+  switch (toggle) {
+  case NWChemNwpwToggle_enabled:
+    return "true";
+  case NWChemNwpwToggle_disabled:
+    return "false";
+  case NWChemNwpwToggle_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 struct direct_pspspin_rule_append_state {
   capn_text *keys;
   int *value_types;
@@ -1479,6 +1491,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_params_extract_direct_nwpw_electric_field(
           params_root, &nwpw_electric_field_has_options, &nwpw_atom_efield,
           &nwpw_atom_efield_gradient) != 0)
+    return -1;
+  int nwpw_mulliken_has_options = 0;
+  int nwpw_mulliken = NWChemNwpwToggle_unspecified;
+  int nwpw_mulliken_kawai = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_mulliken(
+          params_root, &nwpw_mulliken_has_options, &nwpw_mulliken,
+          &nwpw_mulliken_kawai) != 0)
     return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
@@ -2346,6 +2365,43 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:atom_efield_grad",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (nwpw_mulliken_has_options) {
+    static const char *nwpw_mulliken_prefixes[] = {"cgsd", "band", "nwpw",
+                                                   "cpsd", "cpmd"};
+    int effective_mulliken = nwpw_mulliken;
+    int effective_kawai = nwpw_mulliken_kawai;
+    if (effective_mulliken == NWChemNwpwToggle_disabled)
+      effective_kawai = NWChemNwpwToggle_disabled;
+    if (effective_mulliken == NWChemNwpwToggle_unspecified &&
+        effective_kawai == NWChemNwpwToggle_enabled)
+      effective_mulliken = NWChemNwpwToggle_enabled;
+    if (effective_kawai == NWChemNwpwToggle_unspecified &&
+        effective_mulliken != NWChemNwpwToggle_unspecified)
+      effective_kawai = NWChemNwpwToggle_disabled;
+    const char *mulliken_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)effective_mulliken);
+    const char *kawai_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)effective_kawai);
+    if (mulliken_value) {
+      const char *value_list[1] = {mulliken_value};
+      if (append_nwpw_prefixed_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, nwpw_mulliken_prefixes, 5,
+              "mulliken", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value_list, 1) !=
+          0)
+        return -1;
+    }
+    if (kawai_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:mulliken_kawai",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, kawai_value) != 0)
       return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));

@@ -255,6 +255,8 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.noseIonChainLength", "NWChemNwpwStanza.noseIonChainLength", "NWChemNwpwStanza.noseIonChainLength Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 53, 1, 1},
     {"field.NWChemNwpwStanza.atomEfield", "NWChemNwpwStanza.atomEfield", "NWChemNwpwStanza.atomEfield Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 54, 1, 1},
     {"field.NWChemNwpwStanza.atomEfieldGradient", "NWChemNwpwStanza.atomEfieldGradient", "NWChemNwpwStanza.atomEfieldGradient Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 55, 1, 1},
+    {"field.NWChemNwpwStanza.mulliken", "NWChemNwpwStanza.mulliken", "NWChemNwpwStanza.mulliken Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 56, 1, 1},
+    {"field.NWChemNwpwStanza.mullikenKawai", "NWChemNwpwStanza.mullikenKawai", "NWChemNwpwStanza.mullikenKawai Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 57, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -480,7 +482,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 475;
+static const size_t k_feature_count = 477;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

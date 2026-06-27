@@ -213,6 +213,8 @@ RTDB values directly:
 | ~noseIonChainLength~ | seventh ~Nose-Hoover~ argument | ~cpmd:Nchain~, ~nwpw:Nchain~ |
 | ~atomEfield~ | ~atom_efield~ | ~nwpw:atom_efield~ |
 | ~atomEfieldGradient~ | ~atom_efield_grad~ | ~nwpw:atom_efield_grad~ |
+| ~mulliken~ | ~mulliken~ or ~mulliken off~ | ~cgsd:mulliken~, ~band:mulliken~, ~nwpw:mulliken~, ~cpsd:mulliken~, ~cpmd:mulliken~ |
+| ~mullikenKawai~ | ~mulliken kawai~ | ~nwpw:mulliken_kawai~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

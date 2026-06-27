@@ -2104,6 +2104,20 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       nwpw.atomEfieldGradient == NWChemNwpwToggle_enabled &&
       append_format(block, sizeof(block), "  atom_efield_grad\n") != 0)
     return -1;
+  if (include_direct_promoted &&
+      nwpw.mulliken == NWChemNwpwToggle_disabled &&
+      append_format(block, sizeof(block), "  mulliken off\n") != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.mulliken != NWChemNwpwToggle_disabled &&
+      nwpw.mullikenKawai == NWChemNwpwToggle_enabled &&
+      append_format(block, sizeof(block), "  mulliken kawai\n") != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.mulliken == NWChemNwpwToggle_enabled &&
+      nwpw.mullikenKawai != NWChemNwpwToggle_enabled &&
+      append_format(block, sizeof(block), "  mulliken\n") != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3112,6 +3126,45 @@ int nwchemc_params_extract_direct_nwpw_electric_field(
     if (nwpw.atomEfieldGradient != NWChemNwpwToggle_unspecified) {
       *has_options = 1;
       *atom_efield_gradient = nwpw.atomEfieldGradient;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_mulliken(
+    NWChemParams_ptr params, int *has_options, int *mulliken,
+    int *mulliken_kawai) {
+  if (params.p.type == CAPN_NULL || !has_options || !mulliken ||
+      !mulliken_kawai)
+    return -1;
+
+  *has_options = 0;
+  *mulliken = NWChemNwpwToggle_unspecified;
+  *mulliken_kawai = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.mulliken != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *mulliken = nwpw.mulliken;
+    }
+    if (nwpw.mullikenKawai != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *mulliken_kawai = nwpw.mullikenKawai;
     }
   }
 

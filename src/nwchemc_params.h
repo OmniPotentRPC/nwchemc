@@ -110,6 +110,10 @@ int nwchemc_params_extract_direct_nwpw_electric_field(
     NWChemParams_ptr params, int *has_options, int *atom_efield,
     int *atom_efield_gradient);
 
+int nwchemc_params_extract_direct_nwpw_mulliken(
+    NWChemParams_ptr params, int *has_options, int *mulliken,
+    int *mulliken_kawai);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

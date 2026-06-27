@@ -100,10 +100,11 @@ Virtual orbital counts, LCAO skip/use mode, and Ewald grid dimensions are
 promoted to direct ~nwpw:*~ keys. Nose-Hoover thermostat controls write the
 paired ~cpmd:*~ / ~nwpw:*~ nose, restart, period, temperature, and chain-length
 keys directly. NWPW atom electric-field controls write the matching
-~nwpw:atom_efield~ and ~nwpw:atom_efield_grad~ logical keys. Structured
-simulation-cell controls write boundary conditions, 3x3 cell vectors, FFT
-grids, small grids, box delta, box orientation, and box-type state to the
-matching ~<cell>:*~ RTDB keys.
+~nwpw:atom_efield~ and ~nwpw:atom_efield_grad~ logical keys. NWPW Mulliken
+analysis controls write the five ~*:mulliken~ logical keys and the
+~nwpw:mulliken_kawai~ logical key. Structured simulation-cell controls write
+boundary conditions, 3x3 cell vectors, FFT grids, small grids, box delta, box
+orientation, and box-type state to the matching ~<cell>:*~ RTDB keys.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -298,6 +299,8 @@ module prefix:
 | ~noseIonChainLength~ | ~Nchain~ | ~cpmd~, ~nwpw~ |
 | ~atomEfield~ | ~atom_efield~ | ~nwpw~ |
 | ~atomEfieldGradient~ | ~atom_efield_grad~ | ~nwpw~ |
+| ~mulliken~ | ~mulliken~ | ~cgsd~, ~band~, ~nwpw~, ~cpsd~, ~cpmd~ |
+| ~mullikenKawai~ | ~mulliken_kawai~ | ~nwpw~ |
 | ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
 | ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
 | ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |
