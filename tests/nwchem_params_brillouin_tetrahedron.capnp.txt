@@ -1,0 +1,16 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = brillouinZone,
+      brillouinZone = (
+        tetrahedronGridX = 4,
+        tetrahedronGridY = 5,
+        tetrahedronGridZ = 6,
+        tetrahedronZoneName = "tetraA"
+      )
+    )
+  ]
+)
