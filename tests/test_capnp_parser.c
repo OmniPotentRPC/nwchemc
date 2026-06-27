@@ -138,6 +138,7 @@ static void test_parser_renders_structured_input(void **state) {
       strstr(input_blocks, "efield true 0.1 0.2 0.3 center 1 2 3 APC"));
   assert_non_null(strstr(input_blocks, "smooth_cutoff true 1.5 3.5"));
   assert_non_null(strstr(input_blocks, "cutoff_boot_wavefunction false"));
+  assert_non_null(strstr(input_blocks, "fast_erf true"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -362,6 +363,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:smooth_cutoff"));
   assert_null(strstr(input_blocks, "cutoff_boot_wavefunction"));
   assert_null(strstr(input_blocks, "nwpw:cutoff_boot_psi"));
+  assert_null(strstr(input_blocks, "fast_erf"));
+  assert_null(strstr(input_blocks, "nwpw:fast_erf"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -671,6 +674,14 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
       0);
   assert_int_equal(has_cutoff_boot_wavefunction, 1);
   assert_int_equal(cutoff_boot_wavefunction, NWChemNwpwToggle_disabled);
+
+  int has_fast_erf = 0;
+  int fast_erf = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_fast_erf(
+                       params_root, &has_fast_erf, &fast_erf),
+                   0);
+  assert_int_equal(has_fast_erf, 1);
+  assert_int_equal(fast_erf, NWChemNwpwToggle_enabled);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
