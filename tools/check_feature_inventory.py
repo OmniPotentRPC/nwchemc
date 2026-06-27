@@ -118,7 +118,7 @@ def main() -> int:
     for name in sorted(schema_all_fields):
         if f'"field.{name}"' not in features_c:
             errors.append(f"C intern table missing field.{name}")
-    for abi in (
+    required_abi = (
         "nwchemc_set_params",
         "nwchemc_energy_gradient",
         "nwchemc_energy",
@@ -178,7 +178,17 @@ def main() -> int:
         "nwchemc_available",
         "nwchemc_version",
         "nwchemc_finalize",
-    ):
+    )
+    inventory_abi = {entry["name"] for entry in inv["abi_entrypoints"]}
+    checker_abi = set(required_abi)
+    missing_abi_checks = inventory_abi - checker_abi
+    extra_abi_checks = checker_abi - inventory_abi
+    if missing_abi_checks:
+        errors.append(f"checker missing abi_entrypoints: {sorted(missing_abi_checks)}")
+    if extra_abi_checks:
+        errors.append(f"checker extra abi_entrypoints: {sorted(extra_abi_checks)}")
+
+    for abi in required_abi:
         if f'"abi.{abi}"' not in features_c:
             errors.append(f"C intern table missing abi.{abi}")
 
