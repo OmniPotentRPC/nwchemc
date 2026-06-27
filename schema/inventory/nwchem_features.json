@@ -3351,6 +3351,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.makeHmass2",
+      "schema_path": "NWChemNwpwStanza.makeHmass2",
+      "struct": "NWChemNwpwStanza",
+      "name": "makeHmass2",
+      "field_id": 97,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.makeHmass2 Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

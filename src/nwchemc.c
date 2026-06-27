@@ -1631,6 +1631,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_initial_velocities_temperature,
           &nwpw_initial_velocities_seed) != 0)
     return -1;
+  int nwpw_make_hmass2_has_options = 0;
+  int nwpw_make_hmass2 = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_make_hmass2(
+          params_root, &nwpw_make_hmass2_has_options,
+          &nwpw_make_hmass2) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2935,6 +2941,18 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:init_velocities",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+      return -1;
+  }
+  if (nwpw_make_hmass2_has_options) {
+    const char *make_hmass2_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_make_hmass2);
+    if (make_hmass2_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:makehmass2",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, make_hmass2_value) != 0)
       return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));

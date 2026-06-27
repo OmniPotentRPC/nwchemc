@@ -2333,6 +2333,12 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       nwpw.initialVelocitiesTemperature, seed) != 0)
       return -1;
   }
+  const char *make_hmass2_logical =
+      nwpw_toggle_logical_keyword(nwpw.makeHmass2);
+  if (include_direct_promoted && make_hmass2_logical &&
+      append_format(block, sizeof(block), "  makehmass2 %s\n",
+                    make_hmass2_logical) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3999,6 +4005,38 @@ int nwchemc_params_extract_direct_nwpw_initial_velocities(
     *temperature = nwpw.initialVelocitiesTemperature;
     *seed =
         nwpw.initialVelocitiesSeed >= 0 ? nwpw.initialVelocitiesSeed : 494;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_make_hmass2(
+    NWChemParams_ptr params, int *has_options, int *make_hmass2) {
+  if (params.p.type == CAPN_NULL || !has_options || !make_hmass2)
+    return -1;
+
+  *has_options = 0;
+  *make_hmass2 = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.makeHmass2 != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *make_hmass2 = nwpw.makeHmass2;
+    }
   }
 
   return 0;

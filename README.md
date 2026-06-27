@@ -219,7 +219,8 @@ directly. Rotation and multipole controls expose `nwpw:rotation` and
 `nwpw:lmax_multipole` directly. FEI controls expose the paired
 `cpmd:fei`, `nwpw:fei`, `cpmd:fei_filename`, and `nwpw:fei_filename` keys
 directly. Initial-velocity controls expose `nwpw:init_velocities_temperature`,
-`nwpw:init_velocities_seed`, and `nwpw:init_velocities` directly. NWPW Brillouin-zone and
+`nwpw:init_velocities_seed`, and `nwpw:init_velocities` directly.
+`makehmass2` exposes `nwpw:makehmass2` directly. NWPW Brillouin-zone and
 simulation-cell stanzas cover k-point grids, explicit k-vectors, boundary
 conditions, 3x3 cell vectors, FFT grids, and related periodic-cell RTDB state.
 Classic CCSD scalar controls cover iteration, threshold, DIIS, frozen-orbital,

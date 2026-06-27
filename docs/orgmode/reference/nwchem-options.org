@@ -245,6 +245,7 @@ RTDB values directly:
 | ~feiFilename~ | filename token in ~Fei <filename>~ | ~cpmd:fei_filename~, ~nwpw:fei_filename~ |
 | ~initialVelocitiesTemperature~ | first argument in ~initial_velocities <temperature> <seed>~ | ~nwpw:init_velocities_temperature~, ~nwpw:init_velocities~ |
 | ~initialVelocitiesSeed~ | second argument in ~initial_velocities <temperature> <seed>~ | ~nwpw:init_velocities_seed~ |
+| ~makeHmass2~ | ~makehmass2 true~ or ~false~ | ~nwpw:makehmass2~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

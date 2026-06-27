@@ -463,6 +463,7 @@ struct NWChemNwpwStanza {
   feiFilename                 @94 :Text = "";       # Filename token in NWPW Fei.
   initialVelocitiesTemperature @95 :Float64 = 0.0;  # NWPW initial_velocities temperature in K.
   initialVelocitiesSeed       @96 :Int32 = -1;      # NWPW initial_velocities seed; negative uses NWChem default.
+  makeHmass2                  @97 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW makehmass2.
 }
 
 # @struct NWChemScfStanza
