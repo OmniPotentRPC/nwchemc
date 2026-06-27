@@ -224,7 +224,8 @@ directly. Initial-velocity controls expose `nwpw:init_velocities_temperature`,
 expose `nwpw:translate_vector`, `nwpw:translate_geom_name`, and
 `nwpw:translate_reorder` directly. Socket controls expose `nwpw:socket_type`
 and `nwpw:socket_ip` directly. APC controls expose `nwpw_APC:Gc`,
-`nwpw_APC:nga`, and `nwpw_APC:gamma` directly. NWPW Brillouin-zone and
+`nwpw_APC:nga`, and `nwpw_APC:gamma` directly. Translation controls expose
+`cgsd:allow_translation` and `band:allow_translation` directly. NWPW Brillouin-zone and
 simulation-cell stanzas cover k-point grids, explicit k-vectors, boundary
 conditions, 3x3 cell vectors, FFT grids, and related periodic-cell RTDB state.
 Classic CCSD scalar controls cover iteration, threshold, DIIS, frozen-orbital,

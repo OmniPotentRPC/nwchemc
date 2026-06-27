@@ -1661,6 +1661,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_apc_has_options, &nwpw_apc_gc, nwpw_apc_gamma,
           NWCHEMC_DIRECT_SET_VALUE_MAX, &nwpw_apc_gamma_count) != 0)
     return -1;
+  int nwpw_translation_has_options = 0;
+  int nwpw_translation = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_translation(
+          params_root, &nwpw_translation_has_options,
+          &nwpw_translation) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -3073,6 +3079,26 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw_APC:gamma",
             NWCHEMC_DIRECT_SET_VALUE_DOUBLE, gamma_values,
             nwpw_apc_gamma_count) != 0)
+      return -1;
+  }
+  if (nwpw_translation_has_options) {
+    const char *translation_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_translation);
+    if (translation_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "cgsd:allow_translation",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, translation_value) != 0)
+      return -1;
+    if (translation_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "band:allow_translation",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, translation_value) != 0)
       return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));

@@ -253,6 +253,7 @@ RTDB values directly:
 | ~socketIp~ | optional address token in ~socket <type> <ip>~ | ~nwpw:socket_ip~ |
 | ~apcSet~, ~apcGc~ | ~apc <Gc> <gamma...>~ | ~nwpw_APC:Gc~, ~nwpw_APC:nga~ |
 | ~apcGamma~ | trailing gamma values in ~apc~ | ~nwpw_APC:gamma~ |
+| ~translation~ | ~translation true~ or ~false~ | ~cgsd:allow_translation~, ~band:allow_translation~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

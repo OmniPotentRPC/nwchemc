@@ -3495,6 +3495,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.translation",
+      "schema_path": "NWChemNwpwStanza.translation",
+      "struct": "NWChemNwpwStanza",
+      "name": "translation",
+      "field_id": 109,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.translation Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

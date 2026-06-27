@@ -475,6 +475,7 @@ struct NWChemNwpwStanza {
   apcSet                      @106 :Bool = false;   # Emit/promote NWPW APC values.
   apcGc                       @107 :Float64 = 0.0;  # NWPW APC Gc value.
   apcGamma                    @108 :List(Float64);  # NWPW APC gamma values.
+  translation                 @109 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW translation.
 }
 
 # @struct NWChemScfStanza

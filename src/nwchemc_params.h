@@ -187,6 +187,9 @@ int nwchemc_params_extract_direct_nwpw_apc(
     NWChemParams_ptr params, int *has_options, double *gc, double *gamma,
     size_t gamma_capacity, size_t *gamma_count);
 
+int nwchemc_params_extract_direct_nwpw_translation(
+    NWChemParams_ptr params, int *has_options, int *translation);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
