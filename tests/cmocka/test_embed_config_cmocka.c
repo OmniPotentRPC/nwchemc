@@ -101,6 +101,8 @@ static int g_brillouin_monkhorst_pack[3] = {0, 0, 0};
 static int g_brillouin_max_kpoints_print = 0;
 static int g_brillouin_kvector_count = 0;
 static int g_energy_grad_calls = 0;
+static int g_energy_only_calls = 0;
+static int g_energy_only_cell_calls = 0;
 static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
 static int g_dipole_calls = 0;
@@ -482,18 +484,53 @@ int nwchemc_embed_set_rtdb_values(const char *keys, const int *value_types,
   return 0;
 }
 
+static int capture_energy_only_call(const int *n_atoms,
+                                    const double *positions_ang,
+                                    const int *atomic_numbers,
+                                    const double *cell_ang,
+                                    const int *has_cell, const int *charge,
+                                    const int *multiplicity, double *energy_h,
+                                    char *errmsg, int errmsg_len) {
+  int call = g_energy_only_calls;
+  if (call < 8) {
+    int ncopy = *n_atoms < 8 ? *n_atoms : 8;
+    int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
+    g_call_n_atoms[call] = *n_atoms;
+    g_call_has_cell[call] = has_cell ? *has_cell : 0;
+    g_call_charge[call] = charge ? *charge : 0;
+    g_call_multiplicity[call] = multiplicity ? *multiplicity : 0;
+    for (int i = 0; i < ncopy; ++i)
+      g_call_atomic_numbers[call][i] = atomic_numbers[i];
+    for (int i = 0; i < ncoord; ++i)
+      g_call_positions_ang[call][i] = positions_ang[i];
+    for (int i = 0; i < 9; ++i)
+      g_call_cell_ang[call][i] = cell_ang && g_call_has_cell[call]
+                                     ? cell_ang[i]
+                                     : 0.0;
+  }
+  ++g_energy_only_calls;
+  *energy_h = -1.0;
+  snprintf(errmsg, (size_t)errmsg_len, "ok");
+  return 0;
+}
+
 int nwchemc_embed_energy_only(const int *n_atoms, const double *positions_ang,
                               const int *atomic_numbers, const int *charge,
                               const int *multiplicity, double *energy_h,
                               char *errmsg, int errmsg_len) {
-  (void)n_atoms;
-  (void)positions_ang;
-  (void)atomic_numbers;
-  (void)charge;
-  (void)multiplicity;
-  *energy_h = -1.0;
-  snprintf(errmsg, (size_t)errmsg_len, "ok");
-  return 0;
+  return capture_energy_only_call(n_atoms, positions_ang, atomic_numbers, NULL,
+                                  NULL, charge, multiplicity, energy_h, errmsg,
+                                  errmsg_len);
+}
+
+int nwchemc_embed_energy_only_cell(
+    const int *n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const double *cell_ang, const int *has_cell, const int *charge,
+    const int *multiplicity, double *energy_h, char *errmsg, int errmsg_len) {
+  ++g_energy_only_cell_calls;
+  return capture_energy_only_call(n_atoms, positions_ang, atomic_numbers,
+                                  cell_ang, has_cell, charge, multiplicity,
+                                  energy_h, errmsg, errmsg_len);
 }
 
 static int capture_energy_grad_call(const int *n_atoms,
@@ -922,6 +959,8 @@ static void reset_embed_captures(void) {
   for (int i = 0; i < 8; ++i)
     g_brillouin_kvectors[i] = 0.0;
   g_energy_grad_calls = 0;
+  g_energy_only_calls = 0;
+  g_energy_only_cell_calls = 0;
   g_hessian_calls = 0;
   g_hessian_cell_calls = 0;
   g_dipole_calls = 0;
@@ -3329,6 +3368,10 @@ static void test_session_force_input_state_overrides_params(void **state) {
       nwchemc_session_calculate_energy(session, step_a, step_a_size);
   assert_int_equal(default_energy.ok, 1);
   assert_close(default_energy.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_energy_only_calls, 1);
+  assert_int_equal(g_energy_only_cell_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 0);
+  assert_int_equal(g_call_has_cell[0], 1);
   assert_int_equal(g_call_charge[0], 0);
   assert_int_equal(g_call_multiplicity[0], 1);
 
@@ -3336,21 +3379,28 @@ static void test_session_force_input_state_overrides_params(void **state) {
       nwchemc_session_calculate_energy(session, step_state, step_state_size);
   assert_int_equal(override_energy.ok, 1);
   assert_close(override_energy.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_energy_only_calls, 2);
+  assert_int_equal(g_energy_only_cell_calls, 2);
+  assert_int_equal(g_energy_grad_calls, 0);
+  assert_int_equal(g_call_has_cell[1], 0);
   assert_int_equal(g_call_charge[1], -2);
   assert_int_equal(g_call_multiplicity[1], 5);
 
+  reset_embed_captures();
   double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult default_forces =
       nwchemc_session_calculate_forces(session, step_a, step_a_size, forces, 6);
   assert_int_equal(default_forces.ok, 1);
-  assert_int_equal(g_call_charge[2], 0);
-  assert_int_equal(g_call_multiplicity[2], 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
 
   NWChemCResult override_forces = nwchemc_session_calculate_forces(
       session, step_state, step_state_size, forces, 6);
   assert_int_equal(override_forces.ok, 1);
-  assert_int_equal(g_call_charge[3], -2);
-  assert_int_equal(g_call_multiplicity[3], 5);
+  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_call_charge[1], -2);
+  assert_int_equal(g_call_multiplicity[1], 5);
 
   unsigned char result_bytes[512];
   size_t result_size = 0;
@@ -4084,7 +4134,9 @@ static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
   assert_int_equal(energy_result.ok, 1);
   assert_close(energy_result.energy_h, -1.0, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
-  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_energy_only_calls, 1);
+  assert_int_equal(g_energy_only_cell_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 0);
   assert_int_equal(g_call_n_atoms[0], 2);
   assert_int_equal(g_call_atomic_numbers[0][0], 1);
   assert_int_equal(g_call_atomic_numbers[0][1], 8);
