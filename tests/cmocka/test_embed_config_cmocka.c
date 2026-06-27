@@ -190,6 +190,10 @@ extern NWChemCResult nwchemc_session_calculate_stress(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *stress_au,
     size_t stress_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_forces(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -4040,6 +4044,7 @@ static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
     void **state) {
   (void)state;
   reset_embed_captures();
+  assert_true(nwchemc_calculate_forces != NULL);
   assert_true(nwchemc_calculate_hessian != NULL);
   assert_true(nwchemc_calculate_dipole != NULL);
   assert_true(nwchemc_calculate_quadrupole != NULL);
@@ -4051,6 +4056,29 @@ static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
   assert_non_null(message);
   assert_non_null(step_a);
 
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult force_result = nwchemc_calculate_forces(
+      message, message_size, step_a, step_a_size, forces, 6);
+  assert_int_equal(force_result.ok, 1);
+  assert_close(force_result.energy_h, -1.25, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 1);
+  assert_close(forces[0], -1.0, 1.0e-12);
+  assert_close(forces[5], -6.0, 1.0e-12);
+
+  reset_embed_captures();
+  NWChemCResult short_forces = nwchemc_calculate_forces(
+      message, message_size, step_a, step_a_size, forces, 5);
+  assert_int_equal(short_forces.ok, 0);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_energy_grad_calls, 0);
+
+  reset_embed_captures();
   double hessian[36] = {0.0};
   NWChemCResult hessian_result = nwchemc_calculate_hessian(
       message, message_size, step_a, step_a_size, hessian, 36);
