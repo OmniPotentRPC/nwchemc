@@ -172,10 +172,11 @@ if has_nwchem
     '-lpthread',
     '-lm',
   ]
-  if host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
+  builds_shared_nwchemc = get_option('default_library') != 'static'
+  if builds_shared_nwchemc and host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
     nwchem_link_args += ['-Wl,-z,defs']
   endif
-  if host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
+  if builds_shared_nwchemc and host_machine.system() == 'linux' and cc.get_argument_syntax() == 'gcc'
     message('Checking NWChem archives can link into libnwchemc.so')
     nwchem_link_probe = run_command(
       cc,
@@ -193,7 +194,7 @@ if has_nwchem
       error('NWChem archives and link dependencies cannot form libnwchemc.so for ' + nwchem_target)
     endif
   endif
-  nwchemc = shared_library(
+  nwchemc = library(
     'nwchemc',
     ['src/nwchemc.c', 'src/nwchem_embed_c_api.f90'] + nwchemc_params_sources,
     include_directories: [inc] + nwchemc_params_includes,

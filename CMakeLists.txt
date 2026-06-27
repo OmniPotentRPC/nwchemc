@@ -8,6 +8,7 @@ include(CMakePackageConfigHelpers)
 
 option(NWCHEMC_BUILD_TESTS "Build nwchemc tests" ON)
 option(NWCHEMC_WITH_NWCHEM "Build the real NWChem embed library" OFF)
+option(NWCHEMC_BUILD_SHARED "Build nwchemc as a shared library" ON)
 set(NWCHEMC_NWCHEM_ROOT "" CACHE PATH "NWChem source/build tree root")
 set(NWCHEMC_NWCHEM_TARGET "LINUX64" CACHE STRING "NWChem target library directory")
 
@@ -244,7 +245,12 @@ if(NWCHEMC_WITH_NWCHEM)
     $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
   )
 
-  add_library(nwchemc SHARED
+  set(NWCHEMC_LIBRARY_TYPE STATIC)
+  if(NWCHEMC_BUILD_SHARED)
+    set(NWCHEMC_LIBRARY_TYPE SHARED)
+  endif()
+
+  add_library(nwchemc ${NWCHEMC_LIBRARY_TYPE}
     src/nwchemc.c
     src/nwchem_embed_c_api.f90
   )

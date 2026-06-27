@@ -23,6 +23,42 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
         (root / "bin/nwchem").write_text("#!/bin/sh\n")
         return root
 
+    def build_tree_skeleton(self, parent: Path) -> Path:
+        root = parent / "nwchem-build"
+        for rel in [
+            "src/config",
+            "src/tools/install/bin",
+            "src/tools/install/include",
+            "src/tools/install/lib",
+            "src/include",
+            "src/util",
+            "src/libext/lib",
+            "src/nwpw/nwpwlib/utilities",
+            "lib/LINUX64",
+        ]:
+            (root / rel).mkdir(parents=True)
+        (root / "src/config/nwchem_config.h").write_text(
+            "NW_MODULE_LIBS =\n", encoding="utf-8"
+        )
+        ga_config = root / "src/tools/install/bin/ga-config"
+        ga_config.write_text(
+            "#!/bin/sh\n"
+            "case \"$1\" in\n"
+            "  --ldflags) echo ;;\n"
+            "  --libs) echo ;;\n"
+            "esac\n",
+            encoding="utf-8",
+        )
+        ga_config.chmod(0o755)
+        (root / "src/stubs.o").write_bytes(b"stub")
+        (root / "src/nwpw/nwpwlib/utilities/btdb.F").write_text(
+            "      subroutine btdb\n"
+            "      return\n"
+            "      end\n",
+            encoding="utf-8",
+        )
+        return root
+
     def env(self) -> dict[str, str]:
         env = os.environ.copy()
         env["TMPDIR"] = str(SCRATCH)
@@ -60,6 +96,34 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
             )
 
             self.assert_probe_message(proc)
+
+    def test_meson_static_embed_config_skips_shared_archive_probe(self):
+        with TemporaryDirectory(dir=SCRATCH) as tmp_name:
+            tmp = Path(tmp_name)
+            root = self.build_tree_skeleton(tmp)
+            build = tmp / "meson-static-build"
+            meson = os.environ.get("MESON", "meson")
+
+            proc = subprocess.run(
+                [
+                    meson,
+                    "setup",
+                    str(build),
+                    "-Dwith_nwchem=true",
+                    "-Dwith_tests=false",
+                    "-Ddefault_library=static",
+                    f"-Dnwchem_root={root}",
+                    "-Dnwchem_target=LINUX64",
+                ],
+                cwd=ROOT,
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=self.env(),
+            )
+
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
 
     def test_cmake_rejects_runtime_prefix_with_embed_guidance(self):
         with TemporaryDirectory(dir=SCRATCH) as tmp_name:
