@@ -211,7 +211,16 @@
         atomEfieldGradient = enabled,
         mulliken = enabled,
         mullikenKawai = enabled,
-        periodicDipole = enabled
+        periodicDipole = enabled,
+        electricField = enabled,
+        electricFieldX = 0.1,
+        electricFieldY = 0.2,
+        electricFieldZ = 0.3,
+        electricFieldCenterSet = true,
+        electricFieldCenterX = 1.0,
+        electricFieldCenterY = 2.0,
+        electricFieldCenterZ = 3.0,
+        electricFieldType = apc
       )
     ),
     (

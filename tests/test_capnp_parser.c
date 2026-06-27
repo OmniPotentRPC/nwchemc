@@ -134,6 +134,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "atom_efield_grad"));
   assert_non_null(strstr(input_blocks, "mulliken kawai"));
   assert_non_null(strstr(input_blocks, "periodic_dipole true"));
+  assert_non_null(
+      strstr(input_blocks, "efield true 0.1 0.2 0.3 center 1 2 3 APC"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -352,6 +354,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:mulliken"));
   assert_null(strstr(input_blocks, "periodic_dipole"));
   assert_null(strstr(input_blocks, "nwpw:periodic_dipole"));
+  assert_null(strstr(input_blocks, "efield true"));
+  assert_null(strstr(input_blocks, "nwpw:efield"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -610,6 +614,33 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_periodic_dipole, 1);
   assert_int_equal(periodic_dipole, NWChemNwpwToggle_enabled);
+
+  int has_efield = 0;
+  int efield = 0;
+  double efield_vector[3] = {0.0, 0.0, 0.0};
+  int efield_has_center = 0;
+  double efield_center[3] = {0.0, 0.0, 0.0};
+  int efield_type = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_efield(
+                       params_root, &has_efield, &efield, efield_vector,
+                       &efield_has_center, efield_center, &efield_type),
+                   0);
+  assert_int_equal(has_efield, 1);
+  assert_int_equal(efield, NWChemNwpwToggle_enabled);
+  assert_true(efield_vector[0] > 0.099);
+  assert_true(efield_vector[0] < 0.101);
+  assert_true(efield_vector[1] > 0.199);
+  assert_true(efield_vector[1] < 0.201);
+  assert_true(efield_vector[2] > 0.299);
+  assert_true(efield_vector[2] < 0.301);
+  assert_int_equal(efield_has_center, 1);
+  assert_true(efield_center[0] > 0.999);
+  assert_true(efield_center[0] < 1.001);
+  assert_true(efield_center[1] > 1.999);
+  assert_true(efield_center[1] < 2.001);
+  assert_true(efield_center[2] > 2.999);
+  assert_true(efield_center[2] < 3.001);
+  assert_int_equal(efield_type, NWChemNwpwEfieldType_apc);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
