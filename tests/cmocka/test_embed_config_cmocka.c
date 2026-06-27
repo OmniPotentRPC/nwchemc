@@ -31,6 +31,7 @@ static const char *g_nwpw_fractional_orbitals_default_path = NULL;
 static const char *g_nwpw_smear_orbitals_default_path = NULL;
 static const char *g_nwpw_virtual_orbitals_default_path = NULL;
 static const char *g_nwpw_translate_vector_default_path = NULL;
+static const char *g_brillouin_monkhorst_default_path = NULL;
 static const char *g_compact_cells_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
@@ -2541,6 +2542,35 @@ test_embed_config_promotes_nwpw_translate_vector_default(void **state) {
   free(message);
 }
 
+static void
+test_embed_config_promotes_brillouin_monkhorst_default(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message =
+      read_file(g_brillouin_monkhorst_default_path, &message_size);
+  assert_non_null(message);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+
+  assert_int_equal(result.ok, 1);
+  assert_null(strstr(g_input_blocks, "  monkhorst-pack 3 1 1 zone_default\n"));
+  assert_int_equal(g_set_brillouin_zone_calls, 1);
+  assert_int_equal(g_brillouin_has_options, 1);
+  assert_string_equal(g_brillouin_zone_name, "zone_default");
+  assert_int_equal(g_brillouin_monkhorst_pack[0], 3);
+  assert_int_equal(g_brillouin_monkhorst_pack[1], 1);
+  assert_int_equal(g_brillouin_monkhorst_pack[2], 1);
+  assert_int_equal(g_brillouin_max_kpoints_print, 0);
+  assert_int_equal(g_brillouin_kvector_count, 0);
+
+  free(message);
+}
+
 static void test_session_reuses_config_across_geometry_steps(void **state) {
   (void)state;
   reset_embed_captures();
@@ -3985,7 +4015,7 @@ static void test_calculate_frequencies_one_shot_accepts_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 29) {
+  if (argc != 30) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
             "PSPSPIN_MANY_PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
@@ -4003,7 +4033,8 @@ int main(int argc, char **argv) {
             "FORCE_STEP_A_BIN FORCE_STEP_B_BIN FORCE_STEP_EV_BIN "
             "FORCE_STEP_CHANGED_SPECIES_BIN "
             "FORCE_STEP_STATE_BIN TCE_METHODS_BIN COMPACT_CELLS_BIN "
-            "NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN\n",
+            "NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN "
+            "BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN\n",
             argv[0]);
     return 2;
   }
@@ -4035,6 +4066,7 @@ int main(int argc, char **argv) {
   g_tce_methods_path = argv[26];
   g_compact_cells_path = argv[27];
   g_nwpw_translate_vector_default_path = argv[28];
+  g_brillouin_monkhorst_default_path = argv[29];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
@@ -4064,6 +4096,8 @@ int main(int argc, char **argv) {
           test_embed_config_promotes_nwpw_virtual_orbitals_default),
       cmocka_unit_test(
           test_embed_config_promotes_nwpw_translate_vector_default),
+      cmocka_unit_test(
+          test_embed_config_promotes_brillouin_monkhorst_default),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_rejects_param_replacement_after_topology),

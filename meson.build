@@ -543,6 +543,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_brillouin_monkhorst_default_params_bin = custom_target(
+    'nwchem_brillouin_monkhorst_default_params_bin',
+    input: 'tests/nwchem_params_brillouin_monkhorst_default.capnp.txt',
+    output: 'nwchem_params_brillouin_monkhorst_default.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_step_a_bin = custom_target(
     'force_input_step_a_bin',
     input: 'tests/force_input_step_a.capnp.txt',
@@ -737,6 +751,7 @@ if get_option('with_tests')
       nwchem_nwpw_smear_orbitals_default_params_bin,
       nwchem_nwpw_virtual_orbitals_default_params_bin,
       nwchem_nwpw_translate_vector_default_params_bin,
+      nwchem_brillouin_monkhorst_default_params_bin,
     ],
   )
   test(
@@ -777,6 +792,7 @@ if get_option('with_tests')
       nwchem_tce_methods_params_bin,
       nwchem_compact_cells_params_bin,
       nwchem_nwpw_translate_vector_default_params_bin,
+      nwchem_brillouin_monkhorst_default_params_bin,
     ],
     suite: ['cmocka', 'parser'],
   )
