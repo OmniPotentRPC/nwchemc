@@ -2307,11 +2307,14 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
           append_format(block, sizeof(block), " %s", smear_type) != 0)
         return -1;
     }
-    if (nwpw.fractionalOrbitalsStart > 0 && nwpw.fractionalOrbitalsEnd > 0 &&
-        append_format(block, sizeof(block), " orbitals %d %d",
-                      nwpw.fractionalOrbitalsStart,
-                      nwpw.fractionalOrbitalsEnd) != 0)
-      return -1;
+    if (nwpw.fractionalOrbitalsStart > 0) {
+      int fractional_end = nwpw.fractionalOrbitalsEnd > 0
+                               ? nwpw.fractionalOrbitalsEnd
+                               : nwpw.fractionalOrbitalsStart;
+      if (append_format(block, sizeof(block), " orbitals %d %d",
+                        nwpw.fractionalOrbitalsStart, fractional_end) != 0)
+        return -1;
+    }
     if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }

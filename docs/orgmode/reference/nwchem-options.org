@@ -199,7 +199,7 @@ RTDB values directly:
 | ~orbitalMotionFilename~ | ~omotion_filename <path>~ | ~cpmd:omotion_filename~, ~nwpw:omotion_filename~ |
 | ~eigenvalueMotionFilename~ | ~eigmotion_filename <path>~ | ~cpmd:eigmotion_filename~, ~nwpw:eigmotion_filename~ |
 | ~fractionalOrbitalsStart~, ~fractionalOrbitalsEnd~ | ~fractional_orbitals <start> <end>~; omitted ~end~ defaults to ~start~ | ~nwpw:fractional_orbitals~ |
-| ~smearTemperature~ | ~smear temperature <value>~ | ~nwpw:fractional_temperature~ |
+| ~smearTemperature~ | ~smear temperature <value>~; fractional orbitals append ~orbitals <start> <end>~ with defaulted ~end~ | ~nwpw:fractional_temperature~ |
 | ~smearAlpha~ | ~smear alpha <value>~ | ~nwpw:fractional_alpha~ |
 | ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ | ~nwpw:fractional_smeartype~ |
 | ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~, ~virtualAliasSet~, ~virtualAliasStart~, ~virtualAliasEnd~ | ~virtual <start> <end>~; omitted ~end~ defaults to ~start~ | ~nwpw:excited_ne~ |
@@ -431,7 +431,7 @@ controls:
 | ~orbitalMotionFilename~ | ~omotion_filename <path>~ |
 | ~eigenvalueMotionFilename~ | ~eigmotion_filename <path>~ |
 | ~fractionalOrbitalsStart~, ~fractionalOrbitalsEnd~ | ~fractional_orbitals <start> <end>~; omitted ~end~ defaults to ~start~ |
-| ~smearTemperature~ | ~smear temperature <value>~ |
+| ~smearTemperature~ | ~smear temperature <value>~; fractional orbitals append ~orbitals <start> <end>~ with defaulted ~end~ |
 | ~smearAlpha~ | ~smear alpha <value>~ |
 | ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ |
 | ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~, ~virtualAliasSet~, ~virtualAliasStart~, ~virtualAliasEnd~ | ~virtual <start> <end>~; omitted ~end~ defaults to ~start~ |
