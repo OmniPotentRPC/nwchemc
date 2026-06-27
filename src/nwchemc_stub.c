@@ -318,6 +318,19 @@ NWChemCResult nwchemc_calculate_result(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_forces(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)forces_h_bohr;
+  (void)forces_len;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,

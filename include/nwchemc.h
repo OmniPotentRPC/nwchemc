@@ -290,6 +290,17 @@ NWChemCResult nwchemc_session_calculate_forces(
     size_t forces_len);
 
 /**
+ * @brief Compute one `ForceInput` step and write a raw force buffer.
+ *
+ * This is the one-shot Cap'n Proto force entry point for callers that do not
+ * keep a persistent session. The force buffer is returned in Hartree/Bohr.
+ */
+NWChemCResult nwchemc_calculate_forces(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len);
+
+/**
  * @brief Compute forces for one `ForceInput` step and write `PotentialResult`.
  *
  * This is the Cap'n Proto result-carrier entry point for RPC-style callers.

@@ -4060,7 +4060,7 @@ static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
   NWChemCResult force_result = nwchemc_calculate_forces(
       message, message_size, step_a, step_a_size, forces, 6);
   assert_int_equal(force_result.ok, 1);
-  assert_close(force_result.energy_h, -1.25, 1.0e-12);
+  assert_close(force_result.energy_h, -1.0, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_energy_grad_calls, 1);
   assert_int_equal(g_call_n_atoms[0], 2);

@@ -5258,6 +5258,45 @@ NWChemCResult nwchemc_calculate_result(
   return r;
 }
 
+static int force_input_step_atom_count(const void *force_input_capnp,
+                                       size_t force_input_capnp_size_bytes,
+                                       size_t *n_atoms);
+
+NWChemCResult nwchemc_calculate_forces(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !forces_h_bohr) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      n_atoms > SIZE_MAX / 3u || forces_len < n_atoms * 3u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_forces(
+      session, force_input_capnp, force_input_capnp_size_bytes, forces_h_bohr,
+      forces_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
 size_t nwchemc_potential_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   struct capn arena;
@@ -7080,6 +7119,19 @@ NWChemCResult nwchemc_calculate_result(
   (void)potential_result_capnp;
   (void)potential_result_capnp_capacity_bytes;
   (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_forces(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)forces_h_bohr;
+  (void)forces_len;
   return no_nwchem_fail();
 }
 

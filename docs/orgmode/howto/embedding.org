@@ -139,6 +139,7 @@ buffer. It uses the same result-carrier path as
 without initializing NWChem when the buffer is too small.
 ~nwchemc_calculate_hessian~ and ~nwchemc_calculate_dipole~ provide the same
 one-shot ~NWChemParams~ + ~ForceInput~ carrier for native Hessian and dipole
+buffers. ~nwchemc_calculate_forces~ provides the same carrier for native force
 buffers. ~nwchemc_calculate_quadrupole~ provides the same carrier for the
 six-component quadrupole buffer. ~nwchemc_calculate_stress~ provides the same
 carrier for the nine-component stress buffer.
@@ -163,8 +164,9 @@ for session step calls.
 * Result Units
 The energy returned by ~nwchemc_energy_gradient()~ is in Hartree.
 The gradient buffer is filled with nuclear gradients in Hartree per Bohr.
-~nwchemc_energy_forces()~ and ~nwchemc_session_calculate_forces()~ return forces
-as negative gradients in Hartree per Bohr.
+~nwchemc_energy_forces()~, ~nwchemc_session_calculate_forces()~, and
+~nwchemc_calculate_forces()~ return forces as negative gradients in Hartree per
+Bohr.
 ~nwchemc_session_calculate_result()~ writes ~PotentialResult.energy~ and
 ~PotentialResult.forces~ in the units requested by ~ForceInput.energyUnit~ and
 ~ForceInput.lengthUnit~, while ~NWChemCResult.energy_h~ remains Hartree.

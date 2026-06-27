@@ -38,6 +38,10 @@ NWChemCResult nwchemc_session_calculate_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_forces(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len);
 NWChemCResult nwchemc_calculate_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -176,7 +180,7 @@ callers with multiple steps should reuse `NWChemCSession`.
 result-carrier wrappers populate `PotentialResult.dipole` and
 `PotentialResult.quadrupole` in atomic units. Stress result-carrier wrappers
 populate `PotentialResult.stress` in
-`ForceInput.energyUnit / ForceInput.lengthUnit^3`. Raw Hessian, dipole,
+`ForceInput.energyUnit / ForceInput.lengthUnit^3`. Raw force, Hessian, dipole,
 quadrupole, and stress wrappers use the same `NWChemParams + ForceInput`
 carrier for callers that want native C buffers. Optimization result-carrier wrappers
 populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
