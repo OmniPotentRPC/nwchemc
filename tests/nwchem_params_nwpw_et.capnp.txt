@@ -1,0 +1,16 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = nwpw,
+      nwpw = (
+        etMovecsA = "movecs_a.dat",
+        etMovecsB = "movecs_b.dat",
+        etIonA = "ion_a.xyz",
+        etIonB = "ion_b.xyz"
+      )
+    )
+  ]
+)

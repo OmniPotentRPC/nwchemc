@@ -389,6 +389,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_nwpw_et_params_bin = custom_target(
+    'nwchem_nwpw_et_params_bin',
+    input: 'tests/nwchem_params_nwpw_et.capnp.txt',
+    output: 'nwchem_params_nwpw_et.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_step_a_bin = custom_target(
     'force_input_step_a_bin',
     input: 'tests/force_input_step_a.capnp.txt',
@@ -572,6 +586,7 @@ if get_option('with_tests')
       nwchem_nwpw_mc_steps_params_bin,
       nwchem_brillouin_tetrahedron_params_bin,
       nwchem_brillouin_dos_grid_params_bin,
+      nwchem_nwpw_et_params_bin,
     ],
   )
   test(
@@ -594,6 +609,7 @@ if get_option('with_tests')
       nwchem_nwpw_mc_steps_params_bin,
       nwchem_brillouin_tetrahedron_params_bin,
       nwchem_brillouin_dos_grid_params_bin,
+      nwchem_nwpw_et_params_bin,
       force_input_step_a_bin,
       force_input_step_b_bin,
       force_input_step_ev_bin,
