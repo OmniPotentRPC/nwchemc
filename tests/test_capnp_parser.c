@@ -13,6 +13,7 @@
 static const char *g_params_path = NULL;
 static const char *g_spin_mode_params_path = NULL;
 static const char *g_allow_translation_params_path = NULL;
+static const char *g_cutoff_alias_params_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -1258,6 +1259,48 @@ static void test_parser_extracts_direct_nwpw_allow_translation(void **state) {
   free(message);
 }
 
+static void test_parser_extracts_direct_nwpw_cutoff_alias(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_cutoff_alias_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks, "  cutoff 7.5\n"));
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "  cutoff 7.5\n"));
+
+  int has_options = 0;
+  double energy_cutoff = 0.0;
+  double wavefunction_cutoff = 0.0;
+  double ewald_rcut = 0.0;
+  int ewald_ncut = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw(
+                       params_root, &has_options, &energy_cutoff,
+                       &wavefunction_cutoff, &ewald_rcut, &ewald_ncut),
+                   0);
+  assert_int_equal(has_options, 1);
+  assert_true(energy_cutoff > 14.999);
+  assert_true(energy_cutoff < 15.001);
+  assert_true(wavefunction_cutoff > 7.499);
+  assert_true(wavefunction_cutoff < 7.501);
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_parser_extracts_direct_pseudopotentials(void **state) {
   (void)state;
 
@@ -1395,22 +1438,24 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 4) {
+  if (argc != 5) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
-            "NWPW_ALLOW_TRANSLATION_PARAMS_BIN\n",
+            "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN\n",
             argv[0]);
     return 2;
   }
   g_params_path = argv[1];
   g_spin_mode_params_path = argv[2];
   g_allow_translation_params_path = argv[3];
+  g_cutoff_alias_params_path = argv[4];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_options),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_spin_mode),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_allow_translation),
+      cmocka_unit_test(test_parser_extracts_direct_nwpw_cutoff_alias),
       cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
       cmocka_unit_test(test_parser_walks_direct_pseudopotential_capnp_entries),
   };
