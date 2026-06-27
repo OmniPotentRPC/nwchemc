@@ -249,6 +249,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_compact_cells_params_bin = custom_target(
+    'nwchem_compact_cells_params_bin',
+    input: 'tests/nwchem_params_compact_cells.capnp.txt',
+    output: 'nwchem_params_compact_cells.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_tce_methods_params_bin = custom_target(
     'nwchem_tce_methods_params_bin',
     input: 'tests/nwchem_params_tce_methods.capnp.txt',
@@ -488,6 +502,7 @@ if get_option('with_tests')
       force_input_step_changed_species_bin,
       force_input_step_state_bin,
       nwchem_tce_methods_params_bin,
+      nwchem_compact_cells_params_bin,
     ],
     suite: ['cmocka', 'parser'],
   )

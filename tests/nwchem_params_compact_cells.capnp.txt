@@ -1,0 +1,32 @@
+(
+  basis = "sto-3g",
+  theory = "scf",
+  scfType = "rhf",
+  task = "gradient",
+  inputStanzas = [
+    (
+      kind = simulationCell,
+      simulationCell = (
+        cellName = "scCell",
+        latticeKind = sc,
+        latticeLengthBohr = 6.0
+      )
+    ),
+    (
+      kind = simulationCell,
+      simulationCell = (
+        cellName = "fccCell",
+        latticeKind = fcc,
+        latticeLengthBohr = 8.0
+      )
+    ),
+    (
+      kind = simulationCell,
+      simulationCell = (
+        cellName = "bccCell",
+        latticeKind = bcc,
+        latticeLengthBohr = 10.0
+      )
+    )
+  ]
+)
