@@ -692,6 +692,138 @@ static void test_calculate_named_result_carriers_one_shot(void **state) {
   free(params);
 }
 
+static void test_session_coordinate_entry_points(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  assert_non_null(params);
+
+  NWChemCSession *session = nwchemc_session_create(params, params_size);
+  assert_non_null(session);
+
+  const int n_atoms = 2;
+  const int ncoord = n_atoms * 3;
+  const int atomic_numbers[2] = {1, 1};
+  const double eq_positions[6] = {0.0, 0.0, -0.3707, 0.0, 0.0, 0.3707};
+  const double stretched_positions[6] = {0.0, 0.0, -0.6500,
+                                         0.0, 0.0, 0.6500};
+
+  double grad[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult gradient_status = nwchemc_session_energy_gradient(
+      session, n_atoms, eq_positions, atomic_numbers, grad);
+  if (!gradient_status.ok)
+    fail_msg("nwchemc_session_energy_gradient failed: %s",
+             gradient_status.message);
+  assert_true(isfinite(gradient_status.energy_h));
+  for (int i = 0; i < ncoord; ++i) {
+    if (!isfinite(grad[i]))
+      fail_msg("non-finite coordinate session gradient[%d]", i);
+  }
+
+  NWChemCResult energy_status = nwchemc_session_energy(
+      session, n_atoms, eq_positions, atomic_numbers);
+  if (!energy_status.ok)
+    fail_msg("nwchemc_session_energy failed: %s", energy_status.message);
+  assert_close(energy_status.energy_h, gradient_status.energy_h, 1.0e-10);
+
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult forces_status = nwchemc_session_energy_forces(
+      session, n_atoms, eq_positions, atomic_numbers, forces);
+  if (!forces_status.ok)
+    fail_msg("nwchemc_session_energy_forces failed: %s",
+             forces_status.message);
+  assert_close(forces_status.energy_h, gradient_status.energy_h, 1.0e-10);
+  for (int i = 0; i < ncoord; ++i) {
+    if (!isfinite(forces[i]))
+      fail_msg("non-finite coordinate session force[%d]", i);
+    assert_close(forces[i], -grad[i], 1.0e-10);
+  }
+
+  double hessian[36];
+  memset(hessian, 0, sizeof(hessian));
+  NWChemCResult hessian_status = nwchemc_session_hessian(
+      session, n_atoms, eq_positions, atomic_numbers, hessian);
+  if (!hessian_status.ok)
+    fail_msg("nwchemc_session_hessian failed: %s", hessian_status.message);
+  double max_hessian_abs = 0.0;
+  for (int i = 0; i < ncoord; ++i) {
+    for (int j = 0; j < ncoord; ++j) {
+      double hij = hessian[i * ncoord + j];
+      double hji = hessian[j * ncoord + i];
+      if (!isfinite(hij))
+        fail_msg("non-finite coordinate session hessian[%d,%d]", i, j);
+      double scale = fmax(1.0, fmax(fabs(hij), fabs(hji)));
+      if (fabs(hij - hji) > 1.0e-7 * scale)
+        fail_msg("coordinate session hessian symmetry mismatch at %d,%d", i,
+                 j);
+      max_hessian_abs = fmax(max_hessian_abs, fabs(hij));
+    }
+  }
+  assert_true(max_hessian_abs >= 1.0e-6);
+
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_status = nwchemc_session_dipole(
+      session, n_atoms, eq_positions, atomic_numbers, dipole);
+  if (!dipole_status.ok)
+    fail_msg("nwchemc_session_dipole failed: %s", dipole_status.message);
+  for (int i = 0; i < 3; ++i) {
+    if (!isfinite(dipole[i]))
+      fail_msg("non-finite coordinate session dipole[%d]", i);
+    assert_true(fabs(dipole[i]) < 1.0e-7);
+  }
+
+  double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult quadrupole_status = nwchemc_session_quadrupole(
+      session, n_atoms, eq_positions, atomic_numbers, quadrupole);
+  if (!quadrupole_status.ok)
+    fail_msg("nwchemc_session_quadrupole failed: %s",
+             quadrupole_status.message);
+  double max_quadrupole_abs = 0.0;
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(quadrupole[i]))
+      fail_msg("non-finite coordinate session quadrupole[%d]", i);
+    max_quadrupole_abs = fmax(max_quadrupole_abs, fabs(quadrupole[i]));
+  }
+  assert_true(max_quadrupole_abs > 1.0e-6);
+  double trace = quadrupole[0] + quadrupole[3] + quadrupole[5];
+  assert_true(fabs(trace) < 1.0e-7 * fmax(1.0, max_quadrupole_abs));
+
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_status = nwchemc_session_optimize(
+      session, n_atoms, stretched_positions, atomic_numbers,
+      optimized_positions);
+  if (!optimize_status.ok)
+    fail_msg("nwchemc_session_optimize failed: %s", optimize_status.message);
+  assert_true(isfinite(optimize_status.energy_h));
+  assert_finite_positions(optimized_positions, ncoord);
+  double optimized_bond = h2_bond_length(optimized_positions);
+  assert_true(optimized_bond > 0.5);
+  assert_true(optimized_bond < 1.0);
+
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequencies_status = nwchemc_session_frequencies(
+      session, n_atoms, eq_positions, atomic_numbers, frequencies,
+      intensities);
+  if (!frequencies_status.ok)
+    fail_msg("nwchemc_session_frequencies failed: %s",
+             frequencies_status.message);
+  double max_frequency_abs = 0.0;
+  for (int i = 0; i < ncoord; ++i) {
+    if (!isfinite(frequencies[i]))
+      fail_msg("non-finite coordinate session frequency[%d]", i);
+    if (!isfinite(intensities[i]))
+      fail_msg("non-finite coordinate session intensity[%d]", i);
+    max_frequency_abs = fmax(max_frequency_abs, fabs(frequencies[i]));
+  }
+  assert_true(max_frequency_abs > 1.0);
+
+  nwchemc_session_destroy(session);
+  free(params);
+}
+
 static void test_session_raw_property_and_structural_buffers(void **state) {
   (void)state;
   assert_true(nwchemc_available());
@@ -952,6 +1084,7 @@ int main(int argc, char **argv) {
           test_session_named_energy_and_forces_results_reuse_config),
       cmocka_unit_test(test_session_named_property_and_structural_results),
       cmocka_unit_test(test_calculate_named_result_carriers_one_shot),
+      cmocka_unit_test(test_session_coordinate_entry_points),
       cmocka_unit_test(test_session_raw_property_and_structural_buffers),
       cmocka_unit_test(test_calculate_hessian_and_dipole_one_shot),
       cmocka_unit_test(test_calculate_optimize_returns_final_geometry),
