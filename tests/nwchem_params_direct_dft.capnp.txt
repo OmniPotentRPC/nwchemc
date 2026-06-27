@@ -203,7 +203,8 @@
         cutoffBootWavefunction = disabled,
         fastErf = enabled,
         dipoleMotion = enabled,
-        dipoleMotionFilename = "dipole.mov"
+        dipoleMotionFilename = "dipole.mov",
+        rhoUseSymmetry = disabled
       )
     ),
     (
