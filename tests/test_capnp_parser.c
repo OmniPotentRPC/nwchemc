@@ -148,6 +148,8 @@ static void test_parser_renders_structured_input(void **state) {
       strstr(input_blocks, "born 78.4 relax true 0.529177 1.058354"));
   assert_non_null(strstr(input_blocks, "vfield vf_a.ascii vf_b.ascii"));
   assert_non_null(strstr(input_blocks, "single_precision_hfx"));
+  assert_non_null(strstr(input_blocks, "dos 0.0025 120 -0.5 1.5"));
+  assert_non_null(strstr(input_blocks, "dos_filename dos.dat"));
   assert_non_null(strstr(input_blocks, "cpmd_properties true"));
   assert_non_null(strstr(input_blocks, "use_grid_cmp false"));
   assert_non_null(strstr(input_blocks, "director director.dat"));
@@ -410,6 +412,10 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:vfield_filenames"));
   assert_null(strstr(input_blocks, "single_precision_hfx"));
   assert_null(strstr(input_blocks, "pspw:HFX_single_precision"));
+  assert_null(strstr(input_blocks, "dos 0.0025"));
+  assert_null(strstr(input_blocks, "dos_filename dos.dat"));
+  assert_null(strstr(input_blocks, "dos:alpha"));
+  assert_null(strstr(input_blocks, "nwpw:dos:filename"));
   assert_null(strstr(input_blocks, "cpmd_properties true"));
   assert_null(strstr(input_blocks, "nwpw:cpmd_properties"));
   assert_null(strstr(input_blocks, "use_grid_cmp false"));
@@ -851,6 +857,35 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_single_precision_hfx, 1);
   assert_int_equal(single_precision_hfx, 1);
+
+  int has_dos = 0;
+  int dos_alpha_set = 0;
+  double dos_alpha = 0.0;
+  int dos_npoints_set = 0;
+  int dos_npoints = 0;
+  int dos_emin_set = 0;
+  double dos_emin = 0.0;
+  int dos_emax_set = 0;
+  double dos_emax = 0.0;
+  capn_text dos_filename = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_dos(
+                       params_root, &has_dos, &dos_alpha_set, &dos_alpha,
+                       &dos_npoints_set, &dos_npoints, &dos_emin_set,
+                       &dos_emin, &dos_emax_set, &dos_emax, &dos_filename),
+                   0);
+  assert_int_equal(has_dos, 1);
+  assert_int_equal(dos_alpha_set, 1);
+  assert_true(dos_alpha > 0.002499);
+  assert_true(dos_alpha < 0.002501);
+  assert_int_equal(dos_npoints_set, 1);
+  assert_int_equal(dos_npoints, 120);
+  assert_int_equal(dos_emin_set, 1);
+  assert_true(dos_emin < -0.499);
+  assert_true(dos_emin > -0.501);
+  assert_int_equal(dos_emax_set, 1);
+  assert_true(dos_emax > 1.499);
+  assert_true(dos_emax < 1.501);
+  assert_true(text_equals(dos_filename, "dos.dat"));
 
   int has_cpmd_grid = 0;
   int cpmd_properties = 0;

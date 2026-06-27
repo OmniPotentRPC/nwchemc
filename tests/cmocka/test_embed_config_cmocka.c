@@ -1313,6 +1313,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:vfield_filenames"));
   assert_null(strstr(g_input_blocks, "single_precision_hfx"));
   assert_null(strstr(g_input_blocks, "pspw:HFX_single_precision"));
+  assert_null(strstr(g_input_blocks, "dos 0.0025"));
+  assert_null(strstr(g_input_blocks, "dos_filename dos.dat"));
+  assert_null(strstr(g_input_blocks, "dos:alpha"));
+  assert_null(strstr(g_input_blocks, "nwpw:dos:filename"));
   assert_null(strstr(g_input_blocks, "cpmd_properties true"));
   assert_null(strstr(g_input_blocks, "nwpw:cpmd_properties"));
   assert_null(strstr(g_input_blocks, "use_grid_cmp false"));
@@ -1353,12 +1357,13 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_strings_calls, 1);
-  assert_int_equal(g_set_string_count, 3);
+  assert_int_equal(g_set_string_count, 4);
   assert_set_string("band_structure:zone_name", "structureA");
   assert_set_string("band_fft:zone_name", "fftA");
   assert_set_string("nwpw:vfield_filenames", "vf_a.ascii vf_b.ascii");
+  assert_set_string("nwpw:dos:filename", "dos.dat");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 236);
+  assert_int_equal(g_typed_set_count, 240);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1569,6 +1574,14 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           2, born_vradii_values);
   assert_typed_set_scalar("pspw:HFX_single_precision",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("dos:alpha", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "0.0025");
+  assert_typed_set_scalar("dos:npoints", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "120");
+  assert_typed_set_scalar("dos:emin", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "-0.5");
+  assert_typed_set_scalar("dos:emax", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "1.5");
   assert_typed_set_scalar("nwpw:cpmd_properties",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("nwpw:use_grid_cmp",
