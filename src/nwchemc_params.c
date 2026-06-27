@@ -2215,7 +2215,8 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       return -1;
   }
   if (include_direct_promoted &&
-      (nwpw.scalingFirst > 0.0 || nwpw.scalingSecond > 0.0)) {
+      (nwpw.scalingSet || nwpw.scalingFirst > 0.0 ||
+       nwpw.scalingSecond > 0.0)) {
     double scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;
     double scaling_second =
         nwpw.scalingSecond > 0.0 ? nwpw.scalingSecond : scaling_first;
@@ -3559,7 +3560,8 @@ int nwchemc_params_extract_direct_nwpw_bo(
       *has_options = 1;
       *bo_fake_mass = nwpw.boFakeMass > 0.0 ? nwpw.boFakeMass : 500.0;
     }
-    if (nwpw.scalingFirst > 0.0 || nwpw.scalingSecond > 0.0) {
+    if (nwpw.scalingSet || nwpw.scalingFirst > 0.0 ||
+        nwpw.scalingSecond > 0.0) {
       *has_options = 1;
       *has_scaling = 1;
       *scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;

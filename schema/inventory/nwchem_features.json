@@ -4359,6 +4359,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.scalingSet",
+      "schema_path": "NWChemNwpwStanza.scalingSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "scalingSet",
+      "field_id": 165,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.scalingSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

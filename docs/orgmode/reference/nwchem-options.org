@@ -188,7 +188,7 @@ RTDB values directly:
 | ~boTimeStepSet~, ~boTimeStep~ | ~bo_time_step [value]~; omitted value defaults to ~15~ | ~nwpw:bo_time_step~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
 | ~boFakeMassSet~, ~boFakeMass~ | ~bo_fake_mass [value]~; omitted value defaults to ~500~ | ~nwpw:bo_fake_mass~ |
-| ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ | ~nwpw:scaling~, ~cpmd:scaling~ |
+| ~scalingSet~, ~scalingFirst~, ~scalingSecond~ | ~scaling [first] [second]~; omitted ~first~ defaults to ~1~ and omitted ~second~ defaults to ~first~ | ~nwpw:scaling~, ~cpmd:scaling~ |
 | ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ | ~nwpw:np_dimensions~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ | ~nwpw:spin_orbit~, ~pspw:spin_orbit~, ~band:spin_orbit~ |
 | ~parallelIo~ | ~parallel_io on~ or ~off~ | ~nwpw:parallel_io~ |
@@ -420,7 +420,7 @@ controls:
 | ~boTimeStepSet~, ~boTimeStep~ | ~bo_time_step [value]~; omitted value defaults to ~15~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
 | ~boFakeMassSet~, ~boFakeMass~ | ~bo_fake_mass [value]~; omitted value defaults to ~500~ |
-| ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ |
+| ~scalingSet~, ~scalingFirst~, ~scalingSecond~ | ~scaling [first] [second]~; omitted ~first~ defaults to ~1~ and omitted ~second~ defaults to ~first~ |
 | ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ |
 | ~parallelIo~ | ~parallel_io on~ or ~off~ |
