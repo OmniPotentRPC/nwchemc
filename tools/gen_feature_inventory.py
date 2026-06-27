@@ -332,9 +332,19 @@ def main() -> int:
                 "embed": "runs session ForceInput energy/forces",
             },
             {
+                "name": "nwchemc_session_calculate_energy",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput energy-only",
+            },
+            {
                 "name": "nwchemc_calculate_forces",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput energy/forces",
+            },
+            {
+                "name": "nwchemc_calculate_energy",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput energy-only",
             },
             {
                 "name": "nwchemc_session_calculate_result",

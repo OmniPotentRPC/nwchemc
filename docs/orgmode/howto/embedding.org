@@ -137,6 +137,9 @@ For a single geometry step, ~nwchemc_calculate_result~ accepts
 buffer. It uses the same result-carrier path as
 ~nwchemc_session_calculate_result~ and returns the required output byte count
 without initializing NWChem when the buffer is too small.
+~nwchemc_session_calculate_energy~ and ~nwchemc_calculate_energy~ return only
+the native Hartree scalar for serialized ~ForceInput~ callers that do not need
+forces or a ~PotentialResult~ message.
 ~nwchemc_calculate_hessian~ and ~nwchemc_calculate_dipole~ provide the same
 one-shot ~NWChemParams~ + ~ForceInput~ carrier for native Hessian and dipole
 buffers. ~nwchemc_calculate_forces~ provides the same carrier for native force
@@ -164,6 +167,8 @@ for session step calls.
 * Result Units
 The energy returned by ~nwchemc_energy_gradient()~ is in Hartree.
 The gradient buffer is filled with nuclear gradients in Hartree per Bohr.
+~nwchemc_session_calculate_energy()~ and ~nwchemc_calculate_energy()~ return
+their scalar energy in Hartree.
 ~nwchemc_energy_forces()~, ~nwchemc_session_calculate_forces()~, and
 ~nwchemc_calculate_forces()~ return forces as negative gradients in Hartree per
 Bohr.

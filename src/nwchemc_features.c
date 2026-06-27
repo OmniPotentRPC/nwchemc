@@ -571,7 +571,9 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_optimize", "include/nwchemc.h::nwchemc_session_optimize", "stub=fails ok==0; embed=runs session geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_frequencies", "include/nwchemc.h::nwchemc_session_frequencies", "stub=fails ok==0; embed=runs session harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_forces", "include/nwchemc.h::nwchemc_session_calculate_forces", "stub=fails ok==0; embed=runs session ForceInput energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_energy", "include/nwchemc.h::nwchemc_session_calculate_energy", "stub=fails ok==0; embed=runs session ForceInput energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_forces", "include/nwchemc.h::nwchemc_calculate_forces", "stub=fails ok==0; embed=runs one-shot ForceInput energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_energy", "include/nwchemc.h::nwchemc_calculate_energy", "stub=fails ok==0; embed=runs one-shot ForceInput energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_result", "include/nwchemc.h::nwchemc_session_calculate_result", "stub=fails ok==0; embed=runs session ForceInput energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_result", "include/nwchemc.h::nwchemc_calculate_result", "stub=fails ok==0; embed=runs one-shot ForceInput energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_hessian", "include/nwchemc.h::nwchemc_calculate_hessian", "stub=fails ok==0; embed=runs one-shot ForceInput Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -611,7 +613,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 606;
+static const size_t k_feature_count = 608;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

@@ -53,8 +53,11 @@ small.
 ~nwchemc_potential_result_size_for_force_input()~ exposes the same size
 calculation without touching the NWChem runtime, which lets long-running loops
 allocate or grow the result buffer from the per-step ~ForceInput~ alone.
+~nwchemc_session_calculate_energy()~ accepts the same serialized step and
+returns only the native Hartree scalar.
 ~nwchemc_calculate_forces()~ creates a temporary session for one-shot raw-force
 callers and writes native Hartree/Bohr force buffers.
+~nwchemc_calculate_energy()~ provides the matching one-shot energy-only path.
 ~nwchemc_hessian_result_size_for_force_input()~ does the same for
 ~PotentialResult.hessian~.
 Dipole and quadrupole result-size helpers validate the same ~ForceInput~ carrier

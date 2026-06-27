@@ -288,6 +288,15 @@ NWChemCResult nwchemc_session_calculate_forces(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_energy(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_result(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, void *potential_result_capnp,
@@ -328,6 +337,16 @@ NWChemCResult nwchemc_calculate_forces(
   (void)force_input_capnp_size_bytes;
   (void)forces_h_bohr;
   (void)forces_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_energy(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
   return stub_fail();
 }
 
