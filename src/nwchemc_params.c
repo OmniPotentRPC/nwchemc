@@ -2714,9 +2714,11 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         return -1;
     }
   }
-  if (include_direct_promoted && nwpw.cellExpandX > 0 &&
+  if (include_direct_promoted &&
+      (nwpw.cellExpandX > 0 || nwpw.cellExpandY > 0 ||
+       nwpw.cellExpandZ > 0) &&
       append_format(block, sizeof(block), "  expand_cell %d %d %d\n",
-                    nwpw.cellExpandX,
+                    nwpw.cellExpandX > 0 ? nwpw.cellExpandX : 1,
                     nwpw.cellExpandY > 0 ? nwpw.cellExpandY : 1,
                     nwpw.cellExpandZ > 0 ? nwpw.cellExpandZ : 1) != 0)
     return -1;

@@ -253,7 +253,7 @@ RTDB values directly:
 | ~useGridComparison~ | ~use_grid_cmp true~ or ~false~ | ~nwpw:use_grid_cmp~ |
 | ~director~ | ~director~, ~director true~, or ~director false~ | ~nwpw:use_director~ |
 | ~directorFilename~ | filename token in ~director <filename>~ | ~nwpw:director_filename~ |
-| ~cellExpandX~, ~cellExpandY~, ~cellExpandZ~ | ~expand_cell <x> <y> <z>~ | ~nwpw:cell_expand~ |
+| ~cellExpandX~, ~cellExpandY~, ~cellExpandZ~ | ~expand_cell <x> <y> <z>~; omitted axes default to ~1~ | ~nwpw:cell_expand~ |
 | ~mapping~, ~mappingAlias~ | ~mapping <value>~, ~1d-slab~, ~2d-hilbert~, or ~2d-hcurve~ | ~nwpw:mapping~ |
 | ~rotation~ | ~rotation true~ or ~false~ | ~nwpw:rotation~ |
 | ~lmaxMultipole~ | ~integrate_mult_l <value>~ | ~nwpw:lmax_multipole~ |
