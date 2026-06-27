@@ -113,6 +113,28 @@ static double assert_potential_result(const unsigned char *message,
   return energy;
 }
 
+static double assert_potential_result_energy_only(const unsigned char *message,
+                                                  size_t message_size,
+                                                  double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, 1.0e-12);
+  capn_resolve(&result.forces.p);
+  if (result.forces.p.type != CAPN_NULL) {
+    assert_int_equal(result.forces.p.type, CAPN_LIST);
+    assert_int_equal(result.forces.p.datasz, 8);
+    assert_int_equal(result.forces.p.len, 0);
+  }
+  double energy = result.energy;
+  capn_free(&arena);
+  return energy;
+}
+
 static NWChemCResult calculate_result_step(
     NWChemCSession *session, const unsigned char *step, size_t step_size,
     unsigned char *result_bytes, size_t result_capacity, size_t *result_size,
@@ -179,6 +201,84 @@ static void test_session_calculate_result_accepts_multiple_steps(void **state) {
   assert_true(isfinite(repeated_status.energy_h));
   assert_close(repeated_energy, eq_energy, 1.0e-10);
   assert_true(fabs(stretched_energy - eq_energy) > 1.0e-5);
+
+  nwchemc_session_destroy(session);
+  free(step_stretched);
+  free(step_eq);
+  free(params);
+}
+
+static void test_session_named_energy_and_forces_results_reuse_config(
+    void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  size_t step_eq_size = 0;
+  size_t step_stretched_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  unsigned char *step_eq = read_file(g_step_eq_path, &step_eq_size);
+  unsigned char *step_stretched =
+      read_file(g_step_stretched_path, &step_stretched_size);
+  assert_non_null(params);
+  assert_non_null(step_eq);
+  assert_non_null(step_stretched);
+
+  size_t energy_size_expected =
+      nwchemc_energy_result_size_for_force_input(step_eq, step_eq_size);
+  size_t force_size_expected =
+      nwchemc_forces_result_size_for_force_input(step_eq, step_eq_size);
+  assert_true(energy_size_expected > 0);
+  assert_true(force_size_expected > energy_size_expected);
+  assert_int_equal(nwchemc_energy_result_size_for_force_input(
+                       step_stretched, step_stretched_size),
+                   energy_size_expected);
+  assert_int_equal(nwchemc_forces_result_size_for_force_input(
+                       step_stretched, step_stretched_size),
+                   force_size_expected);
+
+  NWChemCSession *session = nwchemc_session_create(params, params_size);
+  assert_non_null(session);
+
+  unsigned char result_bytes[256];
+  size_t result_size = 0;
+  NWChemCResult eq_energy_status = nwchemc_session_calculate_energy_result(
+      session, step_eq, step_eq_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  if (!eq_energy_status.ok)
+    fail_msg("nwchemc_session_calculate_energy_result failed: %s",
+             eq_energy_status.message);
+  assert_int_equal(result_size, energy_size_expected);
+  double eq_energy = assert_potential_result_energy_only(
+      result_bytes, result_size, eq_energy_status.energy_h);
+
+  memset(result_bytes, 0, sizeof(result_bytes));
+  result_size = 0;
+  NWChemCResult stretched_forces_status =
+      nwchemc_session_calculate_forces_result(
+          session, step_stretched, step_stretched_size, result_bytes,
+          sizeof(result_bytes), &result_size);
+  if (!stretched_forces_status.ok)
+    fail_msg("nwchemc_session_calculate_forces_result failed: %s",
+             stretched_forces_status.message);
+  assert_int_equal(result_size, force_size_expected);
+  double stretched_energy = assert_potential_result(
+      result_bytes, result_size, stretched_forces_status.energy_h);
+  assert_true(fabs(stretched_energy - eq_energy) > 1.0e-5);
+
+  memset(result_bytes, 0, sizeof(result_bytes));
+  result_size = 0;
+  NWChemCResult repeated_energy_status =
+      nwchemc_session_calculate_energy_result(
+          session, step_eq, step_eq_size, result_bytes, sizeof(result_bytes),
+          &result_size);
+  if (!repeated_energy_status.ok)
+    fail_msg("repeated nwchemc_session_calculate_energy_result failed: %s",
+             repeated_energy_status.message);
+  assert_int_equal(result_size, energy_size_expected);
+  double repeated_energy = assert_potential_result_energy_only(
+      result_bytes, result_size, repeated_energy_status.energy_h);
+  assert_close(repeated_energy, eq_energy, 1.0e-10);
 
   nwchemc_session_destroy(session);
   free(step_stretched);
@@ -338,6 +438,8 @@ int main(int argc, char **argv) {
   g_step_stretched_path = argv[3];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_session_calculate_result_accepts_multiple_steps),
+      cmocka_unit_test(
+          test_session_named_energy_and_forces_results_reuse_config),
       cmocka_unit_test(test_calculate_hessian_and_dipole_one_shot),
       cmocka_unit_test(test_calculate_optimize_returns_final_geometry),
   };
