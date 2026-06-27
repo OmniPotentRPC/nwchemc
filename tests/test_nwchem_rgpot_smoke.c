@@ -621,6 +621,60 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
   free(config);
 }
 
+static void test_rgpot_config_stress_rejects_short_buffers(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t config_size = 0;
+  size_t force_input_size = 0;
+  unsigned char *config = read_file(g_config_path, &config_size);
+  unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  assert_non_null(config);
+  assert_non_null(force_input);
+
+  double short_stress[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_config = nwchemc_calculate_stress_from_config(
+      config, config_size, force_input, force_input_size, short_stress, 8);
+  assert_int_equal(raw_config.ok, 0);
+
+  size_t stress_capacity =
+      nwchemc_stress_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_stress_result_size_for_force_input",
+                         stress_capacity);
+  assert_true(stress_capacity > 1);
+  unsigned char *stress_bytes = (unsigned char *)malloc(stress_capacity - 1);
+  assert_non_null(stress_bytes);
+
+  size_t required_size = 0;
+  NWChemCResult config_result =
+      nwchemc_calculate_stress_result_from_config(
+          config, config_size, force_input, force_input_size, stress_bytes,
+          stress_capacity - 1, &required_size);
+  assert_int_equal(config_result.ok, 0);
+  assert_int_equal(required_size, stress_capacity);
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config, config_size);
+  assert_non_null(session);
+
+  NWChemCResult raw_session = nwchemc_session_calculate_stress(
+      session, force_input, force_input_size, short_stress, 8);
+  assert_int_equal(raw_session.ok, 0);
+
+  required_size = 0;
+  NWChemCResult session_result = nwchemc_session_calculate_stress_result(
+      session, force_input, force_input_size, stress_bytes, stress_capacity - 1,
+      &required_size);
+  assert_int_equal(session_result.ok, 0);
+  assert_int_equal(required_size, stress_capacity);
+
+  nwchemc_session_destroy(session);
+  free(stress_bytes);
+  free(force_input);
+  free(config);
+}
+
 static void test_rgpot_config_raw_forceinput_operations(void **state) {
   (void)state;
   assert_true(nwchemc_available());
@@ -740,6 +794,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_rgpot_config_forceinput_result_carrier),
       cmocka_unit_test(test_rgpot_config_named_result_carriers),
       cmocka_unit_test(test_rgpot_config_session_named_result_carriers),
+      cmocka_unit_test(test_rgpot_config_stress_rejects_short_buffers),
       cmocka_unit_test(test_rgpot_config_raw_forceinput_operations),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
