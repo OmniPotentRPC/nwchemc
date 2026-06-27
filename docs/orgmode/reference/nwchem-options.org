@@ -458,7 +458,7 @@ Simple ~exchangeCorrelation~ names use the direct RTDB path. Use
 | Field | NWChem text | Embed RTDB key(s) |
 |-------+-------------+-------------------|
 | ~zoneName~ | trailing zone token in ~monkhorst-pack~ and nested ~zone_name~ | ~band:zone_name~ and key prefix ~<zone>:*~ |
-| ~monkhorstPackX~, ~monkhorstPackY~, ~monkhorstPackZ~ | ~monkhorst-pack <x> <y> <z> [zone]~ | ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:monkhorst-pack~ |
+| ~monkhorstPackX~, ~monkhorstPackY~, ~monkhorstPackZ~ | ~monkhorst-pack <x> <y> <z> [zone]~; omitted grid values default to ~1~ | ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:monkhorst-pack~ |
 | ~dosGridX~, ~dosGridY~, ~dosGridZ~, ~dosGridZoneName~ | ~dos-grid <x> <y> <z> [zone]~ | ~band:dos-grid~ |
 | ~tetrahedronGridX~, ~tetrahedronGridY~, ~tetrahedronGridZ~, ~tetrahedronZoneName~ | ~tetrahedron <x> <y> <z> [zone]~ | ~band:tetrahedron-grid~ |
 | ~kVectors[]~ | nested ~brillouin_zone~ / ~kvector x y z weight~ entries | ~<zone>:number_kvectors~, ~<zone>:kvectors~ |

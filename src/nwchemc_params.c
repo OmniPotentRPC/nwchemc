@@ -837,8 +837,8 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
   int nk = struct_list_len(&zone.kVectors.p);
   if (nk < 0)
     return -1;
-  int has_monkhorst = zone.monkhorstPackX != 0 &&
-                      zone.monkhorstPackY != 0 &&
+  int has_monkhorst = zone.monkhorstPackX != 0 ||
+                      zone.monkhorstPackY != 0 ||
                       zone.monkhorstPackZ != 0;
   int has_dos_grid =
       zone.dosGridX > 0 || zone.dosGridY > 0 || zone.dosGridZ > 0;
@@ -856,9 +856,11 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
   if (append_format(block, sizeof(block), "nwpw\n") != 0)
     return -1;
   if (has_monkhorst) {
+    int mx = zone.monkhorstPackX != 0 ? zone.monkhorstPackX : 1;
+    int my = zone.monkhorstPackY != 0 ? zone.monkhorstPackY : 1;
+    int mz = zone.monkhorstPackZ != 0 ? zone.monkhorstPackZ : 1;
     if (append_format(block, sizeof(block), "  monkhorst-pack %d %d %d ",
-                      zone.monkhorstPackX, zone.monkhorstPackY,
-                      zone.monkhorstPackZ) != 0 ||
+                      mx, my, mz) != 0 ||
         append_zone_name_or_default(block, sizeof(block), zone.zoneName) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
@@ -5394,12 +5396,12 @@ int nwchemc_params_extract_direct_brillouin_zone(
       *has_options = 1;
       *zone_name = zone.zoneName;
     }
-    if (zone.monkhorstPackX != 0 && zone.monkhorstPackY != 0 &&
+    if (zone.monkhorstPackX != 0 || zone.monkhorstPackY != 0 ||
         zone.monkhorstPackZ != 0) {
       *has_options = 1;
-      monkhorst_pack[0] = zone.monkhorstPackX;
-      monkhorst_pack[1] = zone.monkhorstPackY;
-      monkhorst_pack[2] = zone.monkhorstPackZ;
+      monkhorst_pack[0] = zone.monkhorstPackX != 0 ? zone.monkhorstPackX : 1;
+      monkhorst_pack[1] = zone.monkhorstPackY != 0 ? zone.monkhorstPackY : 1;
+      monkhorst_pack[2] = zone.monkhorstPackZ != 0 ? zone.monkhorstPackZ : 1;
     }
     if (zone.maxKpointsPrint > 0) {
       *has_options = 1;
