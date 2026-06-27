@@ -888,6 +888,7 @@ if get_option('with_tests')
       nwchem_nwpw_cell_expand_default_params_bin,
       nwchem_brillouin_monkhorst_default_params_bin,
       nwchem_brillouin_dos_grid_default_params_bin,
+      nwchem_compact_cells_params_bin,
     ],
   )
   test(

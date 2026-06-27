@@ -39,6 +39,7 @@ static const char *g_nwpw_translate_vector_default_params_path = NULL;
 static const char *g_nwpw_cell_expand_default_params_path = NULL;
 static const char *g_brillouin_monkhorst_default_params_path = NULL;
 static const char *g_brillouin_dos_grid_default_params_path = NULL;
+static const char *g_compact_cells_params_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -2471,6 +2472,60 @@ static void test_parser_renders_brillouin_monkhorst_default(void **state) {
   free(message);
 }
 
+static void test_parser_renders_compact_simulation_cells(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_compact_cells_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks,
+                         "nwpw\n"
+                         "  simulation_cell\n"
+                         "    cell_name scCell\n"
+                         "    sc 6\n"
+                         "  end\n"
+                         "end"));
+  assert_non_null(strstr(full_blocks,
+                         "nwpw\n"
+                         "  simulation_cell\n"
+                         "    cell_name fccCell\n"
+                         "    fcc 8\n"
+                         "  end\n"
+                         "end"));
+  assert_non_null(strstr(full_blocks,
+                         "nwpw\n"
+                         "  simulation_cell\n"
+                         "    cell_name bccCell\n"
+                         "    bcc 10\n"
+                         "  end\n"
+                         "end"));
+  assert_non_null(strstr(full_blocks,
+                         "nwpw\n"
+                         "  simulation_cell\n"
+                         "    sc 12\n"
+                         "  end\n"
+                         "end"));
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "simulation_cell"));
+  assert_null(strstr(embed_blocks, "    sc 12\n"));
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_parser_extracts_direct_pseudopotentials(void **state) {
   (void)state;
 
@@ -2608,7 +2663,7 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 30) {
+  if (argc != 31) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN PSPSPIN_PARAMS_BIN "
             "NWPW_SPIN_MODE_PARAMS_BIN "
@@ -2633,7 +2688,8 @@ int main(int argc, char **argv) {
             "NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN "
             "NWPW_CELL_EXPAND_DEFAULT_PARAMS_BIN "
             "BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN "
-            "BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN\n",
+            "BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN "
+            "COMPACT_CELLS_PARAMS_BIN\n",
             argv[0]);
     return 2;
   }
@@ -2666,6 +2722,7 @@ int main(int argc, char **argv) {
   g_nwpw_cell_expand_default_params_path = argv[27];
   g_brillouin_monkhorst_default_params_path = argv[28];
   g_brillouin_dos_grid_default_params_path = argv[29];
+  g_compact_cells_params_path = argv[30];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_omits_empty_pseudopotential_block),
@@ -2706,6 +2763,7 @@ int main(int argc, char **argv) {
           test_parser_extracts_direct_nwpw_translate_vector_default),
       cmocka_unit_test(test_parser_renders_direct_nwpw_cell_expand_default),
       cmocka_unit_test(test_parser_renders_brillouin_monkhorst_default),
+      cmocka_unit_test(test_parser_renders_compact_simulation_cells),
       cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
       cmocka_unit_test(test_parser_walks_direct_pseudopotential_capnp_entries),
   };
