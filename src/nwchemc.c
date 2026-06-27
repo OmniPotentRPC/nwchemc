@@ -1637,6 +1637,15 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_make_hmass2_has_options,
           &nwpw_make_hmass2) != 0)
     return -1;
+  int nwpw_translate_vector_has_options = 0;
+  double nwpw_translate_vector[3] = {0.0, 0.0, 0.0};
+  capn_text nwpw_translate_geometry_name = {0};
+  int nwpw_translate_reorder = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_translate_vector(
+          params_root, &nwpw_translate_vector_has_options,
+          nwpw_translate_vector, &nwpw_translate_geometry_name,
+          &nwpw_translate_reorder) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2953,6 +2962,44 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:makehmass2",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, make_hmass2_value) != 0)
+      return -1;
+  }
+  if (nwpw_translate_vector_has_options) {
+    char x_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char y_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char z_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *translate_values[3] = {x_value, y_value, z_value};
+    snprintf(x_value, sizeof(x_value), "%.15g", nwpw_translate_vector[0]);
+    snprintf(y_value, sizeof(y_value), "%.15g", nwpw_translate_vector[1]);
+    snprintf(z_value, sizeof(z_value), "%.15g", nwpw_translate_vector[2]);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:translate_vector",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, translate_values, 3) != 0)
+      return -1;
+    if (nwpw_translate_geometry_name.len > 0) {
+      char geometry_name[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(geometry_name, sizeof(geometry_name),
+                       nwpw_translate_geometry_name);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:translate_geom_name",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, geometry_name) != 0)
+        return -1;
+    }
+    const char *reorder_value = nwpw_toggle_logical_value(
+        (enum NWChemNwpwToggle)nwpw_translate_reorder);
+    if (reorder_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:translate_reorder",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, reorder_value) != 0)
       return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));

@@ -2339,6 +2339,25 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  makehmass2 %s\n",
                     make_hmass2_logical) != 0)
     return -1;
+  if (include_direct_promoted && nwpw.translateVectorSet) {
+    if (append_format(block, sizeof(block), "  translate_vector %.15g %.15g %.15g",
+                      nwpw.translateVectorX, nwpw.translateVectorY,
+                      nwpw.translateVectorZ) != 0)
+      return -1;
+    if (nwpw.translateGeometryName.len > 0 &&
+        (append_format(block, sizeof(block), " ") != 0 ||
+         append_text(block, sizeof(block), nwpw.translateGeometryName) != 0))
+      return -1;
+    if (nwpw.translateReorder != NWChemNwpwToggle_unspecified) {
+      const char *reorder =
+          nwpw.translateReorder == NWChemNwpwToggle_enabled ? "reorder"
+                                                            : "noreorder";
+      if (append_format(block, sizeof(block), " %s", reorder) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -4037,6 +4056,49 @@ int nwchemc_params_extract_direct_nwpw_make_hmass2(
       *has_options = 1;
       *make_hmass2 = nwpw.makeHmass2;
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_translate_vector(
+    NWChemParams_ptr params, int *has_options, double vector[3],
+    capn_text *geometry_name, int *reorder) {
+  if (params.p.type == CAPN_NULL || !has_options || !vector ||
+      !geometry_name || !reorder)
+    return -1;
+
+  *has_options = 0;
+  vector[0] = 0.0;
+  vector[1] = 0.0;
+  vector[2] = 0.0;
+  *geometry_name = (capn_text){0};
+  *reorder = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (!nwpw.translateVectorSet)
+      continue;
+
+    *has_options = 1;
+    vector[0] = nwpw.translateVectorX;
+    vector[1] = nwpw.translateVectorY;
+    vector[2] = nwpw.translateVectorZ;
+    *geometry_name = nwpw.translateGeometryName;
+    *reorder = nwpw.translateReorder;
   }
 
   return 0;

@@ -3363,6 +3363,78 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorSet",
+      "schema_path": "NWChemNwpwStanza.translateVectorSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "translateVectorSet",
+      "field_id": 98,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.translateVectorSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorX",
+      "schema_path": "NWChemNwpwStanza.translateVectorX",
+      "struct": "NWChemNwpwStanza",
+      "name": "translateVectorX",
+      "field_id": 99,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.translateVectorX Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorY",
+      "schema_path": "NWChemNwpwStanza.translateVectorY",
+      "struct": "NWChemNwpwStanza",
+      "name": "translateVectorY",
+      "field_id": 100,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.translateVectorY Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorZ",
+      "schema_path": "NWChemNwpwStanza.translateVectorZ",
+      "struct": "NWChemNwpwStanza",
+      "name": "translateVectorZ",
+      "field_id": 101,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.translateVectorZ Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateGeometryName",
+      "schema_path": "NWChemNwpwStanza.translateGeometryName",
+      "struct": "NWChemNwpwStanza",
+      "name": "translateGeometryName",
+      "field_id": 102,
+      "type": "Text = \"\"",
+      "role": "NWChemNwpwStanza.translateGeometryName Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateReorder",
+      "schema_path": "NWChemNwpwStanza.translateReorder",
+      "struct": "NWChemNwpwStanza",
+      "name": "translateReorder",
+      "field_id": 103,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.translateReorder Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

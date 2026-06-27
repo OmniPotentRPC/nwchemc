@@ -464,6 +464,12 @@ struct NWChemNwpwStanza {
   initialVelocitiesTemperature @95 :Float64 = 0.0;  # NWPW initial_velocities temperature in K.
   initialVelocitiesSeed       @96 :Int32 = -1;      # NWPW initial_velocities seed; negative uses NWChem default.
   makeHmass2                  @97 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW makehmass2.
+  translateVectorSet          @98 :Bool = false;    # Emit/promote NWPW translate_vector.
+  translateVectorX            @99 :Float64 = 0.0;   # First NWPW translate_vector value.
+  translateVectorY            @100 :Float64 = 0.0;  # Second NWPW translate_vector value.
+  translateVectorZ            @101 :Float64 = 0.0;  # Third NWPW translate_vector value.
+  translateGeometryName       @102 :Text = "";      # Optional NWPW translate_vector geometry name.
+  translateReorder            @103 :NWChemNwpwToggle = unspecified; # Optional NWPW translate_vector reorder flag.
 }
 
 # @struct NWChemScfStanza
