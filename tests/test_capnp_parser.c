@@ -28,6 +28,7 @@ static const char *g_nwpw_fractional_orbitals_default_params_path = NULL;
 static const char *g_nwpw_smear_orbitals_default_params_path = NULL;
 static const char *g_nwpw_virtual_orbitals_default_params_path = NULL;
 static const char *g_nwpw_translate_vector_default_params_path = NULL;
+static const char *g_nwpw_cell_expand_default_params_path = NULL;
 static const char *g_brillouin_monkhorst_default_params_path = NULL;
 static const char *g_brillouin_dos_grid_default_params_path = NULL;
 
@@ -1979,6 +1980,46 @@ test_parser_extracts_direct_nwpw_translate_vector_default(void **state) {
   free(message);
 }
 
+static void test_parser_renders_direct_nwpw_cell_expand_default(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message =
+      read_file(g_nwpw_cell_expand_default_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks, "  expand_cell 1 3 1\n"));
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "  expand_cell 1 3 1\n"));
+
+  int has_cell_mapping = 0;
+  int cell_expand[3] = {0, 0, 0};
+  int mapping = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_cell_mapping(
+                       params_root, &has_cell_mapping, cell_expand, &mapping),
+                   0);
+  assert_int_equal(has_cell_mapping, 1);
+  assert_int_equal(cell_expand[0], 1);
+  assert_int_equal(cell_expand[1], 3);
+  assert_int_equal(cell_expand[2], 1);
+  assert_int_equal(mapping, 0);
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_parser_renders_brillouin_monkhorst_default(void **state) {
   (void)state;
 
@@ -2163,7 +2204,7 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 21) {
+  if (argc != 22) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
             "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
@@ -2178,6 +2219,7 @@ int main(int argc, char **argv) {
             "NWPW_SMEAR_ORBITALS_DEFAULT_PARAMS_BIN "
             "NWPW_VIRTUAL_ORBITALS_DEFAULT_PARAMS_BIN "
             "NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN "
+            "NWPW_CELL_EXPAND_DEFAULT_PARAMS_BIN "
             "BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN "
             "BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN\n",
             argv[0]);
@@ -2201,8 +2243,9 @@ int main(int argc, char **argv) {
   g_nwpw_smear_orbitals_default_params_path = argv[16];
   g_nwpw_virtual_orbitals_default_params_path = argv[17];
   g_nwpw_translate_vector_default_params_path = argv[18];
-  g_brillouin_monkhorst_default_params_path = argv[19];
-  g_brillouin_dos_grid_default_params_path = argv[20];
+  g_nwpw_cell_expand_default_params_path = argv[19];
+  g_brillouin_monkhorst_default_params_path = argv[20];
+  g_brillouin_dos_grid_default_params_path = argv[21];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
@@ -2230,6 +2273,7 @@ int main(int argc, char **argv) {
           test_parser_extracts_direct_nwpw_virtual_orbitals_default),
       cmocka_unit_test(
           test_parser_extracts_direct_nwpw_translate_vector_default),
+      cmocka_unit_test(test_parser_renders_direct_nwpw_cell_expand_default),
       cmocka_unit_test(test_parser_renders_brillouin_monkhorst_default),
       cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
       cmocka_unit_test(test_parser_walks_direct_pseudopotential_capnp_entries),

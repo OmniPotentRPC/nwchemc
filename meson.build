@@ -543,6 +543,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_nwpw_cell_expand_default_params_bin = custom_target(
+    'nwchem_nwpw_cell_expand_default_params_bin',
+    input: 'tests/nwchem_params_nwpw_cell_expand_default.capnp.txt',
+    output: 'nwchem_params_nwpw_cell_expand_default.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_brillouin_monkhorst_default_params_bin = custom_target(
     'nwchem_brillouin_monkhorst_default_params_bin',
     input: 'tests/nwchem_params_brillouin_monkhorst_default.capnp.txt',
@@ -765,6 +779,7 @@ if get_option('with_tests')
       nwchem_nwpw_smear_orbitals_default_params_bin,
       nwchem_nwpw_virtual_orbitals_default_params_bin,
       nwchem_nwpw_translate_vector_default_params_bin,
+      nwchem_nwpw_cell_expand_default_params_bin,
       nwchem_brillouin_monkhorst_default_params_bin,
       nwchem_brillouin_dos_grid_default_params_bin,
     ],
