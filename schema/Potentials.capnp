@@ -38,6 +38,7 @@ struct PotentialResult {
   optimizedPos @5 :List(Float64); # @brief Optimized Cartesian coordinates [natoms * 3].
   frequencies @6 :List(Float64); # @brief Harmonic vibrational frequencies [natoms * 3] in cm^-1.
   intensities @7 :List(Float64); # @brief Harmonic IR intensities [natoms * 3] in atomic units.
+  stress @8 :List(Float64); # @brief Stress tensor [9] in energy/length^3 units.
 }
 
 # @struct NWChemParams

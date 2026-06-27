@@ -136,6 +136,25 @@ NWChemCResult nwchemc_quadrupole(
     double *quadrupole_au);
 
 /**
+ * @brief Compute a periodic stress tensor for an atomic configuration.
+ *
+ * @param n_atoms Number of atoms.
+ * @param positions_ang Flat Cartesian coordinate array in Angstrom, length
+ *        `n_atoms * 3`.
+ * @param atomic_numbers Atomic number array, length `n_atoms`.
+ * @param params_capnp Pointer to an unpacked flat `NWChemParams` message.
+ * @param params_capnp_size_bytes Size of `params_capnp` in bytes.
+ * @param stress_au Output row-major 3x3 stress tensor in NWChem atomic stress
+ *        units, length 9.
+ * @return Calculation result and status message. `energy_h` carries the
+ *         associated total energy in Hartree when available.
+ */
+NWChemCResult nwchemc_stress(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *stress_au);
+
+/**
  * @brief Optimize an atomic configuration and return final coordinates.
  *
  * @param n_atoms Number of atoms.
@@ -419,6 +438,42 @@ NWChemCResult nwchemc_calculate_quadrupole_result(
     size_t *potential_result_capnp_size_bytes);
 
 /**
+ * @brief Compute one `ForceInput` step and write a stress tensor.
+ *
+ * This is the one-shot Cap'n Proto stress entry point for callers that do not
+ * keep a persistent session. The nine tensor components are returned in
+ * NWChem atomic stress units in row-major 3x3 order.
+ */
+NWChemCResult nwchemc_calculate_stress(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *stress_au, size_t stress_len);
+
+/** @brief Return the byte count needed for a stress `PotentialResult`. */
+size_t nwchemc_stress_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Compute one `ForceInput` stress and write `PotentialResult.stress`.
+ *
+ * Stress values are converted from NWChem atomic stress units to
+ * `ForceInput.energyUnit / ForceInput.lengthUnit^3`.
+ */
+NWChemCResult nwchemc_session_calculate_stress_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/** @brief One-shot `NWChemParams + ForceInput -> PotentialResult.stress`. */
+NWChemCResult nwchemc_calculate_stress_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief Optimize one `ForceInput` step and write final coordinates.
  *
  * This is the one-shot Cap'n Proto optimization entry point for callers that
@@ -563,6 +618,25 @@ NWChemCResult nwchemc_session_calculate_quadrupole(
     size_t quadrupole_len);
 
 /**
+ * @brief Compute stress for one Cap'n Proto `ForceInput` step.
+ *
+ * The session keeps persistent `NWChemParams` method state while the step
+ * message supplies positions, atomic numbers, and optional 3x3 cell vectors.
+ * The stress tensor is returned in NWChem atomic stress units in row-major
+ * 3x3 order.
+ *
+ * @param session Persistent session created from `NWChemParams`.
+ * @param force_input_capnp Pointer to an unpacked flat `ForceInput` message.
+ * @param force_input_capnp_size_bytes Size of `force_input_capnp` in bytes.
+ * @param stress_au Output stress tensor in NWChem atomic stress units.
+ * @param stress_len Number of doubles available in `stress_au`.
+ */
+NWChemCResult nwchemc_session_calculate_stress(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *stress_au,
+    size_t stress_len);
+
+/**
  * @brief Optimize one Cap'n Proto `ForceInput` step.
  *
  * The session keeps persistent `NWChemParams` method state while the step
@@ -593,6 +667,14 @@ NWChemCResult nwchemc_session_calculate_frequencies(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *frequencies_cm1,
     size_t frequencies_len, double *intensities_au, size_t intensities_len);
+
+/**
+ * @brief Compute stress using a persistent session.
+ */
+NWChemCResult nwchemc_session_stress(NWChemCSession *session, int n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers,
+                                     double *stress_au);
 
 /**
  * @brief Compute Hessian using a persistent session.

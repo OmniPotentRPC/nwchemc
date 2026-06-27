@@ -167,6 +167,10 @@ int nwchemc_force_input_hessian_result_factors(ForceInput_ptr force_input,
                                                double *energy_factor,
                                                double *hessian_factor);
 
+int nwchemc_force_input_stress_result_factors(ForceInput_ptr force_input,
+                                              double *energy_factor,
+                                              double *stress_factor);
+
 int nwchemc_force_input_position_result_factors(ForceInput_ptr force_input,
                                                 double *energy_factor,
                                                 double *position_factor);
@@ -178,6 +182,8 @@ size_t nwchemc_hessian_result_flat_size(size_t hessian_count);
 size_t nwchemc_dipole_result_flat_size(void);
 
 size_t nwchemc_quadrupole_result_flat_size(void);
+
+size_t nwchemc_stress_result_flat_size(void);
 
 size_t nwchemc_optimize_result_flat_size(size_t position_count);
 
@@ -201,6 +207,11 @@ int nwchemc_potential_result_write_dipole(
 
 int nwchemc_potential_result_write_quadrupole(
     double energy, const double *quadrupole, void *potential_result_capnp,
+    size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes);
+
+int nwchemc_potential_result_write_stress(
+    double energy, const double *stress, void *potential_result_capnp,
     size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes);
 

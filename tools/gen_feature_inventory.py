@@ -257,6 +257,11 @@ def main() -> int:
                 "embed": "runs total traceless quadrupole",
             },
             {
+                "name": "nwchemc_stress",
+                "stub": "fails ok==0",
+                "embed": "runs stress tensor",
+            },
+            {
                 "name": "nwchemc_optimize",
                 "stub": "fails ok==0",
                 "embed": "runs geometry optimization",
@@ -305,6 +310,11 @@ def main() -> int:
                 "name": "nwchemc_session_quadrupole",
                 "stub": "fails ok==0",
                 "embed": "runs session total traceless quadrupole",
+            },
+            {
+                "name": "nwchemc_session_stress",
+                "stub": "fails ok==0",
+                "embed": "runs session stress tensor",
             },
             {
                 "name": "nwchemc_session_optimize",
@@ -392,6 +402,26 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput quadrupole into PotentialResult",
             },
             {
+                "name": "nwchemc_calculate_stress",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput stress",
+            },
+            {
+                "name": "nwchemc_stress_result_size_for_force_input",
+                "stub": "returns 0",
+                "embed": "sizes ForceInput stress PotentialResult",
+            },
+            {
+                "name": "nwchemc_session_calculate_stress_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput stress into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_stress_result",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput stress into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_optimize",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput geometry optimization",
@@ -450,6 +480,11 @@ def main() -> int:
                 "name": "nwchemc_session_calculate_quadrupole",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput quadrupole",
+            },
+            {
+                "name": "nwchemc_session_calculate_stress",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput stress",
             },
             {
                 "name": "nwchemc_session_calculate_optimize",

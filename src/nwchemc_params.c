@@ -10,7 +10,7 @@ static const double NWCHEMC_BOHR_TO_ANGSTROM = 0.529177210903;
 static const double NWCHEMC_HARTREE_TO_EV = 27.211386245988;
 static const double NWCHEMC_HARTREE_TO_J = 4.359744722206048e-18;
 static const double NWCHEMC_AVOGADRO = 6.02214076e23;
-static const size_t NWCHEMC_POTENTIAL_RESULT_BASE_SIZE = 80u;
+static const size_t NWCHEMC_POTENTIAL_RESULT_BASE_SIZE = 88u;
 
 static const capn_text empty_text = {0, "", 0};
 
@@ -3514,6 +3514,26 @@ int nwchemc_force_input_hessian_result_factors(ForceInput_ptr force_input,
   return 0;
 }
 
+int nwchemc_force_input_stress_result_factors(ForceInput_ptr force_input,
+                                              double *energy_factor,
+                                              double *stress_factor) {
+  if (force_input.p.type == CAPN_NULL || !energy_factor || !stress_factor)
+    return -1;
+
+  struct ForceInput view;
+  read_ForceInput(&view, force_input);
+  double length_factor = 1.0;
+  double energy = 1.0;
+  if (force_input_length_factor(view.lengthUnit, &length_factor) != 0 ||
+      force_input_energy_factor(view.energyUnit, &energy) != 0)
+    return -1;
+
+  double length_scale = length_factor / NWCHEMC_BOHR_TO_ANGSTROM;
+  *energy_factor = energy;
+  *stress_factor = energy * length_scale * length_scale * length_scale;
+  return 0;
+}
+
 int nwchemc_force_input_position_result_factors(ForceInput_ptr force_input,
                                                 double *energy_factor,
                                                 double *position_factor) {
@@ -3554,6 +3574,10 @@ size_t nwchemc_quadrupole_result_flat_size(void) {
   return NWCHEMC_POTENTIAL_RESULT_BASE_SIZE + 6u * 8u;
 }
 
+size_t nwchemc_stress_result_flat_size(void) {
+  return NWCHEMC_POTENTIAL_RESULT_BASE_SIZE + 9u * 8u;
+}
+
 size_t nwchemc_optimize_result_flat_size(size_t position_count) {
   if (position_count >
       (SIZE_MAX - NWCHEMC_POTENTIAL_RESULT_BASE_SIZE) / 8u)
@@ -3572,6 +3596,7 @@ static int nwchemc_potential_result_write_lists(
     double energy, const double *forces, size_t force_count,
     const double *hessian, size_t hessian_count, const double *dipole,
     size_t dipole_count, const double *quadrupole, size_t quadrupole_count,
+    const double *stress, size_t stress_count,
     const double *optimized_positions, size_t position_count,
     const double *frequencies, size_t frequency_count,
     const double *intensities, size_t intensity_count,
@@ -3580,11 +3605,12 @@ static int nwchemc_potential_result_write_lists(
   if (!potential_result_capnp || !potential_result_size_bytes ||
       force_count > (size_t)INT_MAX || hessian_count > (size_t)INT_MAX ||
       dipole_count > (size_t)INT_MAX || quadrupole_count > (size_t)INT_MAX ||
-      position_count > (size_t)INT_MAX || frequency_count > (size_t)INT_MAX ||
-      intensity_count > (size_t)INT_MAX ||
+      stress_count > (size_t)INT_MAX || position_count > (size_t)INT_MAX ||
+      frequency_count > (size_t)INT_MAX || intensity_count > (size_t)INT_MAX ||
       (force_count > 0 && !forces) || (hessian_count > 0 && !hessian) ||
       (dipole_count > 0 && !dipole) ||
       (quadrupole_count > 0 && !quadrupole) ||
+      (stress_count > 0 && !stress) ||
       (position_count > 0 && !optimized_positions) ||
       (frequency_count > 0 && !frequencies) ||
       (intensity_count > 0 && !intensities))
@@ -3603,6 +3629,9 @@ static int nwchemc_potential_result_write_lists(
   if (quadrupole_count > (SIZE_MAX - required) / 8u)
     return -1;
   required += quadrupole_count * 8u;
+  if (stress_count > (SIZE_MAX - required) / 8u)
+    return -1;
+  required += stress_count * 8u;
   if (position_count > (SIZE_MAX - required) / 8u)
     return -1;
   required += position_count * 8u;
@@ -3629,6 +3658,7 @@ static int nwchemc_potential_result_write_lists(
   capn_list64 hessian_list = {0};
   capn_list64 dipole_list = {0};
   capn_list64 quadrupole_list = {0};
+  capn_list64 stress_list = {0};
   capn_list64 optimized_list = {0};
   capn_list64 frequency_list = {0};
   capn_list64 intensity_list = {0};
@@ -3640,6 +3670,8 @@ static int nwchemc_potential_result_write_lists(
     dipole_list = capn_new_list64(root.seg, (int)dipole_count);
   if (quadrupole_count > 0)
     quadrupole_list = capn_new_list64(root.seg, (int)quadrupole_count);
+  if (stress_count > 0)
+    stress_list = capn_new_list64(root.seg, (int)stress_count);
   if (position_count > 0)
     optimized_list = capn_new_list64(root.seg, (int)position_count);
   if (frequency_count > 0)
@@ -3651,6 +3683,7 @@ static int nwchemc_potential_result_write_lists(
       (hessian_count > 0 && hessian_list.p.type == CAPN_NULL) ||
       (dipole_count > 0 && dipole_list.p.type == CAPN_NULL) ||
       (quadrupole_count > 0 && quadrupole_list.p.type == CAPN_NULL) ||
+      (stress_count > 0 && stress_list.p.type == CAPN_NULL) ||
       (position_count > 0 && optimized_list.p.type == CAPN_NULL) ||
       (frequency_count > 0 && frequency_list.p.type == CAPN_NULL) ||
       (intensity_count > 0 && intensity_list.p.type == CAPN_NULL)) {
@@ -3665,6 +3698,8 @@ static int nwchemc_potential_result_write_lists(
     capn_set64(dipole_list, (int)i, capn_from_f64(dipole[i]));
   for (size_t i = 0; i < quadrupole_count; ++i)
     capn_set64(quadrupole_list, (int)i, capn_from_f64(quadrupole[i]));
+  for (size_t i = 0; i < stress_count; ++i)
+    capn_set64(stress_list, (int)i, capn_from_f64(stress[i]));
   for (size_t i = 0; i < position_count; ++i)
     capn_set64(optimized_list, (int)i, capn_from_f64(optimized_positions[i]));
   for (size_t i = 0; i < frequency_count; ++i)
@@ -3679,6 +3714,7 @@ static int nwchemc_potential_result_write_lists(
   view.hessian = hessian_list;
   view.dipole = dipole_list;
   view.quadrupole = quadrupole_list;
+  view.stress = stress_list;
   view.optimizedPos = optimized_list;
   view.frequencies = frequency_list;
   view.intensities = intensity_list;
@@ -3704,7 +3740,7 @@ int nwchemc_potential_result_write(double energy, const double *forces,
                                    size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
       energy, forces, force_count, NULL, 0, NULL, 0, NULL, 0,
-      NULL, 0, NULL, 0, NULL, 0,
+      NULL, 0, NULL, 0, NULL, 0, NULL, 0,
       potential_result_capnp, potential_result_capacity_bytes,
       potential_result_size_bytes);
 }
@@ -3715,7 +3751,7 @@ int nwchemc_potential_result_write_hessian(
     size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, hessian, hessian_count, NULL, 0, NULL, 0,
-      NULL, 0, NULL, 0, NULL, 0,
+      NULL, 0, NULL, 0, NULL, 0, NULL, 0,
       potential_result_capnp, potential_result_capacity_bytes,
       potential_result_size_bytes);
 }
@@ -3726,7 +3762,7 @@ int nwchemc_potential_result_write_dipole(
     size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, dipole, 3, NULL, 0, NULL, 0, NULL, 0, NULL,
-      0, potential_result_capnp, potential_result_capacity_bytes,
+      0, NULL, 0, potential_result_capnp, potential_result_capacity_bytes,
       potential_result_size_bytes);
 }
 
@@ -3736,8 +3772,18 @@ int nwchemc_potential_result_write_quadrupole(
     size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, NULL, 0, quadrupole, 6,
-      NULL, 0, NULL, 0, NULL, 0,
+      NULL, 0, NULL, 0, NULL, 0, NULL, 0,
       potential_result_capnp, potential_result_capacity_bytes,
+      potential_result_size_bytes);
+}
+
+int nwchemc_potential_result_write_stress(
+    double energy, const double *stress, void *potential_result_capnp,
+    size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes) {
+  return nwchemc_potential_result_write_lists(
+      energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, stress, 9, NULL, 0, NULL, 0,
+      NULL, 0, potential_result_capnp, potential_result_capacity_bytes,
       potential_result_size_bytes);
 }
 
@@ -3746,9 +3792,10 @@ int nwchemc_potential_result_write_optimized(
     void *potential_result_capnp, size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
-      energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, optimized_positions,
-      position_count, NULL, 0, NULL, 0, potential_result_capnp,
-      potential_result_capacity_bytes, potential_result_size_bytes);
+      energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
+      optimized_positions, position_count, NULL, 0, NULL, 0,
+      potential_result_capnp, potential_result_capacity_bytes,
+      potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_frequencies(
@@ -3757,9 +3804,10 @@ int nwchemc_potential_result_write_frequencies(
     size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes) {
   return nwchemc_potential_result_write_lists(
-      energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, frequencies,
-      frequency_count, intensities, frequency_count, potential_result_capnp,
-      potential_result_capacity_bytes, potential_result_size_bytes);
+      energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
+      frequencies, frequency_count, intensities, frequency_count,
+      potential_result_capnp, potential_result_capacity_bytes,
+      potential_result_size_bytes);
 }
 
 int nwchemc_params_root(const void *params_capnp,
