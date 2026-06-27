@@ -154,6 +154,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "Fei fei.dat"));
   assert_non_null(strstr(input_blocks, "initial_velocities 298.15 12345"));
   assert_non_null(strstr(input_blocks, "makehmass2 false"));
+  assert_non_null(
+      strstr(input_blocks, "translate_vector 0.1 0.2 0.3 geomA reorder"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -409,6 +411,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:init_velocities"));
   assert_null(strstr(input_blocks, "makehmass2 false"));
   assert_null(strstr(input_blocks, "nwpw:makehmass2"));
+  assert_null(strstr(input_blocks, "translate_vector 0.1"));
+  assert_null(strstr(input_blocks, "nwpw:translate_vector"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -856,6 +860,24 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_make_hmass2, 1);
   assert_int_equal(make_hmass2, NWChemNwpwToggle_disabled);
+
+  int has_translate_vector = 0;
+  double translate_vector[3] = {0.0, 0.0, 0.0};
+  capn_text translate_geometry_name = {0};
+  int translate_reorder = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_translate_vector(
+                       params_root, &has_translate_vector, translate_vector,
+                       &translate_geometry_name, &translate_reorder),
+                   0);
+  assert_int_equal(has_translate_vector, 1);
+  assert_true(translate_vector[0] > 0.099);
+  assert_true(translate_vector[0] < 0.101);
+  assert_true(translate_vector[1] > 0.199);
+  assert_true(translate_vector[1] < 0.201);
+  assert_true(translate_vector[2] > 0.299);
+  assert_true(translate_vector[2] < 0.301);
+  assert_true(text_equals(translate_geometry_name, "geomA"));
+  assert_int_equal(translate_reorder, NWChemNwpwToggle_enabled);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

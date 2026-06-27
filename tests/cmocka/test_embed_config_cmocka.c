@@ -1317,13 +1317,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:init_velocities"));
   assert_null(strstr(g_input_blocks, "makehmass2 false"));
   assert_null(strstr(g_input_blocks, "nwpw:makehmass2"));
+  assert_null(strstr(g_input_blocks, "translate_vector 0.1"));
+  assert_null(strstr(g_input_blocks, "nwpw:translate_vector"));
   assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_null(strstr(g_input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 207);
+  assert_int_equal(g_typed_set_count, 210);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1545,6 +1547,13 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("nwpw:makehmass2",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
+  assert_typed_set_triple("nwpw:translate_vector",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.1", "0.2",
+                          "0.3");
+  assert_typed_set_scalar("nwpw:translate_geom_name",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "geomA");
+  assert_typed_set_scalar("nwpw:translate_reorder",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("cellA:boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "periodic");
   const char *unita_values[9] = {"1", "0", "0", "0", "2",

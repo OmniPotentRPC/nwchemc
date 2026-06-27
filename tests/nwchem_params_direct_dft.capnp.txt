@@ -226,7 +226,13 @@
         feiFilename = "fei.dat",
         initialVelocitiesTemperature = 298.15,
         initialVelocitiesSeed = 12345,
-        makeHmass2 = disabled
+        makeHmass2 = disabled,
+        translateVectorSet = true,
+        translateVectorX = 0.1,
+        translateVectorY = 0.2,
+        translateVectorZ = 0.3,
+        translateGeometryName = "geomA",
+        translateReorder = enabled
       )
     ),
     (
