@@ -22,6 +22,7 @@ static const char *g_brillouin_tetrahedron_path = NULL;
 static const char *g_brillouin_dos_grid_path = NULL;
 static const char *g_nwpw_et_path = NULL;
 static const char *g_nwpw_temperature_path = NULL;
+static const char *g_nwpw_mapping_alias_path = NULL;
 static const char *g_compact_cells_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
@@ -2302,6 +2303,30 @@ static void test_embed_config_promotes_nwpw_temperature(void **state) {
   free(message);
 }
 
+static void test_embed_config_promotes_nwpw_mapping_alias(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message =
+      read_file(g_nwpw_mapping_alias_path, &message_size);
+  assert_non_null(message);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+
+  assert_int_equal(result.ok, 1);
+  assert_null(strstr(g_input_blocks, "  2d-hcurve\n"));
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 1);
+  assert_typed_set_scalar("nwpw:mapping", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
+
+  free(message);
+}
+
 static void test_session_reuses_config_across_geometry_steps(void **state) {
   (void)state;
   reset_embed_captures();
@@ -3746,14 +3771,15 @@ static void test_calculate_frequencies_one_shot_accepts_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 20) {
+  if (argc != 21) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
             "PSPSPIN_MANY_PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
             "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
             "NWPW_MC_STEPS_PARAMS_BIN BRILLOUIN_TETRAHEDRON_PARAMS_BIN "
             "BRILLOUIN_DOS_GRID_PARAMS_BIN NWPW_ET_PARAMS_BIN "
-            "NWPW_TEMPERATURE_PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN FORCE_STEP_EV_BIN "
+            "NWPW_TEMPERATURE_PARAMS_BIN NWPW_MAPPING_ALIAS_PARAMS_BIN "
+            "FORCE_STEP_A_BIN FORCE_STEP_B_BIN FORCE_STEP_EV_BIN "
             "FORCE_STEP_CHANGED_SPECIES_BIN "
             "FORCE_STEP_STATE_BIN TCE_METHODS_BIN COMPACT_CELLS_BIN\n",
             argv[0]);
@@ -3771,13 +3797,14 @@ int main(int argc, char **argv) {
   g_brillouin_dos_grid_path = argv[10];
   g_nwpw_et_path = argv[11];
   g_nwpw_temperature_path = argv[12];
-  g_force_step_a_path = argv[13];
-  g_force_step_b_path = argv[14];
-  g_force_step_ev_path = argv[15];
-  g_force_step_changed_species_path = argv[16];
-  g_force_step_state_path = argv[17];
-  g_tce_methods_path = argv[18];
-  g_compact_cells_path = argv[19];
+  g_nwpw_mapping_alias_path = argv[13];
+  g_force_step_a_path = argv[14];
+  g_force_step_b_path = argv[15];
+  g_force_step_ev_path = argv[16];
+  g_force_step_changed_species_path = argv[17];
+  g_force_step_state_path = argv[18];
+  g_tce_methods_path = argv[19];
+  g_compact_cells_path = argv[20];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
@@ -3793,6 +3820,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_promotes_brillouin_dos_grid),
       cmocka_unit_test(test_embed_config_promotes_nwpw_et),
       cmocka_unit_test(test_embed_config_promotes_nwpw_temperature),
+      cmocka_unit_test(test_embed_config_promotes_nwpw_mapping_alias),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_rejects_param_replacement_after_topology),
