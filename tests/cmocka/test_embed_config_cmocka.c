@@ -1251,6 +1251,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "fractional_orbitals 5 6"));
   assert_null(strstr(g_input_blocks,
                      "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
+  assert_null(strstr(g_input_blocks, "virtual 7 8"));
   assert_null(strstr(g_input_blocks, "virtual_orbitals 7 8"));
   assert_null(strstr(g_input_blocks, "lcao_skip"));
   assert_null(strstr(g_input_blocks, "ewald_ngrid 9 10 11"));
