@@ -2029,6 +2029,16 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  wavefunction_cutoff %.15g\n",
                     nwpw.wavefunctionCutoff) != 0)
     return -1;
+  if (include_direct_promoted && nwpw.cutoffWavefunction > 0.0) {
+    if (append_format(block, sizeof(block), "  cutoff %.15g",
+                      nwpw.cutoffWavefunction) != 0)
+      return -1;
+    if (nwpw.cutoffEnergy > 0.0 &&
+        append_format(block, sizeof(block), " %.15g", nwpw.cutoffEnergy) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (include_direct_promoted && nwpw.ewaldRcut > 0.0 &&
       append_format(block, sizeof(block), "  ewald_rcut %.15g\n",
                     nwpw.ewaldRcut) != 0)
@@ -3180,6 +3190,13 @@ int nwchemc_params_extract_direct_nwpw(NWChemParams_ptr params,
     if (nwpw.wavefunctionCutoff > 0.0) {
       *has_options = 1;
       *wavefunction_cutoff = nwpw.wavefunctionCutoff;
+    }
+    if (nwpw.cutoffWavefunction > 0.0) {
+      *has_options = 1;
+      *wavefunction_cutoff = nwpw.cutoffWavefunction;
+      *energy_cutoff =
+          nwpw.cutoffEnergy > 0.0 ? nwpw.cutoffEnergy
+                                  : 2.0 * nwpw.cutoffWavefunction;
     }
     if (nwpw.ewaldRcut > 0.0) {
       *has_options = 1;

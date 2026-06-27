@@ -4011,6 +4011,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.cutoffWavefunction",
+      "schema_path": "NWChemNwpwStanza.cutoffWavefunction",
+      "struct": "NWChemNwpwStanza",
+      "name": "cutoffWavefunction",
+      "field_id": 144,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.cutoffWavefunction Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cutoffEnergy",
+      "schema_path": "NWChemNwpwStanza.cutoffEnergy",
+      "struct": "NWChemNwpwStanza",
+      "name": "cutoffEnergy",
+      "field_id": 145,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.cutoffEnergy Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

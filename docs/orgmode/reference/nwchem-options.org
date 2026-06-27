@@ -171,6 +171,7 @@ RTDB values directly:
 |-------+-------------+-----------------|
 | ~energyCutoff~ | ~energy_cutoff <value>~ | ~cgsd:ecut~, ~band:ecut~, ~cpsd:ecut~, ~cpmd:ecut~ |
 | ~wavefunctionCutoff~ | ~wavefunction_cutoff <value>~ | ~cgsd:wcut~, ~band:wcut~, ~cpsd:wcut~, ~cpmd:wcut~ |
+| ~cutoffWavefunction~, ~cutoffEnergy~ | ~cutoff <wcut> [ecut]~; omitted ~ecut~ defaults to ~2*wcut~ | same cutoff RTDB keys |
 | ~ewaldRcut~ | ~ewald_rcut <value>~ | ~cgsd:rcut~, ~band:rcut~, ~cpsd:rcut~, ~cpmd:rcut~ |
 | ~ewaldNcut~ | ~ewald_ncut <value>~ | ~cgsd:ncut~, ~band:ncut~, ~cpsd:ncut~, ~cpmd:ncut~ |
 | ~cellName~ | ~cell_name <name>~ | ~cgsd:cell_name~, ~band:cell_name~, ~cpsd:cell_name~ |
@@ -399,6 +400,7 @@ controls:
 |-------+-------------|
 | ~energyCutoff~ | ~energy_cutoff <value>~ |
 | ~wavefunctionCutoff~ | ~wavefunction_cutoff <value>~ |
+| ~cutoffWavefunction~, ~cutoffEnergy~ | ~cutoff <wcut> [ecut]~ |
 | ~ewaldRcut~ | ~ewald_rcut <value>~ |
 | ~ewaldNcut~ | ~ewald_ncut <value>~ |
 | ~cellName~ | ~cell_name <name>~ |
