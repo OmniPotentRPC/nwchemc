@@ -2173,11 +2173,12 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       nwpw.boStepStart, bo_step_end) != 0)
       return -1;
   }
-  if (include_direct_promoted && nwpw.mcStepStart > 0 &&
-      nwpw.mcStepEnd > 0 &&
-      append_format(block, sizeof(block), "  mc_steps %d %d\n",
-                    nwpw.mcStepStart, nwpw.mcStepEnd) != 0)
-    return -1;
+  if (include_direct_promoted && nwpw.mcStepStart > 0) {
+    int mc_step_end = nwpw.mcStepEnd > 0 ? nwpw.mcStepEnd : 100;
+    if (append_format(block, sizeof(block), "  mc_steps %d %d\n",
+                      nwpw.mcStepStart, mc_step_end) != 0)
+      return -1;
+  }
   if (include_direct_promoted && nwpw.boTimeStep > 0.0 &&
       append_format(block, sizeof(block), "  bo_time_step %.15g\n",
                     nwpw.boTimeStep) != 0)
@@ -3522,10 +3523,10 @@ int nwchemc_params_extract_direct_nwpw_bo(
       *bo_step_start = nwpw.boStepStart;
       *bo_step_end = nwpw.boStepEnd > 0 ? nwpw.boStepEnd : 100;
     }
-    if (nwpw.mcStepStart > 0 && nwpw.mcStepEnd > 0) {
+    if (nwpw.mcStepStart > 0) {
       *has_options = 1;
       *bo_step_start = nwpw.mcStepStart;
-      *bo_step_end = nwpw.mcStepEnd;
+      *bo_step_end = nwpw.mcStepEnd > 0 ? nwpw.mcStepEnd : 100;
     }
     if (nwpw.boTimeStep > 0.0) {
       *has_options = 1;
