@@ -1,0 +1,14 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = nwpw,
+      nwpw = (
+        mcStepStart = 13,
+        mcStepEnd = 17
+      )
+    )
+  ]
+)

@@ -14,6 +14,7 @@ static const char *g_params_path = NULL;
 static const char *g_spin_mode_params_path = NULL;
 static const char *g_allow_translation_params_path = NULL;
 static const char *g_cutoff_alias_params_path = NULL;
+static const char *g_mc_steps_params_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -1301,6 +1302,59 @@ static void test_parser_extracts_direct_nwpw_cutoff_alias(void **state) {
   free(message);
 }
 
+static void test_parser_extracts_direct_nwpw_mc_steps(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_mc_steps_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks, "  mc_steps 13 17\n"));
+  assert_null(strstr(full_blocks, "  bo_steps 13 17\n"));
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "  mc_steps 13 17\n"));
+
+  int has_bo = 0;
+  int balance_mode = 0;
+  int bo_step_start = 0;
+  int bo_step_end = 0;
+  double bo_time_step = 0.0;
+  int bo_algorithm = 0;
+  double bo_fake_mass = 0.0;
+  int has_scaling = 0;
+  double scaling_first = 0.0;
+  double scaling_second = 0.0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_bo(
+                       params_root, &has_bo, &balance_mode, &bo_step_start,
+                       &bo_step_end, &bo_time_step, &bo_algorithm,
+                       &bo_fake_mass, &has_scaling, &scaling_first,
+                       &scaling_second),
+                   0);
+  assert_int_equal(has_bo, 1);
+  assert_int_equal(balance_mode, NWChemNwpwBalanceMode_unspecified);
+  assert_int_equal(bo_step_start, 13);
+  assert_int_equal(bo_step_end, 17);
+  assert_true(bo_time_step == 0.0);
+  assert_int_equal(bo_algorithm, NWChemNwpwBoAlgorithm_unspecified);
+  assert_true(bo_fake_mass == 0.0);
+  assert_int_equal(has_scaling, 0);
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_parser_extracts_direct_pseudopotentials(void **state) {
   (void)state;
 
@@ -1438,10 +1492,11 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 5) {
+  if (argc != 6) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
-            "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN\n",
+            "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
+            "NWPW_MC_STEPS_PARAMS_BIN\n",
             argv[0]);
     return 2;
   }
@@ -1449,6 +1504,7 @@ int main(int argc, char **argv) {
   g_spin_mode_params_path = argv[2];
   g_allow_translation_params_path = argv[3];
   g_cutoff_alias_params_path = argv[4];
+  g_mc_steps_params_path = argv[5];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
@@ -1456,6 +1512,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_parser_extracts_direct_nwpw_spin_mode),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_allow_translation),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_cutoff_alias),
+      cmocka_unit_test(test_parser_extracts_direct_nwpw_mc_steps),
       cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
       cmocka_unit_test(test_parser_walks_direct_pseudopotential_capnp_entries),
   };
