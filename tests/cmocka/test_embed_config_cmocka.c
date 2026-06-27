@@ -3382,7 +3382,7 @@ static void test_session_force_input_state_overrides_params(void **state) {
   assert_int_equal(g_energy_only_calls, 2);
   assert_int_equal(g_energy_only_cell_calls, 2);
   assert_int_equal(g_energy_grad_calls, 0);
-  assert_int_equal(g_call_has_cell[1], 0);
+  assert_int_equal(g_call_has_cell[1], 1);
   assert_int_equal(g_call_charge[1], -2);
   assert_int_equal(g_call_multiplicity[1], 5);
 
@@ -3408,8 +3408,8 @@ static void test_session_force_input_state_overrides_params(void **state) {
       session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
       &result_size);
   assert_int_equal(force_result.ok, 1);
-  assert_int_equal(g_call_charge[4], -2);
-  assert_int_equal(g_call_multiplicity[4], 5);
+  assert_int_equal(g_call_charge[2], -2);
+  assert_int_equal(g_call_multiplicity[2], 5);
 
   double hessian[36] = {0.0};
   NWChemCResult hessian_result = nwchemc_session_calculate_hessian(

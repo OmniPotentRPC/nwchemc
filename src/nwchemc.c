@@ -49,6 +49,17 @@ extern int nwchemc_embed_set_rtdb_values(const char *keys,
                                          const int *value_types,
                                          const int *value_counts,
                                          const char *values, int count);
+extern int nwchemc_embed_energy_only(const int *n_atoms,
+                                     const double *positions_ang,
+                                     const int *atomic_numbers,
+                                     const int *charge,
+                                     const int *multiplicity,
+                                     double *energy_h, char *errmsg,
+                                     int errmsg_len);
+extern int nwchemc_embed_energy_only_cell(
+    const int *n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const double *cell_ang, const int *has_cell, const int *charge,
+    const int *multiplicity, double *energy_h, char *errmsg, int errmsg_len);
 extern int nwchemc_embed_energy_grad(const int *n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers,
@@ -4054,8 +4065,6 @@ NWChemCResult nwchemc_energy_gradient(
 NWChemCResult nwchemc_energy(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes) {
-  /* Energy-only public ABI; uses gradient path internally, discards grad. */
-  double *scratch = NULL;
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
@@ -4064,14 +4073,42 @@ NWChemCResult nwchemc_energy(
     snprintf(r.message, sizeof(r.message), "invalid arguments");
     return r;
   }
-  scratch = (double *)calloc((size_t)n_atoms * 3u, sizeof(double));
-  if (!scratch) {
-    snprintf(r.message, sizeof(r.message), "out of memory");
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                          &params_root) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
     return r;
   }
-  r = nwchemc_energy_gradient(n_atoms, positions_ang, atomic_numbers,
-                              params_capnp, params_capnp_size_bytes, scratch);
-  free(scratch);
+
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
+  if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  g_active_session = NULL;
+
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = params.charge;
+  int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  double eh = 0.0;
+  int rc = nwchemc_embed_energy_only(&n, positions_ang, atomic_numbers, &ch,
+                                     &mult, &eh, errmsg,
+                                     (int)sizeof(errmsg) - 1);
+  nwchemc_params_release(&arena);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed energy failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
   return r;
 }
 
@@ -4677,6 +4714,60 @@ static NWChemCResult session_energy_gradient_cell(NWChemCSession *session,
   return r;
 }
 
+static NWChemCResult session_energy_only_cell(NWChemCSession *session,
+                                              int n_atoms,
+                                              const double *positions_ang,
+                                              const int *atomic_numbers,
+                                              const double *cell_ang,
+                                              int has_cell) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  int topology_status =
+      session_check_topology(session, (size_t)n_atoms, atomic_numbers);
+  if (topology_status < 0) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  if (topology_status > 0) {
+    snprintf(r.message, sizeof(r.message), "session topology mismatch");
+    return r;
+  }
+  if (session_apply_config(session) != 0) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  ensure_init();
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = 0;
+  int mult = 1;
+  session_charge_multiplicity(session, &ch, &mult);
+  double eh = 0.0;
+  int cell_flag = has_cell ? 1 : 0;
+  double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0};
+  const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  int rc = nwchemc_embed_energy_only_cell(
+      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult, &eh,
+      errmsg, (int)sizeof(errmsg) - 1);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed energy failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
 NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
                                               int n_atoms,
                                               const double *positions_ang,
@@ -4689,24 +4780,8 @@ NWChemCResult nwchemc_session_energy_gradient(NWChemCSession *session,
 NWChemCResult nwchemc_session_energy(NWChemCSession *session, int n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers) {
-  double *scratch = NULL;
-  NWChemCResult r;
-  r.ok = 0;
-  r.energy_h = 0.0;
-  r.message[0] = '\0';
-  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers) {
-    snprintf(r.message, sizeof(r.message), "invalid arguments");
-    return r;
-  }
-  scratch = (double *)calloc((size_t)n_atoms * 3u, sizeof(double));
-  if (!scratch) {
-    snprintf(r.message, sizeof(r.message), "out of memory");
-    return r;
-  }
-  r = nwchemc_session_energy_gradient(session, n_atoms, positions_ang,
-                                      atomic_numbers, scratch);
-  free(scratch);
-  return r;
+  return session_energy_only_cell(session, n_atoms, positions_ang,
+                                  atomic_numbers, NULL, 0);
 }
 
 NWChemCResult nwchemc_session_energy_forces(NWChemCSession *session,
@@ -5124,23 +5199,52 @@ NWChemCResult nwchemc_session_calculate_energy(
     snprintf(r.message, sizeof(r.message), "invalid arguments");
     return r;
   }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
   size_t n_atoms = 0;
-  if (force_input_step_atom_count(force_input_capnp,
-                                  force_input_capnp_size_bytes,
-                                  &n_atoms) != 0 ||
-      n_atoms > SIZE_MAX / 3u) {
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX) {
+    nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
     return r;
   }
-  double *scratch = (double *)calloc(n_atoms * 3u, sizeof(*scratch));
-  if (!scratch) {
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
-  r = nwchemc_session_calculate_forces(session, force_input_capnp,
-                                       force_input_capnp_size_bytes, scratch,
-                                       n_atoms * 3u);
-  free(scratch);
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_energy_only_cell(session, (int)n_atoms, session->step_positions_ang,
+                               session->step_atomic_numbers, cell_ang,
+                               has_cell);
+  session_clear_step_state(session);
   return r;
 }
 
