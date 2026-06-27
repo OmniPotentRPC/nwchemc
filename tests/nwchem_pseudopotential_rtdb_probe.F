@@ -17,6 +17,7 @@
       character*256 psp_names(6)
       character*128 typed_keys(13)
       character*256 typed_values(64,13)
+      save typed_values
       character*256 text_value
       character*256 errmsg
       double precision typed_dvals(2)
@@ -399,17 +400,5 @@
       logical value
       character*(*) key
       nwchemc_probe_get_log = rtdb_get(rtdb, key, mt_log, 1, value)
-      return
-      end
-
-      logical function nwchemc_probe_get_int_array(rtdb, key, n, values)
-      implicit none
-#include "bafdecls.fh"
-#include "btdb.fh"
-      integer rtdb, n
-      integer values(*)
-      character*(*) key
-      nwchemc_probe_get_int_array = rtdb_get(rtdb, key, mt_int, n,
-     $     values)
       return
       end

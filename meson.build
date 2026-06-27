@@ -1241,6 +1241,7 @@ if get_option('with_tests')
         'tests/test_nwchem_pseudopotential_rtdb.c',
         'tests/nwchem_pseudopotential_rtdb_probe.F',
         'tests/nwchem_rtdb_probe_get_dbl_array.F',
+        'tests/nwchem_rtdb_probe_get_int_array.F',
       ],
       include_directories: inc,
       dependencies: [cmocka_dep],
