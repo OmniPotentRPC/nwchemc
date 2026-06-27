@@ -110,7 +110,8 @@ analysis controls write the five ~*:mulliken~ logical keys and the
 write the ~nwpw:cutoff_boot_psi~ logical key directly. Fast-erf controls write
 the ~nwpw:fast_erf~ logical key directly. Dipole motion controls write the
 ~nwpw:dipole_motion~ logical key and optional
-~nwpw:dipole_motion_filename~ text key directly. Structured simulation-cell
+~nwpw:dipole_motion_filename~ text key directly. Rho symmetry controls write
+the ~nwpw:rho_use_symmetry~ logical key directly. Structured simulation-cell
 controls write boundary conditions, 3x3 cell vectors, FFT grids, small grids,
 box delta, box orientation, and box-type state to the matching ~<cell>:*~ RTDB
 keys.
@@ -320,6 +321,7 @@ module prefix:
 | ~fastErf~ | ~fast_erf~ | ~nwpw~ |
 | ~dipoleMotion~ | ~dipole_motion~ | ~nwpw~ |
 | ~dipoleMotionFilename~ | ~dipole_motion_filename~ | ~nwpw~ |
+| ~rhoUseSymmetry~ | ~rho_use_symmetry~ | ~nwpw~ |
 | ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
 | ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
 | ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |

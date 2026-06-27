@@ -137,6 +137,9 @@ int nwchemc_params_extract_direct_nwpw_dipole_motion(
     NWChemParams_ptr params, int *has_options, int *dipole_motion,
     capn_text *filename);
 
+int nwchemc_params_extract_direct_nwpw_rho_use_symmetry(
+    NWChemParams_ptr params, int *has_options, int *rho_use_symmetry);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

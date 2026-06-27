@@ -2210,6 +2210,12 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
     if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  const char *rho_use_symmetry_logical =
+      nwpw_toggle_logical_keyword(nwpw.rhoUseSymmetry);
+  if (include_direct_promoted && rho_use_symmetry_logical &&
+      append_format(block, sizeof(block), "  symmetry %s\n",
+                    rho_use_symmetry_logical) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3506,6 +3512,38 @@ int nwchemc_params_extract_direct_nwpw_dipole_motion(
                          ? NWChemNwpwToggle_enabled
                          : nwpw.dipoleMotion;
     *filename = nwpw.dipoleMotionFilename;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_rho_use_symmetry(
+    NWChemParams_ptr params, int *has_options, int *rho_use_symmetry) {
+  if (params.p.type == CAPN_NULL || !has_options || !rho_use_symmetry)
+    return -1;
+
+  *has_options = 0;
+  *rho_use_symmetry = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.rhoUseSymmetry != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *rho_use_symmetry = nwpw.rhoUseSymmetry;
+    }
   }
 
   return 0;

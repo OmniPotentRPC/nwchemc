@@ -1562,6 +1562,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_dipole_motion_has_options, &nwpw_dipole_motion,
           &nwpw_dipole_motion_filename) != 0)
     return -1;
+  int nwpw_rho_use_symmetry_has_options = 0;
+  int nwpw_rho_use_symmetry = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_rho_use_symmetry(
+          params_root, &nwpw_rho_use_symmetry_has_options,
+          &nwpw_rho_use_symmetry) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2604,6 +2610,18 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               filename) != 0)
         return -1;
     }
+  }
+  if (nwpw_rho_use_symmetry_has_options) {
+    const char *value = nwpw_toggle_logical_value(
+        (enum NWChemNwpwToggle)nwpw_rho_use_symmetry);
+    if (value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:rho_use_symmetry",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

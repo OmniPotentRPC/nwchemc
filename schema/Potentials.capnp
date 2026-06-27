@@ -441,6 +441,7 @@ struct NWChemNwpwStanza {
   fastErf                     @72 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW fast_erf.
   dipoleMotion                @73 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW dipole_motion.
   dipoleMotionFilename        @74 :Text = "";       # Emit/promote NWPW dipole_motion filename.
+  rhoUseSymmetry              @75 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW symmetry.
 }
 
 # @struct NWChemScfStanza

@@ -226,6 +226,7 @@ RTDB values directly:
 | ~fastErf~ | ~fast_erf true~ or ~false~ | ~nwpw:fast_erf~ |
 | ~dipoleMotion~ | ~dipole_motion~ | ~nwpw:dipole_motion~ |
 | ~dipoleMotionFilename~ | filename token in ~dipole_motion <filename>~ | ~nwpw:dipole_motion_filename~ |
+| ~rhoUseSymmetry~ | ~symmetry true~ or ~false~ | ~nwpw:rho_use_symmetry~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
