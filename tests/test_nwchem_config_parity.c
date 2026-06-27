@@ -58,7 +58,11 @@ static int setup_nwchem_dirs(void **state) {
   (void)state;
   if (ensure_dir(NWCHEMC_TEST_SCRATCH_DIR) != 0)
     return 1;
-  return ensure_dir(NWCHEMC_TEST_PERMANENT_DIR);
+  if (ensure_dir(NWCHEMC_TEST_PERMANENT_DIR) != 0)
+    return 1;
+  if (ensure_dir(NWCHEMC_TEST_SCRATCH_DIR "-config") != 0)
+    return 1;
+  return ensure_dir(NWCHEMC_TEST_PERMANENT_DIR "-config");
 }
 
 static int teardown_nwchem(void **state) {
