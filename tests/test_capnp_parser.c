@@ -139,6 +139,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "smooth_cutoff true 1.5 3.5"));
   assert_non_null(strstr(input_blocks, "cutoff_boot_wavefunction false"));
   assert_non_null(strstr(input_blocks, "fast_erf true"));
+  assert_non_null(strstr(input_blocks, "dipole_motion dipole.mov"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -365,6 +366,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:cutoff_boot_psi"));
   assert_null(strstr(input_blocks, "fast_erf"));
   assert_null(strstr(input_blocks, "nwpw:fast_erf"));
+  assert_null(strstr(input_blocks, "dipole_motion"));
+  assert_null(strstr(input_blocks, "nwpw:dipole_motion"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -682,6 +685,17 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_fast_erf, 1);
   assert_int_equal(fast_erf, NWChemNwpwToggle_enabled);
+
+  int has_dipole_motion = 0;
+  int dipole_motion = 0;
+  capn_text dipole_motion_filename = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_dipole_motion(
+                       params_root, &has_dipole_motion, &dipole_motion,
+                       &dipole_motion_filename),
+                   0);
+  assert_int_equal(has_dipole_motion, 1);
+  assert_int_equal(dipole_motion, NWChemNwpwToggle_enabled);
+  assert_true(text_equals(dipole_motion_filename, "dipole.mov"));
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

@@ -225,7 +225,9 @@
         smoothCutoffAfac = 1.5,
         smoothCutoffSigma = 3.5,
         cutoffBootWavefunction = disabled,
-        fastErf = enabled
+        fastErf = enabled,
+        dipoleMotion = enabled,
+        dipoleMotionFilename = "dipole.mov"
       )
     ),
     (

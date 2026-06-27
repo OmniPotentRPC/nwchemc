@@ -1288,13 +1288,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:cutoff_boot_psi"));
   assert_null(strstr(g_input_blocks, "fast_erf"));
   assert_null(strstr(g_input_blocks, "nwpw:fast_erf"));
+  assert_null(strstr(g_input_blocks, "dipole_motion"));
+  assert_null(strstr(g_input_blocks, "nwpw:dipole_motion"));
   assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_null(strstr(g_input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 181);
+  assert_int_equal(g_typed_set_count, 183);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1463,6 +1465,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
   assert_typed_set_scalar("nwpw:fast_erf", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
                           "true");
+  assert_typed_set_scalar("nwpw:dipole_motion",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("nwpw:dipole_motion_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "dipole.mov");
   assert_typed_set_scalar("cellA:boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "periodic");
   const char *unita_values[9] = {"1", "0", "0", "0", "2",
