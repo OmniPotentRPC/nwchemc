@@ -2461,6 +2461,9 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && nwpw.geometryOptimize &&
       append_format(block, sizeof(block), "  geometry_optimize\n") != 0)
     return -1;
+  if (include_direct_promoted && nwpw.auxiliaryPotentials &&
+      append_format(block, sizeof(block), "  auxiliary_potentials\n") != 0)
+    return -1;
   const int has_dos_scalars = nwpw.dosAlphaSet || nwpw.dosNpointsSet ||
                               nwpw.dosEminSet || nwpw.dosEmaxSet;
   if (include_direct_promoted && has_dos_scalars) {
@@ -4248,6 +4251,39 @@ int nwchemc_params_extract_direct_nwpw_geometry_optimize(
 
     *has_options = 1;
     *geometry_optimize = 1;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_auxiliary_potentials(
+    NWChemParams_ptr params, int *has_options, int *auxiliary_potentials) {
+  if (params.p.type == CAPN_NULL || !has_options || !auxiliary_potentials)
+    return -1;
+
+  *has_options = 0;
+  *auxiliary_potentials = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (!nwpw.auxiliaryPotentials)
+      continue;
+
+    *has_options = 1;
+    *auxiliary_potentials = 1;
   }
 
   return 0;

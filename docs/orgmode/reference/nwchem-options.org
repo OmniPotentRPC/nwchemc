@@ -237,6 +237,7 @@ RTDB values directly:
 | ~vfieldFilenames~ | ~vfield <filename...>~ | ~nwpw:vfield_filenames~ |
 | ~singlePrecisionHfx~ | ~single_precision_hfx~ | ~pspw:HFX_single_precision~ |
 | ~geometryOptimize~ | ~geometry_optimize~ | ~cgsd:geometry_optimize~, ~cpsd:geometry_optimize~, ~band:geometry_optimize~ |
+| ~auxiliaryPotentials~ | ~auxiliary_potentials~ | ~pspw_qmmm_auxon~ |
 | ~dosAlpha~ | first argument in ~dos <alpha> ...~ | ~dos:alpha~ |
 | ~dosNpoints~ | second argument in ~dos <alpha> <npoints> ...~ | ~dos:npoints~ |
 | ~dosEmin~ | third argument in ~dos <alpha> <npoints> <emin> ...~ | ~dos:emin~ |

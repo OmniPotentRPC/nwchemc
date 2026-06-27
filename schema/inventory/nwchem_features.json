@@ -3963,6 +3963,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.auxiliaryPotentials",
+      "schema_path": "NWChemNwpwStanza.auxiliaryPotentials",
+      "struct": "NWChemNwpwStanza",
+      "name": "auxiliaryPotentials",
+      "field_id": 140,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.auxiliaryPotentials Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

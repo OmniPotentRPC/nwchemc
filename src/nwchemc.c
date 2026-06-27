@@ -1857,6 +1857,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_geometry_optimize_has_options,
           &nwpw_geometry_optimize) != 0)
     return -1;
+  int nwpw_auxiliary_potentials_has_options = 0;
+  int nwpw_auxiliary_potentials = 0;
+  if (nwchemc_params_extract_direct_nwpw_auxiliary_potentials(
+          params_root, &nwpw_auxiliary_potentials_has_options,
+          &nwpw_auxiliary_potentials) != 0)
+    return -1;
   int nwpw_dos_has_options = 0;
   int nwpw_dos_alpha_set = 0;
   double nwpw_dos_alpha = 0.0;
@@ -3254,6 +3260,15 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             typed_set_values, NWCHEMC_DIRECT_SET_MAX,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "band:geometry_optimize",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+      return -1;
+  }
+  if (nwpw_auxiliary_potentials_has_options && nwpw_auxiliary_potentials) {
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw_qmmm_auxon",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
       return -1;
   }

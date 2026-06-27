@@ -215,7 +215,8 @@ expose `nwpw:born`, `nwpw:born_dielec`, `nwpw:born_relax`, and
 `nwpw:vfield_filenames` directly. Single-precision HFX exposes
 `pspw:HFX_single_precision` directly. Geometry optimization exposes
 `cgsd:geometry_optimize`, `cpsd:geometry_optimize`, and
-`band:geometry_optimize` directly. DOS controls expose `dos:alpha`,
+`band:geometry_optimize` directly. Auxiliary potentials expose
+`pspw_qmmm_auxon` directly. DOS controls expose `dos:alpha`,
 `dos:npoints`, `dos:emin`, `dos:emax`, and `nwpw:dos:filename` directly. CPMD
 property and grid-comparison flags expose `nwpw:cpmd_properties` and
 `nwpw:use_grid_cmp` directly. Director controls
