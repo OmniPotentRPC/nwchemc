@@ -8,6 +8,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HEADER = Path(os.environ.get("NWCHEMC_HEADER_PATH", ROOT / "include" / "nwchemc.h"))
 README = Path(os.environ.get("NWCHEMC_README_PATH", ROOT / "README.md"))
+V2_PLAN = Path(
+    os.environ.get(
+        "NWCHEMC_V2_PLAN_PATH",
+        ROOT / "docs" / "orgmode" / "contributing" / "developer" / "v2-plan.org",
+    )
+)
 
 DECL_RE = re.compile(
     r"""
@@ -48,6 +54,17 @@ def readme_abi_block(text):
     return match.group("body")
 
 
+def v2_plan_current_state_block(text):
+    match = re.search(r"\* Current State\n(?P<body>.*?)\n\* RTDB Path", text, re.S)
+    if not match:
+        raise AssertionError("v2-plan.org does not contain a Current State block")
+    return match.group("body")
+
+
+def org_abi_names(text):
+    return unique_in_order(re.findall(r"~(nwchemc_[A-Za-z0-9_]+)~", text))
+
+
 class ReadmeAbiSurfaceTest(unittest.TestCase):
     maxDiff = None
 
@@ -62,6 +79,18 @@ class ReadmeAbiSurfaceTest(unittest.TestCase):
         self.assertEqual(missing, [])
         self.assertEqual(extra, [])
         self.assertEqual(readme_names, header_names)
+
+    def test_v2_plan_current_state_matches_header_exports(self):
+        header_names = declared_abi_names(HEADER.read_text(encoding="utf-8"))
+        plan_names = org_abi_names(
+            v2_plan_current_state_block(V2_PLAN.read_text(encoding="utf-8"))
+        )
+
+        missing = sorted(set(header_names) - set(plan_names))
+        extra = sorted(set(plan_names) - set(header_names))
+        self.assertEqual(missing, [])
+        self.assertEqual(extra, [])
+        self.assertEqual(plan_names, header_names)
 
 
 if __name__ == "__main__":

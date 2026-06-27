@@ -2,12 +2,14 @@
 #+OPTIONS: toc:nil todo:nil num:nil author:nil title:t
 
 * Current State
-~nwchemc~ exposes a C ABI that accepts the Cap'n Proto ~NWChemParams~ message
-directly. The public calculation entry points are:
+~nwchemc~ exposes a C ABI that accepts Cap'n Proto ~NWChemParams~ directly and
+the backend-selecting ~PotentialConfig.nwchem~ wrapper used by rgpot
+configuration. The public calculation entry points are:
 
 - ~nwchemc_set_params~
-- ~nwchemc_energy~
+- ~nwchemc_configure~
 - ~nwchemc_energy_gradient~
+- ~nwchemc_energy~
 - ~nwchemc_energy_forces~
 - ~nwchemc_hessian~
 - ~nwchemc_dipole~
@@ -15,47 +17,80 @@ directly. The public calculation entry points are:
 - ~nwchemc_stress~
 - ~nwchemc_optimize~
 - ~nwchemc_frequencies~
+- ~nwchemc_energy_gradient_from_config~
+- ~nwchemc_energy_from_config~
+- ~nwchemc_energy_forces_from_config~
+- ~nwchemc_hessian_from_config~
+- ~nwchemc_dipole_from_config~
+- ~nwchemc_quadrupole_from_config~
+- ~nwchemc_stress_from_config~
+- ~nwchemc_optimize_from_config~
+- ~nwchemc_frequencies_from_config~
 - ~nwchemc_session_create~
+- ~nwchemc_session_create_from_config~
 - ~nwchemc_session_set_params~
+- ~nwchemc_session_configure~
 - ~nwchemc_session_destroy~
-- ~nwchemc_session_energy~
 - ~nwchemc_session_energy_gradient~
+- ~nwchemc_session_energy~
 - ~nwchemc_session_energy_forces~
 - ~nwchemc_session_dipole~
 - ~nwchemc_session_quadrupole~
 - ~nwchemc_session_optimize~
 - ~nwchemc_session_frequencies~
-- ~nwchemc_session_stress~
 - ~nwchemc_session_calculate_forces~
 - ~nwchemc_session_calculate_energy~
 - ~nwchemc_calculate_forces~
+- ~nwchemc_calculate_forces_from_config~
 - ~nwchemc_calculate_energy~
+- ~nwchemc_calculate_energy_from_config~
+- ~nwchemc_energy_result_size_for_force_input~
+- ~nwchemc_session_calculate_energy_result~
+- ~nwchemc_calculate_energy_result~
+- ~nwchemc_calculate_energy_result_from_config~
+- ~nwchemc_forces_result_size_for_force_input~
+- ~nwchemc_session_calculate_forces_result~
+- ~nwchemc_calculate_forces_result~
+- ~nwchemc_calculate_forces_result_from_config~
 - ~nwchemc_session_calculate_result~
 - ~nwchemc_calculate_result~
+- ~nwchemc_calculate_result_from_config~
 - ~nwchemc_calculate_hessian~
+- ~nwchemc_calculate_hessian_from_config~
 - ~nwchemc_hessian_result_size_for_force_input~
 - ~nwchemc_session_calculate_hessian_result~
 - ~nwchemc_calculate_hessian_result~
+- ~nwchemc_calculate_hessian_result_from_config~
 - ~nwchemc_calculate_dipole~
+- ~nwchemc_calculate_dipole_from_config~
 - ~nwchemc_dipole_result_size_for_force_input~
 - ~nwchemc_session_calculate_dipole_result~
 - ~nwchemc_calculate_dipole_result~
+- ~nwchemc_calculate_dipole_result_from_config~
 - ~nwchemc_calculate_quadrupole~
+- ~nwchemc_calculate_quadrupole_from_config~
 - ~nwchemc_quadrupole_result_size_for_force_input~
 - ~nwchemc_session_calculate_quadrupole_result~
 - ~nwchemc_calculate_quadrupole_result~
+- ~nwchemc_calculate_quadrupole_result_from_config~
 - ~nwchemc_calculate_stress~
+- ~nwchemc_calculate_stress_from_config~
 - ~nwchemc_stress_result_size_for_force_input~
 - ~nwchemc_session_calculate_stress_result~
 - ~nwchemc_calculate_stress_result~
+- ~nwchemc_calculate_stress_result_from_config~
 - ~nwchemc_calculate_optimize~
+- ~nwchemc_calculate_optimize_from_config~
 - ~nwchemc_optimize_result_size_for_force_input~
 - ~nwchemc_session_calculate_optimize_result~
 - ~nwchemc_calculate_optimize_result~
+- ~nwchemc_calculate_optimize_result_from_config~
 - ~nwchemc_calculate_frequencies~
+- ~nwchemc_calculate_frequencies_from_config~
 - ~nwchemc_frequencies_result_size_for_force_input~
 - ~nwchemc_session_calculate_frequencies_result~
 - ~nwchemc_calculate_frequencies_result~
+- ~nwchemc_calculate_frequencies_result_from_config~
 - ~nwchemc_potential_result_size_for_force_input~
 - ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_calculate_dipole~
@@ -63,14 +98,18 @@ directly. The public calculation entry points are:
 - ~nwchemc_session_calculate_stress~
 - ~nwchemc_session_calculate_optimize~
 - ~nwchemc_session_calculate_frequencies~
+- ~nwchemc_session_stress~
 - ~nwchemc_session_hessian~
-- ~nwchemc_available~
 - ~nwchemc_version~
+- ~nwchemc_available~
 - ~nwchemc_finalize~
 
 The parser uses ~capnp-c~ and keeps Cap'n Proto as the language-neutral
 configuration carrier. The runtime does not copy the parameter tree into a
-second public configuration struct.
+second public configuration struct. One-shot ~*_from_config~ entry points
+unwrap ~PotentialConfig.nwchem~, create the same configured session state as
+~nwchemc_session_create_from_config~, validate output capacity before applying
+configuration, and then call the corresponding session calculation.
 Long-running callers can keep one ~NWChemParams~ configuration in a session and
 send per-step ~ForceInput~ Cap'n Proto messages for coordinates, atomic
 numbers, length units, optional cell vectors, optional charge or multiplicity
