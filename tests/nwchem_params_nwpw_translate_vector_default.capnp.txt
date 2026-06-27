@@ -1,0 +1,14 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = nwpw,
+      nwpw = (
+        translateVectorSet = true,
+        translateVectorX = 0.25
+      )
+    )
+  ]
+)
