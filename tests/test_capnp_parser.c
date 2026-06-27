@@ -149,6 +149,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "director director.dat"));
   assert_non_null(strstr(input_blocks, "expand_cell 2 3 4"));
   assert_non_null(strstr(input_blocks, "mapping 3"));
+  assert_non_null(strstr(input_blocks, "rotation false"));
+  assert_non_null(strstr(input_blocks, "integrate_mult_l 4"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -393,6 +395,10 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:cell_expand"));
   assert_null(strstr(input_blocks, "mapping 3"));
   assert_null(strstr(input_blocks, "nwpw:mapping"));
+  assert_null(strstr(input_blocks, "rotation false"));
+  assert_null(strstr(input_blocks, "nwpw:rotation"));
+  assert_null(strstr(input_blocks, "integrate_mult_l 4"));
+  assert_null(strstr(input_blocks, "nwpw:lmax_multipole"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -798,6 +804,17 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(cell_expand[1], 3);
   assert_int_equal(cell_expand[2], 4);
   assert_int_equal(mapping, 3);
+
+  int has_rotation_multipole = 0;
+  int rotation = 0;
+  int lmax_multipole = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_rotation_multipole(
+                       params_root, &has_rotation_multipole, &rotation,
+                       &lmax_multipole),
+                   0);
+  assert_int_equal(has_rotation_multipole, 1);
+  assert_int_equal(rotation, NWChemNwpwToggle_disabled);
+  assert_int_equal(lmax_multipole, 4);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

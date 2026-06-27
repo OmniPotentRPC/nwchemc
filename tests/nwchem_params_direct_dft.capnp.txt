@@ -219,7 +219,9 @@
         cellExpandX = 2,
         cellExpandY = 3,
         cellExpandZ = 4,
-        mapping = 3
+        mapping = 3,
+        rotation = disabled,
+        lmaxMultipole = 4
       )
     ),
     (
