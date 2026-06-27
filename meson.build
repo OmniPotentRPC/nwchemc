@@ -1178,6 +1178,25 @@ if get_option('with_tests')
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
+    nwchem_rgpot_smoke_test = executable(
+      'test_nwchem_rgpot_smoke',
+      'tests/test_nwchem_rgpot_smoke.c',
+      include_directories: [inc] + nwchemc_params_includes,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+    )
+    test(
+      'nwchem-rgpot-smoke',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_rgpot_smoke_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_rgpot_smoke_test, potential_config_structured_bin, force_input_h2_eq_bin]
+        : [potential_config_structured_bin, force_input_h2_eq_bin],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
     nwchem_energy_forces_test = executable(
       'test_nwchem_energy_forces',
       'tests/test_nwchem_energy_forces.c',
