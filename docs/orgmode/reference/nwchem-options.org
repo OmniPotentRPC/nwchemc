@@ -187,7 +187,7 @@ RTDB values directly:
 | ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~; omitted ~end~ defaults to ~100~ | ~nwpw:bo_steps~ |
 | ~boTimeStepSet~, ~boTimeStep~ | ~bo_time_step [value]~; omitted value defaults to ~15~ | ~nwpw:bo_time_step~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
-| ~boFakeMass~ | ~bo_fake_mass <value>~ | ~nwpw:bo_fake_mass~ |
+| ~boFakeMassSet~, ~boFakeMass~ | ~bo_fake_mass [value]~; omitted value defaults to ~500~ | ~nwpw:bo_fake_mass~ |
 | ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ | ~nwpw:scaling~, ~cpmd:scaling~ |
 | ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ | ~nwpw:np_dimensions~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ | ~nwpw:spin_orbit~, ~pspw:spin_orbit~, ~band:spin_orbit~ |
@@ -419,7 +419,7 @@ controls:
 | ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~; omitted ~end~ defaults to ~100~ |
 | ~boTimeStepSet~, ~boTimeStep~ | ~bo_time_step [value]~; omitted value defaults to ~15~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
-| ~boFakeMass~ | ~bo_fake_mass <value>~ |
+| ~boFakeMassSet~, ~boFakeMass~ | ~bo_fake_mass [value]~; omitted value defaults to ~500~ |
 | ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ |
 | ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ |

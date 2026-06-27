@@ -2207,10 +2207,13 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       algorithm) != 0)
       return -1;
   }
-  if (include_direct_promoted && nwpw.boFakeMass > 0.0 &&
-      append_format(block, sizeof(block), "  bo_fake_mass %.15g\n",
-                    nwpw.boFakeMass) != 0)
-    return -1;
+  if (include_direct_promoted &&
+      (nwpw.boFakeMassSet || nwpw.boFakeMass > 0.0)) {
+    double bo_fake_mass = nwpw.boFakeMass > 0.0 ? nwpw.boFakeMass : 500.0;
+    if (append_format(block, sizeof(block), "  bo_fake_mass %.15g\n",
+                      bo_fake_mass) != 0)
+      return -1;
+  }
   if (include_direct_promoted &&
       (nwpw.scalingFirst > 0.0 || nwpw.scalingSecond > 0.0)) {
     double scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;
@@ -3552,9 +3555,9 @@ int nwchemc_params_extract_direct_nwpw_bo(
       *has_options = 1;
       *bo_algorithm = nwpw.boAlgorithm;
     }
-    if (nwpw.boFakeMass > 0.0) {
+    if (nwpw.boFakeMassSet || nwpw.boFakeMass > 0.0) {
       *has_options = 1;
-      *bo_fake_mass = nwpw.boFakeMass;
+      *bo_fake_mass = nwpw.boFakeMass > 0.0 ? nwpw.boFakeMass : 500.0;
     }
     if (nwpw.scalingFirst > 0.0 || nwpw.scalingSecond > 0.0) {
       *has_options = 1;

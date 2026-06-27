@@ -596,6 +596,7 @@ struct NWChemNwpwStanza {
   virtualAliasStart           @161 :Int32 = 0;      # First NWPW virtual alias value.
   virtualAliasEnd             @162 :Int32 = 0;      # Second NWPW virtual alias value.
   boTimeStepSet               @163 :Bool = false;   # Emit/promote NWPW bo_time_step with the default value when boTimeStep is unset.
+  boFakeMassSet               @164 :Bool = false;   # Emit/promote NWPW bo_fake_mass with the default value when boFakeMass is unset.
 }
 
 # @struct NWChemScfStanza

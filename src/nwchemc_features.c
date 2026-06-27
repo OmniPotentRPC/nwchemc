@@ -379,6 +379,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.virtualAliasStart", "NWChemNwpwStanza.virtualAliasStart", "NWChemNwpwStanza.virtualAliasStart Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 161, 1, 1},
     {"field.NWChemNwpwStanza.virtualAliasEnd", "NWChemNwpwStanza.virtualAliasEnd", "NWChemNwpwStanza.virtualAliasEnd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 162, 1, 1},
     {"field.NWChemNwpwStanza.boTimeStepSet", "NWChemNwpwStanza.boTimeStepSet", "NWChemNwpwStanza.boTimeStepSet Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 163, 1, 1},
+    {"field.NWChemNwpwStanza.boFakeMassSet", "NWChemNwpwStanza.boFakeMassSet", "NWChemNwpwStanza.boFakeMassSet Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 164, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -604,7 +605,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 599;
+static const size_t k_feature_count = 600;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
