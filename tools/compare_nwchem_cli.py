@@ -45,6 +45,12 @@ GRAD_LINE_RE = re.compile(
     r"^\s*(?:[A-Za-z]+\s+)?\d+\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)",
     re.MULTILINE,
 )
+GRAD_TABLE_LINE_RE = re.compile(
+    r"^\s*\d+\s+[A-Za-z]+\s+"
+    r"[-+0-9.Ee]+\s+[-+0-9.Ee]+\s+[-+0-9.Ee]+\s+"
+    r"([-+0-9.Ee]+)\s+([-+0-9.Ee]+)\s+([-+0-9.Ee]+)",
+    re.MULTILINE,
+)
 # Fallback: lines like "1     H     0.0000     0.0000    -0.0123" in gradient sections
 GRAD_LINE_ALT_RE = re.compile(
     r"^\s*\d+\s+[A-Za-z]+\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)",
@@ -93,6 +99,10 @@ def parse_gradient(text: str) -> list[float] | None:
     grads: list[float] = []
     m = GRAD_BLOCK_RE.search(text)
     search_text = m.group("body") if m else text
+    for line_m in GRAD_TABLE_LINE_RE.finditer(search_text):
+        grads.extend(float(line_m.group(i)) for i in (1, 2, 3))
+    if grads:
+        return grads
     for rx in (GRAD_LINE_RE, GRAD_LINE_ALT_RE):
         grads = []
         for line_m in rx.finditer(search_text):

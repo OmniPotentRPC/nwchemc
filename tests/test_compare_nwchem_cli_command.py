@@ -76,6 +76,23 @@ class CompareNWChemCommandTest(unittest.TestCase):
 
             self.assertEqual(compare.find_params_bin(build), real_params)
 
+    def test_parse_gradient_uses_gradient_columns_from_nwchem_table(self):
+        compare = load_compare()
+
+        text = """
+                         RHF ENERGY GRADIENTS
+
+    atom               coordinates                        gradient
+                 x          y          z           x          y          z
+   1 H       0.000000   0.000000  -0.700521    0.000000   0.000000  -0.028956
+   2 H       0.000000   0.000000   0.700521    0.000000   0.000000   0.028956
+"""
+
+        self.assertEqual(
+            compare.parse_gradient(text),
+            [0.0, 0.0, -0.028956, 0.0, 0.0, 0.028956],
+        )
+
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())
