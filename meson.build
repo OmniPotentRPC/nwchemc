@@ -319,6 +319,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_nwpw_allow_translation_params_bin = custom_target(
+    'nwchem_nwpw_allow_translation_params_bin',
+    input: 'tests/nwchem_params_nwpw_allow_translation.capnp.txt',
+    output: 'nwchem_params_nwpw_allow_translation.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_step_a_bin = custom_target(
     'force_input_step_a_bin',
     input: 'tests/force_input_step_a.capnp.txt',
@@ -494,7 +508,11 @@ if get_option('with_tests')
       dependencies: nwchemc_params_deps + [cmocka_dep],
       c_args: common_c_args,
     ),
-    args: [nwchem_parser_params_bin, nwchem_nwpw_spin_mode_params_bin],
+    args: [
+      nwchem_parser_params_bin,
+      nwchem_nwpw_spin_mode_params_bin,
+      nwchem_nwpw_allow_translation_params_bin,
+    ],
   )
   test(
     'embed-config-cmocka',
@@ -511,6 +529,7 @@ if get_option('with_tests')
       nwchem_pspspin_params_bin,
       nwchem_pspspin_many_params_bin,
       nwchem_nwpw_spin_mode_params_bin,
+      nwchem_nwpw_allow_translation_params_bin,
       force_input_step_a_bin,
       force_input_step_b_bin,
       force_input_step_ev_bin,
