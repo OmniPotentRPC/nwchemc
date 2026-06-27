@@ -417,6 +417,7 @@ struct NWChemNwpwStanza {
   atomEfieldGradient          @55 :NWChemNwpwToggle = unspecified; # Emit/promote atom_efield_grad.
   mulliken                    @56 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW mulliken/off.
   mullikenKawai               @57 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW mulliken kawai.
+  periodicDipole              @58 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW periodic_dipole.
 }
 
 # @struct NWChemScfStanza

@@ -2883,6 +2883,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.periodicDipole",
+      "schema_path": "NWChemNwpwStanza.periodicDipole",
+      "struct": "NWChemNwpwStanza",
+      "name": "periodicDipole",
+      "field_id": 58,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.periodicDipole Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

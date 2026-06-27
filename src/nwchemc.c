@@ -1499,6 +1499,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_mulliken_has_options, &nwpw_mulliken,
           &nwpw_mulliken_kawai) != 0)
     return -1;
+  int nwpw_periodic_dipole_has_options = 0;
+  int nwpw_periodic_dipole = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_periodic_dipole(
+          params_root, &nwpw_periodic_dipole_has_options,
+          &nwpw_periodic_dipole) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2402,6 +2408,18 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:mulliken_kawai",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, kawai_value) != 0)
+      return -1;
+  }
+  if (nwpw_periodic_dipole_has_options) {
+    const char *value = nwpw_toggle_logical_value(
+        (enum NWChemNwpwToggle)nwpw_periodic_dipole);
+    if (value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:periodic_dipole",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));

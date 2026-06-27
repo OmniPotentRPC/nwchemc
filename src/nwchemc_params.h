@@ -114,6 +114,9 @@ int nwchemc_params_extract_direct_nwpw_mulliken(
     NWChemParams_ptr params, int *has_options, int *mulliken,
     int *mulliken_kawai);
 
+int nwchemc_params_extract_direct_nwpw_periodic_dipole(
+    NWChemParams_ptr params, int *has_options, int *periodic_dipole);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

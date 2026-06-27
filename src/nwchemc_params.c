@@ -2118,6 +2118,12 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       nwpw.mullikenKawai != NWChemNwpwToggle_enabled &&
       append_format(block, sizeof(block), "  mulliken\n") != 0)
     return -1;
+  const char *periodic_dipole_logical =
+      nwpw_toggle_logical_keyword(nwpw.periodicDipole);
+  if (include_direct_promoted && periodic_dipole_logical &&
+      append_format(block, sizeof(block), "  periodic_dipole %s\n",
+                    periodic_dipole_logical) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3165,6 +3171,38 @@ int nwchemc_params_extract_direct_nwpw_mulliken(
     if (nwpw.mullikenKawai != NWChemNwpwToggle_unspecified) {
       *has_options = 1;
       *mulliken_kawai = nwpw.mullikenKawai;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_periodic_dipole(
+    NWChemParams_ptr params, int *has_options, int *periodic_dipole) {
+  if (params.p.type == CAPN_NULL || !has_options || !periodic_dipole)
+    return -1;
+
+  *has_options = 0;
+  *periodic_dipole = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.periodicDipole != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *periodic_dipole = nwpw.periodicDipole;
     }
   }
 

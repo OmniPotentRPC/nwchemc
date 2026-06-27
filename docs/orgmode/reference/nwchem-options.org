@@ -215,6 +215,7 @@ RTDB values directly:
 | ~atomEfieldGradient~ | ~atom_efield_grad~ | ~nwpw:atom_efield_grad~ |
 | ~mulliken~ | ~mulliken~ or ~mulliken off~ | ~cgsd:mulliken~, ~band:mulliken~, ~nwpw:mulliken~, ~cpsd:mulliken~, ~cpmd:mulliken~ |
 | ~mullikenKawai~ | ~mulliken kawai~ | ~nwpw:mulliken_kawai~ |
+| ~periodicDipole~ | ~periodic_dipole true~ or ~false~ | ~nwpw:periodic_dipole~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
