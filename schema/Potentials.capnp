@@ -550,6 +550,7 @@ struct NWChemNwpwStanza {
   dosEmaxSet                  @136 :Bool = false;   # Emit/promote NWPW DOS maximum energy.
   dosEmax                     @137 :Float64 = 0.0;  # NWPW DOS maximum energy.
   dosFilename                 @138 :Text = "";      # Emit/promote NWPW dos_filename.
+  geometryOptimize            @139 :Bool = false;   # Emit/promote NWPW geometry_optimize.
 }
 
 # @struct NWChemScfStanza

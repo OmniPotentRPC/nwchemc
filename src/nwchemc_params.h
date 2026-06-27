@@ -174,6 +174,9 @@ int nwchemc_params_extract_direct_nwpw_vfield(
 int nwchemc_params_extract_direct_nwpw_single_precision_hfx(
     NWChemParams_ptr params, int *has_options, int *single_precision_hfx);
 
+int nwchemc_params_extract_direct_nwpw_geometry_optimize(
+    NWChemParams_ptr params, int *has_options, int *geometry_optimize);
+
 int nwchemc_params_extract_direct_nwpw_dos(
     NWChemParams_ptr params, int *has_options, int *dos_alpha_set,
     double *dos_alpha, int *dos_npoints_set, int *dos_npoints,

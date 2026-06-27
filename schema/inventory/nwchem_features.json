@@ -3951,6 +3951,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.geometryOptimize",
+      "schema_path": "NWChemNwpwStanza.geometryOptimize",
+      "struct": "NWChemNwpwStanza",
+      "name": "geometryOptimize",
+      "field_id": 139,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.geometryOptimize Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

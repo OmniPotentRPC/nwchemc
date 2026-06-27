@@ -1851,6 +1851,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_single_precision_hfx_has_options,
           &nwpw_single_precision_hfx) != 0)
     return -1;
+  int nwpw_geometry_optimize_has_options = 0;
+  int nwpw_geometry_optimize = 0;
+  if (nwchemc_params_extract_direct_nwpw_geometry_optimize(
+          params_root, &nwpw_geometry_optimize_has_options,
+          &nwpw_geometry_optimize) != 0)
+    return -1;
   int nwpw_dos_has_options = 0;
   int nwpw_dos_alpha_set = 0;
   double nwpw_dos_alpha = 0.0;
@@ -3227,6 +3233,27 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             typed_set_values, NWCHEMC_DIRECT_SET_MAX,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "pspw:HFX_single_precision",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+      return -1;
+  }
+  if (nwpw_geometry_optimize_has_options && nwpw_geometry_optimize) {
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "cgsd:geometry_optimize",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0 ||
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "cpsd:geometry_optimize",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0 ||
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "band:geometry_optimize",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
       return -1;
   }
