@@ -2270,12 +2270,14 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
-  if (include_direct_promoted && nwpw.fractionalOrbitalsStart > 0 &&
-      nwpw.fractionalOrbitalsEnd > 0 &&
-      append_format(block, sizeof(block), "  fractional_orbitals %d %d\n",
-                    nwpw.fractionalOrbitalsStart,
-                    nwpw.fractionalOrbitalsEnd) != 0)
-    return -1;
+  if (include_direct_promoted && nwpw.fractionalOrbitalsStart > 0) {
+    int fractional_end = nwpw.fractionalOrbitalsEnd > 0
+                             ? nwpw.fractionalOrbitalsEnd
+                             : nwpw.fractionalOrbitalsStart;
+    if (append_format(block, sizeof(block), "  fractional_orbitals %d %d\n",
+                      nwpw.fractionalOrbitalsStart, fractional_end) != 0)
+      return -1;
+  }
   if (include_direct_promoted &&
       (nwpw.smearTemperature > 0.0 || nwpw.smearAlpha > 0.0 ||
        nwpw.smearType != NWChemNwpwSmearType_unspecified)) {
@@ -3690,11 +3692,12 @@ int nwchemc_params_extract_direct_nwpw_fractional(
 
     struct NWChemNwpwStanza nwpw;
     read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
-    if (nwpw.fractionalOrbitalsStart > 0 &&
-        nwpw.fractionalOrbitalsEnd > 0) {
+    if (nwpw.fractionalOrbitalsStart > 0) {
       *has_fractional = 1;
       *fractional_orbitals_start = nwpw.fractionalOrbitalsStart;
-      *fractional_orbitals_end = nwpw.fractionalOrbitalsEnd;
+      *fractional_orbitals_end = nwpw.fractionalOrbitalsEnd > 0
+                                     ? nwpw.fractionalOrbitalsEnd
+                                     : nwpw.fractionalOrbitalsStart;
     }
     if (nwpw.smearTemperature > 0.0 || nwpw.smearAlpha > 0.0 ||
         nwpw.smearType != NWChemNwpwSmearType_unspecified) {
