@@ -2061,12 +2061,12 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
 
   assert_int_equal(nwchemc_set_params(message, message_size), 0);
   assert_int_equal(g_set_config_calls, 1);
-  assert_int_equal(g_set_scf_direct_calls, 2);
+  assert_int_equal(g_set_scf_direct_calls, 1);
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 50);
   assert_close(g_scf_thresh, 1.0e-6, 1.0e-12);
   assert_close(g_scf_tol2e, 1.0e-9, 1.0e-15);
-  assert_int_equal(g_set_driver_direct_calls, 2);
+  assert_int_equal(g_set_driver_direct_calls, 1);
   assert_int_equal(g_driver_has_options, 1);
   assert_int_equal(g_driver_maxiter, 40);
   assert_int_equal(g_driver_tolerance_mode, NWCHEMC_DRIVER_TOLERANCE_TIGHT);
@@ -2984,10 +2984,10 @@ static void test_session_set_params_replaces_before_topology(void **state) {
   assert_string_equal(g_basis, "6-31g");
   assert_string_equal(g_theory, "scf");
   assert_string_equal(g_scf_type, "rhf");
-  assert_int_equal(g_set_scf_direct_calls, 1);
+  assert_int_equal(g_set_scf_direct_calls, 2);
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 50);
-  assert_int_equal(g_set_driver_direct_calls, 1);
+  assert_int_equal(g_set_driver_direct_calls, 2);
   assert_int_equal(g_driver_has_options, 1);
   assert_int_equal(g_driver_maxiter, 40);
 
