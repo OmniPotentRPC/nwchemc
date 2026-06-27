@@ -68,6 +68,7 @@ static int g_psp_count = 0;
 static int g_set_string_count = 0;
 static int g_typed_set_count = 0;
 static int g_set_config_calls = 0;
+static int g_reset_rtdb_calls = 0;
 static int g_set_dft_direct_calls = 0;
 static int g_set_scf_direct_calls = 0;
 static int g_set_driver_direct_calls = 0;
@@ -562,6 +563,11 @@ static unsigned char *wrap_params_in_config(const unsigned char *params_bytes,
 void nwchemc_embed_init(void) {}
 
 int nwchemc_embed_available(void) { return 1; }
+
+int nwchemc_embed_reset_rtdb(void) {
+  ++g_reset_rtdb_calls;
+  return 0;
+}
 
 int nwchemc_embed_set_config(const char *basis, int basis_len,
                              const char *theory, int theory_len,
@@ -1140,6 +1146,7 @@ static void reset_embed_captures(void) {
   g_set_string_count = 0;
   g_typed_set_count = 0;
   g_set_config_calls = 0;
+  g_reset_rtdb_calls = 0;
   g_set_dft_direct_calls = 0;
   g_set_scf_direct_calls = 0;
   g_set_driver_direct_calls = 0;
@@ -1532,6 +1539,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
 
   assert_int_equal(result.ok, 1);
   assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_reset_rtdb_calls, 1);
   assert_string_equal(g_basis, "sto-3g");
   assert_string_equal(g_theory, "dft");
   assert_string_equal(g_scf_type, "pbe0");
