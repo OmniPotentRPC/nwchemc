@@ -286,6 +286,10 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.useGridComparison", "NWChemNwpwStanza.useGridComparison", "NWChemNwpwStanza.useGridComparison Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 84, 1, 1},
     {"field.NWChemNwpwStanza.director", "NWChemNwpwStanza.director", "NWChemNwpwStanza.director Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 85, 1, 1},
     {"field.NWChemNwpwStanza.directorFilename", "NWChemNwpwStanza.directorFilename", "NWChemNwpwStanza.directorFilename Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 86, 1, 1},
+    {"field.NWChemNwpwStanza.cellExpandX", "NWChemNwpwStanza.cellExpandX", "NWChemNwpwStanza.cellExpandX Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 87, 1, 1},
+    {"field.NWChemNwpwStanza.cellExpandY", "NWChemNwpwStanza.cellExpandY", "NWChemNwpwStanza.cellExpandY Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 88, 1, 1},
+    {"field.NWChemNwpwStanza.cellExpandZ", "NWChemNwpwStanza.cellExpandZ", "NWChemNwpwStanza.cellExpandZ Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 89, 1, 1},
+    {"field.NWChemNwpwStanza.mapping", "NWChemNwpwStanza.mapping", "NWChemNwpwStanza.mapping Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 90, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -511,7 +515,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 506;
+static const size_t k_feature_count = 510;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

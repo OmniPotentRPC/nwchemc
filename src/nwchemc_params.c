@@ -2298,6 +2298,15 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         return -1;
     }
   }
+  if (include_direct_promoted && nwpw.cellExpandX > 0 &&
+      append_format(block, sizeof(block), "  expand_cell %d %d %d\n",
+                    nwpw.cellExpandX,
+                    nwpw.cellExpandY > 0 ? nwpw.cellExpandY : 1,
+                    nwpw.cellExpandZ > 0 ? nwpw.cellExpandZ : 1) != 0)
+    return -1;
+  if (include_direct_promoted && nwpw.mapping > 0 &&
+      append_format(block, sizeof(block), "  mapping %d\n", nwpw.mapping) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3811,6 +3820,49 @@ int nwchemc_params_extract_direct_nwpw_director(
                     ? NWChemNwpwToggle_enabled
                     : nwpw.director;
     *filename = nwpw.directorFilename;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_cell_mapping(
+    NWChemParams_ptr params, int *has_options, int cell_expand[3],
+    int *mapping) {
+  if (params.p.type == CAPN_NULL || !has_options || !cell_expand || !mapping)
+    return -1;
+
+  *has_options = 0;
+  cell_expand[0] = 0;
+  cell_expand[1] = 0;
+  cell_expand[2] = 0;
+  *mapping = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.cellExpandX > 0 || nwpw.cellExpandY > 0 ||
+        nwpw.cellExpandZ > 0) {
+      *has_options = 1;
+      cell_expand[0] = nwpw.cellExpandX > 0 ? nwpw.cellExpandX : 1;
+      cell_expand[1] = nwpw.cellExpandY > 0 ? nwpw.cellExpandY : 1;
+      cell_expand[2] = nwpw.cellExpandZ > 0 ? nwpw.cellExpandZ : 1;
+    }
+    if (nwpw.mapping > 0) {
+      *has_options = 1;
+      *mapping = nwpw.mapping;
+    }
   }
 
   return 0;

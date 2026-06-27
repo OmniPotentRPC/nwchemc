@@ -3231,6 +3231,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.cellExpandX",
+      "schema_path": "NWChemNwpwStanza.cellExpandX",
+      "struct": "NWChemNwpwStanza",
+      "name": "cellExpandX",
+      "field_id": 87,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.cellExpandX Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cellExpandY",
+      "schema_path": "NWChemNwpwStanza.cellExpandY",
+      "struct": "NWChemNwpwStanza",
+      "name": "cellExpandY",
+      "field_id": 88,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.cellExpandY Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cellExpandZ",
+      "schema_path": "NWChemNwpwStanza.cellExpandZ",
+      "struct": "NWChemNwpwStanza",
+      "name": "cellExpandZ",
+      "field_id": 89,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.cellExpandZ Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mapping",
+      "schema_path": "NWChemNwpwStanza.mapping",
+      "struct": "NWChemNwpwStanza",
+      "name": "mapping",
+      "field_id": 90,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.mapping Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

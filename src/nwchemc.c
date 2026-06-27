@@ -1602,6 +1602,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_director_has_options, &nwpw_director,
           &nwpw_director_filename) != 0)
     return -1;
+  int nwpw_cell_mapping_has_options = 0;
+  int nwpw_cell_expand[3] = {0, 0, 0};
+  int nwpw_mapping = 0;
+  if (nwchemc_params_extract_direct_nwpw_cell_mapping(
+          params_root, &nwpw_cell_mapping_has_options, nwpw_cell_expand,
+          &nwpw_mapping) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2788,6 +2795,35 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
               nwpw_direct_keys, nwpw_direct_values, "nwpw:director_filename",
               NWCHEMC_DIRECT_SET_VALUE_TEXT, filename) != 0)
+        return -1;
+    }
+  }
+  if (nwpw_cell_mapping_has_options) {
+    if (nwpw_cell_expand[0] > 0) {
+      char x_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char y_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char z_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *cell_expand_values[3] = {x_value, y_value, z_value};
+      snprintf(x_value, sizeof(x_value), "%d", nwpw_cell_expand[0]);
+      snprintf(y_value, sizeof(y_value), "%d", nwpw_cell_expand[1]);
+      snprintf(z_value, sizeof(z_value), "%d", nwpw_cell_expand[2]);
+      if (append_direct_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:cell_expand",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, cell_expand_values, 3) != 0)
+        return -1;
+    }
+    if (nwpw_mapping > 0) {
+      char mapping_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(mapping_value, sizeof(mapping_value), "%d", nwpw_mapping);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:mapping",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, mapping_value) != 0)
         return -1;
     }
   }
