@@ -70,6 +70,13 @@ def format_command(command: list[str] | None) -> str | None:
     return " ".join(shlex.quote(part) for part in command)
 
 
+def embed_launch_command(
+    embed_command: list[str] | None, bin_path: Path, params: Path
+) -> list[str]:
+    launch = embed_command if embed_command is not None else []
+    return launch + [str(bin_path), str(params)]
+
+
 def parse_energy(text: str) -> float | None:
     m = ENERGY_RE.search(text)
     if m:
@@ -166,7 +173,7 @@ def find_params_bin(build_dir: Path) -> Path | None:
 
 
 def run_embed_compare(
-    build_dir: Path, work: Path
+    build_dir: Path, work: Path, embed_command: list[str] | None
 ) -> tuple[str, dict | None, str]:
     """Run embed test binary; return (status, payload_or_none, detail)."""
     bin_path = find_embed_binary(build_dir)
@@ -186,7 +193,7 @@ def run_embed_compare(
     env.setdefault("NWCHEMC_TEST_SCRATCH_DIR", str(scratch))
     env.setdefault("NWCHEMC_TEST_PERMANENT_DIR", str(perm))
     proc = subprocess.run(
-        [str(bin_path), str(params)],
+        embed_launch_command(embed_command, bin_path, params),
         cwd=str(work),
         capture_output=True,
         text=True,
@@ -288,6 +295,14 @@ def main() -> int:
             "`mpirun -np 2 /path/to/nwchem`."
         ),
     )
+    ap.add_argument(
+        "--embed-command",
+        default=os.environ.get("NWCHEMC_EMBED_COMMAND"),
+        help=(
+            "Launcher prefix used for the embed test binary. "
+            "Use quotes for launchers, for example: `mpirun -np 2`."
+        ),
+    )
     args = ap.parse_args()
 
     if args.require_embed and not args.embed_build:
@@ -310,10 +325,16 @@ def main() -> int:
             nwchem_command = None
 
     want_embed = args.embed_build is not None
+    embed_command = split_command(args.embed_command)
+    if embed_command is not None:
+        exe = embed_command[0]
+        if not Path(exe).is_file() and shutil.which(exe) is None:
+            embed_command = None
     report: dict = {
         "matrix": str(MATRIX.relative_to(ROOT)),
         "nwchem": format_command(nwchem_command),
         "embed_build": str(args.embed_build) if args.embed_build else None,
+        "embed_command": format_command(embed_command),
         "tolerances": matrix["tolerances"],
         "tasks": [],
     }
@@ -335,6 +356,7 @@ def main() -> int:
         f"tol_energy_ha={tol_e}",
         f"tol_gradient_ha_bohr={tol_g}",
         f"embed_build={report['embed_build'] or '(none — CLI only)'}",
+        f"embed_command={report['embed_command'] or '(direct)'}",
     ]
 
     # Run embed once per build (same H2 geometry in all tasks); cache payload.
@@ -344,7 +366,7 @@ def main() -> int:
     if want_embed:
         embed_work = out_dir / "_embed"
         embed_status, embed_payload, embed_detail = run_embed_compare(
-            args.embed_build, embed_work  # type: ignore[arg-type]
+            args.embed_build, embed_work, embed_command  # type: ignore[arg-type]
         )
         lines.append(f"embed_status={embed_status} ({embed_detail})")
         if embed_status in ("unavailable", "stub-only"):

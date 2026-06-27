@@ -43,6 +43,26 @@ class CompareNWChemCommandTest(unittest.TestCase):
 
         self.assertEqual(text, "'/opt/nw chem/bin/nwchem' h2.nw")
 
+    def test_embed_launch_command_wraps_binary_and_params(self):
+        compare = load_compare()
+
+        command = compare.embed_launch_command(
+            ["/opt/mpi/bin/mpirun", "-np", "2"],
+            Path("/tmp/build/test_nwchem_energy_gradient"),
+            Path("/tmp/build/nwchem_params.bin"),
+        )
+
+        self.assertEqual(
+            command,
+            [
+                "/opt/mpi/bin/mpirun",
+                "-np",
+                "2",
+                "/tmp/build/test_nwchem_energy_gradient",
+                "/tmp/build/nwchem_params.bin",
+            ],
+        )
+
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())
