@@ -151,6 +151,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "mapping 3"));
   assert_non_null(strstr(input_blocks, "rotation false"));
   assert_non_null(strstr(input_blocks, "integrate_mult_l 4"));
+  assert_non_null(strstr(input_blocks, "Fei fei.dat"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -399,6 +400,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:rotation"));
   assert_null(strstr(input_blocks, "integrate_mult_l 4"));
   assert_null(strstr(input_blocks, "nwpw:lmax_multipole"));
+  assert_null(strstr(input_blocks, "Fei fei.dat"));
+  assert_null(strstr(input_blocks, "nwpw:fei"));
+  assert_null(strstr(input_blocks, "cpmd:fei"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -815,6 +819,16 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(has_rotation_multipole, 1);
   assert_int_equal(rotation, NWChemNwpwToggle_disabled);
   assert_int_equal(lmax_multipole, 4);
+
+  int has_fei = 0;
+  int fei = 0;
+  capn_text fei_filename = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_fei(
+                       params_root, &has_fei, &fei, &fei_filename),
+                   0);
+  assert_int_equal(has_fei, 1);
+  assert_int_equal(fei, 1);
+  assert_true(text_equals(fei_filename, "fei.dat"));
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

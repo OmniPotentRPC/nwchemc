@@ -221,7 +221,9 @@
         cellExpandZ = 4,
         mapping = 3,
         rotation = disabled,
-        lmaxMultipole = 4
+        lmaxMultipole = 4,
+        fei = true,
+        feiFilename = "fei.dat"
       )
     ),
     (
