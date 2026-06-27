@@ -200,9 +200,10 @@ tolerance controls. The NWPW `cutoff` alias derives the energy cutoff as
 the PSPW/BAND/CPSD/CPMD exchange-correlation RTDB keys with matching SIC/HFX
 defaults reset explicitly; complex `exchange_correlation new ...` grammar
 stays in the text/directive path. Born-Oppenheimer controls such as
-`balanceMode`, `boStepStart` / `boStepEnd`, `boTimeStep`, `boAlgorithm`,
-`boFakeMass`, and `scalingFirst` / `scalingSecond` are also promoted directly
-to the NWPW/CPMD RTDB keys used by NWChem. Execution controls for
+`balanceMode`, `boStepStart` / `boStepEnd`, `mcStepStart` / `mcStepEnd`,
+`boTimeStep`, `boAlgorithm`, `boFakeMass`, and `scalingFirst` /
+`scalingSecond` are also promoted directly to the NWPW/CPMD RTDB keys used by
+NWChem. Execution controls for
 `np_dimensions`, `spin_orbit`, and `parallel_io` have structured fields and use
 direct RTDB writes in embed builds. NWPW output and motion filename fields are
 also structured and promoted to the paired `cpmd:*` / `nwpw:*` RTDB keys.

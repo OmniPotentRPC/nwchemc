@@ -563,6 +563,8 @@ struct NWChemNwpwStanza {
   allowTranslation            @143 :Bool = false;   # Emit/promote NWPW allow_translation alias.
   cutoffWavefunction          @144 :Float64 = 0.0;  # Wavefunction value in NWPW cutoff alias.
   cutoffEnergy                @145 :Float64 = 0.0;  # Optional energy value in NWPW cutoff alias.
+  mcStepStart                 @146 :Int32 = 0;      # First NWPW mc_steps alias value.
+  mcStepEnd                   @147 :Int32 = 0;      # Second NWPW mc_steps alias value.
 }
 
 # @struct NWChemScfStanza

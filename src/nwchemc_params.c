@@ -2115,6 +2115,11 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  bo_steps %d %d\n",
                     nwpw.boStepStart, nwpw.boStepEnd) != 0)
     return -1;
+  if (include_direct_promoted && nwpw.mcStepStart > 0 &&
+      nwpw.mcStepEnd > 0 &&
+      append_format(block, sizeof(block), "  mc_steps %d %d\n",
+                    nwpw.mcStepStart, nwpw.mcStepEnd) != 0)
+    return -1;
   if (include_direct_promoted && nwpw.boTimeStep > 0.0 &&
       append_format(block, sizeof(block), "  bo_time_step %.15g\n",
                     nwpw.boTimeStep) != 0)
@@ -3373,6 +3378,11 @@ int nwchemc_params_extract_direct_nwpw_bo(
       *has_options = 1;
       *bo_step_start = nwpw.boStepStart;
       *bo_step_end = nwpw.boStepEnd;
+    }
+    if (nwpw.mcStepStart > 0 && nwpw.mcStepEnd > 0) {
+      *has_options = 1;
+      *bo_step_start = nwpw.mcStepStart;
+      *bo_step_end = nwpw.mcStepEnd;
     }
     if (nwpw.boTimeStep > 0.0) {
       *has_options = 1;

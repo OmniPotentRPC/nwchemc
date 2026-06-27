@@ -4035,6 +4035,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.mcStepStart",
+      "schema_path": "NWChemNwpwStanza.mcStepStart",
+      "struct": "NWChemNwpwStanza",
+      "name": "mcStepStart",
+      "field_id": 146,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.mcStepStart Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mcStepEnd",
+      "schema_path": "NWChemNwpwStanza.mcStepEnd",
+      "struct": "NWChemNwpwStanza",
+      "name": "mcStepEnd",
+      "field_id": 147,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.mcStepEnd Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

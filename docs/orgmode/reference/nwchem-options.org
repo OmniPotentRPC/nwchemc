@@ -184,6 +184,7 @@ RTDB values directly:
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ | ~cgsd:exchange_correlation~, ~band:exchange_correlation~, ~cpsd:exchange_correlation~, ~cpmd:exchange_correlation~ |
 | ~balanceMode~ | ~balance~ or ~nobalance~ | ~nwpw:balance~ |
 | ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~ | ~nwpw:bo_steps~ |
+| ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~ | ~nwpw:bo_steps~ |
 | ~boTimeStep~ | ~bo_time_step <value>~ | ~nwpw:bo_time_step~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
 | ~boFakeMass~ | ~bo_fake_mass <value>~ | ~nwpw:bo_fake_mass~ |
@@ -413,6 +414,7 @@ controls:
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ |
 | ~balanceMode~ | ~balance~ or ~nobalance~ |
 | ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~ |
+| ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~ |
 | ~boTimeStep~ | ~bo_time_step <value>~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
 | ~boFakeMass~ | ~bo_fake_mass <value>~ |

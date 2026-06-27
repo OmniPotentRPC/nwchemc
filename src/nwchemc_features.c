@@ -353,6 +353,8 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.allowTranslation", "NWChemNwpwStanza.allowTranslation", "NWChemNwpwStanza.allowTranslation Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 143, 1, 1},
     {"field.NWChemNwpwStanza.cutoffWavefunction", "NWChemNwpwStanza.cutoffWavefunction", "NWChemNwpwStanza.cutoffWavefunction Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 144, 1, 1},
     {"field.NWChemNwpwStanza.cutoffEnergy", "NWChemNwpwStanza.cutoffEnergy", "NWChemNwpwStanza.cutoffEnergy Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 145, 1, 1},
+    {"field.NWChemNwpwStanza.mcStepStart", "NWChemNwpwStanza.mcStepStart", "NWChemNwpwStanza.mcStepStart Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 146, 1, 1},
+    {"field.NWChemNwpwStanza.mcStepEnd", "NWChemNwpwStanza.mcStepEnd", "NWChemNwpwStanza.mcStepEnd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 147, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -578,7 +580,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 573;
+static const size_t k_feature_count = 575;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
