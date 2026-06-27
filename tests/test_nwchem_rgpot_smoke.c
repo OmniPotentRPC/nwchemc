@@ -471,6 +471,156 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   free(config);
 }
 
+static void test_rgpot_config_session_named_result_carriers(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t config_size = 0;
+  size_t force_input_size = 0;
+  unsigned char *config = read_file(g_config_path, &config_size);
+  unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  assert_non_null(config);
+  assert_non_null(force_input);
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config, config_size);
+  assert_non_null(session);
+
+  size_t energy_capacity =
+      nwchemc_energy_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_energy_result_size_for_force_input",
+                         energy_capacity);
+  unsigned char *energy_bytes = (unsigned char *)malloc(energy_capacity);
+  assert_non_null(energy_bytes);
+  size_t energy_size = 0;
+  NWChemCResult energy_status = nwchemc_session_calculate_energy_result(
+      session, force_input, force_input_size, energy_bytes, energy_capacity,
+      &energy_size);
+  assert_status_energy("nwchemc_session_calculate_energy_result",
+                       energy_status);
+  assert_int_equal(energy_size, energy_capacity);
+  assert_potential_result_energy_only(energy_bytes, energy_size,
+                                      energy_status.energy_h);
+
+  size_t forces_capacity =
+      nwchemc_forces_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_forces_result_size_for_force_input",
+                         forces_capacity);
+  unsigned char *forces_bytes = (unsigned char *)malloc(forces_capacity);
+  assert_non_null(forces_bytes);
+  size_t forces_size = 0;
+  NWChemCResult forces_status = nwchemc_session_calculate_forces_result(
+      session, force_input, force_input_size, forces_bytes, forces_capacity,
+      &forces_size);
+  assert_status_energy("nwchemc_session_calculate_forces_result",
+                       forces_status);
+  assert_int_equal(forces_size, forces_capacity);
+  assert_potential_result_forces(forces_bytes, forces_size,
+                                 forces_status.energy_h);
+
+  size_t hessian_capacity =
+      nwchemc_hessian_result_size_for_force_input(force_input,
+                                                  force_input_size);
+  assert_result_capacity("nwchemc_hessian_result_size_for_force_input",
+                         hessian_capacity);
+  unsigned char *hessian_bytes = (unsigned char *)malloc(hessian_capacity);
+  assert_non_null(hessian_bytes);
+  size_t hessian_size = 0;
+  NWChemCResult hessian_status = nwchemc_session_calculate_hessian_result(
+      session, force_input, force_input_size, hessian_bytes, hessian_capacity,
+      &hessian_size);
+  assert_status_energy("nwchemc_session_calculate_hessian_result",
+                       hessian_status);
+  assert_int_equal(hessian_size, hessian_capacity);
+  assert_potential_result_hessian(hessian_bytes, hessian_size,
+                                  hessian_status.energy_h);
+
+  size_t dipole_capacity =
+      nwchemc_dipole_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_dipole_result_size_for_force_input",
+                         dipole_capacity);
+  unsigned char *dipole_bytes = (unsigned char *)malloc(dipole_capacity);
+  assert_non_null(dipole_bytes);
+  size_t dipole_size = 0;
+  NWChemCResult dipole_status = nwchemc_session_calculate_dipole_result(
+      session, force_input, force_input_size, dipole_bytes, dipole_capacity,
+      &dipole_size);
+  assert_status_energy("nwchemc_session_calculate_dipole_result",
+                       dipole_status);
+  assert_int_equal(dipole_size, dipole_capacity);
+  assert_potential_result_dipole(dipole_bytes, dipole_size,
+                                 dipole_status.energy_h);
+
+  size_t quadrupole_capacity =
+      nwchemc_quadrupole_result_size_for_force_input(force_input,
+                                                     force_input_size);
+  assert_result_capacity("nwchemc_quadrupole_result_size_for_force_input",
+                         quadrupole_capacity);
+  unsigned char *quadrupole_bytes =
+      (unsigned char *)malloc(quadrupole_capacity);
+  assert_non_null(quadrupole_bytes);
+  size_t quadrupole_size = 0;
+  NWChemCResult quadrupole_status =
+      nwchemc_session_calculate_quadrupole_result(
+          session, force_input, force_input_size, quadrupole_bytes,
+          quadrupole_capacity, &quadrupole_size);
+  assert_status_energy("nwchemc_session_calculate_quadrupole_result",
+                       quadrupole_status);
+  assert_int_equal(quadrupole_size, quadrupole_capacity);
+  assert_potential_result_quadrupole(quadrupole_bytes, quadrupole_size,
+                                     quadrupole_status.energy_h);
+
+  size_t optimize_capacity =
+      nwchemc_optimize_result_size_for_force_input(force_input,
+                                                   force_input_size);
+  assert_result_capacity("nwchemc_optimize_result_size_for_force_input",
+                         optimize_capacity);
+  unsigned char *optimize_bytes = (unsigned char *)malloc(optimize_capacity);
+  assert_non_null(optimize_bytes);
+  size_t optimize_size = 0;
+  NWChemCResult optimize_status = nwchemc_session_calculate_optimize_result(
+      session, force_input, force_input_size, optimize_bytes,
+      optimize_capacity, &optimize_size);
+  assert_status_energy("nwchemc_session_calculate_optimize_result",
+                       optimize_status);
+  assert_int_equal(optimize_size, optimize_capacity);
+  assert_potential_result_optimized(optimize_bytes, optimize_size,
+                                    optimize_status.energy_h);
+
+  size_t frequencies_capacity =
+      nwchemc_frequencies_result_size_for_force_input(force_input,
+                                                      force_input_size);
+  assert_result_capacity("nwchemc_frequencies_result_size_for_force_input",
+                         frequencies_capacity);
+  unsigned char *frequencies_bytes =
+      (unsigned char *)malloc(frequencies_capacity);
+  assert_non_null(frequencies_bytes);
+  size_t frequencies_size = 0;
+  NWChemCResult frequencies_status =
+      nwchemc_session_calculate_frequencies_result(
+          session, force_input, force_input_size, frequencies_bytes,
+          frequencies_capacity, &frequencies_size);
+  assert_status_energy("nwchemc_session_calculate_frequencies_result",
+                       frequencies_status);
+  assert_int_equal(frequencies_size, frequencies_capacity);
+  assert_potential_result_frequencies(frequencies_bytes, frequencies_size,
+                                      frequencies_status.energy_h);
+
+  free(frequencies_bytes);
+  free(optimize_bytes);
+  free(quadrupole_bytes);
+  free(dipole_bytes);
+  free(hessian_bytes);
+  free(forces_bytes);
+  free(energy_bytes);
+  nwchemc_session_destroy(session);
+  free(force_input);
+  free(config);
+}
+
 int main(int argc, char **argv) {
   if (argc != 3) {
     fprintf(stderr, "usage: %s POTENTIAL_CONFIG_BIN FORCE_INPUT_BIN\n",
@@ -482,6 +632,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_rgpot_config_forceinput_result_carrier),
       cmocka_unit_test(test_rgpot_config_named_result_carriers),
+      cmocka_unit_test(test_rgpot_config_session_named_result_carriers),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }
