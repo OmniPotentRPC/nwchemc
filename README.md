@@ -16,6 +16,13 @@ NWChemCResult nwchemc_energy_gradient(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *grad_h_bohr);
+NWChemCResult nwchemc_energy(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes);
+NWChemCResult nwchemc_energy_forces(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *forces_h_bohr);
 NWChemCResult nwchemc_hessian(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -24,12 +31,57 @@ NWChemCResult nwchemc_dipole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *dipole_au);
+NWChemCResult nwchemc_quadrupole(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *quadrupole_au);
 NWChemCResult nwchemc_stress(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *stress_au);
+NWChemCResult nwchemc_optimize(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *optimized_positions_ang);
+NWChemCResult nwchemc_frequencies(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au);
 NWChemCSession *nwchemc_session_create(
     const void *params_capnp, size_t params_capnp_size_bytes);
+int nwchemc_session_set_params(NWChemCSession *session,
+                               const void *params_capnp,
+                               size_t params_capnp_size_bytes);
+void nwchemc_session_destroy(NWChemCSession *session);
+NWChemCResult nwchemc_session_energy_gradient(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *grad_h_bohr);
+NWChemCResult nwchemc_session_energy(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers);
+NWChemCResult nwchemc_session_energy_forces(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *forces_h_bohr);
+NWChemCResult nwchemc_session_dipole(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *dipole_au);
+NWChemCResult nwchemc_session_quadrupole(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *quadrupole_au);
+NWChemCResult nwchemc_session_optimize(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *optimized_positions_ang);
+NWChemCResult nwchemc_session_frequencies(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *frequencies_cm1,
+    double *intensities_au);
+NWChemCResult nwchemc_session_calculate_forces(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *forces_h_bohr, size_t forces_len);
+NWChemCResult nwchemc_session_calculate_energy(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 size_t nwchemc_potential_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_result(
@@ -90,6 +142,10 @@ NWChemCResult nwchemc_calculate_dipole_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_quadrupole(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *quadrupole_au, size_t quadrupole_len);
 size_t nwchemc_quadrupole_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_quadrupole_result(
@@ -122,6 +178,10 @@ NWChemCResult nwchemc_calculate_stress_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_optimize(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *optimized_positions_ang, size_t optimized_positions_len);
 size_t nwchemc_optimize_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_optimize_result(
@@ -136,6 +196,11 @@ NWChemCResult nwchemc_calculate_optimize_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_frequencies(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len,
+    double *intensities_au, size_t intensities_len);
 size_t nwchemc_frequencies_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_frequencies_result(
@@ -150,7 +215,40 @@ NWChemCResult nwchemc_calculate_frequencies_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
-void nwchemc_session_destroy(NWChemCSession *session);
+NWChemCResult nwchemc_session_calculate_hessian(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *hessian_h_bohr2, size_t hessian_len);
+NWChemCResult nwchemc_session_calculate_dipole(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *dipole_au, size_t dipole_len);
+NWChemCResult nwchemc_session_calculate_quadrupole(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *quadrupole_au, size_t quadrupole_len);
+NWChemCResult nwchemc_session_calculate_stress(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *stress_au, size_t stress_len);
+NWChemCResult nwchemc_session_calculate_optimize(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *optimized_positions_ang, size_t optimized_positions_len);
+NWChemCResult nwchemc_session_calculate_frequencies(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len,
+    double *intensities_au, size_t intensities_len);
+NWChemCResult nwchemc_session_stress(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *stress_au);
+NWChemCResult nwchemc_session_hessian(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *hessian_h_bohr2);
+const char *nwchemc_version(void);
+int nwchemc_available(void);
+void nwchemc_finalize(void);
 ```
 
 `params_capnp` is an unpacked flat Cap'n Proto message whose root is
