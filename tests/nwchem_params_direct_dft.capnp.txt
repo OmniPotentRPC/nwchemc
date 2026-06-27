@@ -219,6 +219,7 @@
         vfieldFilenames = ["vf_a.ascii", "vf_b.ascii"],
         singlePrecisionHfx = true,
         geometryOptimize = true,
+        auxiliaryPotentials = true,
         dosAlphaSet = true,
         dosAlpha = 0.0025,
         dosNpointsSet = true,

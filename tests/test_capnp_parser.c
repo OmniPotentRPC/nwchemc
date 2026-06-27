@@ -149,6 +149,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "vfield vf_a.ascii vf_b.ascii"));
   assert_non_null(strstr(input_blocks, "single_precision_hfx"));
   assert_non_null(strstr(input_blocks, "geometry_optimize"));
+  assert_non_null(strstr(input_blocks, "auxiliary_potentials"));
   assert_non_null(strstr(input_blocks, "dos 0.0025 120 -0.5 1.5"));
   assert_non_null(strstr(input_blocks, "dos_filename dos.dat"));
   assert_non_null(strstr(input_blocks, "cpmd_properties true"));
@@ -415,6 +416,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "pspw:HFX_single_precision"));
   assert_null(strstr(input_blocks, "geometry_optimize"));
   assert_null(strstr(input_blocks, "cgsd:geometry_optimize"));
+  assert_null(strstr(input_blocks, "auxiliary_potentials"));
+  assert_null(strstr(input_blocks, "pspw_qmmm_auxon"));
   assert_null(strstr(input_blocks, "dos 0.0025"));
   assert_null(strstr(input_blocks, "dos_filename dos.dat"));
   assert_null(strstr(input_blocks, "dos:alpha"));
@@ -869,6 +872,15 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_geometry_optimize, 1);
   assert_int_equal(geometry_optimize, 1);
+
+  int has_auxiliary_potentials = 0;
+  int auxiliary_potentials = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_auxiliary_potentials(
+                       params_root, &has_auxiliary_potentials,
+                       &auxiliary_potentials),
+                   0);
+  assert_int_equal(has_auxiliary_potentials, 1);
+  assert_int_equal(auxiliary_potentials, 1);
 
   int has_dos = 0;
   int dos_alpha_set = 0;
