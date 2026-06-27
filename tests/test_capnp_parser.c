@@ -11,6 +11,7 @@
 #include <cmocka.h>
 
 static const char *g_params_path = NULL;
+static const char *g_pspspin_params_path = NULL;
 static const char *g_spin_mode_params_path = NULL;
 static const char *g_allow_translation_params_path = NULL;
 static const char *g_cutoff_alias_params_path = NULL;
@@ -287,6 +288,30 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(
       strstr(input_blocks, "tce\n  freeze core atomic\n  dipole\nend"));
   assert_non_null(strstr(input_blocks, "print debug tile time"));
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
+static void test_parser_omits_empty_pseudopotential_block(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_pspspin_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char input_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, input_blocks, sizeof(input_blocks)),
+                   0);
+  assert_null(strstr(input_blocks, "pseudopotentials"));
+  assert_non_null(strstr(input_blocks, "pspspin up p 1.25 1 3"));
+  assert_non_null(strstr(input_blocks, "pspspin not_m 0 down d 0.75 2"));
 
   nwchemc_params_release(&arena);
   free(message);
@@ -2583,9 +2608,10 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 29) {
+  if (argc != 30) {
     fprintf(stderr,
-            "usage: %s PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
+            "usage: %s PARAMS_BIN PSPSPIN_PARAMS_BIN "
+            "NWPW_SPIN_MODE_PARAMS_BIN "
             "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
             "NWPW_MC_STEPS_PARAMS_BIN NWPW_BO_STEPS_DEFAULT_PARAMS_BIN "
             "NWPW_BO_TIME_STEP_DEFAULT_PARAMS_BIN "
@@ -2612,35 +2638,37 @@ int main(int argc, char **argv) {
     return 2;
   }
   g_params_path = argv[1];
-  g_spin_mode_params_path = argv[2];
-  g_allow_translation_params_path = argv[3];
-  g_cutoff_alias_params_path = argv[4];
-  g_mc_steps_params_path = argv[5];
-  g_bo_steps_default_params_path = argv[6];
-  g_bo_time_step_default_params_path = argv[7];
-  g_bo_fake_mass_default_params_path = argv[8];
-  g_scaling_default_params_path = argv[9];
-  g_np_dimensions_default_params_path = argv[10];
-  g_tolerances_default_params_path = argv[11];
-  g_mc_steps_default_params_path = argv[12];
-  g_brillouin_tetrahedron_params_path = argv[13];
-  g_brillouin_dos_grid_params_path = argv[14];
-  g_nwpw_et_params_path = argv[15];
-  g_nwpw_temperature_params_path = argv[16];
-  g_nwpw_dos_default_params_path = argv[17];
-  g_nwpw_mapping_alias_params_path = argv[18];
-  g_nwpw_mapping_default_params_path = argv[19];
-  g_nwpw_virtual_alias_params_path = argv[20];
-  g_nwpw_one_electron_guess_defaults_params_path = argv[21];
-  g_nwpw_fractional_orbitals_default_params_path = argv[22];
-  g_nwpw_smear_orbitals_default_params_path = argv[23];
-  g_nwpw_virtual_orbitals_default_params_path = argv[24];
-  g_nwpw_translate_vector_default_params_path = argv[25];
-  g_nwpw_cell_expand_default_params_path = argv[26];
-  g_brillouin_monkhorst_default_params_path = argv[27];
-  g_brillouin_dos_grid_default_params_path = argv[28];
+  g_pspspin_params_path = argv[2];
+  g_spin_mode_params_path = argv[3];
+  g_allow_translation_params_path = argv[4];
+  g_cutoff_alias_params_path = argv[5];
+  g_mc_steps_params_path = argv[6];
+  g_bo_steps_default_params_path = argv[7];
+  g_bo_time_step_default_params_path = argv[8];
+  g_bo_fake_mass_default_params_path = argv[9];
+  g_scaling_default_params_path = argv[10];
+  g_np_dimensions_default_params_path = argv[11];
+  g_tolerances_default_params_path = argv[12];
+  g_mc_steps_default_params_path = argv[13];
+  g_brillouin_tetrahedron_params_path = argv[14];
+  g_brillouin_dos_grid_params_path = argv[15];
+  g_nwpw_et_params_path = argv[16];
+  g_nwpw_temperature_params_path = argv[17];
+  g_nwpw_dos_default_params_path = argv[18];
+  g_nwpw_mapping_alias_params_path = argv[19];
+  g_nwpw_mapping_default_params_path = argv[20];
+  g_nwpw_virtual_alias_params_path = argv[21];
+  g_nwpw_one_electron_guess_defaults_params_path = argv[22];
+  g_nwpw_fractional_orbitals_default_params_path = argv[23];
+  g_nwpw_smear_orbitals_default_params_path = argv[24];
+  g_nwpw_virtual_orbitals_default_params_path = argv[25];
+  g_nwpw_translate_vector_default_params_path = argv[26];
+  g_nwpw_cell_expand_default_params_path = argv[27];
+  g_brillouin_monkhorst_default_params_path = argv[28];
+  g_brillouin_dos_grid_default_params_path = argv[29];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
+      cmocka_unit_test(test_parser_omits_empty_pseudopotential_block),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_options),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_spin_mode),

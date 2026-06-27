@@ -860,6 +860,7 @@ if get_option('with_tests')
     ),
     args: [
       nwchem_parser_params_bin,
+      nwchem_pspspin_params_bin,
       nwchem_nwpw_spin_mode_params_bin,
       nwchem_nwpw_allow_translation_params_bin,
       nwchem_nwpw_cutoff_alias_params_bin,
