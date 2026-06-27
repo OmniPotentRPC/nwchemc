@@ -529,6 +529,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_nwpw_mapping_default_params_bin = custom_target(
+    'nwchem_nwpw_mapping_default_params_bin',
+    input: 'tests/nwchem_params_nwpw_mapping_default.capnp.txt',
+    output: 'nwchem_params_nwpw_mapping_default.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_nwpw_virtual_alias_params_bin = custom_target(
     'nwchem_nwpw_virtual_alias_params_bin',
     input: 'tests/nwchem_params_nwpw_virtual_alias.capnp.txt',
@@ -848,6 +862,7 @@ if get_option('with_tests')
       nwchem_nwpw_et_params_bin,
       nwchem_nwpw_temperature_params_bin,
       nwchem_nwpw_mapping_alias_params_bin,
+      nwchem_nwpw_mapping_default_params_bin,
       nwchem_nwpw_virtual_alias_params_bin,
       nwchem_nwpw_one_electron_guess_defaults_params_bin,
       nwchem_nwpw_fractional_orbitals_default_params_bin,
@@ -889,6 +904,7 @@ if get_option('with_tests')
       nwchem_nwpw_et_params_bin,
       nwchem_nwpw_temperature_params_bin,
       nwchem_nwpw_mapping_alias_params_bin,
+      nwchem_nwpw_mapping_default_params_bin,
       nwchem_nwpw_virtual_alias_params_bin,
       nwchem_nwpw_one_electron_guess_defaults_params_bin,
       nwchem_nwpw_fractional_orbitals_default_params_bin,
