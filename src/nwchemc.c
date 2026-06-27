@@ -1851,6 +1851,22 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_single_precision_hfx_has_options,
           &nwpw_single_precision_hfx) != 0)
     return -1;
+  int nwpw_dos_has_options = 0;
+  int nwpw_dos_alpha_set = 0;
+  double nwpw_dos_alpha = 0.0;
+  int nwpw_dos_npoints_set = 0;
+  int nwpw_dos_npoints = 0;
+  int nwpw_dos_emin_set = 0;
+  double nwpw_dos_emin = 0.0;
+  int nwpw_dos_emax_set = 0;
+  double nwpw_dos_emax = 0.0;
+  capn_text nwpw_dos_filename = {0};
+  if (nwchemc_params_extract_direct_nwpw_dos(
+          params_root, &nwpw_dos_has_options, &nwpw_dos_alpha_set,
+          &nwpw_dos_alpha, &nwpw_dos_npoints_set, &nwpw_dos_npoints,
+          &nwpw_dos_emin_set, &nwpw_dos_emin, &nwpw_dos_emax_set,
+          &nwpw_dos_emax, &nwpw_dos_filename) != 0)
+    return -1;
   int nwpw_cpmd_grid_has_options = 0;
   int nwpw_cpmd_properties = NWChemNwpwToggle_unspecified;
   int nwpw_use_grid_comparison = NWChemNwpwToggle_unspecified;
@@ -2057,6 +2073,11 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             "nwpw:vfield_filenames", value) != 0)
       return -1;
   }
+  if (nwpw_dos_filename.len > 0 &&
+      append_direct_string_value(set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
+                                 &set_count, "nwpw:dos:filename",
+                                 nwpw_dos_filename) != 0)
+    return -1;
   if (nwchemc_params_extract_direct_set_values(
           params_root, typed_set_keys, typed_set_types, typed_set_value_counts,
           typed_set_values, NWCHEMC_DIRECT_SET_MAX, NWCHEMC_DIRECT_SET_VALUE_MAX,
@@ -3208,6 +3229,52 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "pspw:HFX_single_precision",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
       return -1;
+  }
+  if (nwpw_dos_has_options) {
+    if (nwpw_dos_alpha_set) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", nwpw_dos_alpha);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "dos:alpha",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+        return -1;
+    }
+    if (nwpw_dos_npoints_set) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", nwpw_dos_npoints);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "dos:npoints",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    if (nwpw_dos_emin_set) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", nwpw_dos_emin);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "dos:emin",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+        return -1;
+    }
+    if (nwpw_dos_emax_set) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%.15g", nwpw_dos_emax);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "dos:emax",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+        return -1;
+    }
   }
   if (nwpw_cpmd_grid_has_options) {
     const char *cpmd_properties_value = nwpw_toggle_logical_value(

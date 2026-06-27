@@ -14,6 +14,8 @@ static const size_t NWCHEMC_POTENTIAL_RESULT_BASE_SIZE = 88u;
 
 static const capn_text empty_text = {0, "", 0};
 
+static double nwpw_dos_default_alpha(void) { return 0.05 / 27.2116; }
+
 const char *nwchemc_params_text_or(capn_text text, const char *fallback) {
   if (text.str && text.len > 0)
     return text.str;
@@ -2456,6 +2458,30 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && nwpw.singlePrecisionHfx &&
       append_format(block, sizeof(block), "  single_precision_hfx\n") != 0)
     return -1;
+  const int has_dos_scalars = nwpw.dosAlphaSet || nwpw.dosNpointsSet ||
+                              nwpw.dosEminSet || nwpw.dosEmaxSet;
+  if (include_direct_promoted && has_dos_scalars) {
+    double alpha =
+        nwpw.dosAlphaSet ? nwpw.dosAlpha : nwpw_dos_default_alpha();
+    if (append_format(block, sizeof(block), "  dos %.15g", alpha) != 0)
+      return -1;
+    if (nwpw.dosNpointsSet &&
+        append_format(block, sizeof(block), " %d", nwpw.dosNpoints) != 0)
+      return -1;
+    if (nwpw.dosEminSet &&
+        append_format(block, sizeof(block), " %.15g", nwpw.dosEmin) != 0)
+      return -1;
+    if (nwpw.dosEmaxSet &&
+        append_format(block, sizeof(block), " %.15g", nwpw.dosEmax) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && nwpw.dosFilename.len > 0 &&
+      (append_format(block, sizeof(block), "  dos_filename ") != 0 ||
+       append_text(block, sizeof(block), nwpw.dosFilename) != 0 ||
+       append_format(block, sizeof(block), "\n") != 0))
+    return -1;
   const char *cpmd_properties_logical =
       nwpw_toggle_logical_keyword(nwpw.cpmdProperties);
   if (include_direct_promoted && cpmd_properties_logical &&
@@ -4186,6 +4212,67 @@ int nwchemc_params_extract_direct_nwpw_single_precision_hfx(
 
     *has_options = 1;
     *single_precision_hfx = 1;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_dos(
+    NWChemParams_ptr params, int *has_options, int *dos_alpha_set,
+    double *dos_alpha, int *dos_npoints_set, int *dos_npoints,
+    int *dos_emin_set, double *dos_emin, int *dos_emax_set, double *dos_emax,
+    capn_text *dos_filename) {
+  if (params.p.type == CAPN_NULL || !has_options || !dos_alpha_set ||
+      !dos_alpha || !dos_npoints_set || !dos_npoints || !dos_emin_set ||
+      !dos_emin || !dos_emax_set || !dos_emax || !dos_filename)
+    return -1;
+
+  *has_options = 0;
+  *dos_alpha_set = 0;
+  *dos_alpha = 0.0;
+  *dos_npoints_set = 0;
+  *dos_npoints = 0;
+  *dos_emin_set = 0;
+  *dos_emin = 0.0;
+  *dos_emax_set = 0;
+  *dos_emax = 0.0;
+  *dos_filename = (capn_text){0};
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    const int has_dos_scalars = nwpw.dosAlphaSet || nwpw.dosNpointsSet ||
+                                nwpw.dosEminSet || nwpw.dosEmaxSet;
+    const int has_dos = has_dos_scalars || nwpw.dosFilename.len > 0;
+    if (!has_dos)
+      continue;
+
+    *has_options = 1;
+    if (has_dos_scalars) {
+      *dos_alpha_set = 1;
+      *dos_alpha =
+          nwpw.dosAlphaSet ? nwpw.dosAlpha : nwpw_dos_default_alpha();
+      *dos_npoints_set = nwpw.dosNpointsSet;
+      *dos_npoints = nwpw.dosNpoints;
+      *dos_emin_set = nwpw.dosEminSet;
+      *dos_emin = nwpw.dosEmin;
+      *dos_emax_set = nwpw.dosEmaxSet;
+      *dos_emax = nwpw.dosEmax;
+    }
+    if (nwpw.dosFilename.len > 0)
+      *dos_filename = nwpw.dosFilename;
   }
 
   return 0;

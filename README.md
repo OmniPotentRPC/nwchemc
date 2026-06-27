@@ -213,8 +213,10 @@ temperature, and chain-length RTDB keys directly. Born solvation controls
 expose `nwpw:born`, `nwpw:born_dielec`, `nwpw:born_relax`, and
 `nwpw:born_vradii` directly. Vfield filename lists expose
 `nwpw:vfield_filenames` directly. Single-precision HFX exposes
-`pspw:HFX_single_precision` directly. CPMD property and grid-comparison flags
-expose `nwpw:cpmd_properties` and `nwpw:use_grid_cmp` directly. Director controls
+`pspw:HFX_single_precision` directly. DOS controls expose `dos:alpha`,
+`dos:npoints`, `dos:emin`, `dos:emax`, and `nwpw:dos:filename` directly. CPMD
+property and grid-comparison flags expose `nwpw:cpmd_properties` and
+`nwpw:use_grid_cmp` directly. Director controls
 expose `nwpw:use_director` and `nwpw:director_filename` directly. Cell
 expansion and mapping controls expose `nwpw:cell_expand` and `nwpw:mapping`
 directly. Rotation and multipole controls expose `nwpw:rotation` and

@@ -174,6 +174,12 @@ int nwchemc_params_extract_direct_nwpw_vfield(
 int nwchemc_params_extract_direct_nwpw_single_precision_hfx(
     NWChemParams_ptr params, int *has_options, int *single_precision_hfx);
 
+int nwchemc_params_extract_direct_nwpw_dos(
+    NWChemParams_ptr params, int *has_options, int *dos_alpha_set,
+    double *dos_alpha, int *dos_npoints_set, int *dos_npoints,
+    int *dos_emin_set, double *dos_emin, int *dos_emax_set, double *dos_emax,
+    capn_text *dos_filename);
+
 int nwchemc_params_extract_direct_nwpw_cpmd_grid(
     NWChemParams_ptr params, int *has_options, int *cpmd_properties,
     int *use_grid_comparison);

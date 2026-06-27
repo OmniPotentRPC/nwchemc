@@ -541,6 +541,15 @@ struct NWChemNwpwStanza {
   oneElectronGuessItOrtho     @127 :Int32 = 0;      # NWPW one-electron guess orthogonalization iterations.
   vfieldFilenames             @128 :List(Text);     # Emit/promote NWPW vfield filenames.
   singlePrecisionHfx          @129 :Bool = false;   # Emit/promote NWPW single_precision_hfx.
+  dosAlphaSet                 @130 :Bool = false;   # Emit/promote NWPW DOS alpha.
+  dosAlpha                    @131 :Float64 = 0.0;  # NWPW DOS alpha value.
+  dosNpointsSet               @132 :Bool = false;   # Emit/promote NWPW DOS point count.
+  dosNpoints                  @133 :Int32 = 0;      # NWPW DOS point count.
+  dosEminSet                  @134 :Bool = false;   # Emit/promote NWPW DOS minimum energy.
+  dosEmin                     @135 :Float64 = 0.0;  # NWPW DOS minimum energy.
+  dosEmaxSet                  @136 :Bool = false;   # Emit/promote NWPW DOS maximum energy.
+  dosEmax                     @137 :Float64 = 0.0;  # NWPW DOS maximum energy.
+  dosFilename                 @138 :Text = "";      # Emit/promote NWPW dos_filename.
 }
 
 # @struct NWChemScfStanza

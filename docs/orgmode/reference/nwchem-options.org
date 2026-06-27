@@ -236,6 +236,11 @@ RTDB values directly:
 | ~bornVRadiiAngstrom~ | trailing input radii in ~born~ | ~nwpw:born_vradii~ in Bohr |
 | ~vfieldFilenames~ | ~vfield <filename...>~ | ~nwpw:vfield_filenames~ |
 | ~singlePrecisionHfx~ | ~single_precision_hfx~ | ~pspw:HFX_single_precision~ |
+| ~dosAlpha~ | first argument in ~dos <alpha> ...~ | ~dos:alpha~ |
+| ~dosNpoints~ | second argument in ~dos <alpha> <npoints> ...~ | ~dos:npoints~ |
+| ~dosEmin~ | third argument in ~dos <alpha> <npoints> <emin> ...~ | ~dos:emin~ |
+| ~dosEmax~ | fourth argument in ~dos <alpha> <npoints> <emin> <emax>~ | ~dos:emax~ |
+| ~dosFilename~ | ~dos_filename <path>~ | ~nwpw:dos:filename~ |
 | ~cpmdProperties~ | ~cpmd_properties true~ or ~false~ | ~nwpw:cpmd_properties~ |
 | ~useGridComparison~ | ~use_grid_cmp true~ or ~false~ | ~nwpw:use_grid_cmp~ |
 | ~director~ | ~director~, ~director true~, or ~director false~ | ~nwpw:use_director~ |
