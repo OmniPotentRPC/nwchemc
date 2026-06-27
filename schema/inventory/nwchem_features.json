@@ -1359,6 +1359,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.PotentialResult.hessian",
+      "schema_path": "PotentialResult.hessian",
+      "struct": "PotentialResult",
+      "name": "hessian",
+      "field_id": 2,
+      "type": "List(Float64)",
+      "role": "PotentialResult.hessian Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDirective.keyword",
       "schema_path": "NWChemDirective.keyword",
       "struct": "NWChemDirective",
@@ -4774,6 +4786,21 @@
       "name": "nwchemc_calculate_hessian",
       "stub": "fails ok==0",
       "embed": "runs one-shot ForceInput Hessian"
+    },
+    {
+      "name": "nwchemc_hessian_result_size_for_force_input",
+      "stub": "returns 0",
+      "embed": "sizes ForceInput Hessian PotentialResult"
+    },
+    {
+      "name": "nwchemc_session_calculate_hessian_result",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput Hessian into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_hessian_result",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput Hessian into PotentialResult"
     },
     {
       "name": "nwchemc_calculate_dipole",

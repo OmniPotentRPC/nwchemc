@@ -45,12 +45,14 @@ NWChem runtime state inside the session.
 ~nwchemc_session_calculate_hessian()~ accept serialized ~ForceInput~ messages,
 so molecular dynamics, optimizers, vibrational workflows, and socket-style
 drivers can update coordinates and the periodic cell without rebuilding the
-full configuration carrier. The result-carrier entry point writes an unpacked
-flat ~PotentialResult~ message for RPC callers and reports the exact byte count
+full configuration carrier. The result-carrier entry points write unpacked flat
+~PotentialResult~ messages for RPC callers and report the exact byte count
 required before an NWChem evaluation when the caller's buffer is too small.
 ~nwchemc_potential_result_size_for_force_input()~ exposes the same size
 calculation without touching the NWChem runtime, which lets long-running loops
 allocate or grow the result buffer from the per-step ~ForceInput~ alone.
+~nwchemc_hessian_result_size_for_force_input()~ does the same for
+~PotentialResult.hessian~.
 ~nwchemc_calculate_result()~ creates a temporary session for callers with a
 single step and performs the same output-size check before NWChem
 configuration or evaluation.
@@ -71,6 +73,7 @@ and ~ForceInput.box~ are copied from the Cap'n Proto message into contiguous C
 arrays with explicit unit conversion, then handed to the Fortran bridge.
 ~PotentialResult.energy~ and ~PotentialResult.forces~ are converted to the
 caller units named by ~ForceInput.energyUnit~ and ~ForceInput.lengthUnit~.
+~PotentialResult.hessian~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
 Native C buffers keep NWChem units for callers that want direct numerical
 storage.
 

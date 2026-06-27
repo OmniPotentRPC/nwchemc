@@ -3493,22 +3493,55 @@ int nwchemc_force_input_result_factors(ForceInput_ptr force_input,
   return 0;
 }
 
-size_t nwchemc_potential_result_flat_size(size_t force_count) {
-  if (force_count > (SIZE_MAX - 32u) / 8u)
-    return 0;
-  return 32u + force_count * 8u;
-}
-
-int nwchemc_potential_result_write(double energy, const double *forces,
-                                   size_t force_count,
-                                   void *potential_result_capnp,
-                                   size_t potential_result_capacity_bytes,
-                                   size_t *potential_result_size_bytes) {
-  if (!forces || !potential_result_capnp || !potential_result_size_bytes ||
-      force_count > (size_t)INT_MAX)
+int nwchemc_force_input_hessian_result_factors(ForceInput_ptr force_input,
+                                               double *energy_factor,
+                                               double *hessian_factor) {
+  if (force_input.p.type == CAPN_NULL || !energy_factor || !hessian_factor)
     return -1;
 
-  size_t required = nwchemc_potential_result_flat_size(force_count);
+  struct ForceInput view;
+  read_ForceInput(&view, force_input);
+  double length_factor = 1.0;
+  double energy = 1.0;
+  if (force_input_length_factor(view.lengthUnit, &length_factor) != 0 ||
+      force_input_energy_factor(view.energyUnit, &energy) != 0)
+    return -1;
+
+  double length_scale = length_factor / NWCHEMC_BOHR_TO_ANGSTROM;
+  *energy_factor = energy;
+  *hessian_factor = energy * length_scale * length_scale;
+  return 0;
+}
+
+size_t nwchemc_potential_result_flat_size(size_t force_count) {
+  if (force_count > (SIZE_MAX - 40u) / 8u)
+    return 0;
+  return 40u + force_count * 8u;
+}
+
+size_t nwchemc_hessian_result_flat_size(size_t hessian_count) {
+  if (hessian_count > (SIZE_MAX - 40u) / 8u)
+    return 0;
+  return 40u + hessian_count * 8u;
+}
+
+static int nwchemc_potential_result_write_lists(
+    double energy, const double *forces, size_t force_count,
+    const double *hessian, size_t hessian_count, void *potential_result_capnp,
+    size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes) {
+  if (!potential_result_capnp || !potential_result_size_bytes ||
+      force_count > (size_t)INT_MAX || hessian_count > (size_t)INT_MAX ||
+      (force_count > 0 && !forces) || (hessian_count > 0 && !hessian))
+    return -1;
+
+  size_t required = 40u;
+  if (force_count > (SIZE_MAX - required) / 8u)
+    return -1;
+  required += force_count * 8u;
+  if (hessian_count > (SIZE_MAX - required) / 8u)
+    return -1;
+  required += hessian_count * 8u;
   *potential_result_size_bytes = required;
   if (required == 0 || potential_result_capacity_bytes < required)
     return -1;
@@ -3522,18 +3555,28 @@ int nwchemc_potential_result_write(double energy, const double *forces,
   }
 
   PotentialResult_ptr result = new_PotentialResult(root.seg);
-  capn_list64 force_list = capn_new_list64(root.seg, (int)force_count);
+  capn_list64 force_list = {0};
+  capn_list64 hessian_list = {0};
+  if (force_count > 0)
+    force_list = capn_new_list64(root.seg, (int)force_count);
+  if (hessian_count > 0)
+    hessian_list = capn_new_list64(root.seg, (int)hessian_count);
   if (result.p.type == CAPN_NULL ||
-      (force_count > 0 && force_list.p.type == CAPN_NULL)) {
+      (force_count > 0 && force_list.p.type == CAPN_NULL) ||
+      (hessian_count > 0 && hessian_list.p.type == CAPN_NULL)) {
     capn_free(&arena);
     return -1;
   }
   for (size_t i = 0; i < force_count; ++i)
     capn_set64(force_list, (int)i, capn_from_f64(forces[i]));
+  for (size_t i = 0; i < hessian_count; ++i)
+    capn_set64(hessian_list, (int)i, capn_from_f64(hessian[i]));
 
   struct PotentialResult view;
+  memset(&view, 0, sizeof(view));
   view.energy = energy;
   view.forces = force_list;
+  view.hessian = hessian_list;
   write_PotentialResult(&view, result);
   if (capn_setp(root, 0, result.p) != 0) {
     capn_free(&arena);
@@ -3547,6 +3590,25 @@ int nwchemc_potential_result_write(double energy, const double *forces,
     return -1;
   *potential_result_size_bytes = (size_t)written;
   return 0;
+}
+
+int nwchemc_potential_result_write(double energy, const double *forces,
+                                   size_t force_count,
+                                   void *potential_result_capnp,
+                                   size_t potential_result_capacity_bytes,
+                                   size_t *potential_result_size_bytes) {
+  return nwchemc_potential_result_write_lists(
+      energy, forces, force_count, NULL, 0, potential_result_capnp,
+      potential_result_capacity_bytes, potential_result_size_bytes);
+}
+
+int nwchemc_potential_result_write_hessian(
+    double energy, const double *hessian, size_t hessian_count,
+    void *potential_result_capnp, size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes) {
+  return nwchemc_potential_result_write_lists(
+      energy, NULL, 0, hessian, hessian_count, potential_result_capnp,
+      potential_result_capacity_bytes, potential_result_size_bytes);
 }
 
 int nwchemc_params_root(const void *params_capnp,

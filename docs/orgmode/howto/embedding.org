@@ -78,6 +78,9 @@ Hartree. ~forces_h_bohr~ is filled in Hartree per Bohr for low-overhead native
 callers. ~nwchemc_session_calculate_result~ fills an unpacked flat
 ~PotentialResult~ Cap'n Proto message: ~energy~ uses ~ForceInput.energyUnit~,
 and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
+~nwchemc_session_calculate_hessian_result~ fills ~PotentialResult.hessian~ with
+the dense row-major Cartesian Hessian in
+~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
 
 The first successful session evaluation establishes the session topology: atom
 count and the ordered atomic-number list. Later session calls may change
@@ -90,11 +93,12 @@ also requires a separate session.
 ~nwchemc_potential_result_size_for_force_input~ parses the step message and
 returns the result byte count without evaluating NWChem. If the output buffer is
 too small, ~nwchemc_session_calculate_result~ reports the required byte count
-through ~potential_result_size~ and does not evaluate NWChem. ~hessian_h_bohr2~
-is filled in Hartree per Bohr squared. ~dipole_au~ is filled with a
-three-element total dipole vector in atomic units. ~quadrupole_au~ is filled
-with six total traceless quadrupole tensor components in atomic units, ordered
-~xx, xy, xz, yy, yz, zz~.
+through ~potential_result_size~ and does not evaluate NWChem.
+~nwchemc_hessian_result_size_for_force_input~ provides the same preflight size
+for Hessian result messages. ~hessian_h_bohr2~ is filled in Hartree per Bohr
+squared. ~dipole_au~ is filled with a three-element total dipole vector in
+atomic units. ~quadrupole_au~ is filled with six total traceless quadrupole
+tensor components in atomic units, ordered ~xx, xy, xz, yy, yz, zz~.
 
 For a single geometry step, ~nwchemc_calculate_result~ accepts
 ~NWChemParams~, one ~ForceInput~, and the caller-owned ~PotentialResult~ output
@@ -104,7 +108,8 @@ without initializing NWChem when the buffer is too small.
 ~nwchemc_calculate_hessian~ and ~nwchemc_calculate_dipole~ provide the same
 one-shot ~NWChemParams~ + ~ForceInput~ carrier for native Hessian and dipole
 buffers. ~nwchemc_calculate_quadrupole~ provides the same carrier for the
-six-component quadrupole buffer.
+six-component quadrupole buffer. ~nwchemc_calculate_hessian_result~ uses the
+same one-shot carrier and writes the Hessian to ~PotentialResult.hessian~.
 
 * Parameter Ownership
 ~nwchemc~ reads the message with generated ~capnp-c~ bindings.
@@ -126,6 +131,10 @@ as negative gradients in Hartree per Bohr.
 ~nwchemc_hessian()~, ~nwchemc_session_calculate_hessian()~, and
 ~nwchemc_calculate_hessian()~ fill a dense row-major Cartesian Hessian in
 Hartree per Bohr squared, with length ~(natoms * 3) * (natoms * 3)~.
+~nwchemc_session_calculate_hessian_result()~ and
+~nwchemc_calculate_hessian_result()~ write that same Hessian to
+~PotentialResult.hessian~ after conversion to
+~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
 ~nwchemc_dipole()~, ~nwchemc_session_dipole()~, and
 ~nwchemc_session_calculate_dipole()~, and ~nwchemc_calculate_dipole()~ fill a
 three-element total dipole vector in atomic units and keep

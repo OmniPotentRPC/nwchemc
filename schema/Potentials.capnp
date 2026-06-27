@@ -26,8 +26,9 @@ struct ForceInput {
 # @struct PotentialResult
 # @brief Results returned from a potential energy evaluation.
 struct PotentialResult {
-  energy @0 :Float64;       # @brief The calculated potential energy.
-  forces @1 :List(Float64); # @brief Flat array of atomic forces [natoms * 3].
+  energy  @0 :Float64;       # @brief The calculated potential energy.
+  forces  @1 :List(Float64); # @brief Flat array of atomic forces [natoms * 3].
+  hessian @2 :List(Float64); # @brief Dense Cartesian Hessian [natoms * 3]^2.
 }
 
 # @struct NWChemParams

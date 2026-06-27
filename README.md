@@ -44,6 +44,20 @@ NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *hessian_h_bohr2, size_t hessian_len);
+size_t nwchemc_hessian_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_hessian_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_hessian_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 NWChemCResult nwchemc_calculate_dipole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -73,8 +87,12 @@ implicitly; callers that need a new topology or a new post-step configuration
 create a separate session.
 `nwchemc_calculate_result()` offers the same `NWChemParams + ForceInput`
 carrier for one-shot callers and delegates through the session result path;
-callers with multiple steps should reuse `NWChemCSession`. One-shot Hessian and
-dipole wrappers use the same `NWChemParams + ForceInput` carrier.
+callers with multiple steps should reuse `NWChemCSession`.
+`nwchemc_session_calculate_hessian_result()` and
+`nwchemc_calculate_hessian_result()` populate `PotentialResult.hessian` in
+`ForceInput.energyUnit / ForceInput.lengthUnit^2`; raw Hessian and dipole
+wrappers use the same `NWChemParams + ForceInput` carrier for callers that want
+native C buffers.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,

@@ -337,6 +337,21 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput Hessian",
             },
             {
+                "name": "nwchemc_hessian_result_size_for_force_input",
+                "stub": "returns 0",
+                "embed": "sizes ForceInput Hessian PotentialResult",
+            },
+            {
+                "name": "nwchemc_session_calculate_hessian_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput Hessian into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_hessian_result",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput Hessian into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_dipole",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput dipole",

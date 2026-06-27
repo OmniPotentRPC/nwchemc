@@ -323,6 +323,38 @@ NWChemCResult nwchemc_calculate_hessian(
     double *hessian_h_bohr2, size_t hessian_len);
 
 /**
+ * @brief Return the byte count needed for a Hessian `PotentialResult`.
+ *
+ * This parses the serialized `ForceInput` geometry and returns the size of the
+ * unpacked flat `PotentialResult` message with its `hessian` field populated.
+ * The function does not initialize or evaluate NWChem.
+ */
+size_t nwchemc_hessian_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Compute one `ForceInput` Hessian and write `PotentialResult.hessian`.
+ *
+ * The Hessian values are converted from Hartree/Bohr^2 to
+ * `ForceInput.energyUnit / ForceInput.lengthUnit^2`.
+ */
+NWChemCResult nwchemc_session_calculate_hessian_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `NWChemParams + ForceInput -> PotentialResult.hessian`.
+ */
+NWChemCResult nwchemc_calculate_hessian_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief Compute one `ForceInput` step and write a total dipole vector.
  *
  * This is the one-shot Cap'n Proto dipole entry point for callers that do not

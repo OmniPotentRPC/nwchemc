@@ -492,6 +492,9 @@ spin-scaling rules.
 | ~nwchemc_session_calculate_result~ | ~abi.nwchemc_session_calculate_result~ | fails | ForceInput PotentialResult |
 | ~nwchemc_calculate_result~ | ~abi.nwchemc_calculate_result~ | fails | one-shot ForceInput PotentialResult |
 | ~nwchemc_calculate_hessian~ | ~abi.nwchemc_calculate_hessian~ | fails | one-shot ForceInput Hessian |
+| ~nwchemc_hessian_result_size_for_force_input~ | ~abi.nwchemc_hessian_result_size_for_force_input~ | 0 | Hessian PotentialResult sizing |
+| ~nwchemc_session_calculate_hessian_result~ | ~abi.nwchemc_session_calculate_hessian_result~ | fails | ForceInput Hessian PotentialResult |
+| ~nwchemc_calculate_hessian_result~ | ~abi.nwchemc_calculate_hessian_result~ | fails | one-shot ForceInput Hessian PotentialResult |
 | ~nwchemc_calculate_dipole~ | ~abi.nwchemc_calculate_dipole~ | fails | one-shot ForceInput dipole |
 | ~nwchemc_calculate_quadrupole~ | ~abi.nwchemc_calculate_quadrupole~ | fails | one-shot ForceInput quadrupole |
 | ~nwchemc_calculate_optimize~ | ~abi.nwchemc_calculate_optimize~ | fails | one-shot ForceInput optimization |
