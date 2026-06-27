@@ -211,7 +211,9 @@
         born = enabled,
         bornDielectric = 78.4,
         bornRelax = enabled,
-        bornVRadiiAngstrom = [0.529177, 1.058354]
+        bornVRadiiAngstrom = [0.529177, 1.058354],
+        cpmdProperties = enabled,
+        useGridComparison = disabled
       )
     ),
     (

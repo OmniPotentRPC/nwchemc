@@ -144,6 +144,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "fmm true 12 2"));
   assert_non_null(
       strstr(input_blocks, "born 78.4 relax true 0.529177 1.058354"));
+  assert_non_null(strstr(input_blocks, "cpmd_properties true"));
+  assert_non_null(strstr(input_blocks, "use_grid_cmp false"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -378,6 +380,10 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:fmm"));
   assert_null(strstr(input_blocks, "born 78.4"));
   assert_null(strstr(input_blocks, "nwpw:born"));
+  assert_null(strstr(input_blocks, "cpmd_properties true"));
+  assert_null(strstr(input_blocks, "nwpw:cpmd_properties"));
+  assert_null(strstr(input_blocks, "use_grid_cmp false"));
+  assert_null(strstr(input_blocks, "nwpw:use_grid_cmp"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -749,6 +755,17 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(born_vradii_angstrom[0] < 0.529178);
   assert_true(born_vradii_angstrom[1] > 1.058353);
   assert_true(born_vradii_angstrom[1] < 1.058355);
+
+  int has_cpmd_grid = 0;
+  int cpmd_properties = 0;
+  int use_grid_comparison = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_cpmd_grid(
+                       params_root, &has_cpmd_grid, &cpmd_properties,
+                       &use_grid_comparison),
+                   0);
+  assert_int_equal(has_cpmd_grid, 1);
+  assert_int_equal(cpmd_properties, NWChemNwpwToggle_enabled);
+  assert_int_equal(use_grid_comparison, NWChemNwpwToggle_disabled);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
