@@ -347,6 +347,42 @@ extern NWChemCResult nwchemc_calculate_stress_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *stress_au, size_t stress_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_energy_gradient_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *grad_h_bohr) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_energy_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_energy_forces_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *forces_h_bohr) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_hessian_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *hessian_h_bohr2) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_dipole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_quadrupole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *quadrupole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_stress_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *stress_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_optimize_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *optimized_positions_ang) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_frequencies_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au) NWCHEMC_TEST_WEAK;
 extern size_t nwchemc_stress_result_size_for_force_input(
     const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
@@ -3840,6 +3876,80 @@ static void test_direct_coordinate_energy_abi_calls_embed_wrappers(
   free(message);
 }
 
+static void test_direct_coordinate_config_energy_abi_calls_embed_wrappers(
+    void **state) {
+  (void)state;
+  assert_true(nwchemc_energy_from_config != NULL);
+  assert_true(nwchemc_energy_gradient_from_config != NULL);
+  assert_true(nwchemc_energy_forces_from_config != NULL);
+  size_t message_size = 0;
+  size_t config_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+  unsigned char *config = wrap_params_in_config(message, message_size,
+                                                &config_size);
+  assert_non_null(config);
+
+  const double positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.7414};
+  const int atomic_numbers[2] = {1, 8};
+
+  reset_embed_captures();
+  NWChemCResult energy_result =
+      nwchemc_energy_from_config(2, positions, atomic_numbers, config,
+                                 config_size);
+  assert_int_equal(energy_result.ok, 1);
+  assert_close(energy_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_only_calls, 1);
+  assert_int_equal(g_energy_only_cell_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+
+  reset_embed_captures();
+  double grad[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult gradient_result = nwchemc_energy_gradient_from_config(
+      2, positions, atomic_numbers, config, config_size, grad);
+  assert_int_equal(gradient_result.ok, 1);
+  assert_close(gradient_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+  assert_close(grad[0], 1.0, 1.0e-12);
+  assert_close(grad[5], 6.0, 1.0e-12);
+
+  reset_embed_captures();
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult force_result = nwchemc_energy_forces_from_config(
+      2, positions, atomic_numbers, config, config_size, forces);
+  assert_int_equal(force_result.ok, 1);
+  assert_close(force_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+  assert_close(forces[0], -1.0, 1.0e-12);
+  assert_close(forces[5], -6.0, 1.0e-12);
+
+  free(config);
+  free(message);
+}
+
 static void test_session_coordinate_energy_abi_calls_embed_wrappers(
     void **state) {
   (void)state;
@@ -3998,6 +4108,97 @@ static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
   free(message);
 }
 
+static void test_direct_coordinate_config_abi_calls_embed_wrappers(
+    void **state) {
+  (void)state;
+  assert_true(nwchemc_hessian_from_config != NULL);
+  assert_true(nwchemc_optimize_from_config != NULL);
+  assert_true(nwchemc_frequencies_from_config != NULL);
+  size_t message_size = 0;
+  size_t config_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+  unsigned char *config = wrap_params_in_config(message, message_size,
+                                                &config_size);
+  assert_non_null(config);
+
+  const double positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.7414};
+  const int atomic_numbers[2] = {1, 8};
+
+  reset_embed_captures();
+  double hessian[36] = {0.0};
+  NWChemCResult hessian_result = nwchemc_hessian_from_config(
+      2, positions, atomic_numbers, config, config_size, hessian);
+  assert_int_equal(hessian_result.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_hessian_calls, 1);
+  assert_int_equal(g_hessian_cell_calls, 1);
+  assert_int_equal(g_hessian_n_atoms[0], 2);
+  assert_int_equal(g_hessian_charge[0], 0);
+  assert_int_equal(g_hessian_multiplicity[0], 1);
+  assert_int_equal(g_hessian_atomic_numbers[0][0], 1);
+  assert_int_equal(g_hessian_atomic_numbers[0][1], 8);
+  assert_close(g_hessian_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_hessian_has_cell[0], 0);
+  assert_close(hessian[0], 10.0, 1.0e-12);
+  assert_close(hessian[35], 45.0, 1.0e-12);
+
+  reset_embed_captures();
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_result = nwchemc_optimize_from_config(
+      2, positions, atomic_numbers, config, config_size, optimized_positions);
+  assert_int_equal(optimize_result.ok, 1);
+  assert_close(optimize_result.energy_h, -1.75, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_optimize_calls, 1);
+  assert_int_equal(g_optimize_cell_calls, 1);
+  assert_int_equal(g_optimize_n_atoms[0], 2);
+  assert_int_equal(g_optimize_charge[0], 0);
+  assert_int_equal(g_optimize_multiplicity[0], 1);
+  assert_int_equal(g_optimize_atomic_numbers[0][0], 1);
+  assert_int_equal(g_optimize_atomic_numbers[0][1], 8);
+  assert_close(g_optimize_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_optimize_has_cell[0], 0);
+  assert_close(optimized_positions[0], 0.01, 1.0e-12);
+  assert_close(optimized_positions[5], 0.8014, 1.0e-12);
+
+  reset_embed_captures();
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequencies_result = nwchemc_frequencies_from_config(
+      2, positions, atomic_numbers, config, config_size, frequencies,
+      intensities);
+  assert_int_equal(frequencies_result.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_cell_calls, 1);
+  assert_int_equal(g_frequency_n_atoms[0], 2);
+  assert_int_equal(g_frequency_charge[0], 0);
+  assert_int_equal(g_frequency_multiplicity[0], 1);
+  assert_int_equal(g_frequency_atomic_numbers[0][0], 1);
+  assert_int_equal(g_frequency_atomic_numbers[0][1], 8);
+  assert_close(g_frequency_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_frequency_has_cell[0], 0);
+  assert_close(frequencies[0], 100.0, 1.0e-12);
+  assert_close(frequencies[5], 105.0, 1.0e-12);
+  assert_close(intensities[0], 0.01, 1.0e-12);
+  assert_close(intensities[5], 0.06, 1.0e-12);
+
+  reset_embed_captures();
+  memset(frequencies, 0, sizeof(frequencies));
+  NWChemCResult frequencies_without_intensities =
+      nwchemc_frequencies_from_config(2, positions, atomic_numbers, config,
+                                      config_size, frequencies, NULL);
+  assert_int_equal(frequencies_without_intensities.ok, 1);
+  assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_cell_calls, 1);
+  assert_close(frequencies[0], 100.0, 1.0e-12);
+  assert_close(frequencies[5], 105.0, 1.0e-12);
+
+  free(config);
+  free(message);
+}
+
 static void test_session_coordinate_abi_calls_embed_wrappers(void **state) {
   (void)state;
   reset_embed_captures();
@@ -4147,6 +4348,85 @@ static void test_direct_coordinate_property_stress_abi_calls_embed_wrappers(
   assert_close(stress[0], 0.03125, 1.0e-12);
   assert_close(stress[8], 0.28125, 1.0e-12);
 
+  free(message);
+}
+
+static void
+test_direct_coordinate_config_property_stress_abi_calls_embed_wrappers(
+    void **state) {
+  (void)state;
+  assert_true(nwchemc_dipole_from_config != NULL);
+  assert_true(nwchemc_quadrupole_from_config != NULL);
+  assert_true(nwchemc_stress_from_config != NULL);
+  size_t message_size = 0;
+  size_t config_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+  unsigned char *config = wrap_params_in_config(message, message_size,
+                                                &config_size);
+  assert_non_null(config);
+
+  const double positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.7414};
+  const int atomic_numbers[2] = {1, 8};
+
+  reset_embed_captures();
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_result = nwchemc_dipole_from_config(
+      2, positions, atomic_numbers, config, config_size, dipole);
+  assert_int_equal(dipole_result.ok, 1);
+  assert_close(dipole_result.energy_h, -1.25, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_dipole_calls, 1);
+  assert_int_equal(g_dipole_cell_calls, 1);
+  assert_int_equal(g_dipole_n_atoms[0], 2);
+  assert_int_equal(g_dipole_charge[0], 0);
+  assert_int_equal(g_dipole_multiplicity[0], 1);
+  assert_int_equal(g_dipole_atomic_numbers[0][0], 1);
+  assert_int_equal(g_dipole_atomic_numbers[0][1], 8);
+  assert_close(g_dipole_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_dipole_has_cell[0], 0);
+  assert_close(dipole[0], 0.25, 1.0e-12);
+  assert_close(dipole[2], 0.75, 1.0e-12);
+
+  reset_embed_captures();
+  double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult quadrupole_result = nwchemc_quadrupole_from_config(
+      2, positions, atomic_numbers, config, config_size, quadrupole);
+  assert_int_equal(quadrupole_result.ok, 1);
+  assert_close(quadrupole_result.energy_h, -1.5, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_quadrupole_calls, 1);
+  assert_int_equal(g_quadrupole_cell_calls, 1);
+  assert_int_equal(g_quadrupole_n_atoms[0], 2);
+  assert_int_equal(g_quadrupole_charge[0], 0);
+  assert_int_equal(g_quadrupole_multiplicity[0], 1);
+  assert_int_equal(g_quadrupole_atomic_numbers[0][0], 1);
+  assert_int_equal(g_quadrupole_atomic_numbers[0][1], 8);
+  assert_close(g_quadrupole_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_quadrupole_has_cell[0], 0);
+  assert_close(quadrupole[0], 0.125, 1.0e-12);
+  assert_close(quadrupole[5], 0.75, 1.0e-12);
+
+  reset_embed_captures();
+  double stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult stress_result = nwchemc_stress_from_config(
+      2, positions, atomic_numbers, config, config_size, stress);
+  assert_int_equal(stress_result.ok, 1);
+  assert_close(stress_result.energy_h, -2.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_stress_calls, 1);
+  assert_int_equal(g_stress_cell_calls, 1);
+  assert_int_equal(g_stress_n_atoms[0], 2);
+  assert_int_equal(g_stress_charge[0], 0);
+  assert_int_equal(g_stress_multiplicity[0], 1);
+  assert_int_equal(g_stress_atomic_numbers[0][0], 1);
+  assert_int_equal(g_stress_atomic_numbers[0][1], 8);
+  assert_close(g_stress_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_stress_has_cell[0], 0);
+  assert_close(stress[0], 0.03125, 1.0e-12);
+  assert_close(stress[8], 0.28125, 1.0e-12);
+
+  free(config);
   free(message);
 }
 
@@ -6100,11 +6380,16 @@ int main(int argc, char **argv) {
       cmocka_unit_test(
           test_session_calculate_frequencies_accepts_force_input_step),
       cmocka_unit_test(test_direct_coordinate_energy_abi_calls_embed_wrappers),
+      cmocka_unit_test(
+          test_direct_coordinate_config_energy_abi_calls_embed_wrappers),
       cmocka_unit_test(test_session_coordinate_energy_abi_calls_embed_wrappers),
       cmocka_unit_test(test_direct_coordinate_abi_calls_embed_wrappers),
+      cmocka_unit_test(test_direct_coordinate_config_abi_calls_embed_wrappers),
       cmocka_unit_test(test_session_coordinate_abi_calls_embed_wrappers),
       cmocka_unit_test(
           test_direct_coordinate_property_stress_abi_calls_embed_wrappers),
+      cmocka_unit_test(
+          test_direct_coordinate_config_property_stress_abi_calls_embed_wrappers),
       cmocka_unit_test(
           test_session_coordinate_property_stress_abi_calls_embed_wrappers),
       cmocka_unit_test(test_session_force_input_state_overrides_params),

@@ -6576,6 +6576,51 @@
       "embed": "runs harmonic frequencies"
     },
     {
+      "name": "nwchemc_energy_gradient_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig energy/gradient"
+    },
+    {
+      "name": "nwchemc_energy_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig energy-only"
+    },
+    {
+      "name": "nwchemc_energy_forces_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig energy/forces"
+    },
+    {
+      "name": "nwchemc_hessian_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig Cartesian Hessian"
+    },
+    {
+      "name": "nwchemc_dipole_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig total dipole"
+    },
+    {
+      "name": "nwchemc_quadrupole_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig total traceless quadrupole"
+    },
+    {
+      "name": "nwchemc_stress_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig stress tensor"
+    },
+    {
+      "name": "nwchemc_optimize_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig geometry optimization"
+    },
+    {
+      "name": "nwchemc_frequencies_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig harmonic frequencies"
+    },
+    {
       "name": "nwchemc_session_create",
       "stub": "returns NULL",
       "embed": "creates persistent Cap'n Proto session"

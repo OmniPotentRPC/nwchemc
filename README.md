@@ -49,6 +49,41 @@ NWChemCResult nwchemc_frequencies(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *frequencies_cm1, double *intensities_au);
+NWChemCResult nwchemc_energy_gradient_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *grad_h_bohr);
+NWChemCResult nwchemc_energy_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes);
+NWChemCResult nwchemc_energy_forces_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *forces_h_bohr);
+NWChemCResult nwchemc_hessian_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *hessian_h_bohr2);
+NWChemCResult nwchemc_dipole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *dipole_au);
+NWChemCResult nwchemc_quadrupole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *quadrupole_au);
+NWChemCResult nwchemc_stress_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *stress_au);
+NWChemCResult nwchemc_optimize_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *optimized_positions_ang);
+NWChemCResult nwchemc_frequencies_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au);
 NWChemCSession *nwchemc_session_create(
     const void *params_capnp, size_t params_capnp_size_bytes);
 NWChemCSession *nwchemc_session_create_from_config(

@@ -153,6 +153,122 @@ NWChemCResult nwchemc_frequencies(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_energy_gradient_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *grad_h_bohr) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)grad_h_bohr;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_energy_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_energy_forces_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *forces_h_bohr) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)forces_h_bohr;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_hessian_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *hessian_h_bohr2) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)hessian_h_bohr2;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_dipole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *dipole_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)dipole_au;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_quadrupole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *quadrupole_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)quadrupole_au;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_stress_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *stress_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)stress_au;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_optimize_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *optimized_positions_ang) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_frequencies_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)intensities_au;
+  return stub_fail();
+}
+
 const char *nwchemc_version(void) { return "nwchemc-stub/0.1.0"; }
 
 int nwchemc_available(void) { return 0; }

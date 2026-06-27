@@ -570,6 +570,15 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_stress", "include/nwchemc.h::nwchemc_stress", "stub=fails ok==0; embed=runs stress tensor", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_optimize", "include/nwchemc.h::nwchemc_optimize", "stub=fails ok==0; embed=runs geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_frequencies", "include/nwchemc.h::nwchemc_frequencies", "stub=fails ok==0; embed=runs harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_energy_gradient_from_config", "include/nwchemc.h::nwchemc_energy_gradient_from_config", "stub=fails ok==0; embed=runs PotentialConfig energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_energy_from_config", "include/nwchemc.h::nwchemc_energy_from_config", "stub=fails ok==0; embed=runs PotentialConfig energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_energy_forces_from_config", "include/nwchemc.h::nwchemc_energy_forces_from_config", "stub=fails ok==0; embed=runs PotentialConfig energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_hessian_from_config", "include/nwchemc.h::nwchemc_hessian_from_config", "stub=fails ok==0; embed=runs PotentialConfig Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_dipole_from_config", "include/nwchemc.h::nwchemc_dipole_from_config", "stub=fails ok==0; embed=runs PotentialConfig total dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_quadrupole_from_config", "include/nwchemc.h::nwchemc_quadrupole_from_config", "stub=fails ok==0; embed=runs PotentialConfig total traceless quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_stress_from_config", "include/nwchemc.h::nwchemc_stress_from_config", "stub=fails ok==0; embed=runs PotentialConfig stress tensor", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_optimize_from_config", "include/nwchemc.h::nwchemc_optimize_from_config", "stub=fails ok==0; embed=runs PotentialConfig geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_frequencies_from_config", "include/nwchemc.h::nwchemc_frequencies_from_config", "stub=fails ok==0; embed=runs PotentialConfig harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_create", "include/nwchemc.h::nwchemc_session_create", "stub=returns NULL; embed=creates persistent Cap'n Proto session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_create_from_config", "include/nwchemc.h::nwchemc_session_create_from_config", "stub=returns NULL; embed=creates persistent PotentialConfig session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_set_params", "include/nwchemc.h::nwchemc_session_set_params", "stub=fails non-zero; embed=replaces params before topology", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -649,7 +658,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 644;
+static const size_t k_feature_count = 653;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

@@ -33,6 +33,42 @@ extern NWChemCResult nwchemc_stress(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *stress_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_energy_gradient_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *grad_h_bohr) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_energy_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_energy_forces_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *forces_h_bohr) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_hessian_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *hessian_h_bohr2) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_dipole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_quadrupole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *quadrupole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_stress_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *stress_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_optimize_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *optimized_positions_ang) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_frequencies_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_session_dipole(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *dipole_au) NWCHEMC_TEST_WEAK;
@@ -366,6 +402,42 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult stress_result =
       nwchemc_stress(0, NULL, NULL, NULL, 0, stress_au);
   assert_int_equal(stress_result.ok, 0);
+  assert_true(nwchemc_energy_from_config != NULL);
+  NWChemCResult config_coord_energy =
+      nwchemc_energy_from_config(0, NULL, NULL, NULL, 0);
+  assert_int_equal(config_coord_energy.ok, 0);
+  assert_true(nwchemc_energy_gradient_from_config != NULL);
+  NWChemCResult config_coord_gradient =
+      nwchemc_energy_gradient_from_config(0, NULL, NULL, NULL, 0, NULL);
+  assert_int_equal(config_coord_gradient.ok, 0);
+  assert_true(nwchemc_energy_forces_from_config != NULL);
+  NWChemCResult config_coord_forces =
+      nwchemc_energy_forces_from_config(0, NULL, NULL, NULL, 0, NULL);
+  assert_int_equal(config_coord_forces.ok, 0);
+  assert_true(nwchemc_hessian_from_config != NULL);
+  NWChemCResult config_coord_hessian =
+      nwchemc_hessian_from_config(0, NULL, NULL, NULL, 0, NULL);
+  assert_int_equal(config_coord_hessian.ok, 0);
+  assert_true(nwchemc_dipole_from_config != NULL);
+  NWChemCResult config_coord_dipole =
+      nwchemc_dipole_from_config(0, NULL, NULL, NULL, 0, dipole_au);
+  assert_int_equal(config_coord_dipole.ok, 0);
+  assert_true(nwchemc_quadrupole_from_config != NULL);
+  NWChemCResult config_coord_quadrupole =
+      nwchemc_quadrupole_from_config(0, NULL, NULL, NULL, 0, quadrupole_au);
+  assert_int_equal(config_coord_quadrupole.ok, 0);
+  assert_true(nwchemc_stress_from_config != NULL);
+  NWChemCResult config_coord_stress =
+      nwchemc_stress_from_config(0, NULL, NULL, NULL, 0, stress_au);
+  assert_int_equal(config_coord_stress.ok, 0);
+  assert_true(nwchemc_optimize_from_config != NULL);
+  NWChemCResult config_coord_optimize = nwchemc_optimize_from_config(
+      0, NULL, NULL, NULL, 0, optimized_positions_ang);
+  assert_int_equal(config_coord_optimize.ok, 0);
+  assert_true(nwchemc_frequencies_from_config != NULL);
+  NWChemCResult config_coord_frequency = nwchemc_frequencies_from_config(
+      0, NULL, NULL, NULL, 0, frequencies_cm1, intensities_au);
+  assert_int_equal(config_coord_frequency.ok, 0);
   assert_null(nwchemc_session_create(NULL, 0));
   assert_int_not_equal(nwchemc_session_set_params(NULL, NULL, 0), 0);
   assert_true(nwchemc_session_create_from_config != NULL);

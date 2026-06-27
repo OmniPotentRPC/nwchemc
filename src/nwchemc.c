@@ -4424,6 +4424,203 @@ NWChemCResult nwchemc_frequencies(
   return r;
 }
 
+static NWChemCResult coordinate_config_fail(const char *message) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  snprintf(r.message, sizeof(r.message), "%s", message);
+  return r;
+}
+
+static int coordinate_config_args_invalid(int n_atoms,
+                                          const double *positions_ang,
+                                          const int *atomic_numbers,
+                                          const void *config_capnp,
+                                          size_t config_capnp_size_bytes) {
+  return n_atoms <= 0 || !positions_ang || !atomic_numbers || !config_capnp ||
+         config_capnp_size_bytes == 0;
+}
+
+NWChemCResult nwchemc_energy_gradient_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *grad_h_bohr) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !grad_h_bohr)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_energy_gradient(
+      session, n_atoms, positions_ang, atomic_numbers, grad_h_bohr);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_energy_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes))
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r =
+      nwchemc_session_energy(session, n_atoms, positions_ang, atomic_numbers);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_energy_forces_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *forces_h_bohr) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !forces_h_bohr)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_energy_forces(
+      session, n_atoms, positions_ang, atomic_numbers, forces_h_bohr);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_hessian_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *hessian_h_bohr2) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !hessian_h_bohr2)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_hessian(
+      session, n_atoms, positions_ang, atomic_numbers, hessian_h_bohr2);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_dipole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *dipole_au) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !dipole_au)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_dipole(
+      session, n_atoms, positions_ang, atomic_numbers, dipole_au);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_quadrupole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *quadrupole_au) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !quadrupole_au)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_quadrupole(
+      session, n_atoms, positions_ang, atomic_numbers, quadrupole_au);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_stress_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *stress_au) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !stress_au)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_stress(
+      session, n_atoms, positions_ang, atomic_numbers, stress_au);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_optimize_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *optimized_positions_ang) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !optimized_positions_ang)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_optimize(
+      session, n_atoms, positions_ang, atomic_numbers, optimized_positions_ang);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_frequencies_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !frequencies_cm1 || n_atoms > INT_MAX / 3)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_frequencies(
+      session, n_atoms, positions_ang, atomic_numbers, frequencies_cm1,
+      intensities_au);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
 static void session_clear_params(NWChemCSession *session) {
   if (!session)
     return;
@@ -8014,6 +8211,122 @@ static NWChemCResult no_nwchem_fail(void) {
   r.energy_h = 0.0;
   snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
   return r;
+}
+
+NWChemCResult nwchemc_energy_gradient_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *grad_h_bohr) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)grad_h_bohr;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_energy_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_energy_forces_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *forces_h_bohr) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)forces_h_bohr;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_hessian_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *hessian_h_bohr2) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)hessian_h_bohr2;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_dipole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *dipole_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)dipole_au;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_quadrupole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *quadrupole_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)quadrupole_au;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_stress_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *stress_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)stress_au;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_optimize_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *optimized_positions_ang) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)optimized_positions_ang;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_frequencies_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)intensities_au;
+  return no_nwchem_fail();
 }
 
 NWChemCResult nwchemc_session_energy(NWChemCSession *session, int n_atoms,

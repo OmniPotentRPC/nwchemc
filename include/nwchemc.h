@@ -198,6 +198,77 @@ NWChemCResult nwchemc_frequencies(
     double *frequencies_cm1, double *intensities_au);
 
 /**
+ * @brief Compute energy and nuclear gradient from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_energy_gradient_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *grad_h_bohr);
+
+/**
+ * @brief Compute total energy from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_energy_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes);
+
+/**
+ * @brief Compute energy and nuclear forces from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_energy_forces_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *forces_h_bohr);
+
+/**
+ * @brief Compute a Cartesian nuclear Hessian from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_hessian_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *hessian_h_bohr2);
+
+/**
+ * @brief Compute total electric dipole from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_dipole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *dipole_au);
+
+/**
+ * @brief Compute total traceless electric quadrupole from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_quadrupole_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *quadrupole_au);
+
+/**
+ * @brief Compute stress tensor from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_stress_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *stress_au);
+
+/**
+ * @brief Optimize an atomic configuration from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_optimize_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *optimized_positions_ang);
+
+/**
+ * @brief Compute harmonic vibrational frequencies from a `PotentialConfig`.
+ */
+NWChemCResult nwchemc_frequencies_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *frequencies_cm1, double *intensities_au);
+
+/**
  * @brief Create a persistent evaluation session from a Cap'n Proto message.
  *
  * The session owns a copy of the serialized message so callers may pass a
