@@ -20,6 +20,7 @@ static const char *g_bo_time_step_default_params_path = NULL;
 static const char *g_bo_fake_mass_default_params_path = NULL;
 static const char *g_scaling_default_params_path = NULL;
 static const char *g_np_dimensions_default_params_path = NULL;
+static const char *g_tolerances_default_params_path = NULL;
 static const char *g_mc_steps_default_params_path = NULL;
 static const char *g_brillouin_tetrahedron_params_path = NULL;
 static const char *g_brillouin_dos_grid_params_path = NULL;
@@ -1642,6 +1643,70 @@ test_parser_extracts_direct_nwpw_np_dimensions_default(void **state) {
   free(message);
 }
 
+static void test_parser_extracts_direct_nwpw_tolerances_default(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message =
+      read_file(g_tolerances_default_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks, "  tolerances 1e-07 1e-07 0.0001\n"));
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "  tolerances 1e-07 1e-07 0.0001\n"));
+
+  int has_state = 0;
+  capn_text cell_name = {0};
+  capn_text input_wavefunction_filename = {0};
+  capn_text output_wavefunction_filename = {0};
+  double fake_mass = 0.0;
+  double time_step = 0.0;
+  int loop_start = 0;
+  int loop_end = 0;
+  int has_tolerances = 0;
+  double tolerance_energy = 0.0;
+  double tolerance_density = 0.0;
+  double tolerance_gradient = 0.0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_state(
+                       params_root, &has_state, &cell_name,
+                       &input_wavefunction_filename,
+                       &output_wavefunction_filename, &fake_mass, &time_step,
+                       &loop_start, &loop_end, &has_tolerances,
+                       &tolerance_energy, &tolerance_density,
+                       &tolerance_gradient),
+                   0);
+  assert_int_equal(has_state, 1);
+  assert_int_equal(cell_name.len, 0);
+  assert_int_equal(input_wavefunction_filename.len, 0);
+  assert_int_equal(output_wavefunction_filename.len, 0);
+  assert_true(fake_mass == 0.0);
+  assert_true(time_step == 0.0);
+  assert_int_equal(loop_start, 0);
+  assert_int_equal(loop_end, 0);
+  assert_int_equal(has_tolerances, 1);
+  assert_true(tolerance_energy > 0.000000099);
+  assert_true(tolerance_energy < 0.000000101);
+  assert_true(tolerance_density > 0.000000099);
+  assert_true(tolerance_density < 0.000000101);
+  assert_true(tolerance_gradient > 0.0000999);
+  assert_true(tolerance_gradient < 0.0001001);
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_parser_extracts_direct_nwpw_mc_steps_default(void **state) {
   (void)state;
 
@@ -2421,7 +2486,7 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 26) {
+  if (argc != 27) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
             "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
@@ -2430,6 +2495,7 @@ int main(int argc, char **argv) {
             "NWPW_BO_FAKE_MASS_DEFAULT_PARAMS_BIN "
             "NWPW_SCALING_DEFAULT_PARAMS_BIN "
             "NWPW_NP_DIMENSIONS_DEFAULT_PARAMS_BIN "
+            "NWPW_TOLERANCES_DEFAULT_PARAMS_BIN "
             "NWPW_MC_STEPS_DEFAULT_PARAMS_BIN "
             "BRILLOUIN_TETRAHEDRON_PARAMS_BIN "
             "BRILLOUIN_DOS_GRID_PARAMS_BIN NWPW_ET_PARAMS_BIN "
@@ -2456,21 +2522,22 @@ int main(int argc, char **argv) {
   g_bo_fake_mass_default_params_path = argv[8];
   g_scaling_default_params_path = argv[9];
   g_np_dimensions_default_params_path = argv[10];
-  g_mc_steps_default_params_path = argv[11];
-  g_brillouin_tetrahedron_params_path = argv[12];
-  g_brillouin_dos_grid_params_path = argv[13];
-  g_nwpw_et_params_path = argv[14];
-  g_nwpw_temperature_params_path = argv[15];
-  g_nwpw_mapping_alias_params_path = argv[16];
-  g_nwpw_virtual_alias_params_path = argv[17];
-  g_nwpw_one_electron_guess_defaults_params_path = argv[18];
-  g_nwpw_fractional_orbitals_default_params_path = argv[19];
-  g_nwpw_smear_orbitals_default_params_path = argv[20];
-  g_nwpw_virtual_orbitals_default_params_path = argv[21];
-  g_nwpw_translate_vector_default_params_path = argv[22];
-  g_nwpw_cell_expand_default_params_path = argv[23];
-  g_brillouin_monkhorst_default_params_path = argv[24];
-  g_brillouin_dos_grid_default_params_path = argv[25];
+  g_tolerances_default_params_path = argv[11];
+  g_mc_steps_default_params_path = argv[12];
+  g_brillouin_tetrahedron_params_path = argv[13];
+  g_brillouin_dos_grid_params_path = argv[14];
+  g_nwpw_et_params_path = argv[15];
+  g_nwpw_temperature_params_path = argv[16];
+  g_nwpw_mapping_alias_params_path = argv[17];
+  g_nwpw_virtual_alias_params_path = argv[18];
+  g_nwpw_one_electron_guess_defaults_params_path = argv[19];
+  g_nwpw_fractional_orbitals_default_params_path = argv[20];
+  g_nwpw_smear_orbitals_default_params_path = argv[21];
+  g_nwpw_virtual_orbitals_default_params_path = argv[22];
+  g_nwpw_translate_vector_default_params_path = argv[23];
+  g_nwpw_cell_expand_default_params_path = argv[24];
+  g_brillouin_monkhorst_default_params_path = argv[25];
+  g_brillouin_dos_grid_default_params_path = argv[26];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
@@ -2487,6 +2554,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_parser_extracts_direct_nwpw_scaling_default),
       cmocka_unit_test(
           test_parser_extracts_direct_nwpw_np_dimensions_default),
+      cmocka_unit_test(test_parser_extracts_direct_nwpw_tolerances_default),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_mc_steps_default),
       cmocka_unit_test(test_parser_renders_brillouin_tetrahedron),
       cmocka_unit_test(test_parser_renders_brillouin_dos_grid),
