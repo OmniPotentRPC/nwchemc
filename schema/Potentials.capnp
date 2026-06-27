@@ -227,12 +227,28 @@ struct NWChemPseudopotentialSpinRule {
   }
 }
 
+struct NWChemPseudopotentialUtermRule {
+  angularMomentum @0 :AngularMomentum = s;
+  uScale          @1 :Float64 = 0.0;
+  jScale          @2 :Float64 = 0.0;
+  ionIndices      @3 :List(Int32);
+
+  enum AngularMomentum {
+    s @0;
+    p @1;
+    d @2;
+    f @3;
+  }
+}
+
 struct NWChemPseudopotentialStanza {
   entries    @0 :List(NWChemPseudopotentialEntry);
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
   pspSpin    @2 :NWChemPseudopotentialSpinMode = unspecified; # Emit pspspin on/off.
   spinRules  @3 :List(NWChemPseudopotentialSpinRule); # Emit/promote pspspin up/down scaling rules.
   semicoreSmall @4 :NWChemToggle = unspecified; # Promote nwpw:psp:semicore_small.
+  uterm      @5 :NWChemToggle = unspecified; # Emit/promote NWPW uterm on/off.
+  utermRules @6 :List(NWChemPseudopotentialUtermRule); # Emit/promote indexed uterm rules.
 }
 
 struct NWChemKVector {

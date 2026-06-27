@@ -913,6 +913,104 @@ static int append_direct_pspspin_rule(
       NWCHEMC_DIRECT_SET_VALUE_INTEGER, ion_value_list, nions);
 }
 
+static int uterm_angular_momentum_value(
+    enum NWChemPseudopotentialUtermRule_AngularMomentum angular_momentum,
+    int *value) {
+  if (!value)
+    return -1;
+  switch (angular_momentum) {
+  case NWChemPseudopotentialUtermRule_AngularMomentum_p:
+    *value = 1;
+    return 0;
+  case NWChemPseudopotentialUtermRule_AngularMomentum_d:
+    *value = 2;
+    return 0;
+  case NWChemPseudopotentialUtermRule_AngularMomentum_f:
+    *value = 3;
+    return 0;
+  case NWChemPseudopotentialUtermRule_AngularMomentum_s:
+  default:
+    *value = 0;
+    return 0;
+  }
+}
+
+static int append_direct_uterm_rule(
+    void *user_data, size_t rule_index,
+    const struct NWChemPseudopotentialUtermRule *rule) {
+  struct direct_pspspin_rule_append_state *state = user_data;
+  if (!state || !rule)
+    return -1;
+
+  capn_list32 ion_indices = rule->ionIndices;
+  capn_resolve(&ion_indices.p);
+  if (ion_indices.p.type == CAPN_NULL ||
+      ion_indices.p.type != CAPN_LIST || ion_indices.p.datasz != 4)
+    return -1;
+  int nions = ion_indices.p.len;
+  if (nions <= 0 || nions > NWCHEMC_DIRECT_SET_VALUE_MAX)
+    return -1;
+
+  char index_name[8];
+  if (pspspin_index_name(rule_index, index_name, sizeof(index_name)) != 0)
+    return -1;
+
+  char key[NWCHEMC_DIRECT_SET_KEY_LEN];
+  char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+  snprintf(value, sizeof(value), "%.15g", rule->uScale);
+  int n = snprintf(key, sizeof(key), "nwpw:uterm_scale:%s", index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  if (append_direct_typed_value(
+          state->keys, state->value_types, state->value_counts, state->values,
+          state->key_capacity, state->value_capacity, state->count,
+          state->key_storage, state->value_storage, key,
+          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+    return -1;
+
+  snprintf(value, sizeof(value), "%.15g", rule->jScale);
+  n = snprintf(key, sizeof(key), "nwpw:jterm_scale:%s", index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  if (append_direct_typed_value(
+          state->keys, state->value_types, state->value_counts, state->values,
+          state->key_capacity, state->value_capacity, state->count,
+          state->key_storage, state->value_storage, key,
+          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value) != 0)
+    return -1;
+
+  int angular_momentum = 0;
+  if (uterm_angular_momentum_value(rule->angularMomentum,
+                                   &angular_momentum) != 0)
+    return -1;
+  snprintf(value, sizeof(value), "%d", angular_momentum);
+  n = snprintf(key, sizeof(key), "nwpw:uterm_l:%s", index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  if (append_direct_typed_value(
+          state->keys, state->value_types, state->value_counts, state->values,
+          state->key_capacity, state->value_capacity, state->count,
+          state->key_storage, state->value_storage, key,
+          NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+    return -1;
+
+  char ion_values[NWCHEMC_DIRECT_SET_VALUE_MAX][NWCHEMC_DIRECT_SET_VALUE_LEN];
+  const char *ion_value_list[NWCHEMC_DIRECT_SET_VALUE_MAX];
+  for (int i = 0; i < nions; ++i) {
+    int ion_index = (int)(int32_t)capn_get32(ion_indices, i);
+    snprintf(ion_values[i], sizeof(ion_values[i]), "%d", ion_index);
+    ion_value_list[i] = ion_values[i];
+  }
+  n = snprintf(key, sizeof(key), "nwpw:uterm_ions:%s", index_name);
+  if (n < 0 || (size_t)n >= sizeof(key))
+    return -1;
+  return append_direct_typed_values(
+      state->keys, state->value_types, state->value_counts, state->values,
+      state->key_capacity, state->value_capacity, state->count,
+      state->key_storage, state->value_storage, key,
+      NWCHEMC_DIRECT_SET_VALUE_INTEGER, ion_value_list, nions);
+}
+
 static int append_simulation_cell_direct_values(
     NWChemParams_ptr params, capn_text *keys, int *value_types,
     int *value_counts, capn_text *values, size_t key_capacity,
@@ -1874,6 +1972,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &psp_spin_has_options, &psp_spin_enabled,
           &psp_spin_count, &psp_semicore_small) != 0)
     return -1;
+  int psp_uterm_has_options = 0;
+  int psp_uterm_enabled = 0;
+  int psp_uterm_count = 0;
+  if (nwchemc_params_extract_direct_pseudopotential_uterm(
+          params_root, &psp_uterm_has_options, &psp_uterm_enabled,
+          &psp_uterm_count) != 0)
+    return -1;
   if (nwchemc_params_extract_direct_set_strings(
           params_root, set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
           &set_count) != 0)
@@ -2422,6 +2527,44 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:psp:semicore_small",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
+  }
+  if (psp_uterm_has_options) {
+    char count_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *enabled_value = psp_uterm_enabled ? "true" : "false";
+    snprintf(count_value, sizeof(count_value), "%d", psp_uterm_count);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:uterm",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, enabled_value) != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:nuterms",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, count_value) != 0)
+      return -1;
+    if (psp_uterm_enabled && psp_uterm_count > 0) {
+      struct direct_pspspin_rule_append_state uterm_rule_state = {
+          .keys = typed_set_keys,
+          .value_types = typed_set_types,
+          .value_counts = typed_set_value_counts,
+          .values = typed_set_values,
+          .key_capacity = NWCHEMC_DIRECT_SET_MAX,
+          .value_capacity = NWCHEMC_DIRECT_SET_VALUE_MAX,
+          .count = &typed_set_count,
+          .key_storage = nwpw_direct_keys,
+          .value_storage = nwpw_direct_values,
+      };
+      size_t walked_uterm_rules = 0;
+      if (nwchemc_params_for_each_direct_pseudopotential_uterm_rule(
+              params_root, append_direct_uterm_rule, &uterm_rule_state,
+              &walked_uterm_rules) != 0 ||
+          walked_uterm_rules != (size_t)psp_uterm_count)
+        return -1;
+    }
   }
   static const char *nwpw_cpmd_nwpw[] = {"cpmd", "nwpw"};
   const struct {

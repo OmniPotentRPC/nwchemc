@@ -168,11 +168,17 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemPseudopotentialSpinRule.ionIndices", "NWChemPseudopotentialSpinRule.ionIndices", "NWChemPseudopotentialSpinRule.ionIndices Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 1},
     {"field.NWChemPseudopotentialSpinRule.hasMagneticQuantumNumber", "NWChemPseudopotentialSpinRule.hasMagneticQuantumNumber", "NWChemPseudopotentialSpinRule.hasMagneticQuantumNumber Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 1},
     {"field.NWChemPseudopotentialSpinRule.magneticQuantumNumber", "NWChemPseudopotentialSpinRule.magneticQuantumNumber", "NWChemPseudopotentialSpinRule.magneticQuantumNumber Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 1},
+    {"field.NWChemPseudopotentialUtermRule.angularMomentum", "NWChemPseudopotentialUtermRule.angularMomentum", "NWChemPseudopotentialUtermRule.angularMomentum Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
+    {"field.NWChemPseudopotentialUtermRule.uScale", "NWChemPseudopotentialUtermRule.uScale", "NWChemPseudopotentialUtermRule.uScale Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
+    {"field.NWChemPseudopotentialUtermRule.jScale", "NWChemPseudopotentialUtermRule.jScale", "NWChemPseudopotentialUtermRule.jScale Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
+    {"field.NWChemPseudopotentialUtermRule.ionIndices", "NWChemPseudopotentialUtermRule.ionIndices", "NWChemPseudopotentialUtermRule.ionIndices Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 1},
     {"field.NWChemPseudopotentialStanza.entries", "NWChemPseudopotentialStanza.entries", "NWChemPseudopotentialStanza.entries Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemPseudopotentialStanza.directives", "NWChemPseudopotentialStanza.directives", "NWChemPseudopotentialStanza.directives Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemPseudopotentialStanza.pspSpin", "NWChemPseudopotentialStanza.pspSpin", "NWChemPseudopotentialStanza.pspSpin Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
     {"field.NWChemPseudopotentialStanza.spinRules", "NWChemPseudopotentialStanza.spinRules", "NWChemPseudopotentialStanza.spinRules Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 1},
     {"field.NWChemPseudopotentialStanza.semicoreSmall", "NWChemPseudopotentialStanza.semicoreSmall", "NWChemPseudopotentialStanza.semicoreSmall Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 1},
+    {"field.NWChemPseudopotentialStanza.uterm", "NWChemPseudopotentialStanza.uterm", "NWChemPseudopotentialStanza.uterm Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 1},
+    {"field.NWChemPseudopotentialStanza.utermRules", "NWChemPseudopotentialStanza.utermRules", "NWChemPseudopotentialStanza.utermRules Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 1},
     {"field.NWChemKVector.x", "NWChemKVector.x", "NWChemKVector.x Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemKVector.y", "NWChemKVector.y", "NWChemKVector.y Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemKVector.z", "NWChemKVector.z", "NWChemKVector.z Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -554,7 +560,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 549;
+static const size_t k_feature_count = 555;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

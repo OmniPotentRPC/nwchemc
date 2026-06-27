@@ -1815,6 +1815,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.angularMomentum",
+      "schema_path": "NWChemPseudopotentialUtermRule.angularMomentum",
+      "struct": "NWChemPseudopotentialUtermRule",
+      "name": "angularMomentum",
+      "field_id": 0,
+      "type": "AngularMomentum = s",
+      "role": "NWChemPseudopotentialUtermRule.angularMomentum Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.uScale",
+      "schema_path": "NWChemPseudopotentialUtermRule.uScale",
+      "struct": "NWChemPseudopotentialUtermRule",
+      "name": "uScale",
+      "field_id": 1,
+      "type": "Float64 = 0.0",
+      "role": "NWChemPseudopotentialUtermRule.uScale Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.jScale",
+      "schema_path": "NWChemPseudopotentialUtermRule.jScale",
+      "struct": "NWChemPseudopotentialUtermRule",
+      "name": "jScale",
+      "field_id": 2,
+      "type": "Float64 = 0.0",
+      "role": "NWChemPseudopotentialUtermRule.jScale Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.ionIndices",
+      "schema_path": "NWChemPseudopotentialUtermRule.ionIndices",
+      "struct": "NWChemPseudopotentialUtermRule",
+      "name": "ionIndices",
+      "field_id": 3,
+      "type": "List(Int32)",
+      "role": "NWChemPseudopotentialUtermRule.ionIndices Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemPseudopotentialStanza.entries",
       "schema_path": "NWChemPseudopotentialStanza.entries",
       "struct": "NWChemPseudopotentialStanza",
@@ -1870,6 +1918,30 @@
       "field_id": 4,
       "type": "NWChemToggle = unspecified",
       "role": "NWChemPseudopotentialStanza.semicoreSmall Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.uterm",
+      "schema_path": "NWChemPseudopotentialStanza.uterm",
+      "struct": "NWChemPseudopotentialStanza",
+      "name": "uterm",
+      "field_id": 5,
+      "type": "NWChemToggle = unspecified",
+      "role": "NWChemPseudopotentialStanza.uterm Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.utermRules",
+      "schema_path": "NWChemPseudopotentialStanza.utermRules",
+      "struct": "NWChemPseudopotentialStanza",
+      "name": "utermRules",
+      "field_id": 6,
+      "type": "List(NWChemPseudopotentialUtermRule)",
+      "role": "NWChemPseudopotentialStanza.utermRules Cap'n Proto field",
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "schema_field"

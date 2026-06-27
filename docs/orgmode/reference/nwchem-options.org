@@ -488,6 +488,10 @@ pseudopotential selection:
 | ~spinRules[].scale~ | Numeric spin-scaling factor. |
 | ~spinRules[].ionIndices~ | One-based ion indices for the rule. |
 | ~spinRules[].hasMagneticQuantumNumber~, ~magneticQuantumNumber~ | Optional ~pspspin not_m <m>~ prefix. |
+| ~uterm~ | ~uterm off~ reset or enable direct indexed uterm promotion. |
+| ~utermRules[].angularMomentum~ | ~s~, ~p~, ~d~, or ~f~ channel in indexed ~uterm~ rules. |
+| ~utermRules[].uScale~, ~utermRules[].jScale~ | U/J scale values in ~uterm <l> <u> <j> ...~. |
+| ~utermRules[].ionIndices~ | One-based ion indices for the uterm rule. |
 | ~directives~ | Extra tokenized NWPW directives emitted after the pseudopotential block. |
 
 The renderer emits these entries inside an ~nwpw~ block with a nested
@@ -525,6 +529,15 @@ The direct embed path walks generated c-capnproto rule structs through
 ~nwchemc_params_for_each_direct_pseudopotential_spin_rule~. A stanza with
 ~pspSpin = disabled~ keeps reset semantics in embed mode and is not promoted as
 spin-scaling rules.
+~utermRules~ cover the indexed ~uterm~ potential grammar and embed as
+~nwpw:uterm~ = true, ~nwpw:nuterms~, and indexed RTDB entries:
+
+| Rule field | Embed RTDB key pattern |
+|------------+------------------------|
+| uScale | ~nwpw:uterm_scale:_000001~ |
+| jScale | ~nwpw:jterm_scale:_000001~ |
+| angular momentum | ~nwpw:uterm_l:_000001~ |
+| ion indices | ~nwpw:uterm_ions:_000001~ |
 
 * ABI Entry Points
 | Symbol | Intern id | Stub | Embed |
