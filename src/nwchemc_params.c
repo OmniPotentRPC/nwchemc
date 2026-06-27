@@ -2327,12 +2327,14 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       virtual_start, virtual_end) != 0)
       return -1;
   }
-  if (include_direct_promoted && nwpw.virtualOrbitalsStart > 0 &&
-      nwpw.virtualOrbitalsEnd > 0 &&
-      append_format(block, sizeof(block), "  virtual %d %d\n",
-                    nwpw.virtualOrbitalsStart,
-                    nwpw.virtualOrbitalsEnd) != 0)
-    return -1;
+  if (include_direct_promoted && nwpw.virtualOrbitalsStart > 0) {
+    int virtual_end = nwpw.virtualOrbitalsEnd > 0
+                          ? nwpw.virtualOrbitalsEnd
+                          : nwpw.virtualOrbitalsStart;
+    if (append_format(block, sizeof(block), "  virtual %d %d\n",
+                      nwpw.virtualOrbitalsStart, virtual_end) != 0)
+      return -1;
+  }
   if (include_direct_promoted &&
       nwpw.lcaoMode == NWChemNwpwLcaoMode_skip &&
       append_format(block, sizeof(block), "  lcao_skip\n") != 0)
@@ -3757,10 +3759,12 @@ int nwchemc_params_extract_direct_nwpw_orbital_grid(
           nwpw.virtualAliasEnd > 0 ? nwpw.virtualAliasEnd
                                    : *virtual_orbitals_start;
     }
-    if (nwpw.virtualOrbitalsStart > 0 && nwpw.virtualOrbitalsEnd > 0) {
+    if (nwpw.virtualOrbitalsStart > 0) {
       *has_options = 1;
       *virtual_orbitals_start = nwpw.virtualOrbitalsStart;
-      *virtual_orbitals_end = nwpw.virtualOrbitalsEnd;
+      *virtual_orbitals_end = nwpw.virtualOrbitalsEnd > 0
+                                   ? nwpw.virtualOrbitalsEnd
+                                   : nwpw.virtualOrbitalsStart;
     }
     if (nwpw.lcaoMode != NWChemNwpwLcaoMode_unspecified) {
       *has_options = 1;
