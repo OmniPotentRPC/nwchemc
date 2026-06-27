@@ -1311,6 +1311,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:born"));
   assert_null(strstr(g_input_blocks, "vfield vf_a.ascii"));
   assert_null(strstr(g_input_blocks, "nwpw:vfield_filenames"));
+  assert_null(strstr(g_input_blocks, "single_precision_hfx"));
+  assert_null(strstr(g_input_blocks, "pspw:HFX_single_precision"));
   assert_null(strstr(g_input_blocks, "cpmd_properties true"));
   assert_null(strstr(g_input_blocks, "nwpw:cpmd_properties"));
   assert_null(strstr(g_input_blocks, "use_grid_cmp false"));
@@ -1356,7 +1358,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_set_string("band_fft:zone_name", "fftA");
   assert_set_string("nwpw:vfield_filenames", "vf_a.ascii vf_b.ascii");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 235);
+  assert_int_equal(g_typed_set_count, 236);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1565,6 +1567,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   const char *born_vradii_values[2] = {"1", "2"};
   assert_typed_set_values("nwpw:born_vradii", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           2, born_vradii_values);
+  assert_typed_set_scalar("pspw:HFX_single_precision",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("nwpw:cpmd_properties",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("nwpw:use_grid_cmp",

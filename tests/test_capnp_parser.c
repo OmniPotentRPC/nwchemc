@@ -147,6 +147,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(
       strstr(input_blocks, "born 78.4 relax true 0.529177 1.058354"));
   assert_non_null(strstr(input_blocks, "vfield vf_a.ascii vf_b.ascii"));
+  assert_non_null(strstr(input_blocks, "single_precision_hfx"));
   assert_non_null(strstr(input_blocks, "cpmd_properties true"));
   assert_non_null(strstr(input_blocks, "use_grid_cmp false"));
   assert_non_null(strstr(input_blocks, "director director.dat"));
@@ -407,6 +408,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:born"));
   assert_null(strstr(input_blocks, "vfield vf_a.ascii"));
   assert_null(strstr(input_blocks, "nwpw:vfield_filenames"));
+  assert_null(strstr(input_blocks, "single_precision_hfx"));
+  assert_null(strstr(input_blocks, "pspw:HFX_single_precision"));
   assert_null(strstr(input_blocks, "cpmd_properties true"));
   assert_null(strstr(input_blocks, "nwpw:cpmd_properties"));
   assert_null(strstr(input_blocks, "use_grid_cmp false"));
@@ -839,6 +842,15 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal((int)vfield_count, 2);
   assert_true(text_equals(vfield_filenames[0], "vf_a.ascii"));
   assert_true(text_equals(vfield_filenames[1], "vf_b.ascii"));
+
+  int has_single_precision_hfx = 0;
+  int single_precision_hfx = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_single_precision_hfx(
+                       params_root, &has_single_precision_hfx,
+                       &single_precision_hfx),
+                   0);
+  assert_int_equal(has_single_precision_hfx, 1);
+  assert_int_equal(single_precision_hfx, 1);
 
   int has_cpmd_grid = 0;
   int cpmd_properties = 0;
