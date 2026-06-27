@@ -361,6 +361,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_nwpw_bo_steps_default_params_bin = custom_target(
+    'nwchem_nwpw_bo_steps_default_params_bin',
+    input: 'tests/nwchem_params_nwpw_bo_steps_default.capnp.txt',
+    output: 'nwchem_params_nwpw_bo_steps_default.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_brillouin_tetrahedron_params_bin = custom_target(
     'nwchem_brillouin_tetrahedron_params_bin',
     input: 'tests/nwchem_params_brillouin_tetrahedron.capnp.txt',
@@ -682,6 +696,7 @@ if get_option('with_tests')
       nwchem_nwpw_allow_translation_params_bin,
       nwchem_nwpw_cutoff_alias_params_bin,
       nwchem_nwpw_mc_steps_params_bin,
+      nwchem_nwpw_bo_steps_default_params_bin,
       nwchem_brillouin_tetrahedron_params_bin,
       nwchem_brillouin_dos_grid_params_bin,
       nwchem_nwpw_et_params_bin,
@@ -712,6 +727,7 @@ if get_option('with_tests')
       nwchem_nwpw_allow_translation_params_bin,
       nwchem_nwpw_cutoff_alias_params_bin,
       nwchem_nwpw_mc_steps_params_bin,
+      nwchem_nwpw_bo_steps_default_params_bin,
       nwchem_brillouin_tetrahedron_params_bin,
       nwchem_brillouin_dos_grid_params_bin,
       nwchem_nwpw_et_params_bin,
