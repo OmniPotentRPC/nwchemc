@@ -258,6 +258,15 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.mulliken", "NWChemNwpwStanza.mulliken", "NWChemNwpwStanza.mulliken Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 56, 1, 1},
     {"field.NWChemNwpwStanza.mullikenKawai", "NWChemNwpwStanza.mullikenKawai", "NWChemNwpwStanza.mullikenKawai Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 57, 1, 1},
     {"field.NWChemNwpwStanza.periodicDipole", "NWChemNwpwStanza.periodicDipole", "NWChemNwpwStanza.periodicDipole Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 58, 1, 1},
+    {"field.NWChemNwpwStanza.electricField", "NWChemNwpwStanza.electricField", "NWChemNwpwStanza.electricField Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 59, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldX", "NWChemNwpwStanza.electricFieldX", "NWChemNwpwStanza.electricFieldX Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 60, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldY", "NWChemNwpwStanza.electricFieldY", "NWChemNwpwStanza.electricFieldY Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 61, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldZ", "NWChemNwpwStanza.electricFieldZ", "NWChemNwpwStanza.electricFieldZ Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 62, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldCenterSet", "NWChemNwpwStanza.electricFieldCenterSet", "NWChemNwpwStanza.electricFieldCenterSet Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 63, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldCenterX", "NWChemNwpwStanza.electricFieldCenterX", "NWChemNwpwStanza.electricFieldCenterX Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 64, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldCenterY", "NWChemNwpwStanza.electricFieldCenterY", "NWChemNwpwStanza.electricFieldCenterY Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 65, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldCenterZ", "NWChemNwpwStanza.electricFieldCenterZ", "NWChemNwpwStanza.electricFieldCenterZ Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 66, 1, 1},
+    {"field.NWChemNwpwStanza.electricFieldType", "NWChemNwpwStanza.electricFieldType", "NWChemNwpwStanza.electricFieldType Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 67, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -483,7 +492,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 478;
+static const size_t k_feature_count = 487;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

@@ -1043,6 +1043,21 @@ nwpw_toggle_logical_keyword(enum NWChemNwpwToggle toggle) {
   }
 }
 
+static const char *
+nwpw_efield_type_keyword(enum NWChemNwpwEfieldType efield_type) {
+  switch (efield_type) {
+  case NWChemNwpwEfieldType_periodic:
+    return "periodic";
+  case NWChemNwpwEfieldType_apc:
+    return "APC";
+  case NWChemNwpwEfieldType_rgrid:
+    return "rgrid";
+  case NWChemNwpwEfieldType_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 static int render_set_logical_directive(const char *key,
                                         enum NWChemToggle toggle, char *dst,
                                         size_t dst_size) {
@@ -2124,6 +2139,36 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  periodic_dipole %s\n",
                     periodic_dipole_logical) != 0)
     return -1;
+  const int has_efield =
+      nwpw.electricField != NWChemNwpwToggle_unspecified ||
+      nwpw.electricFieldX != 0.0 || nwpw.electricFieldY != 0.0 ||
+      nwpw.electricFieldZ != 0.0 || nwpw.electricFieldCenterSet ||
+      nwpw.electricFieldType != NWChemNwpwEfieldType_unspecified;
+  if (include_direct_promoted && has_efield) {
+    const int efield_enabled =
+        nwpw.electricField != NWChemNwpwToggle_disabled;
+    if (!efield_enabled) {
+      if (append_format(block, sizeof(block), "  efield false\n") != 0)
+        return -1;
+    } else {
+      if (append_format(block, sizeof(block), "  efield true %.15g %.15g %.15g",
+                        nwpw.electricFieldX, nwpw.electricFieldY,
+                        nwpw.electricFieldZ) != 0)
+        return -1;
+      if (nwpw.electricFieldCenterSet &&
+          append_format(block, sizeof(block), " center %.15g %.15g %.15g",
+                        nwpw.electricFieldCenterX, nwpw.electricFieldCenterY,
+                        nwpw.electricFieldCenterZ) != 0)
+        return -1;
+      const char *efield_type =
+          nwpw_efield_type_keyword(nwpw.electricFieldType);
+      if (efield_type &&
+          append_format(block, sizeof(block), " %s", efield_type) != 0)
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3204,6 +3249,67 @@ int nwchemc_params_extract_direct_nwpw_periodic_dipole(
       *has_options = 1;
       *periodic_dipole = nwpw.periodicDipole;
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_efield(
+    NWChemParams_ptr params, int *has_options, int *efield,
+    double efield_vector[3], int *has_center, double efield_center[3],
+    int *efield_type) {
+  if (params.p.type == CAPN_NULL || !has_options || !efield ||
+      !efield_vector || !has_center || !efield_center || !efield_type)
+    return -1;
+
+  *has_options = 0;
+  *efield = NWChemNwpwToggle_unspecified;
+  efield_vector[0] = 0.0;
+  efield_vector[1] = 0.0;
+  efield_vector[2] = 0.0;
+  *has_center = 0;
+  efield_center[0] = 0.0;
+  efield_center[1] = 0.0;
+  efield_center[2] = 0.0;
+  *efield_type = NWChemNwpwEfieldType_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    const int has_efield =
+        nwpw.electricField != NWChemNwpwToggle_unspecified ||
+        nwpw.electricFieldX != 0.0 || nwpw.electricFieldY != 0.0 ||
+        nwpw.electricFieldZ != 0.0 || nwpw.electricFieldCenterSet ||
+        nwpw.electricFieldType != NWChemNwpwEfieldType_unspecified;
+    if (!has_efield)
+      continue;
+
+    *has_options = 1;
+    *efield = nwpw.electricField == NWChemNwpwToggle_unspecified
+                  ? NWChemNwpwToggle_enabled
+                  : nwpw.electricField;
+    efield_vector[0] = nwpw.electricFieldX;
+    efield_vector[1] = nwpw.electricFieldY;
+    efield_vector[2] = nwpw.electricFieldZ;
+    *has_center = nwpw.electricFieldCenterSet ? 1 : 0;
+    if (*has_center) {
+      efield_center[0] = nwpw.electricFieldCenterX;
+      efield_center[1] = nwpw.electricFieldCenterY;
+      efield_center[2] = nwpw.electricFieldCenterZ;
+    }
+    *efield_type = nwpw.electricFieldType;
   }
 
   return 0;

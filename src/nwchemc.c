@@ -634,6 +634,27 @@ static const char *nwpw_toggle_logical_value(enum NWChemNwpwToggle toggle) {
   }
 }
 
+static int nwpw_efield_type_rtdb_value(enum NWChemNwpwEfieldType efield_type,
+                                       int *value) {
+  if (!value)
+    return -1;
+  switch (efield_type) {
+  case NWChemNwpwEfieldType_periodic:
+    *value = 0;
+    return 1;
+  case NWChemNwpwEfieldType_apc:
+    *value = 1;
+    return 1;
+  case NWChemNwpwEfieldType_rgrid:
+    *value = 2;
+    return 1;
+  case NWChemNwpwEfieldType_unspecified:
+  default:
+    *value = 0;
+    return 0;
+  }
+}
+
 struct direct_pspspin_rule_append_state {
   capn_text *keys;
   int *value_types;
@@ -1504,6 +1525,17 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_params_extract_direct_nwpw_periodic_dipole(
           params_root, &nwpw_periodic_dipole_has_options,
           &nwpw_periodic_dipole) != 0)
+    return -1;
+  int nwpw_efield_has_options = 0;
+  int nwpw_efield = NWChemNwpwToggle_unspecified;
+  double nwpw_efield_vector[3] = {0.0, 0.0, 0.0};
+  int nwpw_efield_has_center = 0;
+  double nwpw_efield_center[3] = {0.0, 0.0, 0.0};
+  int nwpw_efield_type = NWChemNwpwEfieldType_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_efield(
+          params_root, &nwpw_efield_has_options, &nwpw_efield,
+          nwpw_efield_vector, &nwpw_efield_has_center, nwpw_efield_center,
+          &nwpw_efield_type) != 0)
     return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
@@ -2421,6 +2453,66 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:periodic_dipole",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
+  }
+  if (nwpw_efield_has_options) {
+    const char *efield_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_efield);
+    if (efield_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:efield",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, efield_value) != 0)
+      return -1;
+    if (nwpw_efield == NWChemNwpwToggle_enabled) {
+      char x_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char y_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      char z_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *vector_values[3] = {x_value, y_value, z_value};
+      snprintf(x_value, sizeof(x_value), "%.15g", nwpw_efield_vector[0]);
+      snprintf(y_value, sizeof(y_value), "%.15g", nwpw_efield_vector[1]);
+      snprintf(z_value, sizeof(z_value), "%.15g", nwpw_efield_vector[2]);
+      if (append_direct_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:efield_vector",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, vector_values, 3) != 0)
+        return -1;
+      if (nwpw_efield_has_center) {
+        char cx_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+        char cy_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+        char cz_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+        const char *center_values[3] = {cx_value, cy_value, cz_value};
+        snprintf(cx_value, sizeof(cx_value), "%.15g", nwpw_efield_center[0]);
+        snprintf(cy_value, sizeof(cy_value), "%.15g", nwpw_efield_center[1]);
+        snprintf(cz_value, sizeof(cz_value), "%.15g", nwpw_efield_center[2]);
+        if (append_direct_typed_values(
+                typed_set_keys, typed_set_types, typed_set_value_counts,
+                typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+                NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+                nwpw_direct_keys, nwpw_direct_values, "nwpw:efield_center",
+                NWCHEMC_DIRECT_SET_VALUE_DOUBLE, center_values, 3) != 0)
+          return -1;
+      }
+      int efield_type_value = 0;
+      int has_efield_type = nwpw_efield_type_rtdb_value(
+          (enum NWChemNwpwEfieldType)nwpw_efield_type, &efield_type_value);
+      if (has_efield_type < 0)
+        return -1;
+      if (has_efield_type) {
+        char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+        snprintf(value, sizeof(value), "%d", efield_type_value);
+        if (append_direct_typed_value(
+                typed_set_keys, typed_set_types, typed_set_value_counts,
+                typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+                NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+                nwpw_direct_keys, nwpw_direct_values, "nwpw:efield_type",
+                NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+          return -1;
+      }
+    }
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

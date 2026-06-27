@@ -216,6 +216,10 @@ RTDB values directly:
 | ~mulliken~ | ~mulliken~ or ~mulliken off~ | ~cgsd:mulliken~, ~band:mulliken~, ~nwpw:mulliken~, ~cpsd:mulliken~, ~cpmd:mulliken~ |
 | ~mullikenKawai~ | ~mulliken kawai~ | ~nwpw:mulliken_kawai~ |
 | ~periodicDipole~ | ~periodic_dipole true~ or ~false~ | ~nwpw:periodic_dipole~ |
+| ~electricField~ | ~efield true~ or ~false~ | ~nwpw:efield~ |
+| ~electricFieldX~, ~electricFieldY~, ~electricFieldZ~ | ~efield true <x> <y> <z>~ | ~nwpw:efield_vector~ |
+| ~electricFieldCenterSet~, ~electricFieldCenterX~, ~electricFieldCenterY~, ~electricFieldCenterZ~ | ~center <x> <y> <z>~ in ~efield~ | ~nwpw:efield_center~ |
+| ~electricFieldType~ | ~periodic~, ~APC~, or ~rgrid~ in ~efield~ | ~nwpw:efield_type~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

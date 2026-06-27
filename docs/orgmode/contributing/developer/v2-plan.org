@@ -103,8 +103,10 @@ keys directly. NWPW atom electric-field controls write the matching
 ~nwpw:atom_efield~ and ~nwpw:atom_efield_grad~ logical keys. NWPW Mulliken
 analysis controls write the five ~*:mulliken~ logical keys and the
 ~nwpw:mulliken_kawai~ logical key. Periodic dipole mode writes
-~nwpw:periodic_dipole~ directly. Structured simulation-cell controls write
-boundary conditions, 3x3 cell vectors, FFT grids, small grids, box delta, box
+~nwpw:periodic_dipole~ directly. External electric-field controls write
+~nwpw:efield~, ~nwpw:efield_vector~, optional ~nwpw:efield_center~, and
+~nwpw:efield_type~ directly. Structured simulation-cell controls write boundary
+conditions, 3x3 cell vectors, FFT grids, small grids, box delta, box
 orientation, and box-type state to the matching ~<cell>:*~ RTDB keys.
 
 * Structured Coverage
@@ -303,6 +305,10 @@ module prefix:
 | ~mulliken~ | ~mulliken~ | ~cgsd~, ~band~, ~nwpw~, ~cpsd~, ~cpmd~ |
 | ~mullikenKawai~ | ~mulliken_kawai~ | ~nwpw~ |
 | ~periodicDipole~ | ~periodic_dipole~ | ~nwpw~ |
+| ~electricField~ | ~efield~ | ~nwpw~ |
+| ~electricFieldX~ / ~electricFieldY~ / ~electricFieldZ~ | ~efield_vector~ | ~nwpw~ |
+| ~electricFieldCenterSet~ + center coordinates | ~efield_center~ | ~nwpw~ |
+| ~electricFieldType~ | ~efield_type~ | ~nwpw~ |
 | ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
 | ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
 | ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |

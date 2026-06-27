@@ -358,6 +358,13 @@ enum NWChemNwpwLcaoMode {
   skip        @2; # Emit/promote NWChem "lcao_skip".
 }
 
+enum NWChemNwpwEfieldType {
+  unspecified @0; # Do not emit/promote nwpw:efield_type.
+  periodic    @1; # Emit/promote periodic electric-field mode.
+  apc         @2; # Emit/promote APC electric-field mode.
+  rgrid       @3; # Emit/promote rgrid electric-field mode.
+}
+
 struct NWChemNwpwStanza {
   energyCutoff       @0 :Float64 = 0.0; # Emit/promote NWPW energy_cutoff.
   wavefunctionCutoff @1 :Float64 = 0.0; # Emit/promote NWPW wavefunction_cutoff.
@@ -418,6 +425,15 @@ struct NWChemNwpwStanza {
   mulliken                    @56 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW mulliken/off.
   mullikenKawai               @57 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW mulliken kawai.
   periodicDipole              @58 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW periodic_dipole.
+  electricField               @59 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW efield.
+  electricFieldX              @60 :Float64 = 0.0;    # First NWPW efield vector value.
+  electricFieldY              @61 :Float64 = 0.0;    # Second NWPW efield vector value.
+  electricFieldZ              @62 :Float64 = 0.0;    # Third NWPW efield vector value.
+  electricFieldCenterSet      @63 :Bool = false;     # Emit/promote NWPW efield center.
+  electricFieldCenterX        @64 :Float64 = 0.0;    # First NWPW efield center value.
+  electricFieldCenterY        @65 :Float64 = 0.0;    # Second NWPW efield center value.
+  electricFieldCenterZ        @66 :Float64 = 0.0;    # Third NWPW efield center value.
+  electricFieldType           @67 :NWChemNwpwEfieldType = unspecified; # Emit/promote NWPW efield type.
 }
 
 # @struct NWChemScfStanza
