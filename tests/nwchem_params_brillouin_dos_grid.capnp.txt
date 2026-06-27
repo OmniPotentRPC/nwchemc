@@ -1,0 +1,16 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = brillouinZone,
+      brillouinZone = (
+        dosGridX = 7,
+        dosGridY = 8,
+        dosGridZ = 9,
+        dosGridZoneName = "dosA"
+      )
+    )
+  ]
+)
