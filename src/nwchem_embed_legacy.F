@@ -1575,8 +1575,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       logical lcfac(numfunc), nlcfac(numfunc)
       logical lxfac(numfunc), nlxfac(numfunc)
       logical xccomb(numfunc)
-      logical inp_compare
-      external inp_compare
       double precision cfac(numfunc), xfac(numfunc)
       character*64 xc_spec
       integer i
