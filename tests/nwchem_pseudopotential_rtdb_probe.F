@@ -6,15 +6,26 @@
 #include "btdb.fh"
       integer(c_int), intent(out) :: result
       integer rtdb, init_ok, finish_ok, owns_mpi
+      integer i, j
       integer psp_types(6)
       integer stored_type
+      integer typed_count
+      integer typed_types(13)
+      integer typed_value_counts(13)
+      integer typed_ivals(2)
       character*16 psp_elements(6)
       character*256 psp_names(6)
+      character*128 typed_keys(13)
+      character*256 typed_values(64,13)
       character*256 text_value
       character*256 errmsg
+      double precision typed_dvals(2)
       logical status, reset_value
-      logical nwchemc_probe_get_int, nwchemc_probe_get_log
-      external nwchemc_probe_get_int, nwchemc_probe_get_log
+      logical typed_log
+      logical nwchemc_probe_get_int, nwchemc_probe_get_log,
+     $     nwchemc_probe_get_int_array, nwchemc_probe_get_dbl_array
+      external nwchemc_probe_get_int, nwchemc_probe_get_log,
+     $     nwchemc_probe_get_int_array, nwchemc_probe_get_dbl_array
 
       result = 0
       rtdb = -1
@@ -168,7 +179,200 @@
          result = 72
          goto 900
       endif
-      if (.not. reset_value) result = 73
+      if (.not. reset_value) then
+         result = 73
+         goto 900
+      endif
+
+      do i = 1, 13
+         typed_keys(i) = ' '
+         typed_types(i) = 0
+         typed_value_counts(i) = 0
+         do j = 1, 64
+            typed_values(j,i) = ' '
+         enddo
+      enddo
+      typed_count = 13
+      typed_keys(1) = 'nwpw:pspspin'
+      typed_types(1) = 4
+      typed_value_counts(1) = 1
+      typed_values(1,1) = 'true'
+      typed_keys(2) = 'nwpw:pspspin_count'
+      typed_types(2) = 3
+      typed_value_counts(2) = 1
+      typed_values(1,2) = '1'
+      typed_keys(3) = 'nwpw:pspspin_iamup:_000001'
+      typed_types(3) = 4
+      typed_value_counts(3) = 1
+      typed_values(1,3) = 'true'
+      typed_keys(4) = 'nwpw:pspspin_upscale:_000001'
+      typed_types(4) = 2
+      typed_value_counts(4) = 1
+      typed_values(1,4) = '1.25'
+      typed_keys(5) = 'nwpw:pspspin_upl:_000001'
+      typed_types(5) = 3
+      typed_value_counts(5) = 1
+      typed_values(1,5) = '1'
+      typed_keys(6) = 'nwpw:pspspin_upions:_000001'
+      typed_types(6) = 3
+      typed_value_counts(6) = 2
+      typed_values(1,6) = '2'
+      typed_values(2,6) = '3'
+      typed_keys(7) = 'nwpw:psp:semicore_small'
+      typed_types(7) = 4
+      typed_value_counts(7) = 1
+      typed_values(1,7) = 'true'
+      typed_keys(8) = 'nwpw:uterm'
+      typed_types(8) = 4
+      typed_value_counts(8) = 1
+      typed_values(1,8) = 'true'
+      typed_keys(9) = 'nwpw:nuterms'
+      typed_types(9) = 3
+      typed_value_counts(9) = 1
+      typed_values(1,9) = '1'
+      typed_keys(10) = 'nwpw:uterm_scale:_000001'
+      typed_types(10) = 2
+      typed_value_counts(10) = 1
+      typed_values(1,10) = '1.4'
+      typed_keys(11) = 'nwpw:jterm_scale:_000001'
+      typed_types(11) = 2
+      typed_value_counts(11) = 1
+      typed_values(1,11) = '0.2'
+      typed_keys(12) = 'nwpw:uterm_l:_000001'
+      typed_types(12) = 3
+      typed_value_counts(12) = 1
+      typed_values(1,12) = '2'
+      typed_keys(13) = 'nwpw:uterm_ions:_000001'
+      typed_types(13) = 3
+      typed_value_counts(13) = 2
+      typed_values(1,13) = '4'
+      typed_values(2,13) = '6'
+
+      call nwchemc_apply_direct_typed_sets(rtdb, typed_count,
+     $     typed_keys, typed_types, typed_value_counts, typed_values,
+     $     errmsg, status)
+      if (.not. status) then
+         result = 80
+         goto 900
+      endif
+
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:pspspin',
+     $     typed_log)) then
+         result = 81
+         goto 900
+      endif
+      if (.not. typed_log) then
+         result = 82
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:pspspin_count',
+     $     stored_type)) then
+         result = 83
+         goto 900
+      endif
+      if (stored_type .ne. 1) then
+         result = 84
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:pspspin_iamup:_000001', typed_log)) then
+         result = 85
+         goto 900
+      endif
+      if (.not. typed_log) then
+         result = 86
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:pspspin_upscale:_000001', 1, typed_dvals)) then
+         result = 87
+         goto 900
+      endif
+      if (dabs(typed_dvals(1) - 1.25d0) .gt. 1.0d-12) then
+         result = 88
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:pspspin_upl:_000001', stored_type)) then
+         result = 91
+         goto 900
+      endif
+      if (stored_type .ne. 1) then
+         result = 92
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:pspspin_upions:_000001', 2, typed_ivals)) then
+         result = 93
+         goto 900
+      endif
+      if (typed_ivals(1) .ne. 2 .or. typed_ivals(2) .ne. 3) then
+         result = 94
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:psp:semicore_small', typed_log)) then
+         result = 95
+         goto 900
+      endif
+      if (.not. typed_log) then
+         result = 96
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:uterm',
+     $     typed_log)) then
+         result = 97
+         goto 900
+      endif
+      if (.not. typed_log) then
+         result = 98
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:nuterms',
+     $     stored_type)) then
+         result = 99
+         goto 900
+      endif
+      if (stored_type .ne. 1) then
+         result = 100
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:uterm_scale:_000001', 1, typed_dvals)) then
+         result = 101
+         goto 900
+      endif
+      if (dabs(typed_dvals(1) - 1.4d0) .gt. 1.0d-12) then
+         result = 102
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:jterm_scale:_000001', 1, typed_dvals)) then
+         result = 103
+         goto 900
+      endif
+      if (dabs(typed_dvals(1) - 0.2d0) .gt. 1.0d-12) then
+         result = 104
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:uterm_l:_000001',
+     $     stored_type)) then
+         result = 105
+         goto 900
+      endif
+      if (stored_type .ne. 2) then
+         result = 106
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:uterm_ions:_000001', 2, typed_ivals)) then
+         result = 107
+         goto 900
+      endif
+      if (typed_ivals(1) .ne. 4 .or. typed_ivals(2) .ne. 6) then
+         result = 108
+         goto 900
+      endif
 
  900  continue
       finish_ok = 0
@@ -195,5 +399,29 @@
       logical value
       character*(*) key
       nwchemc_probe_get_log = rtdb_get(rtdb, key, mt_log, 1, value)
+      return
+      end
+
+      logical function nwchemc_probe_get_int_array(rtdb, key, n, values)
+      implicit none
+#include "bafdecls.fh"
+#include "btdb.fh"
+      integer rtdb, n
+      integer values(*)
+      character*(*) key
+      nwchemc_probe_get_int_array = rtdb_get(rtdb, key, mt_int, n,
+     $     values)
+      return
+      end
+
+      logical function nwchemc_probe_get_dbl_array(rtdb, key, n, values)
+      implicit none
+#include "bafdecls.fh"
+#include "btdb.fh"
+      integer rtdb, n
+      double precision values(*)
+      character*(*) key
+      nwchemc_probe_get_dbl_array = rtdb_get(rtdb, key, mt_dbl, n,
+     $     values)
       return
       end
