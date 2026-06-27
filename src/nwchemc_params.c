@@ -2193,6 +2193,11 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  cutoff_boot_wavefunction %s\n",
                     cutoff_boot_wavefunction_logical) != 0)
     return -1;
+  const char *fast_erf_logical = nwpw_toggle_logical_keyword(nwpw.fastErf);
+  if (include_direct_promoted && fast_erf_logical &&
+      append_format(block, sizeof(block), "  fast_erf %s\n",
+                    fast_erf_logical) != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3411,6 +3416,39 @@ int nwchemc_params_extract_direct_nwpw_cutoff_boot_wavefunction(
     if (nwpw.cutoffBootWavefunction != NWChemNwpwToggle_unspecified) {
       *has_options = 1;
       *cutoff_boot_wavefunction = nwpw.cutoffBootWavefunction;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_fast_erf(NWChemParams_ptr params,
+                                                int *has_options,
+                                                int *fast_erf) {
+  if (params.p.type == CAPN_NULL || !has_options || !fast_erf)
+    return -1;
+
+  *has_options = 0;
+  *fast_erf = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.fastErf != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *fast_erf = nwpw.fastErf;
     }
   }
 

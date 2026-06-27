@@ -223,6 +223,7 @@ RTDB values directly:
 | ~smoothCutoff~ | ~smooth_cutoff true~ or ~false~ | ~nwpw:smooth_cutoff~ |
 | ~smoothCutoffAfac~, ~smoothCutoffSigma~ | ~smooth_cutoff true <Afac> <sigma>~ | ~nwpw:smooth_cutoff~ |
 | ~cutoffBootWavefunction~ | ~cutoff_boot_wavefunction true~ or ~false~ | ~nwpw:cutoff_boot_psi~ |
+| ~fastErf~ | ~fast_erf true~ or ~false~ | ~nwpw:fast_erf~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.
