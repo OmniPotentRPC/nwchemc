@@ -1993,12 +1993,16 @@ static void test_embed_config_promotes_compact_simulation_cells(void **state) {
                                "4", "0", "4", "4"};
   const char *bcc_values[9] = {"-5", "5", "5", "5", "-5",
                                "5",  "5", "5", "-5"};
+  const char *default_values[9] = {"12", "0",  "0",  "0", "12",
+                                   "0",  "0",  "0",  "12"};
   assert_typed_set_values("scCell:unita", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, 9,
                           sc_values);
   assert_typed_set_values("fccCell:unita", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, 9,
                           fcc_values);
   assert_typed_set_values("bccCell:unita", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, 9,
                           bcc_values);
+  assert_typed_set_values("cell_default:unita",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, 9, default_values);
   free(message);
 }
 

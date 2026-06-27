@@ -27,6 +27,13 @@
         latticeKind = bcc,
         latticeLengthBohr = 10.0
       )
+    ),
+    (
+      kind = simulationCell,
+      simulationCell = (
+        latticeKind = sc,
+        latticeLengthBohr = 12.0
+      )
     )
   ]
 )
