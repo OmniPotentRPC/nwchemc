@@ -217,6 +217,20 @@ extern NWChemCResult nwchemc_calculate_energy_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_forces_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_forces_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_forces_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -4105,6 +4119,9 @@ static void test_session_calculate_result_writes_potential_result(
   assert_non_null(step_b);
   assert_non_null(step_ev);
   assert_non_null(step_changed_species);
+  assert_true(nwchemc_forces_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_forces_result != NULL);
+  assert_true(nwchemc_calculate_forces_result != NULL);
 
   NWChemCSession *session = nwchemc_session_create(message, message_size);
   assert_non_null(session);
@@ -4115,6 +4132,8 @@ static void test_session_calculate_result_writes_potential_result(
   size_t expected_step_a_size =
       nwchemc_potential_result_size_for_force_input(step_a, step_a_size);
   assert_true(expected_step_a_size > 0);
+  assert_int_equal(nwchemc_forces_result_size_for_force_input(step_a, step_a_size),
+                   expected_step_a_size);
   NWChemCResult native = nwchemc_session_calculate_result(
       session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
       &result_size);
@@ -4133,6 +4152,19 @@ static void test_session_calculate_result_writes_potential_result(
   assert_int_equal(g_energy_grad_calls, 1);
   assert_int_equal(g_set_config_calls, 1);
 
+  result_size = 0;
+  NWChemCResult force_named =
+      nwchemc_session_calculate_forces_result(
+          session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+          &result_size);
+  assert_int_equal(force_named.ok, 1);
+  assert_close(force_named.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(result_size, expected_step_a_size);
+  assert_potential_result(result_bytes, result_size, -1.0,
+                          hartree_angstrom_forces, 6, 1.0e-12);
+  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_set_config_calls, 1);
+
   size_t bohr_result_size = 0;
   size_t expected_step_b_size =
       nwchemc_potential_result_size_for_force_input(step_b, step_b_size);
@@ -4145,12 +4177,12 @@ static void test_session_calculate_result_writes_potential_result(
   assert_int_equal(bohr_result_size, result_size);
   assert_potential_result(result_bytes, bohr_result_size, -1.0,
                           native_forces, 6, 1.0e-12);
-  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_energy_grad_calls, 3);
   assert_int_equal(g_set_config_calls, 1);
-  assert_int_equal(g_call_n_atoms[1], 2);
-  assert_close(g_call_positions_ang[1][5], 1.058354421806, 1.0e-12);
-  assert_int_equal(g_call_has_cell[1], 1);
-  assert_close(g_call_cell_ang[1][0], 10.58354421806, 1.0e-11);
+  assert_int_equal(g_call_n_atoms[2], 2);
+  assert_close(g_call_positions_ang[2][5], 1.058354421806, 1.0e-12);
+  assert_int_equal(g_call_has_cell[2], 1);
+  assert_close(g_call_cell_ang[2][0], 10.58354421806, 1.0e-11);
 
   size_t changed_result_size = 0;
   NWChemCResult changed_species = nwchemc_session_calculate_result(
@@ -4159,7 +4191,7 @@ static void test_session_calculate_result_writes_potential_result(
   assert_int_equal(changed_species.ok, 0);
   assert_non_null(strstr(changed_species.message, "topology"));
   assert_int_equal(changed_result_size, result_size);
-  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_energy_grad_calls, 3);
 
   unsigned char short_result[79];
   size_t required_size = 0;
@@ -4168,7 +4200,7 @@ static void test_session_calculate_result_writes_potential_result(
       &required_size);
   assert_int_equal(short_output.ok, 0);
   assert_int_equal(required_size, result_size);
-  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_energy_grad_calls, 3);
 
   result_size = 0;
   NWChemCResult ev = nwchemc_session_calculate_result(
@@ -4182,7 +4214,7 @@ static void test_session_calculate_result_writes_potential_result(
     ev_forces[i] = native_forces[i] * hartree_to_ev / bohr_to_angstrom;
   assert_potential_result(result_bytes, result_size, -hartree_to_ev, ev_forces,
                           6, 1.0e-10);
-  assert_int_equal(g_energy_grad_calls, 3);
+  assert_int_equal(g_energy_grad_calls, 4);
   assert_int_equal(g_set_config_calls, 1);
 
   nwchemc_session_destroy(session);
@@ -4685,12 +4717,16 @@ static void test_calculate_result_one_shot_writes_potential_result(
   unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
   assert_non_null(message);
   assert_non_null(step_a);
+  assert_true(nwchemc_forces_result_size_for_force_input != NULL);
+  assert_true(nwchemc_calculate_forces_result != NULL);
 
   unsigned char result_bytes[256];
   size_t result_size = 0;
   size_t expected_size =
       nwchemc_potential_result_size_for_force_input(step_a, step_a_size);
   assert_true(expected_size > 0);
+  assert_int_equal(nwchemc_forces_result_size_for_force_input(step_a, step_a_size),
+                   expected_size);
 
   NWChemCResult one_shot = nwchemc_calculate_result(
       message, message_size, step_a, step_a_size, result_bytes,
@@ -4703,6 +4739,19 @@ static void test_calculate_result_one_shot_writes_potential_result(
   double hartree_angstrom_forces[6];
   for (int i = 0; i < 6; ++i)
     hartree_angstrom_forces[i] = native_forces[i] / bohr_to_angstrom;
+  assert_potential_result(result_bytes, result_size, -1.0,
+                          hartree_angstrom_forces, 6, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+
+  reset_embed_captures();
+  result_size = 0;
+  NWChemCResult force_named = nwchemc_calculate_forces_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(force_named.ok, 1);
+  assert_close(force_named.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(result_size, expected_size);
   assert_potential_result(result_bytes, result_size, -1.0,
                           hartree_angstrom_forces, 6, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);

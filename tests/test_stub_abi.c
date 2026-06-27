@@ -96,6 +96,20 @@ extern NWChemCResult nwchemc_calculate_energy_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_forces_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_forces_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_forces_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -321,6 +335,18 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_energy_result = nwchemc_calculate_energy_result(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_energy_result.ok, 0);
+  assert_true(nwchemc_forces_result_size_for_force_input != NULL);
+  assert_int_equal(nwchemc_forces_result_size_for_force_input(NULL, 0), 0);
+  assert_true(nwchemc_session_calculate_forces_result != NULL);
+  NWChemCResult session_forces_result =
+      nwchemc_session_calculate_forces_result(NULL, NULL, 0, result_bytes,
+                                              sizeof(result_bytes),
+                                              &result_size);
+  assert_int_equal(session_forces_result.ok, 0);
+  assert_true(nwchemc_calculate_forces_result != NULL);
+  NWChemCResult one_shot_forces_result = nwchemc_calculate_forces_result(
+      NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot_forces_result.ok, 0);
   NWChemCResult session_step_hessian =
       nwchemc_session_calculate_hessian(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step_hessian.ok, 0);

@@ -589,6 +589,9 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_calculate_energy_result", "include/nwchemc.h::nwchemc_calculate_energy_result", "stub=fails ok==0; embed=runs one-shot ForceInput energy-only into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_result", "include/nwchemc.h::nwchemc_session_calculate_result", "stub=fails ok==0; embed=runs session ForceInput energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_result", "include/nwchemc.h::nwchemc_calculate_result", "stub=fails ok==0; embed=runs one-shot ForceInput energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_forces_result_size_for_force_input", "include/nwchemc.h::nwchemc_forces_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput forces PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_forces_result", "include/nwchemc.h::nwchemc_session_calculate_forces_result", "stub=fails ok==0; embed=runs session ForceInput forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_forces_result", "include/nwchemc.h::nwchemc_calculate_forces_result", "stub=fails ok==0; embed=runs one-shot ForceInput forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_hessian", "include/nwchemc.h::nwchemc_calculate_hessian", "stub=fails ok==0; embed=runs one-shot ForceInput Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_hessian_result_size_for_force_input", "include/nwchemc.h::nwchemc_hessian_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput Hessian PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_hessian_result", "include/nwchemc.h::nwchemc_session_calculate_hessian_result", "stub=fails ok==0; embed=runs session ForceInput Hessian into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -626,7 +629,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 621;
+static const size_t k_feature_count = 624;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

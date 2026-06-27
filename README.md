@@ -103,6 +103,20 @@ NWChemCResult nwchemc_calculate_energy_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+size_t nwchemc_forces_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_forces_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_forces_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_result(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -290,7 +304,10 @@ create a separate session.
 callers that do not need a result carrier. `nwchemc_session_calculate_energy_result()`
 writes an energy-only `PotentialResult`, converting `PotentialResult.energy` to
 `ForceInput.energyUnit` while leaving `NWChemCResult.energy_h` in Hartree.
-`nwchemc_calculate_energy()`, `nwchemc_calculate_energy_result()`, and
+`nwchemc_session_calculate_forces_result()` mirrors
+`Potential.calculateForces`; it is the method-named form of the existing
+energy+forces result-carrier path. `nwchemc_calculate_energy()`,
+`nwchemc_calculate_energy_result()`, `nwchemc_calculate_forces_result()`, and
 `nwchemc_calculate_result()` offer the same `NWChemParams + ForceInput` carrier
 for one-shot callers and delegate through the session paths; callers with
 multiple steps should reuse `NWChemCSession`.

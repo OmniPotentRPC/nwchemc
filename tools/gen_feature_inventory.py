@@ -413,6 +413,21 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput energy/forces into PotentialResult",
             },
             {
+                "name": "nwchemc_forces_result_size_for_force_input",
+                "stub": "returns 0",
+                "embed": "sizes ForceInput forces PotentialResult",
+            },
+            {
+                "name": "nwchemc_session_calculate_forces_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput forces into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_forces_result",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput forces into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_hessian",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput Hessian",

@@ -358,6 +358,39 @@ NWChemCResult nwchemc_calculate_energy_result(
     size_t *potential_result_capnp_size_bytes);
 
 /**
+ * @brief Return the byte count needed for a forces `PotentialResult`.
+ *
+ * This parses the serialized `ForceInput` geometry and returns the size of the
+ * unpacked flat `PotentialResult` message with `energy` and `forces`
+ * populated. The function does not initialize or evaluate NWChem.
+ */
+size_t nwchemc_forces_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Compute forces for one `ForceInput` step and write `PotentialResult`.
+ *
+ * This method-named entry point mirrors `Potential.calculateForces`. It writes
+ * `PotentialResult.energy` and `PotentialResult.forces` using the
+ * `ForceInput` result units.
+ */
+NWChemCResult nwchemc_session_calculate_forces_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `NWChemParams + ForceInput -> PotentialResult.forces`.
+ */
+NWChemCResult nwchemc_calculate_forces_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief Compute forces for one `ForceInput` step and write `PotentialResult`.
  *
  * This is the Cap'n Proto result-carrier entry point for RPC-style callers.
