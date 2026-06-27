@@ -19,6 +19,7 @@ static const char *g_nwpw_allow_translation_path = NULL;
 static const char *g_nwpw_cutoff_alias_path = NULL;
 static const char *g_nwpw_mc_steps_path = NULL;
 static const char *g_nwpw_bo_steps_default_path = NULL;
+static const char *g_nwpw_bo_time_step_default_path = NULL;
 static const char *g_nwpw_mc_steps_default_path = NULL;
 static const char *g_brillouin_tetrahedron_path = NULL;
 static const char *g_brillouin_dos_grid_path = NULL;
@@ -2219,6 +2220,31 @@ static void test_embed_config_promotes_nwpw_bo_steps_default(void **state) {
   free(message);
 }
 
+static void
+test_embed_config_promotes_nwpw_bo_time_step_default(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message =
+      read_file(g_nwpw_bo_time_step_default_path, &message_size);
+  assert_non_null(message);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+
+  assert_int_equal(result.ok, 1);
+  assert_null(strstr(g_input_blocks, "  bo_time_step 15\n"));
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 1);
+  assert_typed_set_scalar("nwpw:bo_time_step",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "15");
+
+  free(message);
+}
+
 static void test_embed_config_promotes_nwpw_mc_steps_default(void **state) {
   (void)state;
   reset_embed_captures();
@@ -4041,12 +4067,13 @@ static void test_calculate_frequencies_one_shot_accepts_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 31) {
+  if (argc != 32) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
             "PSPSPIN_MANY_PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
             "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
             "NWPW_MC_STEPS_PARAMS_BIN NWPW_BO_STEPS_DEFAULT_PARAMS_BIN "
+            "NWPW_BO_TIME_STEP_DEFAULT_PARAMS_BIN "
             "NWPW_MC_STEPS_DEFAULT_PARAMS_BIN "
             "BRILLOUIN_TETRAHEDRON_PARAMS_BIN "
             "BRILLOUIN_DOS_GRID_PARAMS_BIN NWPW_ET_PARAMS_BIN "
@@ -4074,27 +4101,28 @@ int main(int argc, char **argv) {
   g_nwpw_cutoff_alias_path = argv[7];
   g_nwpw_mc_steps_path = argv[8];
   g_nwpw_bo_steps_default_path = argv[9];
-  g_nwpw_mc_steps_default_path = argv[10];
-  g_brillouin_tetrahedron_path = argv[11];
-  g_brillouin_dos_grid_path = argv[12];
-  g_nwpw_et_path = argv[13];
-  g_nwpw_temperature_path = argv[14];
-  g_nwpw_mapping_alias_path = argv[15];
-  g_nwpw_virtual_alias_path = argv[16];
-  g_nwpw_one_electron_guess_defaults_path = argv[17];
-  g_nwpw_fractional_orbitals_default_path = argv[18];
-  g_nwpw_smear_orbitals_default_path = argv[19];
-  g_nwpw_virtual_orbitals_default_path = argv[20];
-  g_force_step_a_path = argv[21];
-  g_force_step_b_path = argv[22];
-  g_force_step_ev_path = argv[23];
-  g_force_step_changed_species_path = argv[24];
-  g_force_step_state_path = argv[25];
-  g_tce_methods_path = argv[26];
-  g_compact_cells_path = argv[27];
-  g_nwpw_translate_vector_default_path = argv[28];
-  g_brillouin_monkhorst_default_path = argv[29];
-  g_brillouin_dos_grid_default_path = argv[30];
+  g_nwpw_bo_time_step_default_path = argv[10];
+  g_nwpw_mc_steps_default_path = argv[11];
+  g_brillouin_tetrahedron_path = argv[12];
+  g_brillouin_dos_grid_path = argv[13];
+  g_nwpw_et_path = argv[14];
+  g_nwpw_temperature_path = argv[15];
+  g_nwpw_mapping_alias_path = argv[16];
+  g_nwpw_virtual_alias_path = argv[17];
+  g_nwpw_one_electron_guess_defaults_path = argv[18];
+  g_nwpw_fractional_orbitals_default_path = argv[19];
+  g_nwpw_smear_orbitals_default_path = argv[20];
+  g_nwpw_virtual_orbitals_default_path = argv[21];
+  g_force_step_a_path = argv[22];
+  g_force_step_b_path = argv[23];
+  g_force_step_ev_path = argv[24];
+  g_force_step_changed_species_path = argv[25];
+  g_force_step_state_path = argv[26];
+  g_tce_methods_path = argv[27];
+  g_compact_cells_path = argv[28];
+  g_nwpw_translate_vector_default_path = argv[29];
+  g_brillouin_monkhorst_default_path = argv[30];
+  g_brillouin_dos_grid_default_path = argv[31];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
@@ -4107,6 +4135,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_promotes_nwpw_cutoff_alias),
       cmocka_unit_test(test_embed_config_promotes_nwpw_mc_steps),
       cmocka_unit_test(test_embed_config_promotes_nwpw_bo_steps_default),
+      cmocka_unit_test(
+          test_embed_config_promotes_nwpw_bo_time_step_default),
       cmocka_unit_test(test_embed_config_promotes_nwpw_mc_steps_default),
       cmocka_unit_test(test_embed_config_promotes_brillouin_tetrahedron),
       cmocka_unit_test(test_embed_config_promotes_brillouin_dos_grid),
