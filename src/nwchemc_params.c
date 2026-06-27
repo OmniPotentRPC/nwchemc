@@ -817,11 +817,16 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   return append_block(dst, dst_size, block);
 }
 
+static int append_text_or_default(char *dst, size_t dst_size, capn_text text,
+                                  const char *default_text) {
+  if (text.len > 0)
+    return append_text(dst, dst_size, text);
+  return append_format(dst, dst_size, "%s", default_text);
+}
+
 static int append_zone_name_or_default(char *dst, size_t dst_size,
                                        capn_text zone_name) {
-  if (zone_name.len > 0)
-    return append_text(dst, dst_size, zone_name);
-  return append_format(dst, dst_size, "zone_default");
+  return append_text_or_default(dst, dst_size, zone_name, "zone_default");
 }
 
 static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
@@ -871,8 +876,8 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
     int dz = zone.dosGridZ > 0 ? zone.dosGridZ : 2;
     if (append_format(block, sizeof(block), "  dos-grid %d %d %d ", dx, dy,
                       dz) != 0 ||
-        append_zone_name_or_default(block, sizeof(block),
-                                    zone.dosGridZoneName) != 0 ||
+        append_text_or_default(block, sizeof(block), zone.dosGridZoneName,
+                               "structure_default") != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
