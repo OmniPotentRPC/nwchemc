@@ -251,6 +251,8 @@ RTDB values directly:
 | ~translateReorder~ | ~reorder~ or ~noreorder~ token in ~translate_vector~ | ~nwpw:translate_reorder~ |
 | ~socketType~ | type token in ~socket <type> <ip>~ | ~nwpw:socket_type~ |
 | ~socketIp~ | optional address token in ~socket <type> <ip>~ | ~nwpw:socket_ip~ |
+| ~apcSet~, ~apcGc~ | ~apc <Gc> <gamma...>~ | ~nwpw_APC:Gc~, ~nwpw_APC:nga~ |
+| ~apcGamma~ | trailing gamma values in ~apc~ | ~nwpw_APC:gamma~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

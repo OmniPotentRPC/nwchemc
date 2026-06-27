@@ -1653,6 +1653,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_socket_has_options, &nwpw_socket_type,
           &nwpw_socket_ip) != 0)
     return -1;
+  int nwpw_apc_has_options = 0;
+  double nwpw_apc_gc = 0.0;
+  double nwpw_apc_gamma[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0.0};
+  size_t nwpw_apc_gamma_count = 0;
+  if (nwchemc_params_extract_direct_nwpw_apc(
+          params_root, &nwpw_apc_has_options, &nwpw_apc_gc, nwpw_apc_gamma,
+          NWCHEMC_DIRECT_SET_VALUE_MAX, &nwpw_apc_gamma_count) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -3030,6 +3038,42 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_TEXT, socket_ip) != 0)
         return -1;
     }
+  }
+  if (nwpw_apc_has_options) {
+    char gc_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char count_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(gc_value, sizeof(gc_value), "%.15g", nwpw_apc_gc);
+    snprintf(count_value, sizeof(count_value), "%zu", nwpw_apc_gamma_count);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw_APC:Gc",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, gc_value) != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw_APC:nga",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, count_value) != 0)
+      return -1;
+    char gamma_values_storage[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                             [NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *gamma_values[NWCHEMC_DIRECT_SET_VALUE_MAX];
+    for (size_t i = 0; i < nwpw_apc_gamma_count; ++i) {
+      snprintf(gamma_values_storage[i], sizeof(gamma_values_storage[i]),
+               "%.15g", nwpw_apc_gamma[i]);
+      gamma_values[i] = gamma_values_storage[i];
+    }
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw_APC:gamma",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, gamma_values,
+            nwpw_apc_gamma_count) != 0)
+      return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

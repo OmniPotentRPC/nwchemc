@@ -472,6 +472,9 @@ struct NWChemNwpwStanza {
   translateReorder            @103 :NWChemNwpwToggle = unspecified; # Optional NWPW translate_vector reorder flag.
   socketType                  @104 :Text = "";      # NWPW socket type token.
   socketIp                    @105 :Text = "";      # Optional NWPW socket IP or socket path token.
+  apcSet                      @106 :Bool = false;   # Emit/promote NWPW APC values.
+  apcGc                       @107 :Float64 = 0.0;  # NWPW APC Gc value.
+  apcGamma                    @108 :List(Float64);  # NWPW APC gamma values.
 }
 
 # @struct NWChemScfStanza

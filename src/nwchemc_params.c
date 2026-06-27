@@ -2369,6 +2369,25 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
     if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  capn_list64 apc_gamma = nwpw.apcGamma;
+  capn_resolve(&apc_gamma.p);
+  int napc_gamma = 0;
+  if (apc_gamma.p.type != CAPN_NULL) {
+    if (apc_gamma.p.type != CAPN_LIST || apc_gamma.p.datasz != 8)
+      return -1;
+    napc_gamma = apc_gamma.p.len;
+  }
+  if (include_direct_promoted && nwpw.apcSet && napc_gamma > 0) {
+    if (append_format(block, sizeof(block), "  apc %.15g", nwpw.apcGc) != 0)
+      return -1;
+    for (int i = 0; i < napc_gamma; ++i) {
+      double gamma = capn_to_f64(capn_get64(apc_gamma, i));
+      if (append_format(block, sizeof(block), " %.15g", gamma) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -4147,6 +4166,56 @@ int nwchemc_params_extract_direct_nwpw_socket(
     *has_options = 1;
     *socket_type = nwpw.socketType;
     *socket_ip = nwpw.socketIp;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_apc(
+    NWChemParams_ptr params, int *has_options, double *gc, double *gamma,
+    size_t gamma_capacity, size_t *gamma_count) {
+  if (params.p.type == CAPN_NULL || !has_options || !gc || !gamma_count)
+    return -1;
+
+  *has_options = 0;
+  *gc = 0.0;
+  *gamma_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    capn_list64 apc_gamma = nwpw.apcGamma;
+    capn_resolve(&apc_gamma.p);
+    int ngamma = 0;
+    if (apc_gamma.p.type != CAPN_NULL) {
+      if (apc_gamma.p.type != CAPN_LIST || apc_gamma.p.datasz != 8)
+        return -1;
+      ngamma = apc_gamma.p.len;
+    }
+    if (!nwpw.apcSet || ngamma <= 0)
+      continue;
+
+    *has_options = 1;
+    *gc = nwpw.apcGc;
+    *gamma_count = (size_t)ngamma;
+    if (gamma) {
+      if ((size_t)ngamma > gamma_capacity)
+        return -1;
+      for (int j = 0; j < ngamma; ++j)
+        gamma[j] = capn_to_f64(capn_get64(apc_gamma, j));
+    }
   }
 
   return 0;

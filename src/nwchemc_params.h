@@ -183,6 +183,10 @@ int nwchemc_params_extract_direct_nwpw_socket(
     NWChemParams_ptr params, int *has_options, capn_text *socket_type,
     capn_text *socket_ip);
 
+int nwchemc_params_extract_direct_nwpw_apc(
+    NWChemParams_ptr params, int *has_options, double *gc, double *gamma,
+    size_t gamma_capacity, size_t *gamma_count);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

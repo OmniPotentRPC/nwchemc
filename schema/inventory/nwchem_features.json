@@ -3459,6 +3459,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.apcSet",
+      "schema_path": "NWChemNwpwStanza.apcSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "apcSet",
+      "field_id": 106,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.apcSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.apcGc",
+      "schema_path": "NWChemNwpwStanza.apcGc",
+      "struct": "NWChemNwpwStanza",
+      "name": "apcGc",
+      "field_id": 107,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.apcGc Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.apcGamma",
+      "schema_path": "NWChemNwpwStanza.apcGamma",
+      "struct": "NWChemNwpwStanza",
+      "name": "apcGamma",
+      "field_id": 108,
+      "type": "List(Float64)",
+      "role": "NWChemNwpwStanza.apcGamma Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",
