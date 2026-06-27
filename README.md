@@ -545,9 +545,9 @@ disk-use, and SCS scaling settings through direct `ccsd:*` RTDB writes.
 
 ## rgpot integration contract
 
-rgpot should treat `PotentialConfig.nwchem` as the configuration carrier and
-`ForceInput` as the per-step geometry carrier. The preferred long-running path
-is:
+The short form is `PotentialConfig.nwchem + ForceInput -> PotentialResult`.
+rgpot should allocate the result buffer from the serialized `ForceInput`, then
+call a session or one-shot result-carrier entry point:
 
 ```c
 NWChemCSession *session =
@@ -565,20 +565,9 @@ One-shot callers can use `nwchemc_calculate_result_from_config()` with the same
 serialized messages. Method-specific calls such as
 `nwchemc_calculate_forces_result_from_config()` and
 `nwchemc_calculate_energy_result_from_config()` are available when rgpot wants a
-narrower result carrier.
-
-The merge/release bar for the rgpot wiring is:
-
-- `PotentialConfig.nwchem` and `ForceInput` buffers produced by rgpot are
-  accepted by the `_from_config()` and session APIs without schema-side
-  adapters.
-- Real NWChem embed tests pass for config parity, session result carriers,
-  energy/forces, Hessian, geometry/basis RTDB writes, and pseudopotential RTDB
-  writes.
-- An rgpot-shaped smoke case writes a `PotentialResult` with finite energy and
-  forces, with units matching the `ForceInput` unit fields.
-- The selected NWChem options are documented as either structured fields,
-  direct RTDB promotions, or explicit raw/input-block escape hatches.
+narrower result carrier. See `docs/rgpot-integration.md` for the merge/pr
+release gate, supported operation matrix, real-NWChem probes, and the NWPW
+stress limitation.
 
 ## Build
 
