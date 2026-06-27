@@ -205,6 +205,17 @@ if has_nwchem
     link_args: nwchem_link_args,
     install: true,
   )
+  nwchemc_consumer_deps = []
+  nwchemc_consumer_link_args = []
+  if not builds_shared_nwchemc
+    nwchemc_consumer_deps += nwchemc_params_deps
+    nwchemc_consumer_link_args += nwchem_link_args
+  endif
+  nwchemc_dep = declare_dependency(
+    link_with: nwchemc,
+    dependencies: nwchemc_consumer_deps,
+    link_args: nwchemc_consumer_link_args,
+  )
 endif
 
 if get_option('with_tests')
@@ -1072,8 +1083,7 @@ if get_option('with_tests')
         'test_nwchem_energy_gradient',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
-        dependencies: [cmocka_dep],
-        link_with: nwchemc,
+        dependencies: [cmocka_dep, nwchemc_dep],
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
           '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
@@ -1088,8 +1098,7 @@ if get_option('with_tests')
         'test_nwchem_energy_gradient_input_blocks',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
-        dependencies: [cmocka_dep],
-        link_with: nwchemc,
+        dependencies: [cmocka_dep, nwchemc_dep],
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
           '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
@@ -1104,8 +1113,7 @@ if get_option('with_tests')
         'test_nwchem_energy_gradient_structured',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
-        dependencies: [cmocka_dep],
-        link_with: nwchemc,
+        dependencies: [cmocka_dep, nwchemc_dep],
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
           '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
@@ -1120,8 +1128,7 @@ if get_option('with_tests')
         'test_nwchem_energy_forces',
         'tests/test_nwchem_energy_forces.c',
         include_directories: inc,
-        dependencies: [math_dep, cmocka_dep],
-        link_with: nwchemc,
+        dependencies: [math_dep, cmocka_dep, nwchemc_dep],
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
           '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
@@ -1136,8 +1143,7 @@ if get_option('with_tests')
         'test_nwchem_session_result',
         'tests/test_nwchem_session_result.c',
         include_directories: [inc] + nwchemc_params_includes,
-        dependencies: [math_dep, cmocka_dep] + nwchemc_params_deps,
-        link_with: nwchemc,
+        dependencies: [math_dep, cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
           '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
@@ -1156,8 +1162,7 @@ if get_option('with_tests')
         'test_nwchem_hessian',
         'tests/test_nwchem_hessian.c',
         include_directories: inc,
-        dependencies: [math_dep, cmocka_dep],
-        link_with: nwchemc,
+        dependencies: [math_dep, cmocka_dep, nwchemc_dep],
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
           '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
@@ -1206,8 +1211,7 @@ if get_option('with_tests')
         'test_nwchem_energy_gradient_mpi',
         'tests/test_nwchem_energy_gradient.c',
         include_directories: inc,
-        dependencies: [cmocka_dep],
-        link_with: nwchemc,
+        dependencies: [cmocka_dep, nwchemc_dep],
         c_args: common_c_args + [
           '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
           '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
