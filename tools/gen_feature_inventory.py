@@ -52,6 +52,24 @@ def parse_struct_fields(body: str) -> list[dict[str, object]]:
     return fields
 
 
+def parse_interface_methods(body: str) -> list[dict[str, object]]:
+    methods = []
+    for match in re.finditer(
+        r"^\s*(\w+)\s+@(\d+)\s*\((.*?)\)\s*->\s*\((.*?)\);",
+        body,
+        re.M | re.S,
+    ):
+        methods.append(
+            {
+                "name": match.group(1),
+                "id": int(match.group(2)),
+                "params": " ".join(match.group(3).split()),
+                "results": " ".join(match.group(4).split()),
+            }
+        )
+    return methods
+
+
 def main() -> int:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
     schema = (root / "schema/Potentials.capnp").read_text(encoding="utf-8")
@@ -103,6 +121,28 @@ def main() -> int:
                     "stub_applicable": True,
                     "embed_applicable": True,
                     "driver_class": "schema_field",
+                }
+            )
+
+    schema_methods = []
+    for interface_name, body in iter_named_blocks(schema_clean, "interface"):
+        for method in parse_interface_methods(body):
+            schema_methods.append(
+                {
+                    "feature_id": f"method.{interface_name}.{method['name']}",
+                    "schema_path": f"{interface_name}.{method['name']}",
+                    "interface": interface_name,
+                    "name": method["name"],
+                    "method_id": method["id"],
+                    "params": method["params"],
+                    "results": method["results"],
+                    "role": (
+                        f"{interface_name}.{method['name']} Cap'n Proto "
+                        "interface method"
+                    ),
+                    "stub_applicable": True,
+                    "embed_applicable": True,
+                    "driver_class": "schema_method",
                 }
             )
 
@@ -220,6 +260,7 @@ def main() -> int:
         "stanzas": stanzas,
         "params_fields": [],
         "schema_fields": schema_fields,
+        "schema_methods": schema_methods,
         "abi_entrypoints": [
             {
                 "name": "nwchemc_set_params",
@@ -628,6 +669,18 @@ def main() -> int:
                 "embed": 1 if f["embed_applicable"] else 0,
             }
         )
+    for m in inventory["schema_methods"]:
+        entries.append(
+            {
+                "id": m["feature_id"],
+                "path": m["schema_path"],
+                "role": m["role"],
+                "klass": "NWCHEMC_FEATURE_SCHEMA_METHOD",
+                "eid": m["method_id"],
+                "stub": 1 if m["stub_applicable"] else 0,
+                "embed": 1 if m["embed_applicable"] else 0,
+            }
+        )
     for a in inventory["abi_entrypoints"]:
         entries.append(
             {
@@ -644,7 +697,7 @@ def main() -> int:
     h = """#pragma once
 /**
  * @file nwchemc_features.h
- * @brief Machine-readable intern table for NWChemParams / module / stanza features.
+ * @brief Machine-readable intern table for NWChemParams, schema, and ABI features.
  *
  * Kept in sync with schema/inventory/nwchem_features.json and schema/Potentials.capnp.
  * Regenerate via tools/gen_feature_inventory.py when schema changes.
@@ -662,6 +715,7 @@ typedef enum NWChemCFeatureClass {
   NWCHEMC_FEATURE_PARAMS_FIELD = 2,
   NWCHEMC_FEATURE_ABI = 3,
   NWCHEMC_FEATURE_SCHEMA_FIELD = 4,
+  NWCHEMC_FEATURE_SCHEMA_METHOD = 5,
 } NWChemCFeatureClass;
 
 typedef struct NWChemCFeatureEntry {
@@ -757,7 +811,8 @@ size_t nwchemc_module_feature_count(void);
 
     print(
         f"modules={len(inventory['modules'])} fields={len(inventory['params_fields'])} "
-        f"schema_fields={len(inventory['schema_fields'])} stanzas={len(stanzas)} "
+        f"schema_fields={len(inventory['schema_fields'])} "
+        f"schema_methods={len(inventory['schema_methods'])} stanzas={len(stanzas)} "
         f"intern_rows={len(entries)}"
     )
     return 0

@@ -74,6 +74,29 @@ static void test_find_tce_schema_fields(void **state) {
   }
 }
 
+static void test_find_potential_schema_methods(void **state) {
+  (void)state;
+  static const char *ids[] = {
+      "method.Potential.calculate",
+      "method.Potential.configure",
+      "method.Potential.calculateEnergy",
+      "method.Potential.calculateForces",
+      "method.Potential.calculateHessian",
+      "method.Potential.calculateDipole",
+      "method.Potential.calculateQuadrupole",
+      "method.Potential.calculateStress",
+      "method.Potential.calculateOptimize",
+      "method.Potential.calculateFrequencies",
+  };
+  size_t i;
+  for (i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i) {
+    const NWChemCFeatureEntry *e = nwchemc_feature_find(ids[i]);
+    assert_non_null(e);
+    assert_int_equal(e->klass, NWCHEMC_FEATURE_SCHEMA_METHOD);
+    assert_int_equal(e->enum_or_field_id, (int)i);
+  }
+}
+
 static void test_unknown_null(void **state) {
   (void)state;
   assert_null(nwchemc_feature_find("module.nope"));
@@ -95,13 +118,17 @@ static void test_class_partition_counts(void **state) {
   size_t fields = nwchemc_feature_count_class(NWCHEMC_FEATURE_PARAMS_FIELD);
   size_t schema_fields =
       nwchemc_feature_count_class(NWCHEMC_FEATURE_SCHEMA_FIELD);
+  size_t schema_methods =
+      nwchemc_feature_count_class(NWCHEMC_FEATURE_SCHEMA_METHOD);
   size_t abis = nwchemc_feature_count_class(NWCHEMC_FEATURE_ABI);
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
   assert_int_equal((int)schema_fields, 426);
+  assert_int_equal((int)schema_methods, 10);
   assert_int_equal((int)abis, 62);
-  assert_int_equal((int)(mods + stanzas + fields + schema_fields + abis),
+  assert_int_equal((int)(mods + stanzas + fields + schema_fields +
+                         schema_methods + abis),
                    (int)nwchemc_feature_count());
 }
 
@@ -117,7 +144,7 @@ static void test_feature_table_integrity(void **state) {
     assert_non_null(table[i].schema_path);
     assert_non_null(table[i].nwchem_text_or_role);
     assert_true(table[i].klass >= NWCHEMC_FEATURE_MODULE &&
-                table[i].klass <= NWCHEMC_FEATURE_SCHEMA_FIELD);
+                table[i].klass <= NWCHEMC_FEATURE_SCHEMA_METHOD);
     assert_non_null(nwchemc_feature_find(table[i].feature_id));
   }
 }
@@ -269,6 +296,7 @@ int main(void) {
       cmocka_unit_test(test_find_abi_hessian),
       cmocka_unit_test(test_find_params_basis),
       cmocka_unit_test(test_find_tce_schema_fields),
+      cmocka_unit_test(test_find_potential_schema_methods),
       cmocka_unit_test(test_unknown_null),
       cmocka_unit_test(test_module_name_lookup),
       cmocka_unit_test(test_class_partition_counts),

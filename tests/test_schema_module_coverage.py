@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import re
 import unittest
+import json
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / "schema" / "Potentials.capnp"
+INVENTORY = ROOT / "schema" / "inventory" / "nwchem_features.json"
 
 EXPECTED_MODULE_ENUMS = {
     "analysis",
@@ -135,6 +137,21 @@ class SchemaModuleCoverageTest(unittest.TestCase):
         }
 
         self.assertEqual(actual, EXPECTED_POTENTIAL_METHODS)
+
+    def test_inventory_tracks_potential_operation_methods(self):
+        inv = json.loads(INVENTORY.read_text(encoding="utf-8"))
+        methods = {
+            entry["name"]: entry
+            for entry in inv.get("schema_methods", [])
+            if entry["interface"] == "Potential"
+        }
+
+        self.assertEqual(set(methods), set(EXPECTED_POTENTIAL_METHODS))
+        for name, ordinal in EXPECTED_POTENTIAL_METHODS.items():
+            entry = methods[name]
+            self.assertEqual(entry["method_id"], ordinal)
+            self.assertEqual(entry["feature_id"], f"method.Potential.{name}")
+            self.assertEqual(entry["schema_path"], f"Potential.{name}")
 
 
 if __name__ == "__main__":

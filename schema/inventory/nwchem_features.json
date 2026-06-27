@@ -6387,6 +6387,138 @@
       "driver_class": "schema_field"
     }
   ],
+  "schema_methods": [
+    {
+      "feature_id": "method.Potential.calculate",
+      "schema_path": "Potential.calculate",
+      "interface": "Potential",
+      "name": "calculate",
+      "method_id": 0,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculate Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.configure",
+      "schema_path": "Potential.configure",
+      "interface": "Potential",
+      "name": "configure",
+      "method_id": 1,
+      "params": "config :PotentialConfig",
+      "results": "ok :Bool, message :Text",
+      "role": "Potential.configure Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateEnergy",
+      "schema_path": "Potential.calculateEnergy",
+      "interface": "Potential",
+      "name": "calculateEnergy",
+      "method_id": 2,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateEnergy Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateForces",
+      "schema_path": "Potential.calculateForces",
+      "interface": "Potential",
+      "name": "calculateForces",
+      "method_id": 3,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateForces Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateHessian",
+      "schema_path": "Potential.calculateHessian",
+      "interface": "Potential",
+      "name": "calculateHessian",
+      "method_id": 4,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateHessian Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateDipole",
+      "schema_path": "Potential.calculateDipole",
+      "interface": "Potential",
+      "name": "calculateDipole",
+      "method_id": 5,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateDipole Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateQuadrupole",
+      "schema_path": "Potential.calculateQuadrupole",
+      "interface": "Potential",
+      "name": "calculateQuadrupole",
+      "method_id": 6,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateQuadrupole Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateStress",
+      "schema_path": "Potential.calculateStress",
+      "interface": "Potential",
+      "name": "calculateStress",
+      "method_id": 7,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateStress Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateOptimize",
+      "schema_path": "Potential.calculateOptimize",
+      "interface": "Potential",
+      "name": "calculateOptimize",
+      "method_id": 8,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateOptimize Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateFrequencies",
+      "schema_path": "Potential.calculateFrequencies",
+      "interface": "Potential",
+      "name": "calculateFrequencies",
+      "method_id": 9,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateFrequencies Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
+    }
+  ],
   "abi_entrypoints": [
     {
       "name": "nwchemc_set_params",

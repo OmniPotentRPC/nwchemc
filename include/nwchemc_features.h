@@ -1,7 +1,7 @@
 #pragma once
 /**
  * @file nwchemc_features.h
- * @brief Machine-readable intern table for NWChemParams / module / stanza features.
+ * @brief Machine-readable intern table for NWChemParams, schema, and ABI features.
  *
  * Kept in sync with schema/inventory/nwchem_features.json and schema/Potentials.capnp.
  * Regenerate via tools/gen_feature_inventory.py when schema changes.
@@ -19,6 +19,7 @@ typedef enum NWChemCFeatureClass {
   NWCHEMC_FEATURE_PARAMS_FIELD = 2,
   NWCHEMC_FEATURE_ABI = 3,
   NWCHEMC_FEATURE_SCHEMA_FIELD = 4,
+  NWCHEMC_FEATURE_SCHEMA_METHOD = 5,
 } NWChemCFeatureClass;
 
 typedef struct NWChemCFeatureEntry {

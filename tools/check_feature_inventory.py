@@ -45,6 +45,10 @@ def parse_struct_fields(body: str) -> set[str]:
     return set(re.findall(r"^\s*(\w+)\s+@\d+\s*:", body, re.M))
 
 
+def parse_interface_methods(body: str) -> set[str]:
+    return set(re.findall(r"^\s*(\w+)\s+@\d+\s*\(", body, re.M))
+
+
 def parse_module_enums(text: str) -> set[str]:
     block = find_named_block(text, "enum", "NWChemModuleName")
     if not block:
@@ -67,6 +71,14 @@ def parse_schema_fields(text: str) -> set[str]:
     return fields
 
 
+def parse_schema_methods(text: str) -> set[str]:
+    methods: set[str] = set()
+    for interface_name, body in iter_named_blocks(text, "interface"):
+        for method_name in parse_interface_methods(body):
+            methods.add(f"{interface_name}.{method_name}")
+    return methods
+
+
 def parse_stanza_kinds(text: str) -> set[str]:
     stanza_block = find_named_block(text, "struct", "NWChemInputStanza")
     block = find_named_block(stanza_block, "enum", "Kind") if stanza_block else None
@@ -87,6 +99,10 @@ def main() -> int:
     inv_fields = {f["name"] for f in inv["params_fields"]}
     schema_all_fields = parse_schema_fields(schema)
     inv_schema_fields = {f"{f['struct']}.{f['name']}" for f in inv["schema_fields"]}
+    schema_methods = parse_schema_methods(schema)
+    inv_schema_methods = {
+        f"{f['interface']}.{f['name']}" for f in inv.get("schema_methods", [])
+    }
     schema_stanzas = parse_stanza_kinds(schema)
     inv_stanzas = {s["kind"] for s in inv["stanzas"]}
 
@@ -98,6 +114,11 @@ def main() -> int:
             "schema_fields",
             schema_all_fields - inv_schema_fields,
             inv_schema_fields - schema_all_fields,
+        ),
+        (
+            "schema_methods",
+            schema_methods - inv_schema_methods,
+            inv_schema_methods - schema_methods,
         ),
         ("stanzas", schema_stanzas - inv_stanzas, inv_stanzas - schema_stanzas),
     ):
@@ -118,6 +139,9 @@ def main() -> int:
     for name in sorted(schema_all_fields):
         if f'"field.{name}"' not in features_c:
             errors.append(f"C intern table missing field.{name}")
+    for name in sorted(schema_methods):
+        if f'"method.{name}"' not in features_c:
+            errors.append(f"C intern table missing method.{name}")
     required_abi = (
         "nwchemc_set_params",
         "nwchemc_energy_gradient",
@@ -220,7 +244,8 @@ def main() -> int:
 
     print(
         f"modules={len(schema_mods)} fields={len(schema_fields)} "
-        f"schema_fields={len(schema_all_fields)} stanzas={len(schema_stanzas)} intern_ok_rows="
+        f"schema_fields={len(schema_all_fields)} schema_methods={len(schema_methods)} "
+        f"stanzas={len(schema_stanzas)} intern_ok_rows="
         f"{features_c.count('NWCHEMC_FEATURE_')}"
     )
     if errors:

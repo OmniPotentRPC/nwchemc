@@ -549,6 +549,16 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemParams.inputStanzas", "NWChemParams.inputStanzas", "NWChemParams.inputStanzas Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 13, 1, 1},
     {"field.PotentialConfig.none", "PotentialConfig.none", "PotentialConfig.none Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.PotentialConfig.nwchem", "PotentialConfig.nwchem", "PotentialConfig.nwchem Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
+    {"method.Potential.calculate", "Potential.calculate", "Potential.calculate Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 0, 1, 1},
+    {"method.Potential.configure", "Potential.configure", "Potential.configure Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 1, 1, 1},
+    {"method.Potential.calculateEnergy", "Potential.calculateEnergy", "Potential.calculateEnergy Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 2, 1, 1},
+    {"method.Potential.calculateForces", "Potential.calculateForces", "Potential.calculateForces Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 3, 1, 1},
+    {"method.Potential.calculateHessian", "Potential.calculateHessian", "Potential.calculateHessian Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 4, 1, 1},
+    {"method.Potential.calculateDipole", "Potential.calculateDipole", "Potential.calculateDipole Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 5, 1, 1},
+    {"method.Potential.calculateQuadrupole", "Potential.calculateQuadrupole", "Potential.calculateQuadrupole Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 6, 1, 1},
+    {"method.Potential.calculateStress", "Potential.calculateStress", "Potential.calculateStress Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 7, 1, 1},
+    {"method.Potential.calculateOptimize", "Potential.calculateOptimize", "Potential.calculateOptimize Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 8, 1, 1},
+    {"method.Potential.calculateFrequencies", "Potential.calculateFrequencies", "Potential.calculateFrequencies Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 9, 1, 1},
     {"abi.nwchemc_set_params", "include/nwchemc.h::nwchemc_set_params", "stub=fails non-zero; embed=applies Cap'n Proto params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy_gradient", "include/nwchemc.h::nwchemc_energy_gradient", "stub=fails ok==0; embed=runs energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy", "include/nwchemc.h::nwchemc_energy", "stub=fails ok==0; embed=runs energy-only (no grad output)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -613,7 +623,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 608;
+static const size_t k_feature_count = 618;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
