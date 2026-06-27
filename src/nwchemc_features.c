@@ -367,6 +367,13 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.etMovecsB", "NWChemNwpwStanza.etMovecsB", "NWChemNwpwStanza.etMovecsB Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 149, 1, 1},
     {"field.NWChemNwpwStanza.etIonA", "NWChemNwpwStanza.etIonA", "NWChemNwpwStanza.etIonA Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 150, 1, 1},
     {"field.NWChemNwpwStanza.etIonB", "NWChemNwpwStanza.etIonB", "NWChemNwpwStanza.etIonB Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 151, 1, 1},
+    {"field.NWChemNwpwStanza.temperatureIon", "NWChemNwpwStanza.temperatureIon", "NWChemNwpwStanza.temperatureIon Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 152, 1, 1},
+    {"field.NWChemNwpwStanza.temperatureIonPeriod", "NWChemNwpwStanza.temperatureIonPeriod", "NWChemNwpwStanza.temperatureIonPeriod Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 153, 1, 1},
+    {"field.NWChemNwpwStanza.temperatureElectron", "NWChemNwpwStanza.temperatureElectron", "NWChemNwpwStanza.temperatureElectron Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 154, 1, 1},
+    {"field.NWChemNwpwStanza.temperatureElectronPeriod", "NWChemNwpwStanza.temperatureElectronPeriod", "NWChemNwpwStanza.temperatureElectronPeriod Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 155, 1, 1},
+    {"field.NWChemNwpwStanza.temperatureRestart", "NWChemNwpwStanza.temperatureRestart", "NWChemNwpwStanza.temperatureRestart Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 156, 1, 1},
+    {"field.NWChemNwpwStanza.temperatureIonChainLength", "NWChemNwpwStanza.temperatureIonChainLength", "NWChemNwpwStanza.temperatureIonChainLength Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 157, 1, 1},
+    {"field.NWChemNwpwStanza.temperatureElectronChainLength", "NWChemNwpwStanza.temperatureElectronChainLength", "NWChemNwpwStanza.temperatureElectronChainLength Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 158, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -592,7 +599,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 587;
+static const size_t k_feature_count = 594;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

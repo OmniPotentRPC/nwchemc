@@ -2306,6 +2306,41 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                                                ? nwpw.ewaldGridY
                                                : nwpw.ewaldGridX)) != 0)
     return -1;
+  const int has_temperature =
+      nwpw.temperatureIon > 0.0 || nwpw.temperatureIonPeriod > 0.0 ||
+      nwpw.temperatureElectron > 0.0 ||
+      nwpw.temperatureElectronPeriod > 0.0 ||
+      nwpw.temperatureRestart != NWChemNwpwToggle_unspecified ||
+      nwpw.temperatureIonChainLength > 0 ||
+      nwpw.temperatureElectronChainLength > 0;
+  if (include_direct_promoted && has_temperature) {
+    double ion_temperature =
+        nwpw.temperatureIon > 0.0 ? nwpw.temperatureIon : 298.15;
+    double ion_period =
+        nwpw.temperatureIonPeriod > 0.0 ? nwpw.temperatureIonPeriod : 1200.0;
+    double electron_temperature = nwpw.temperatureElectron > 0.0
+                                      ? nwpw.temperatureElectron
+                                      : ion_temperature;
+    double electron_period = nwpw.temperatureElectronPeriod > 0.0
+                                 ? nwpw.temperatureElectronPeriod
+                                 : ion_period;
+    int ion_chain_length = nwpw.temperatureIonChainLength > 0
+                               ? nwpw.temperatureIonChainLength
+                               : 1;
+    int electron_chain_length =
+        nwpw.temperatureElectronChainLength > 0
+            ? nwpw.temperatureElectronChainLength
+            : ion_chain_length;
+    const char *restart = nwpw.temperatureRestart == NWChemNwpwToggle_disabled
+                              ? "start"
+                              : "restart";
+    if (append_format(block, sizeof(block),
+                      "  temperature %.15g %.15g %.15g %.15g %s %d %d\n",
+                      ion_temperature, ion_period, electron_temperature,
+                      electron_period, restart, ion_chain_length,
+                      electron_chain_length) != 0)
+      return -1;
+  }
   if (include_direct_promoted &&
       (nwpw.noseHoover != NWChemNwpwToggle_unspecified ||
        nwpw.noseRestart != NWChemNwpwToggle_unspecified ||
@@ -3713,15 +3748,52 @@ int nwchemc_params_extract_direct_nwpw_nose(
 
     struct NWChemNwpwStanza nwpw;
     read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
-    if (nwpw.noseHoover == NWChemNwpwToggle_unspecified &&
-        nwpw.noseRestart == NWChemNwpwToggle_unspecified &&
-        nwpw.noseElectronPeriod <= 0.0 &&
-        nwpw.noseElectronTemperature <= 0.0 && nwpw.noseIonPeriod <= 0.0 &&
-        nwpw.noseIonTemperature <= 0.0 &&
-        nwpw.noseElectronChainLength <= 0 && nwpw.noseIonChainLength <= 0)
+    int has_nose = nwpw.noseHoover != NWChemNwpwToggle_unspecified ||
+                   nwpw.noseRestart != NWChemNwpwToggle_unspecified ||
+                   nwpw.noseElectronPeriod > 0.0 ||
+                   nwpw.noseElectronTemperature > 0.0 ||
+                   nwpw.noseIonPeriod > 0.0 ||
+                   nwpw.noseIonTemperature > 0.0 ||
+                   nwpw.noseElectronChainLength > 0 ||
+                   nwpw.noseIonChainLength > 0;
+    int has_temperature =
+        nwpw.temperatureIon > 0.0 || nwpw.temperatureIonPeriod > 0.0 ||
+        nwpw.temperatureElectron > 0.0 ||
+        nwpw.temperatureElectronPeriod > 0.0 ||
+        nwpw.temperatureRestart != NWChemNwpwToggle_unspecified ||
+        nwpw.temperatureIonChainLength > 0 ||
+        nwpw.temperatureElectronChainLength > 0;
+    if (!has_nose && !has_temperature)
       continue;
 
     *has_options = 1;
+    if (has_temperature) {
+      double ion_temp =
+          nwpw.temperatureIon > 0.0 ? nwpw.temperatureIon : 298.15;
+      double ion_period_value =
+          nwpw.temperatureIonPeriod > 0.0 ? nwpw.temperatureIonPeriod : 1200.0;
+      int ion_chain = nwpw.temperatureIonChainLength > 0
+                          ? nwpw.temperatureIonChainLength
+                          : 1;
+      *nose_hoover = NWChemNwpwToggle_enabled;
+      *nose_restart =
+          nwpw.temperatureRestart == NWChemNwpwToggle_unspecified
+              ? NWChemNwpwToggle_enabled
+              : nwpw.temperatureRestart;
+      *ion_temperature = ion_temp;
+      *ion_period = ion_period_value;
+      *electron_temperature =
+          nwpw.temperatureElectron > 0.0 ? nwpw.temperatureElectron : ion_temp;
+      *electron_period = nwpw.temperatureElectronPeriod > 0.0
+                             ? nwpw.temperatureElectronPeriod
+                             : ion_period_value;
+      *ion_chain_length = ion_chain;
+      *electron_chain_length = nwpw.temperatureElectronChainLength > 0
+                                   ? nwpw.temperatureElectronChainLength
+                                   : ion_chain;
+      continue;
+    }
+
     *nose_hoover = nwpw.noseHoover == NWChemNwpwToggle_unspecified
                        ? NWChemNwpwToggle_enabled
                        : nwpw.noseHoover;

@@ -211,8 +211,9 @@ Fractional orbital and NWPW smear controls expose the `nwpw:fractional_*`
 RTDB values directly while preserving structured full-deck rendering. Virtual
 orbital counts, LCAO skip/use mode, and Ewald grid dimensions are also
 structured and promoted to direct `nwpw:*` RTDB values. Nose-Hoover thermostat
-controls expose the paired `cpmd:*` / `nwpw:*` nose, restart, period,
-temperature, and chain-length RTDB keys directly. Born solvation controls
+controls, including the NWPW `temperature` alias, expose the paired `cpmd:*` /
+`nwpw:*` nose, restart, period, temperature, and chain-length RTDB keys
+directly. Born solvation controls
 expose `nwpw:born`, `nwpw:born_dielec`, `nwpw:born_relax`, and
 `nwpw:born_vradii` directly. Vfield filename lists expose
 `nwpw:vfield_filenames` directly. Single-precision HFX exposes

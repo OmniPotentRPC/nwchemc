@@ -97,9 +97,10 @@ RTDB keys are also promoted directly. Output and motion filename fields are
 promoted to the paired CPMD/NWPW RTDB string keys. Fractional orbital and smear
 controls write the matching ~nwpw:fractional_*~ keys directly.
 Virtual orbital counts, LCAO skip/use mode, and Ewald grid dimensions are
-promoted to direct ~nwpw:*~ keys. Nose-Hoover thermostat controls write the
-paired ~cpmd:*~ / ~nwpw:*~ nose, restart, period, temperature, and chain-length
-keys directly. NWPW atom electric-field controls write the matching
+promoted to direct ~nwpw:*~ keys. Nose-Hoover thermostat controls and the
+~temperature~ alias write the paired ~cpmd:*~ / ~nwpw:*~ nose, restart,
+period, temperature, and chain-length keys directly. NWPW atom electric-field
+controls write the matching
 ~nwpw:atom_efield~ and ~nwpw:atom_efield_grad~ logical keys. NWPW Mulliken
 analysis controls write the five ~*:mulliken~ logical keys and the
 ~nwpw:mulliken_kawai~ logical key. Periodic dipole mode writes
@@ -163,7 +164,7 @@ The schema contains typed stanzas for:
 - ~nwpw~ output and motion filename controls
 - ~nwpw~ fractional orbital and smear controls
 - ~nwpw~ virtual orbital, LCAO, and Ewald grid controls
-- ~nwpw~ Nose-Hoover thermostat controls
+- ~nwpw~ Nose-Hoover thermostat controls and the ~temperature~ alias
 - ~nwpw~ ET movecs and ion string controls
 - ~nwpw~ Brillouin-zone controls for Monkhorst-Pack grids, DOS and tetrahedron
   grids, explicit k-vectors, zone names, and k-point print counts

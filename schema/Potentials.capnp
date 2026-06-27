@@ -577,6 +577,13 @@ struct NWChemNwpwStanza {
   etMovecsB                   @149 :Text = "";      # Second movecs token in NWPW et.
   etIonA                      @150 :Text = "";      # First ion token in NWPW et.
   etIonB                      @151 :Text = "";      # Second ion token in NWPW et.
+  temperatureIon              @152 :Float64 = 0.0;  # First NWPW temperature argument, Tion.
+  temperatureIonPeriod        @153 :Float64 = 0.0;  # Second NWPW temperature argument, Pion.
+  temperatureElectron         @154 :Float64 = 0.0;  # Third NWPW temperature argument, Telc.
+  temperatureElectronPeriod   @155 :Float64 = 0.0;  # Fourth NWPW temperature argument, Pelc.
+  temperatureRestart          @156 :NWChemNwpwToggle = unspecified; # restart/start token in NWPW temperature.
+  temperatureIonChainLength   @157 :Int32 = 0;      # First chain argument in NWPW temperature.
+  temperatureElectronChainLength @158 :Int32 = 0;   # Second chain argument in NWPW temperature.
 }
 
 # @struct NWChemScfStanza

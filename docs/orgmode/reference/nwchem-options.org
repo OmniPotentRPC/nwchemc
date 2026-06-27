@@ -213,6 +213,7 @@ RTDB values directly:
 | ~noseIonTemperature~ | fourth ~Nose-Hoover~ numeric argument | ~cpmd:Tr~, ~nwpw:Tr~ |
 | ~noseElectronChainLength~ | sixth ~Nose-Hoover~ argument | ~cpmd:Mchain~, ~nwpw:Mchain~ |
 | ~noseIonChainLength~ | seventh ~Nose-Hoover~ argument | ~cpmd:Nchain~, ~nwpw:Nchain~ |
+| ~temperatureIon~, ~temperatureIonPeriod~, ~temperatureElectron~, ~temperatureElectronPeriod~, ~temperatureRestart~, ~temperatureIonChainLength~, ~temperatureElectronChainLength~ | ~temperature <Tion> <Pion> <Telc> <Pelc> <start/restart> <nchain> <mchain>~ | paired Nose-Hoover RTDB keys |
 | ~atomEfield~ | ~atom_efield~ | ~nwpw:atom_efield~ |
 | ~atomEfieldGradient~ | ~atom_efield_grad~ | ~nwpw:atom_efield_grad~ |
 | ~mulliken~ | ~mulliken~ or ~mulliken off~ | ~cgsd:mulliken~, ~band:mulliken~, ~nwpw:mulliken~, ~cpsd:mulliken~, ~cpmd:mulliken~ |
@@ -444,6 +445,7 @@ controls:
 | ~noseIonTemperature~ | fourth ~Nose-Hoover~ numeric argument |
 | ~noseElectronChainLength~ | sixth ~Nose-Hoover~ argument |
 | ~noseIonChainLength~ | seventh ~Nose-Hoover~ argument |
+| ~temperatureIon~, ~temperatureIonPeriod~, ~temperatureElectron~, ~temperatureElectronPeriod~, ~temperatureRestart~, ~temperatureIonChainLength~, ~temperatureElectronChainLength~ | ~temperature <Tion> <Pion> <Telc> <Pelc> <start/restart> <nchain> <mchain>~ |
 | ~directives~ | Extra tokenized NWPW directives. |
 
 The embed path promotes these fields to the stable RTDB keys used by the NWChem
