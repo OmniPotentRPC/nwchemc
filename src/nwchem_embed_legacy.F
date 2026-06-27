@@ -1562,6 +1562,68 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       return
       end
 
+      subroutine nwchemc_apply_named_dft_xc(rtdb, scf_type, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+#include "inp.fh"
+#include "xc.fh"
+      integer rtdb
+      character*64 scf_type
+      logical ok
+      logical status
+      logical lcfac(numfunc), nlcfac(numfunc)
+      logical lxfac(numfunc), nlxfac(numfunc)
+      logical xccomb(numfunc)
+      logical inp_compare
+      external inp_compare
+      double precision cfac(numfunc), xfac(numfunc)
+      character*64 xc_spec
+      integer i
+
+      ok = .true.
+      if (.not. inp_compare(.false., scf_type, 'pbe0')) return
+      do i = 1, numfunc
+         lcfac(i) = .false.
+         nlcfac(i) = .false.
+         lxfac(i) = .false.
+         nlxfac(i) = .false.
+         xccomb(i) = .false.
+         cfac(i) = 0.0d0
+         xfac(i) = 0.0d0
+      enddo
+      xccomb(10) = .true.
+      xfac(1) = 0.25d0
+      lxfac(1) = .true.
+      nlxfac(1) = .true.
+      lxfac(7) = .true.
+      nlxfac(7) = .true.
+      xfac(7) = 0.75d0
+      lcfac(12) = .false.
+      nlcfac(12) = .true.
+      cfac(12) = 1.0d0
+      lcfac(6) = .true.
+      cfac(6) = 1.0d0
+      xc_spec = 'pbe0'
+      status = rtdb_cput(rtdb, 'dft:xc_spec', 1, xc_spec)
+      ok = ok .and. status
+      status = rtdb_put(rtdb, 'dft:lcfac', mt_log, numfunc, lcfac)
+      ok = ok .and. status
+      status = rtdb_put(rtdb, 'dft:nlcfac', mt_log, numfunc, nlcfac)
+      ok = ok .and. status
+      status = rtdb_put(rtdb, 'dft:lxfac', mt_log, numfunc, lxfac)
+      ok = ok .and. status
+      status = rtdb_put(rtdb, 'dft:nlxfac', mt_log, numfunc, nlxfac)
+      ok = ok .and. status
+      status = rtdb_put(rtdb, 'dft:xccomb', mt_log, numfunc, xccomb)
+      ok = ok .and. status
+      status = rtdb_put(rtdb, 'dft:cfac', mt_dbl, numfunc, cfac)
+      ok = ok .and. status
+      status = rtdb_put(rtdb, 'dft:xfac', mt_dbl, numfunc, xfac)
+      ok = ok .and. status
+      return
+      end
+
       subroutine nwchemc_apply_method_state(rtdb, theory_name, scf_type,
      $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
      $     dft_smear_spinset, scf_has_options, scf_maxiter,
@@ -1656,6 +1718,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       vectors_in = 'atomic'
       if (theory_name(1:3) .eq. 'dft') then
          status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
+         ok = ok .and. status
+         call nwchemc_apply_named_dft_xc(rtdb, scf_type, status)
          ok = ok .and. status
          call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
          ok = ok .and. status
