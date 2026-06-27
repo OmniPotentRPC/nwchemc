@@ -119,11 +119,39 @@ extern NWChemCResult nwchemc_calculate_optimize(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *optimized_positions_ang, size_t optimized_positions_len)
     NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_optimize_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_optimize_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_optimize_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_frequencies(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
     size_t intensities_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_frequencies_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_frequencies_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_frequencies_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
@@ -261,11 +289,38 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_step_optimize = nwchemc_session_calculate_optimize(
       NULL, NULL, 0, optimized_positions_ang, 6);
   assert_int_equal(session_step_optimize.ok, 0);
+  assert_true(nwchemc_optimize_result_size_for_force_input != NULL);
+  assert_int_equal(nwchemc_optimize_result_size_for_force_input(NULL, 0), 0);
+  assert_true(nwchemc_session_calculate_optimize_result != NULL);
+  NWChemCResult session_optimize_result =
+      nwchemc_session_calculate_optimize_result(NULL, NULL, 0, result_bytes,
+                                                sizeof(result_bytes),
+                                                &result_size);
+  assert_int_equal(session_optimize_result.ok, 0);
+  assert_true(nwchemc_calculate_optimize_result != NULL);
+  NWChemCResult one_shot_optimize_result =
+      nwchemc_calculate_optimize_result(NULL, 0, NULL, 0, result_bytes,
+                                        sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot_optimize_result.ok, 0);
   assert_true(nwchemc_session_calculate_frequencies != NULL);
   NWChemCResult session_step_frequency =
       nwchemc_session_calculate_frequencies(NULL, NULL, 0, frequencies_cm1, 6,
                                             intensities_au, 6);
   assert_int_equal(session_step_frequency.ok, 0);
+  assert_true(nwchemc_frequencies_result_size_for_force_input != NULL);
+  assert_int_equal(nwchemc_frequencies_result_size_for_force_input(NULL, 0),
+                   0);
+  assert_true(nwchemc_session_calculate_frequencies_result != NULL);
+  NWChemCResult session_frequencies_result =
+      nwchemc_session_calculate_frequencies_result(NULL, NULL, 0, result_bytes,
+                                                   sizeof(result_bytes),
+                                                   &result_size);
+  assert_int_equal(session_frequencies_result.ok, 0);
+  assert_true(nwchemc_calculate_frequencies_result != NULL);
+  NWChemCResult one_shot_frequencies_result =
+      nwchemc_calculate_frequencies_result(NULL, 0, NULL, 0, result_bytes,
+                                           sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot_frequencies_result.ok, 0);
   assert_true(nwchemc_calculate_dipole != NULL);
   NWChemCResult one_shot_dipole =
       nwchemc_calculate_dipole(NULL, 0, NULL, 0, dipole_au, 3);

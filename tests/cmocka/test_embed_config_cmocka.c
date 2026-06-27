@@ -196,11 +196,39 @@ extern NWChemCResult nwchemc_calculate_optimize(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *optimized_positions_ang, size_t optimized_positions_len)
     NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_optimize_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_optimize_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_optimize_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_frequencies(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
     size_t intensities_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_frequencies_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_frequencies_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_frequencies_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 
 static void copy_span(char *dst, size_t dst_size, const char *src, int len) {
   size_t n = len > 0 ? (size_t)len : 0;
@@ -912,6 +940,59 @@ static void assert_potential_result_quadrupole(const unsigned char *message,
   for (int i = 0; i < 6; ++i) {
     double actual = capn_to_f64(capn_get64(result.quadrupole, i));
     assert_close(actual, expected[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
+static void assert_potential_result_optimized(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_positions, size_t expected_position_count,
+    double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, tolerance);
+  capn_resolve(&result.optimizedPos.p);
+  assert_int_equal(result.optimizedPos.p.type, CAPN_LIST);
+  assert_int_equal(result.optimizedPos.p.datasz, 8);
+  assert_int_equal(result.optimizedPos.p.len, (int)expected_position_count);
+  for (size_t i = 0; i < expected_position_count; ++i) {
+    double actual = capn_to_f64(capn_get64(result.optimizedPos, (int)i));
+    assert_close(actual, expected_positions[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
+static void assert_potential_result_frequencies(
+    const unsigned char *message, size_t message_size,
+    const double *expected_frequencies, const double *expected_intensities,
+    size_t expected_count, double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  capn_resolve(&result.frequencies.p);
+  assert_int_equal(result.frequencies.p.type, CAPN_LIST);
+  assert_int_equal(result.frequencies.p.datasz, 8);
+  assert_int_equal(result.frequencies.p.len, (int)expected_count);
+  capn_resolve(&result.intensities.p);
+  assert_int_equal(result.intensities.p.type, CAPN_LIST);
+  assert_int_equal(result.intensities.p.datasz, 8);
+  assert_int_equal(result.intensities.p.len, (int)expected_count);
+  for (size_t i = 0; i < expected_count; ++i) {
+    double actual_frequency =
+        capn_to_f64(capn_get64(result.frequencies, (int)i));
+    double actual_intensity =
+        capn_to_f64(capn_get64(result.intensities, (int)i));
+    assert_close(actual_frequency, expected_frequencies[i], tolerance);
+    assert_close(actual_intensity, expected_intensities[i], tolerance);
   }
   capn_free(&arena);
 }
@@ -2318,6 +2399,138 @@ static void test_session_calculate_property_results_write_potential_result(
   free(message);
 }
 
+static void test_session_calculate_structural_results_write_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_optimize_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_optimize_result != NULL);
+  assert_true(nwchemc_frequencies_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_frequencies_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_b_size = 0;
+  size_t step_changed_species_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_b = read_file(g_force_step_b_path, &step_b_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_b);
+  assert_non_null(step_changed_species);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  unsigned char result_bytes[512];
+  unsigned char short_result[63];
+  size_t result_size = 0;
+  size_t required_size = 0;
+  const double expected_optimized_ang[6] = {0.01, 0.02, 0.03,
+                                            0.04, 0.05, 0.8014};
+  size_t expected_optimize_size =
+      nwchemc_optimize_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_optimize_size > 0);
+
+  NWChemCResult short_optimize =
+      nwchemc_session_calculate_optimize_result(
+          session, step_a, step_a_size, short_result, sizeof(short_result),
+          &required_size);
+  assert_int_equal(short_optimize.ok, 0);
+  assert_int_equal(required_size, expected_optimize_size);
+  assert_int_equal(g_optimize_calls, 0);
+
+  NWChemCResult optimize_result = nwchemc_session_calculate_optimize_result(
+      session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(optimize_result.ok, 1);
+  assert_close(optimize_result.energy_h, -1.75, 1.0e-12);
+  assert_int_equal(result_size, expected_optimize_size);
+  assert_int_equal(g_optimize_calls, 1);
+  assert_int_equal(g_optimize_cell_calls, 1);
+  assert_potential_result_optimized(result_bytes, result_size, -1.75,
+                                    expected_optimized_ang, 6, 1.0e-12);
+
+  const double bohr_to_angstrom = 0.529177210903;
+  double expected_optimized_bohr[6];
+  for (int i = 0; i < 6; ++i) {
+    double input_ang = i == 5 ? 2.0 * bohr_to_angstrom : 0.0;
+    expected_optimized_bohr[i] =
+        (input_ang + 0.01 * (double)(i + 1)) / bohr_to_angstrom;
+  }
+  size_t expected_bohr_optimize_size =
+      nwchemc_optimize_result_size_for_force_input(step_b, step_b_size);
+  assert_int_equal(expected_bohr_optimize_size, expected_optimize_size);
+  result_size = 0;
+  NWChemCResult optimize_bohr = nwchemc_session_calculate_optimize_result(
+      session, step_b, step_b_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(optimize_bohr.ok, 1);
+  assert_int_equal(result_size, expected_optimize_size);
+  assert_int_equal(g_optimize_calls, 2);
+  assert_close(g_optimize_positions_ang[1][5], 1.058354421806, 1.0e-12);
+  assert_potential_result_optimized(result_bytes, result_size, -1.75,
+                                    expected_optimized_bohr, 6, 1.0e-12);
+
+  size_t changed_optimize_size = 0;
+  NWChemCResult changed_optimize =
+      nwchemc_session_calculate_optimize_result(
+          session, step_changed_species, step_changed_species_size,
+          result_bytes, sizeof(result_bytes), &changed_optimize_size);
+  assert_int_equal(changed_optimize.ok, 0);
+  assert_non_null(strstr(changed_optimize.message, "topology"));
+  assert_int_equal(changed_optimize_size, expected_optimize_size);
+  assert_int_equal(g_optimize_calls, 2);
+
+  size_t expected_frequencies_size =
+      nwchemc_frequencies_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_frequencies_size > 0);
+  required_size = 0;
+  NWChemCResult short_frequencies =
+      nwchemc_session_calculate_frequencies_result(
+          session, step_a, step_a_size, short_result, sizeof(short_result),
+          &required_size);
+  assert_int_equal(short_frequencies.ok, 0);
+  assert_int_equal(required_size, expected_frequencies_size);
+  assert_int_equal(g_frequency_calls, 0);
+
+  result_size = 0;
+  NWChemCResult frequencies_result =
+      nwchemc_session_calculate_frequencies_result(
+          session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+          &result_size);
+  assert_int_equal(frequencies_result.ok, 1);
+  assert_int_equal(result_size, expected_frequencies_size);
+  assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_cell_calls, 1);
+  const double expected_frequencies[6] = {100.0, 101.0, 102.0,
+                                          103.0, 104.0, 105.0};
+  const double expected_intensities[6] = {0.01, 0.02, 0.03,
+                                          0.04, 0.05, 0.06};
+  assert_potential_result_frequencies(result_bytes, result_size,
+                                      expected_frequencies,
+                                      expected_intensities, 6, 1.0e-12);
+
+  size_t changed_frequencies_size = 0;
+  NWChemCResult changed_frequencies =
+      nwchemc_session_calculate_frequencies_result(
+          session, step_changed_species, step_changed_species_size,
+          result_bytes, sizeof(result_bytes), &changed_frequencies_size);
+  assert_int_equal(changed_frequencies.ok, 0);
+  assert_non_null(strstr(changed_frequencies.message, "topology"));
+  assert_int_equal(changed_frequencies_size, expected_frequencies_size);
+  assert_int_equal(g_frequency_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(step_changed_species);
+  free(step_b);
+  free(step_a);
+  free(message);
+}
+
 static void test_calculate_result_one_shot_writes_potential_result(
     void **state) {
   (void)state;
@@ -2477,6 +2690,81 @@ static void test_calculate_property_results_one_shot_write_potential_result(
   assert_int_equal(required_size, expected_quadrupole_size);
   assert_int_equal(g_set_config_calls, 0);
   assert_int_equal(g_quadrupole_calls, 0);
+
+  free(step_a);
+  free(message);
+}
+
+static void test_calculate_structural_results_one_shot_write_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_calculate_optimize_result != NULL);
+  assert_true(nwchemc_calculate_frequencies_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+
+  unsigned char result_bytes[512];
+  unsigned char short_result[63];
+  size_t result_size = 0;
+  size_t required_size = 0;
+  size_t expected_optimize_size =
+      nwchemc_optimize_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_optimize_size > 0);
+
+  NWChemCResult short_optimize = nwchemc_calculate_optimize_result(
+      message, message_size, step_a, step_a_size, short_result,
+      sizeof(short_result), &required_size);
+  assert_int_equal(short_optimize.ok, 0);
+  assert_int_equal(required_size, expected_optimize_size);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_optimize_calls, 0);
+
+  NWChemCResult optimize_result = nwchemc_calculate_optimize_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(optimize_result.ok, 1);
+  assert_close(optimize_result.energy_h, -1.75, 1.0e-12);
+  assert_int_equal(result_size, expected_optimize_size);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_optimize_calls, 1);
+  const double expected_optimized_ang[6] = {0.01, 0.02, 0.03,
+                                            0.04, 0.05, 0.8014};
+  assert_potential_result_optimized(result_bytes, result_size, -1.75,
+                                    expected_optimized_ang, 6, 1.0e-12);
+
+  reset_embed_captures();
+  size_t expected_frequencies_size =
+      nwchemc_frequencies_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_frequencies_size > 0);
+  required_size = 0;
+  NWChemCResult short_frequencies = nwchemc_calculate_frequencies_result(
+      message, message_size, step_a, step_a_size, short_result,
+      sizeof(short_result), &required_size);
+  assert_int_equal(short_frequencies.ok, 0);
+  assert_int_equal(required_size, expected_frequencies_size);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_frequency_calls, 0);
+
+  result_size = 0;
+  NWChemCResult frequencies_result = nwchemc_calculate_frequencies_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(frequencies_result.ok, 1);
+  assert_int_equal(result_size, expected_frequencies_size);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_frequency_calls, 1);
+  const double expected_frequencies[6] = {100.0, 101.0, 102.0,
+                                          103.0, 104.0, 105.0};
+  const double expected_intensities[6] = {0.01, 0.02, 0.03,
+                                          0.04, 0.05, 0.06};
+  assert_potential_result_frequencies(result_bytes, result_size,
+                                      expected_frequencies,
+                                      expected_intensities, 6, 1.0e-12);
 
   free(step_a);
   free(message);
@@ -2688,11 +2976,15 @@ int main(int argc, char **argv) {
           test_session_calculate_hessian_result_writes_potential_result),
       cmocka_unit_test(
           test_session_calculate_property_results_write_potential_result),
+      cmocka_unit_test(
+          test_session_calculate_structural_results_write_potential_result),
       cmocka_unit_test(test_calculate_result_one_shot_writes_potential_result),
       cmocka_unit_test(
           test_calculate_hessian_result_one_shot_writes_potential_result),
       cmocka_unit_test(
           test_calculate_property_results_one_shot_write_potential_result),
+      cmocka_unit_test(
+          test_calculate_structural_results_one_shot_write_potential_result),
       cmocka_unit_test(
           test_calculate_hessian_and_dipole_one_shot_accept_force_input),
       cmocka_unit_test(test_calculate_frequencies_one_shot_accepts_force_input),
