@@ -1317,6 +1317,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "cgsd:geometry_optimize"));
   assert_null(strstr(g_input_blocks, "auxiliary_potentials"));
   assert_null(strstr(g_input_blocks, "pspw_qmmm_auxon"));
+  assert_null(strstr(g_input_blocks, "mult 3"));
+  assert_null(strstr(g_input_blocks, "cgsd:mult"));
   assert_null(strstr(g_input_blocks, "dos 0.0025"));
   assert_null(strstr(g_input_blocks, "dos_filename dos.dat"));
   assert_null(strstr(g_input_blocks, "dos:alpha"));
@@ -1367,7 +1369,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_set_string("nwpw:vfield_filenames", "vf_a.ascii vf_b.ascii");
   assert_set_string("nwpw:dos:filename", "dos.dat");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 244);
+  assert_int_equal(g_typed_set_count, 250);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1586,6 +1588,18 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("pspw_qmmm_auxon",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("cgsd:ispin", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
+  assert_typed_set_scalar("band:ispin", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
+  assert_typed_set_scalar("cpsd:ispin", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
+  assert_typed_set_scalar("cgsd:mult", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
+  assert_typed_set_scalar("band:mult", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
+  assert_typed_set_scalar("cpsd:mult", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
   assert_typed_set_scalar("dos:alpha", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "0.0025");
   assert_typed_set_scalar("dos:npoints", NWCHEMC_DIRECT_SET_VALUE_INTEGER,

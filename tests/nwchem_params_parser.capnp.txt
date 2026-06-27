@@ -244,6 +244,7 @@
         singlePrecisionHfx = true,
         geometryOptimize = true,
         auxiliaryPotentials = true,
+        multiplicity = 3,
         dosAlphaSet = true,
         dosAlpha = 0.0025,
         dosNpointsSet = true,
