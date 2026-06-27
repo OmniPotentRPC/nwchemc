@@ -573,6 +573,10 @@ struct NWChemNwpwStanza {
   cutoffEnergy                @145 :Float64 = 0.0;  # Optional energy value in NWPW cutoff alias.
   mcStepStart                 @146 :Int32 = 0;      # First NWPW mc_steps alias value.
   mcStepEnd                   @147 :Int32 = 0;      # Second NWPW mc_steps alias value.
+  etMovecsA                   @148 :Text = "";      # First movecs token in NWPW et.
+  etMovecsB                   @149 :Text = "";      # Second movecs token in NWPW et.
+  etIonA                      @150 :Text = "";      # First ion token in NWPW et.
+  etIonB                      @151 :Text = "";      # Second ion token in NWPW et.
 }
 
 # @struct NWChemScfStanza

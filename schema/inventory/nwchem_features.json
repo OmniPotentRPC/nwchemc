@@ -4155,6 +4155,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.etMovecsA",
+      "schema_path": "NWChemNwpwStanza.etMovecsA",
+      "struct": "NWChemNwpwStanza",
+      "name": "etMovecsA",
+      "field_id": 148,
+      "type": "Text = \"\"",
+      "role": "NWChemNwpwStanza.etMovecsA Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.etMovecsB",
+      "schema_path": "NWChemNwpwStanza.etMovecsB",
+      "struct": "NWChemNwpwStanza",
+      "name": "etMovecsB",
+      "field_id": 149,
+      "type": "Text = \"\"",
+      "role": "NWChemNwpwStanza.etMovecsB Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.etIonA",
+      "schema_path": "NWChemNwpwStanza.etIonA",
+      "struct": "NWChemNwpwStanza",
+      "name": "etIonA",
+      "field_id": 150,
+      "type": "Text = \"\"",
+      "role": "NWChemNwpwStanza.etIonA Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.etIonB",
+      "schema_path": "NWChemNwpwStanza.etIonB",
+      "struct": "NWChemNwpwStanza",
+      "name": "etIonB",
+      "field_id": 151,
+      "type": "Text = \"\"",
+      "role": "NWChemNwpwStanza.etIonB Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

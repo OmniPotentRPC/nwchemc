@@ -218,6 +218,10 @@ int nwchemc_params_extract_direct_nwpw_rotation_multipole(
 int nwchemc_params_extract_direct_nwpw_fei(
     NWChemParams_ptr params, int *has_options, int *fei, capn_text *filename);
 
+int nwchemc_params_extract_direct_nwpw_et(
+    NWChemParams_ptr params, int *has_options, capn_text *movecs_a,
+    capn_text *movecs_b, capn_text *ion_a, capn_text *ion_b);
+
 int nwchemc_params_extract_direct_nwpw_initial_velocities(
     NWChemParams_ptr params, int *has_options, double *temperature, int *seed);
 

@@ -231,7 +231,9 @@ expansion and mapping controls expose `nwpw:cell_expand` and `nwpw:mapping`
 directly. Rotation and multipole controls expose `nwpw:rotation` and
 `nwpw:lmax_multipole` directly. FEI controls expose the paired
 `cpmd:fei`, `nwpw:fei`, `cpmd:fei_filename`, and `nwpw:fei_filename` keys
-directly. Initial-velocity controls expose `nwpw:init_velocities_temperature`,
+directly. ET controls expose `pspw:et:movecs_a`, `pspw:et:movecs_b`,
+`pspw:et:ion_a`, and `pspw:et:ion_b` directly. Initial-velocity controls expose
+`nwpw:init_velocities_temperature`,
 `nwpw:init_velocities_seed`, and `nwpw:init_velocities` directly.
 `makehmass2` exposes `nwpw:makehmass2` directly. Translate-vector controls
 expose `nwpw:translate_vector`, `nwpw:translate_geom_name`, and

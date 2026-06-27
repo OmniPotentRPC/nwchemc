@@ -2534,6 +2534,25 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && nwpw.allowTranslation &&
       append_format(block, sizeof(block), "  allow_translation\n") != 0)
     return -1;
+  if (include_direct_promoted && nwpw.etMovecsA.len > 0) {
+    if (append_format(block, sizeof(block), "  et ") != 0 ||
+        append_text(block, sizeof(block), nwpw.etMovecsA) != 0)
+      return -1;
+    if (nwpw.etMovecsB.len > 0 &&
+        (append_format(block, sizeof(block), " ") != 0 ||
+         append_text(block, sizeof(block), nwpw.etMovecsB) != 0))
+      return -1;
+    if (nwpw.etIonA.len > 0 &&
+        (append_format(block, sizeof(block), " ") != 0 ||
+         append_text(block, sizeof(block), nwpw.etIonA) != 0))
+      return -1;
+    if (nwpw.etIonB.len > 0 &&
+        (append_format(block, sizeof(block), " ") != 0 ||
+         append_text(block, sizeof(block), nwpw.etIonB) != 0))
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (include_direct_promoted && nwpw.multiplicity > 0 &&
       append_format(block, sizeof(block), "  mult %d\n", nwpw.multiplicity) !=
           0)
@@ -4771,6 +4790,48 @@ int nwchemc_params_extract_direct_nwpw_fei(
     *has_options = 1;
     *fei = 1;
     *filename = nwpw.feiFilename;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_et(
+    NWChemParams_ptr params, int *has_options, capn_text *movecs_a,
+    capn_text *movecs_b, capn_text *ion_a, capn_text *ion_b) {
+  if (params.p.type == CAPN_NULL || !has_options || !movecs_a || !movecs_b ||
+      !ion_a || !ion_b)
+    return -1;
+
+  *has_options = 0;
+  *movecs_a = (capn_text){0};
+  *movecs_b = (capn_text){0};
+  *ion_a = (capn_text){0};
+  *ion_b = (capn_text){0};
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.etMovecsA.len <= 0 && nwpw.etMovecsB.len <= 0 &&
+        nwpw.etIonA.len <= 0 && nwpw.etIonB.len <= 0)
+      continue;
+
+    *has_options = 1;
+    *movecs_a = nwpw.etMovecsA;
+    *movecs_b = nwpw.etMovecsB;
+    *ion_a = nwpw.etIonA;
+    *ion_b = nwpw.etIonB;
   }
 
   return 0;

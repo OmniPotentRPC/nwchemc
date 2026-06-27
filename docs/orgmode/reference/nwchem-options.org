@@ -258,6 +258,7 @@ RTDB values directly:
 | ~lmaxMultipole~ | ~integrate_mult_l <value>~ | ~nwpw:lmax_multipole~ |
 | ~fei~ | ~Fei~ | ~cpmd:fei~, ~nwpw:fei~ |
 | ~feiFilename~ | filename token in ~Fei <filename>~ | ~cpmd:fei_filename~, ~nwpw:fei_filename~ |
+| ~etMovecsA~, ~etMovecsB~, ~etIonA~, ~etIonB~ | ~et <movecs-a> <movecs-b> <ion-a> <ion-b>~ | ~pspw:et:movecs_a~, ~pspw:et:movecs_b~, ~pspw:et:ion_a~, ~pspw:et:ion_b~ |
 | ~initialVelocitiesTemperature~ | first argument in ~initial_velocities <temperature> <seed>~ | ~nwpw:init_velocities_temperature~, ~nwpw:init_velocities~ |
 | ~initialVelocitiesSeed~ | second argument in ~initial_velocities <temperature> <seed>~ | ~nwpw:init_velocities_seed~ |
 | ~makeHmass2~ | ~makehmass2 true~ or ~false~ | ~nwpw:makehmass2~ |

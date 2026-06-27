@@ -1933,6 +1933,15 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_fei_has_options, &nwpw_fei,
           &nwpw_fei_filename) != 0)
     return -1;
+  int nwpw_et_has_options = 0;
+  capn_text nwpw_et_movecs_a = {0};
+  capn_text nwpw_et_movecs_b = {0};
+  capn_text nwpw_et_ion_a = {0};
+  capn_text nwpw_et_ion_b = {0};
+  if (nwchemc_params_extract_direct_nwpw_et(
+          params_root, &nwpw_et_has_options, &nwpw_et_movecs_a,
+          &nwpw_et_movecs_b, &nwpw_et_ion_a, &nwpw_et_ion_b) != 0)
+    return -1;
   int nwpw_initial_velocities_has_options = 0;
   double nwpw_initial_velocities_temperature = 0.0;
   int nwpw_initial_velocities_seed = 494;
@@ -2121,6 +2130,26 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                  &set_count, "nwpw:dos:filename",
                                  nwpw_dos_filename) != 0)
     return -1;
+  if (nwpw_et_has_options) {
+    if (append_direct_string_value(set_keys, set_values,
+                                   NWCHEMC_DIRECT_SET_MAX, &set_count,
+                                   "pspw:et:movecs_a",
+                                   nwpw_et_movecs_a) != 0)
+      return -1;
+    if (append_direct_string_value(set_keys, set_values,
+                                   NWCHEMC_DIRECT_SET_MAX, &set_count,
+                                   "pspw:et:movecs_b",
+                                   nwpw_et_movecs_b) != 0)
+      return -1;
+    if (append_direct_string_value(set_keys, set_values,
+                                   NWCHEMC_DIRECT_SET_MAX, &set_count,
+                                   "pspw:et:ion_a", nwpw_et_ion_a) != 0)
+      return -1;
+    if (append_direct_string_value(set_keys, set_values,
+                                   NWCHEMC_DIRECT_SET_MAX, &set_count,
+                                   "pspw:et:ion_b", nwpw_et_ion_b) != 0)
+      return -1;
+  }
   if (nwchemc_params_extract_direct_set_values(
           params_root, typed_set_keys, typed_set_types, typed_set_value_counts,
           typed_set_values, NWCHEMC_DIRECT_SET_MAX, NWCHEMC_DIRECT_SET_VALUE_MAX,

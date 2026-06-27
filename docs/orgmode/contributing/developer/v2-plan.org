@@ -164,6 +164,7 @@ The schema contains typed stanzas for:
 - ~nwpw~ fractional orbital and smear controls
 - ~nwpw~ virtual orbital, LCAO, and Ewald grid controls
 - ~nwpw~ Nose-Hoover thermostat controls
+- ~nwpw~ ET movecs and ion string controls
 - ~nwpw~ Brillouin-zone controls for Monkhorst-Pack grids, DOS and tetrahedron
   grids, explicit k-vectors, zone names, and k-point print counts
 - ~nwpw~ simulation-cell controls for boundary conditions, 3x3 lattice vectors
