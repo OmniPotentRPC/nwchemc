@@ -2329,7 +2329,7 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   }
   if (include_direct_promoted && nwpw.virtualOrbitalsStart > 0 &&
       nwpw.virtualOrbitalsEnd > 0 &&
-      append_format(block, sizeof(block), "  virtual_orbitals %d %d\n",
+      append_format(block, sizeof(block), "  virtual %d %d\n",
                     nwpw.virtualOrbitalsStart,
                     nwpw.virtualOrbitalsEnd) != 0)
     return -1;
