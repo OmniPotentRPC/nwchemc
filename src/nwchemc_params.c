@@ -1273,6 +1273,36 @@ nwpw_efield_type_keyword(enum NWChemNwpwEfieldType efield_type) {
   }
 }
 
+static const char *
+nwpw_mapping_alias_keyword(enum NWChemNwpwMappingAlias mapping_alias) {
+  switch (mapping_alias) {
+  case NWChemNwpwMappingAlias_slab1d:
+    return "1d-slab";
+  case NWChemNwpwMappingAlias_hilbert2d:
+    return "2d-hilbert";
+  case NWChemNwpwMappingAlias_hcurve2d:
+    return "2d-hcurve";
+  case NWChemNwpwMappingAlias_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static int
+nwpw_mapping_alias_value(enum NWChemNwpwMappingAlias mapping_alias) {
+  switch (mapping_alias) {
+  case NWChemNwpwMappingAlias_slab1d:
+    return 1;
+  case NWChemNwpwMappingAlias_hilbert2d:
+    return 2;
+  case NWChemNwpwMappingAlias_hcurve2d:
+    return 3;
+  case NWChemNwpwMappingAlias_unspecified:
+  default:
+    return 0;
+  }
+}
+
 static int render_set_logical_directive(const char *key,
                                         enum NWChemToggle toggle, char *dst,
                                         size_t dst_size) {
@@ -2654,6 +2684,11 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                     nwpw.cellExpandX,
                     nwpw.cellExpandY > 0 ? nwpw.cellExpandY : 1,
                     nwpw.cellExpandZ > 0 ? nwpw.cellExpandZ : 1) != 0)
+    return -1;
+  const char *mapping_alias =
+      nwpw_mapping_alias_keyword(nwpw.mappingAlias);
+  if (include_direct_promoted && mapping_alias &&
+      append_format(block, sizeof(block), "  %s\n", mapping_alias) != 0)
     return -1;
   if (include_direct_promoted && nwpw.mapping > 0 &&
       append_format(block, sizeof(block), "  mapping %d\n", nwpw.mapping) != 0)
@@ -4783,6 +4818,11 @@ int nwchemc_params_extract_direct_nwpw_cell_mapping(
       cell_expand[0] = nwpw.cellExpandX > 0 ? nwpw.cellExpandX : 1;
       cell_expand[1] = nwpw.cellExpandY > 0 ? nwpw.cellExpandY : 1;
       cell_expand[2] = nwpw.cellExpandZ > 0 ? nwpw.cellExpandZ : 1;
+    }
+    int mapping_alias = nwpw_mapping_alias_value(nwpw.mappingAlias);
+    if (mapping_alias > 0) {
+      *has_options = 1;
+      *mapping = mapping_alias;
     }
     if (nwpw.mapping > 0) {
       *has_options = 1;

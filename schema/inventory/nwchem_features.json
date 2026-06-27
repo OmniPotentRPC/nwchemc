@@ -4287,6 +4287,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.mappingAlias",
+      "schema_path": "NWChemNwpwStanza.mappingAlias",
+      "struct": "NWChemNwpwStanza",
+      "name": "mappingAlias",
+      "field_id": 159,
+      "type": "NWChemNwpwMappingAlias = unspecified",
+      "role": "NWChemNwpwStanza.mappingAlias Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

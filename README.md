@@ -228,11 +228,12 @@ CGSD/BAND `allow_translation` keys directly. DOS controls expose `dos:alpha`,
 property and grid-comparison flags expose `nwpw:cpmd_properties` and
 `nwpw:use_grid_cmp` directly. Director controls
 expose `nwpw:use_director` and `nwpw:director_filename` directly. Cell
-expansion and mapping controls expose `nwpw:cell_expand` and `nwpw:mapping`
-directly. Rotation and multipole controls expose `nwpw:rotation` and
-`nwpw:lmax_multipole` directly. FEI controls expose the paired
-`cpmd:fei`, `nwpw:fei`, `cpmd:fei_filename`, and `nwpw:fei_filename` keys
-directly. ET controls expose `pspw:et:movecs_a`, `pspw:et:movecs_b`,
+expansion, numeric mapping, and named mapping-alias controls expose
+`nwpw:cell_expand` and `nwpw:mapping` directly. Rotation and multipole
+controls expose `nwpw:rotation` and `nwpw:lmax_multipole` directly. FEI
+controls expose the paired `cpmd:fei`, `nwpw:fei`, `cpmd:fei_filename`, and
+`nwpw:fei_filename` keys directly. ET controls expose `pspw:et:movecs_a`,
+`pspw:et:movecs_b`,
 `pspw:et:ion_a`, and `pspw:et:ion_b` directly. Initial-velocity controls expose
 `nwpw:init_velocities_temperature`,
 `nwpw:init_velocities_seed`, and `nwpw:init_velocities` directly.

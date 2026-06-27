@@ -424,6 +424,13 @@ enum NWChemNwpwEfieldType {
   rgrid       @3; # Emit/promote rgrid electric-field mode.
 }
 
+enum NWChemNwpwMappingAlias {
+  unspecified @0; # Do not emit a named NWPW mapping alias.
+  slab1d      @1; # Emit/promote NWChem "1d-slab" mapping alias.
+  hilbert2d   @2; # Emit/promote NWChem "2d-hilbert" mapping alias.
+  hcurve2d    @3; # Emit/promote NWChem "2d-hcurve" mapping alias.
+}
+
 struct NWChemNwpwStanza {
   energyCutoff       @0 :Float64 = 0.0; # Emit/promote NWPW energy_cutoff.
   wavefunctionCutoff @1 :Float64 = 0.0; # Emit/promote NWPW wavefunction_cutoff.
@@ -584,6 +591,7 @@ struct NWChemNwpwStanza {
   temperatureRestart          @156 :NWChemNwpwToggle = unspecified; # restart/start token in NWPW temperature.
   temperatureIonChainLength   @157 :Int32 = 0;      # First chain argument in NWPW temperature.
   temperatureElectronChainLength @158 :Int32 = 0;   # Second chain argument in NWPW temperature.
+  mappingAlias                @159 :NWChemNwpwMappingAlias = unspecified; # Named NWPW mapping alias.
 }
 
 # @struct NWChemScfStanza

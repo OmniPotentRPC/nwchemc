@@ -254,7 +254,7 @@ RTDB values directly:
 | ~director~ | ~director~, ~director true~, or ~director false~ | ~nwpw:use_director~ |
 | ~directorFilename~ | filename token in ~director <filename>~ | ~nwpw:director_filename~ |
 | ~cellExpandX~, ~cellExpandY~, ~cellExpandZ~ | ~expand_cell <x> <y> <z>~ | ~nwpw:cell_expand~ |
-| ~mapping~ | ~mapping <value>~ | ~nwpw:mapping~ |
+| ~mapping~, ~mappingAlias~ | ~mapping <value>~, ~1d-slab~, ~2d-hilbert~, or ~2d-hcurve~ | ~nwpw:mapping~ |
 | ~rotation~ | ~rotation true~ or ~false~ | ~nwpw:rotation~ |
 | ~lmaxMultipole~ | ~integrate_mult_l <value>~ | ~nwpw:lmax_multipole~ |
 | ~fei~ | ~Fei~ | ~cpmd:fei~, ~nwpw:fei~ |
