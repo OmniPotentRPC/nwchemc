@@ -208,7 +208,9 @@
         noseElectronChainLength = 2,
         noseIonChainLength = 3,
         atomEfield = enabled,
-        atomEfieldGradient = enabled
+        atomEfieldGradient = enabled,
+        mulliken = enabled,
+        mullikenKawai = enabled
       )
     ),
     (
