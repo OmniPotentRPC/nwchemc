@@ -121,6 +121,30 @@ static void assert_potential_result_forces(const unsigned char *message,
   capn_free(&arena);
 }
 
+static void assert_potential_result_energy_only(const unsigned char *message,
+                                                size_t message_size,
+                                                double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  capn_resolve(&result.forces.p);
+  if (result.forces.p.type != CAPN_NULL) {
+    assert_int_equal(result.forces.p.type, CAPN_LIST);
+    assert_int_equal(result.forces.p.datasz, 8);
+    assert_int_equal(result.forces.p.len, 0);
+  }
+
+  capn_free(&arena);
+}
+
 static void assert_potential_result_hessian(const unsigned char *message,
                                             size_t message_size,
                                             double expected_energy) {
@@ -313,6 +337,40 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   assert_non_null(config);
   assert_non_null(force_input);
 
+  size_t energy_capacity =
+      nwchemc_energy_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_energy_result_size_for_force_input",
+                         energy_capacity);
+  unsigned char *energy_bytes = (unsigned char *)malloc(energy_capacity);
+  assert_non_null(energy_bytes);
+  size_t energy_size = 0;
+  NWChemCResult energy_status = nwchemc_calculate_energy_result_from_config(
+      config, config_size, force_input, force_input_size, energy_bytes,
+      energy_capacity, &energy_size);
+  assert_status_energy("nwchemc_calculate_energy_result_from_config",
+                       energy_status);
+  assert_int_equal(energy_size, energy_capacity);
+  assert_potential_result_energy_only(energy_bytes, energy_size,
+                                      energy_status.energy_h);
+
+  size_t forces_capacity =
+      nwchemc_forces_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_forces_result_size_for_force_input",
+                         forces_capacity);
+  unsigned char *forces_bytes = (unsigned char *)malloc(forces_capacity);
+  assert_non_null(forces_bytes);
+  size_t forces_size = 0;
+  NWChemCResult forces_status = nwchemc_calculate_forces_result_from_config(
+      config, config_size, force_input, force_input_size, forces_bytes,
+      forces_capacity, &forces_size);
+  assert_status_energy("nwchemc_calculate_forces_result_from_config",
+                       forces_status);
+  assert_int_equal(forces_size, forces_capacity);
+  assert_potential_result_forces(forces_bytes, forces_size,
+                                 forces_status.energy_h);
+
   size_t hessian_capacity =
       nwchemc_hessian_result_size_for_force_input(force_input,
                                                   force_input_size);
@@ -407,6 +465,8 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   free(quadrupole_bytes);
   free(dipole_bytes);
   free(hessian_bytes);
+  free(forces_bytes);
+  free(energy_bytes);
   free(force_input);
   free(config);
 }
