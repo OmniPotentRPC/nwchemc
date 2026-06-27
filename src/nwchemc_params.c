@@ -2225,7 +2225,8 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       return -1;
   }
   if (include_direct_promoted &&
-      (nwpw.npFftProcesses > 0 || nwpw.npOrbitalProcesses > 0 ||
+      (nwpw.npDimensionsSet || nwpw.npFftProcesses > 0 ||
+       nwpw.npOrbitalProcesses > 0 ||
        nwpw.npKspaceProcesses > 0)) {
     int np_fft = nwpw.npFftProcesses > 0 ? nwpw.npFftProcesses : -1;
     int np_orbital =
@@ -3602,7 +3603,8 @@ int nwchemc_params_extract_direct_nwpw_execution(
 
     struct NWChemNwpwStanza nwpw;
     read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
-    if (nwpw.npFftProcesses > 0 || nwpw.npOrbitalProcesses > 0 ||
+    if (nwpw.npDimensionsSet || nwpw.npFftProcesses > 0 ||
+        nwpw.npOrbitalProcesses > 0 ||
         nwpw.npKspaceProcesses > 0) {
       *has_options = 1;
       *np_fft = nwpw.npFftProcesses > 0 ? nwpw.npFftProcesses : -1;

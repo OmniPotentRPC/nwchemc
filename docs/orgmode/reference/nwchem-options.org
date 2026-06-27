@@ -189,7 +189,7 @@ RTDB values directly:
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
 | ~boFakeMassSet~, ~boFakeMass~ | ~bo_fake_mass [value]~; omitted value defaults to ~500~ | ~nwpw:bo_fake_mass~ |
 | ~scalingSet~, ~scalingFirst~, ~scalingSecond~ | ~scaling [first] [second]~; omitted ~first~ defaults to ~1~ and omitted ~second~ defaults to ~first~ | ~nwpw:scaling~, ~cpmd:scaling~ |
-| ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ | ~nwpw:np_dimensions~ |
+| ~npDimensionsSet~, ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions [fft] [orbital] [k-space]~; omitted dimensions default to ~-1~ | ~nwpw:np_dimensions~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ | ~nwpw:spin_orbit~, ~pspw:spin_orbit~, ~band:spin_orbit~ |
 | ~parallelIo~ | ~parallel_io on~ or ~off~ | ~nwpw:parallel_io~ |
 | ~xyzFilename~ | ~xyz_filename <path>~ | ~cpmd:xyz_filename~, ~nwpw:xyz_filename~ |
@@ -421,7 +421,7 @@ controls:
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
 | ~boFakeMassSet~, ~boFakeMass~ | ~bo_fake_mass [value]~; omitted value defaults to ~500~ |
 | ~scalingSet~, ~scalingFirst~, ~scalingSecond~ | ~scaling [first] [second]~; omitted ~first~ defaults to ~1~ and omitted ~second~ defaults to ~first~ |
-| ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions <fft> <orbital> <k-space>~ |
+| ~npDimensionsSet~, ~npFftProcesses~, ~npOrbitalProcesses~, ~npKspaceProcesses~ | ~np_dimensions [fft] [orbital] [k-space]~; omitted dimensions default to ~-1~ |
 | ~spinOrbit~ | ~spin_orbit on~ or ~off~ |
 | ~parallelIo~ | ~parallel_io on~ or ~off~ |
 | ~xyzFilename~ | ~xyz_filename <path>~ |
