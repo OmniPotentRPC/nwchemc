@@ -232,7 +232,9 @@
         translateVectorY = 0.2,
         translateVectorZ = 0.3,
         translateGeometryName = "geomA",
-        translateReorder = enabled
+        translateReorder = enabled,
+        socketType = "ipi_client",
+        socketIp = "127.0.0.1:31415"
       )
     ),
     (
