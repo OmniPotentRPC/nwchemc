@@ -309,6 +309,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.apcGc", "NWChemNwpwStanza.apcGc", "NWChemNwpwStanza.apcGc Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 107, 1, 1},
     {"field.NWChemNwpwStanza.apcGamma", "NWChemNwpwStanza.apcGamma", "NWChemNwpwStanza.apcGamma Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 108, 1, 1},
     {"field.NWChemNwpwStanza.translation", "NWChemNwpwStanza.translation", "NWChemNwpwStanza.translation Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 109, 1, 1},
+    {"field.NWChemNwpwStanza.minimizer", "NWChemNwpwStanza.minimizer", "NWChemNwpwStanza.minimizer Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 110, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -534,7 +535,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 529;
+static const size_t k_feature_count = 530;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

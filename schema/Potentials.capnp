@@ -290,6 +290,18 @@ enum NWChemNwpwBoAlgorithm {
   leapFrog       @3; # NWChem bo_algorithm leap-frog.
 }
 
+enum NWChemNwpwMinimizer {
+  unspecified   @0; # Do not emit/promote nwpw:minimizer.
+  cgGrassman    @1; # Emit cg grassman; promote nwpw:minimizer = 1.
+  cgStiefel     @2; # Emit cg stiefel; promote nwpw:minimizer = 4.
+  cgStich       @3; # Emit cg stich; promote nwpw:minimizer = 9.
+  lmbfgsGrassman @4; # Emit lmbfgs grassman; promote nwpw:minimizer = 2.
+  lmbfgsStiefel @5; # Emit lmbfgs stiefel; promote nwpw:minimizer = 7.
+  lmbfgsStich   @6; # Emit lmbfgs stich; promote nwpw:minimizer = 10.
+  scfDensity    @7; # Emit scf density; promote nwpw:minimizer = 8.
+  scfPotential  @8; # Emit scf potential; promote nwpw:minimizer = 5.
+}
+
 enum NWChemNwpwToggle {
   unspecified @0; # Do not emit the option.
   enabled     @1; # Emit/promote the option as enabled.
@@ -476,6 +488,7 @@ struct NWChemNwpwStanza {
   apcGc                       @107 :Float64 = 0.0;  # NWPW APC Gc value.
   apcGamma                    @108 :List(Float64);  # NWPW APC gamma values.
   translation                 @109 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW translation.
+  minimizer                   @110 :NWChemNwpwMinimizer = unspecified; # Emit/promote NWPW minimizer.
 }
 
 # @struct NWChemScfStanza

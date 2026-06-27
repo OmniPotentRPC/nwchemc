@@ -1044,6 +1044,48 @@ nwpw_toggle_logical_keyword(enum NWChemNwpwToggle toggle) {
 }
 
 static const char *
+nwpw_minimizer_command(enum NWChemNwpwMinimizer minimizer) {
+  switch (minimizer) {
+  case NWChemNwpwMinimizer_cgGrassman:
+  case NWChemNwpwMinimizer_cgStiefel:
+  case NWChemNwpwMinimizer_cgStich:
+    return "cg";
+  case NWChemNwpwMinimizer_lmbfgsGrassman:
+  case NWChemNwpwMinimizer_lmbfgsStiefel:
+  case NWChemNwpwMinimizer_lmbfgsStich:
+    return "lmbfgs";
+  case NWChemNwpwMinimizer_scfDensity:
+  case NWChemNwpwMinimizer_scfPotential:
+    return "scf";
+  case NWChemNwpwMinimizer_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static const char *
+nwpw_minimizer_variant(enum NWChemNwpwMinimizer minimizer) {
+  switch (minimizer) {
+  case NWChemNwpwMinimizer_cgGrassman:
+  case NWChemNwpwMinimizer_lmbfgsGrassman:
+    return "grassman";
+  case NWChemNwpwMinimizer_cgStiefel:
+  case NWChemNwpwMinimizer_lmbfgsStiefel:
+    return "stiefel";
+  case NWChemNwpwMinimizer_cgStich:
+  case NWChemNwpwMinimizer_lmbfgsStich:
+    return "stich";
+  case NWChemNwpwMinimizer_scfDensity:
+    return "density";
+  case NWChemNwpwMinimizer_scfPotential:
+    return "potential";
+  case NWChemNwpwMinimizer_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static const char *
 nwpw_efield_type_keyword(enum NWChemNwpwEfieldType efield_type) {
   switch (efield_type) {
   case NWChemNwpwEfieldType_periodic:
@@ -2393,6 +2435,14 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && translation_logical &&
       append_format(block, sizeof(block), "  translation %s\n",
                     translation_logical) != 0)
+    return -1;
+  const char *minimizer_command =
+      nwpw_minimizer_command(nwpw.minimizer);
+  const char *minimizer_variant =
+      nwpw_minimizer_variant(nwpw.minimizer);
+  if (include_direct_promoted && minimizer_command && minimizer_variant &&
+      append_format(block, sizeof(block), "  %s %s\n", minimizer_command,
+                    minimizer_variant) != 0)
     return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
@@ -4253,6 +4303,38 @@ int nwchemc_params_extract_direct_nwpw_translation(
     if (nwpw.translation != NWChemNwpwToggle_unspecified) {
       *has_options = 1;
       *translation = nwpw.translation;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_minimizer(
+    NWChemParams_ptr params, int *has_options, int *minimizer) {
+  if (params.p.type == CAPN_NULL || !has_options || !minimizer)
+    return -1;
+
+  *has_options = 0;
+  *minimizer = NWChemNwpwMinimizer_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.minimizer != NWChemNwpwMinimizer_unspecified) {
+      *has_options = 1;
+      *minimizer = nwpw.minimizer;
     }
   }
 

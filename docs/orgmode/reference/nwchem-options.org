@@ -254,6 +254,7 @@ RTDB values directly:
 | ~apcSet~, ~apcGc~ | ~apc <Gc> <gamma...>~ | ~nwpw_APC:Gc~, ~nwpw_APC:nga~ |
 | ~apcGamma~ | trailing gamma values in ~apc~ | ~nwpw_APC:gamma~ |
 | ~translation~ | ~translation true~ or ~false~ | ~cgsd:allow_translation~, ~band:allow_translation~ |
+| ~minimizer~ | ~cg~, ~lmbfgs~, or ~scf~ with variant token | ~nwpw:minimizer~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

@@ -634,6 +634,30 @@ static const char *nwpw_toggle_logical_value(enum NWChemNwpwToggle toggle) {
   }
 }
 
+static int nwpw_minimizer_rtdb_value(enum NWChemNwpwMinimizer minimizer) {
+  switch (minimizer) {
+  case NWChemNwpwMinimizer_cgGrassman:
+    return 1;
+  case NWChemNwpwMinimizer_cgStiefel:
+    return 4;
+  case NWChemNwpwMinimizer_cgStich:
+    return 9;
+  case NWChemNwpwMinimizer_lmbfgsGrassman:
+    return 2;
+  case NWChemNwpwMinimizer_lmbfgsStiefel:
+    return 7;
+  case NWChemNwpwMinimizer_lmbfgsStich:
+    return 10;
+  case NWChemNwpwMinimizer_scfDensity:
+    return 8;
+  case NWChemNwpwMinimizer_scfPotential:
+    return 5;
+  case NWChemNwpwMinimizer_unspecified:
+  default:
+    return 0;
+  }
+}
+
 static int nwpw_efield_type_rtdb_value(enum NWChemNwpwEfieldType efield_type,
                                        int *value) {
   if (!value)
@@ -1666,6 +1690,11 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_params_extract_direct_nwpw_translation(
           params_root, &nwpw_translation_has_options,
           &nwpw_translation) != 0)
+    return -1;
+  int nwpw_minimizer_has_options = 0;
+  int nwpw_minimizer = NWChemNwpwMinimizer_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_minimizer(
+          params_root, &nwpw_minimizer_has_options, &nwpw_minimizer) != 0)
     return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
@@ -3100,6 +3129,21 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "band:allow_translation",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, translation_value) != 0)
       return -1;
+  }
+  if (nwpw_minimizer_has_options) {
+    int minimizer_value =
+        nwpw_minimizer_rtdb_value((enum NWChemNwpwMinimizer)nwpw_minimizer);
+    if (minimizer_value != 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", minimizer_value);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:minimizer",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

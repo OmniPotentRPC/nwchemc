@@ -190,6 +190,9 @@ int nwchemc_params_extract_direct_nwpw_apc(
 int nwchemc_params_extract_direct_nwpw_translation(
     NWChemParams_ptr params, int *has_options, int *translation);
 
+int nwchemc_params_extract_direct_nwpw_minimizer(
+    NWChemParams_ptr params, int *has_options, int *minimizer);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

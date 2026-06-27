@@ -3507,6 +3507,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.minimizer",
+      "schema_path": "NWChemNwpwStanza.minimizer",
+      "struct": "NWChemNwpwStanza",
+      "name": "minimizer",
+      "field_id": 110,
+      "type": "NWChemNwpwMinimizer = unspecified",
+      "role": "NWChemNwpwStanza.minimizer Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",
