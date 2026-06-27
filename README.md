@@ -291,6 +291,12 @@ populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
 wrappers populate `PotentialResult.frequencies` in cm^-1 and
 `PotentialResult.intensities` in atomic units.
 
+The Cap'n Proto `Potential` RPC interface mirrors the operation surface with
+explicit `calculateEnergy`, `calculateForces`, `calculateHessian`,
+`calculateDipole`, `calculateQuadrupole`, `calculateStress`,
+`calculateOptimize`, and `calculateFrequencies` methods. The original
+`calculate` method remains the compatibility energy/forces call.
+
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,
 geometry, module, pseudopotential, set, generic), and escape hatches (`raw`,

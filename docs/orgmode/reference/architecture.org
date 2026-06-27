@@ -103,6 +103,27 @@ uses atomic units.
 Native C buffers keep NWChem units for callers that want direct numerical
 storage.
 
+* RPC Operation Surface
+The ~Potential~ Cap'n Proto interface keeps ~calculate~ as the compatibility
+energy/forces method. Explicit operation methods expose the same calculation
+families as the C ABI:
+
+- ~calculateEnergy~ writes ~PotentialResult.energy~.
+- ~calculateForces~ writes ~PotentialResult.energy~ and
+  ~PotentialResult.forces~.
+- ~calculateHessian~ writes ~PotentialResult.hessian~.
+- ~calculateDipole~ and ~calculateQuadrupole~ write the corresponding
+  multipole result fields.
+- ~calculateStress~ writes ~PotentialResult.stress~.
+- ~calculateOptimize~ writes ~PotentialResult.optimizedPos~ and energy.
+- ~calculateFrequencies~ writes ~PotentialResult.frequencies~ and
+  ~PotentialResult.intensities~.
+
+~configure~ accepts ~PotentialConfig~ and installs persistent backend state such
+as ~NWChemParams~, including structured basis, pseudopotential, NWPW, and RTDB
+direct settings. Geometry, cell vectors, units, and per-step charge or spin
+multiplicity remain in ~ForceInput~.
+
 The Fortran bridge stores geometry through NWChem geometry routines. When
 ~ForceInput.box~ is present, the row-major 3x3 cell vectors are converted to
 Bohr and applied with ~geom_amatrix_set~, ~geom_isystype_set(3)~, and
