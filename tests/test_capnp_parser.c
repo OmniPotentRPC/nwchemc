@@ -166,6 +166,8 @@ static void test_parser_renders_structured_input(void **state) {
                          "outer_iterations 4 diis_histories 6"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
+  assert_non_null(strstr(input_blocks, "zone_structure_name structureA"));
+  assert_non_null(strstr(input_blocks, "zone_fft_name fftA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
   assert_non_null(strstr(input_blocks, "simulation_cell"));
   assert_non_null(strstr(input_blocks, "boundary_conditions periodic"));
@@ -432,6 +434,7 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:minimizer"));
   assert_null(strstr(input_blocks, "nwpw:ks_algorithm"));
   assert_null(strstr(input_blocks, "nwpw:kerker_g0"));
+  assert_null(strstr(input_blocks, "band_structure:zone_name"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));

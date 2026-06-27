@@ -265,6 +265,8 @@
       kind = brillouinZone,
       brillouinZone = (
         zoneName = "zoneA",
+        zoneStructureName = "structureA",
+        zoneFftName = "fftA",
         monkhorstPackX = 3,
         monkhorstPackY = 4,
         monkhorstPackZ = -5,

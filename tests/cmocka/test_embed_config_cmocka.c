@@ -1108,6 +1108,16 @@ static int find_typed_set_key(const char *key) {
   return -1;
 }
 
+static void assert_set_string(const char *key, const char *value) {
+  for (int i = 0; i < g_set_string_count && i < 8; ++i) {
+    if (strcmp(g_set_keys[i], key) == 0) {
+      assert_string_equal(g_set_values[i], value);
+      return;
+    }
+  }
+  fail_msg("missing set string key: %s", key);
+}
+
 static void assert_typed_set_scalar(const char *key, int value_type,
                                     const char *value) {
   int index = find_typed_set_key(key);
@@ -1335,6 +1345,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
+  assert_int_equal(g_set_rtdb_strings_calls, 1);
+  assert_int_equal(g_set_string_count, 2);
+  assert_set_string("band_structure:zone_name", "structureA");
+  assert_set_string("band_fft:zone_name", "fftA");
   assert_int_equal(g_set_rtdb_values_calls, 1);
   assert_int_equal(g_typed_set_count, 226);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
