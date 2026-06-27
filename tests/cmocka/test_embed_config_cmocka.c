@@ -1300,13 +1300,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:cpmd_properties"));
   assert_null(strstr(g_input_blocks, "use_grid_cmp false"));
   assert_null(strstr(g_input_blocks, "nwpw:use_grid_cmp"));
+  assert_null(strstr(g_input_blocks, "director director.dat"));
+  assert_null(strstr(g_input_blocks, "nwpw:use_director"));
   assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_null(strstr(g_input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 193);
+  assert_int_equal(g_typed_set_count, 195);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1500,6 +1502,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("nwpw:use_grid_cmp",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
+  assert_typed_set_scalar("nwpw:use_director",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("nwpw:director_filename",
+                          NWCHEMC_DIRECT_SET_VALUE_TEXT, "director.dat");
   assert_typed_set_scalar("cellA:boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "periodic");
   const char *unita_values[9] = {"1", "0", "0", "0", "2",

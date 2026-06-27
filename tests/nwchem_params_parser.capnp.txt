@@ -237,7 +237,9 @@
         bornRelax = enabled,
         bornVRadiiAngstrom = [0.529177, 1.058354],
         cpmdProperties = enabled,
-        useGridComparison = disabled
+        useGridComparison = disabled,
+        director = enabled,
+        directorFilename = "director.dat"
       )
     ),
     (

@@ -146,6 +146,7 @@ static void test_parser_renders_structured_input(void **state) {
       strstr(input_blocks, "born 78.4 relax true 0.529177 1.058354"));
   assert_non_null(strstr(input_blocks, "cpmd_properties true"));
   assert_non_null(strstr(input_blocks, "use_grid_cmp false"));
+  assert_non_null(strstr(input_blocks, "director director.dat"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -384,6 +385,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:cpmd_properties"));
   assert_null(strstr(input_blocks, "use_grid_cmp false"));
   assert_null(strstr(input_blocks, "nwpw:use_grid_cmp"));
+  assert_null(strstr(input_blocks, "director director.dat"));
+  assert_null(strstr(input_blocks, "nwpw:use_director"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -766,6 +769,17 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(has_cpmd_grid, 1);
   assert_int_equal(cpmd_properties, NWChemNwpwToggle_enabled);
   assert_int_equal(use_grid_comparison, NWChemNwpwToggle_disabled);
+
+  int has_director = 0;
+  int director = 0;
+  capn_text director_filename = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_director(
+                       params_root, &has_director, &director,
+                       &director_filename),
+                   0);
+  assert_int_equal(has_director, 1);
+  assert_int_equal(director, NWChemNwpwToggle_enabled);
+  assert_true(text_equals(director_filename, "director.dat"));
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
