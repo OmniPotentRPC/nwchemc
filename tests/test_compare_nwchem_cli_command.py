@@ -2,6 +2,7 @@
 import importlib.util
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,6 +63,18 @@ class CompareNWChemCommandTest(unittest.TestCase):
                 "/tmp/build/nwchem_params.bin",
             ],
         )
+
+    def test_find_params_bin_prefers_real_nwchem_fixture(self):
+        compare = load_compare()
+
+        with TemporaryDirectory(prefix="nwchemc-compare-") as tmp_name:
+            build = Path(tmp_name)
+            real_params = build / "nwchem_params.bin"
+            parser_params = build / "nwchem_parser_params.bin"
+            real_params.write_bytes(b"real")
+            parser_params.write_bytes(b"parser")
+
+            self.assertEqual(compare.find_params_bin(build), real_params)
 
 
 if __name__ == "__main__":

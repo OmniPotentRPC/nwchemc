@@ -152,11 +152,17 @@ def find_embed_binary(build_dir: Path) -> Path | None:
 
 def find_params_bin(build_dir: Path) -> Path | None:
     for name in (
+        "nwchem_params.bin",
         "nwchem_parser_params.bin",
+        "tests/nwchem_params.bin",
         "tests/nwchem_parser_params.bin",
+        "schema/nwchem_params.bin",
         "schema/nwchem_parser_params.bin",
     ):
         p = build_dir / name
+        if p.is_file():
+            return p
+    for p in build_dir.rglob("nwchem_params.bin"):
         if p.is_file():
             return p
     for p in build_dir.rglob("nwchem_parser_params.bin"):
