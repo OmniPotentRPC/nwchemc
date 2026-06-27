@@ -3966,13 +3966,27 @@ static void test_session_force_input_state_overrides_params(void **state) {
   assert_int_equal(g_hessian_charge[1], -2);
   assert_int_equal(g_hessian_multiplicity[1], 5);
 
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_raw = nwchemc_session_calculate_dipole(
+      session, step_state, step_state_size, dipole, 3);
+  assert_int_equal(dipole_raw.ok, 1);
+  assert_int_equal(g_dipole_charge[0], -2);
+  assert_int_equal(g_dipole_multiplicity[0], 5);
+
   result_size = 0;
   NWChemCResult dipole_carrier = nwchemc_session_calculate_dipole_result(
       session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
       &result_size);
   assert_int_equal(dipole_carrier.ok, 1);
-  assert_int_equal(g_dipole_charge[0], -2);
-  assert_int_equal(g_dipole_multiplicity[0], 5);
+  assert_int_equal(g_dipole_charge[1], -2);
+  assert_int_equal(g_dipole_multiplicity[1], 5);
+
+  double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult quadrupole_raw = nwchemc_session_calculate_quadrupole(
+      session, step_state, step_state_size, quadrupole, 6);
+  assert_int_equal(quadrupole_raw.ok, 1);
+  assert_int_equal(g_quadrupole_charge[0], -2);
+  assert_int_equal(g_quadrupole_multiplicity[0], 5);
 
   result_size = 0;
   NWChemCResult quadrupole_carrier =
@@ -3980,16 +3994,46 @@ static void test_session_force_input_state_overrides_params(void **state) {
           session, step_state, step_state_size, result_bytes,
           sizeof(result_bytes), &result_size);
   assert_int_equal(quadrupole_carrier.ok, 1);
-  assert_int_equal(g_quadrupole_charge[0], -2);
-  assert_int_equal(g_quadrupole_multiplicity[0], 5);
+  assert_int_equal(g_quadrupole_charge[1], -2);
+  assert_int_equal(g_quadrupole_multiplicity[1], 5);
+
+  double stress[9] = {0.0};
+  NWChemCResult stress_raw = nwchemc_session_calculate_stress(
+      session, step_state, step_state_size, stress, 9);
+  assert_int_equal(stress_raw.ok, 1);
+  assert_int_equal(g_stress_charge[0], -2);
+  assert_int_equal(g_stress_multiplicity[0], 5);
+
+  result_size = 0;
+  NWChemCResult stress_carrier = nwchemc_session_calculate_stress_result(
+      session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(stress_carrier.ok, 1);
+  assert_int_equal(g_stress_charge[1], -2);
+  assert_int_equal(g_stress_multiplicity[1], 5);
+
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_raw = nwchemc_session_calculate_optimize(
+      session, step_state, step_state_size, optimized_positions, 6);
+  assert_int_equal(optimize_raw.ok, 1);
+  assert_int_equal(g_optimize_charge[0], -2);
+  assert_int_equal(g_optimize_multiplicity[0], 5);
 
   result_size = 0;
   NWChemCResult optimize_carrier = nwchemc_session_calculate_optimize_result(
       session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
       &result_size);
   assert_int_equal(optimize_carrier.ok, 1);
-  assert_int_equal(g_optimize_charge[0], -2);
-  assert_int_equal(g_optimize_multiplicity[0], 5);
+  assert_int_equal(g_optimize_charge[1], -2);
+  assert_int_equal(g_optimize_multiplicity[1], 5);
+
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequencies_raw = nwchemc_session_calculate_frequencies(
+      session, step_state, step_state_size, frequencies, 6, intensities, 6);
+  assert_int_equal(frequencies_raw.ok, 1);
+  assert_int_equal(g_frequency_charge[0], -2);
+  assert_int_equal(g_frequency_multiplicity[0], 5);
 
   result_size = 0;
   NWChemCResult frequency_carrier =
@@ -3997,8 +4041,8 @@ static void test_session_force_input_state_overrides_params(void **state) {
           session, step_state, step_state_size, result_bytes,
           sizeof(result_bytes), &result_size);
   assert_int_equal(frequency_carrier.ok, 1);
-  assert_int_equal(g_frequency_charge[0], -2);
-  assert_int_equal(g_frequency_multiplicity[0], 5);
+  assert_int_equal(g_frequency_charge[1], -2);
+  assert_int_equal(g_frequency_multiplicity[1], 5);
 
   nwchemc_session_destroy(session);
   free(step_state);
