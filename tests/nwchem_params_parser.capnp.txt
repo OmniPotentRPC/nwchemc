@@ -249,7 +249,8 @@
         fei = true,
         feiFilename = "fei.dat",
         initialVelocitiesTemperature = 298.15,
-        initialVelocitiesSeed = 12345
+        initialVelocitiesSeed = 12345,
+        makeHmass2 = disabled
       )
     ),
     (
