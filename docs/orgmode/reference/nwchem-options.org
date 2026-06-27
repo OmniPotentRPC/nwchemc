@@ -258,6 +258,11 @@ RTDB values directly:
 | ~ksAlgorithm~ | ~block-cg~, ~cg~, or ~rmm-diis~ token in ~scf~ | ~nwpw:ks_algorithm~ |
 | ~scfAlgorithm~ | ~simple~, ~broyden~, ~diis~, or ~anderson~ token in ~scf~ | ~nwpw:scf_algorithm~ |
 | ~precondition~ | ~precondition~ or ~noprecondition~ token in ~scf~ | ~nwpw:precondition~ |
+| ~kerkerG0Set~, ~kerkerG0~ | ~kerker <g0>~ token pair in ~scf~ | ~nwpw:kerker_g0~ |
+| ~ksAlphaSet~, ~ksAlpha~ | ~alpha <value>~ token pair in ~scf~ | ~nwpw:ks_alpha~ |
+| ~ksMaxitOrbSet~, ~ksMaxitOrb~ | ~iterations <n>~ token pair in ~scf~ | ~nwpw:ks_maxit_orb~ |
+| ~ksMaxitOrbsSet~, ~ksMaxitOrbs~ | ~outer_iterations <n>~ token pair in ~scf~ | ~nwpw:ks_maxit_orbs~ |
+| ~diisHistoriesSet~, ~diisHistories~ | ~diis_histories <n>~ token pair in ~scf~ | ~nwpw:diis_histories~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

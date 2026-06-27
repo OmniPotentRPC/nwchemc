@@ -507,6 +507,16 @@ struct NWChemNwpwStanza {
   ksAlgorithm                 @111 :NWChemNwpwKsAlgorithm = unspecified; # Emit/promote NWPW KS algorithm.
   scfAlgorithm                @112 :NWChemNwpwScfAlgorithm = unspecified; # Emit/promote NWPW SCF algorithm.
   precondition                @113 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW SCF precondition flag.
+  kerkerG0Set                 @114 :Bool = false;   # Emit/promote NWPW SCF kerker g0.
+  kerkerG0                    @115 :Float64 = 0.0;  # NWPW SCF kerker g0 value.
+  ksAlphaSet                  @116 :Bool = false;   # Emit/promote NWPW SCF alpha.
+  ksAlpha                     @117 :Float64 = 0.0;  # NWPW SCF alpha value.
+  ksMaxitOrbSet               @118 :Bool = false;   # Emit/promote NWPW SCF inner iterations.
+  ksMaxitOrb                  @119 :Int32 = 0;      # NWPW SCF inner iteration count.
+  ksMaxitOrbsSet              @120 :Bool = false;   # Emit/promote NWPW SCF outer iterations.
+  ksMaxitOrbs                 @121 :Int32 = 0;      # NWPW SCF outer iteration count.
+  diisHistoriesSet            @122 :Bool = false;   # Emit/promote NWPW SCF DIIS histories.
+  diisHistories               @123 :Int32 = 0;      # NWPW SCF DIIS history count.
 }
 
 # @struct NWChemScfStanza

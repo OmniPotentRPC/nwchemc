@@ -2493,8 +2493,12 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   const char *ks_algorithm = nwpw_ks_algorithm_keyword(nwpw.ksAlgorithm);
   const char *scf_algorithm = nwpw_scf_algorithm_keyword(nwpw.scfAlgorithm);
   const char *precondition = nwpw_precondition_keyword(nwpw.precondition);
+  const int has_scf_numeric =
+      nwpw.kerkerG0Set || nwpw.ksAlphaSet || nwpw.ksMaxitOrbSet ||
+      nwpw.ksMaxitOrbsSet || nwpw.diisHistoriesSet;
   const int has_scf_options =
       ks_algorithm || scf_algorithm || precondition ||
+      has_scf_numeric ||
       nwpw_minimizer_is_scf(nwpw.minimizer);
   if (include_direct_promoted && has_scf_options) {
     const char *scf_variant = nwpw_minimizer_is_scf(nwpw.minimizer)
@@ -2510,6 +2514,26 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       return -1;
     if (precondition &&
         append_format(block, sizeof(block), " %s", precondition) != 0)
+      return -1;
+    if (nwpw.kerkerG0Set &&
+        append_format(block, sizeof(block), " kerker %.15g",
+                      nwpw.kerkerG0) != 0)
+      return -1;
+    if (nwpw.ksAlphaSet &&
+        append_format(block, sizeof(block), " alpha %.15g",
+                      nwpw.ksAlpha) != 0)
+      return -1;
+    if (nwpw.ksMaxitOrbSet &&
+        append_format(block, sizeof(block), " iterations %d",
+                      nwpw.ksMaxitOrb) != 0)
+      return -1;
+    if (nwpw.ksMaxitOrbsSet &&
+        append_format(block, sizeof(block), " outer_iterations %d",
+                      nwpw.ksMaxitOrbs) != 0)
+      return -1;
+    if (nwpw.diisHistoriesSet &&
+        append_format(block, sizeof(block), " diis_histories %d",
+                      nwpw.diisHistories) != 0)
       return -1;
     if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
@@ -4454,6 +4478,60 @@ int nwchemc_params_extract_direct_nwpw_scf_algorithms(
     if (nwpw.precondition != NWChemNwpwToggle_unspecified) {
       *has_options = 1;
       *precondition = nwpw.precondition;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_scf_numeric(
+    NWChemParams_ptr params, int *has_options,
+    NWChemNwpwScfNumericControls *controls) {
+  if (params.p.type == CAPN_NULL || !has_options || !controls)
+    return -1;
+
+  *has_options = 0;
+  memset(controls, 0, sizeof(*controls));
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.kerkerG0Set) {
+      *has_options = 1;
+      controls->kerker_g0_set = 1;
+      controls->kerker_g0 = nwpw.kerkerG0;
+    }
+    if (nwpw.ksAlphaSet) {
+      *has_options = 1;
+      controls->ks_alpha_set = 1;
+      controls->ks_alpha = nwpw.ksAlpha;
+    }
+    if (nwpw.ksMaxitOrbSet) {
+      *has_options = 1;
+      controls->ks_maxit_orb_set = 1;
+      controls->ks_maxit_orb = nwpw.ksMaxitOrb;
+    }
+    if (nwpw.ksMaxitOrbsSet) {
+      *has_options = 1;
+      controls->ks_maxit_orbs_set = 1;
+      controls->ks_maxit_orbs = nwpw.ksMaxitOrbs;
+    }
+    if (nwpw.diisHistoriesSet) {
+      *has_options = 1;
+      controls->diis_histories_set = 1;
+      controls->diis_histories = nwpw.diisHistories;
     }
   }
 

@@ -228,6 +228,8 @@ and `nwpw:socket_ip` directly. APC controls expose `nwpw_APC:Gc`,
 `cgsd:allow_translation` and `band:allow_translation` directly. Minimizer
 controls expose `nwpw:minimizer` directly, while SCF algorithm controls expose
 `nwpw:ks_algorithm`, `nwpw:scf_algorithm`, and `nwpw:precondition` directly.
+SCF numeric controls expose `nwpw:kerker_g0`, `nwpw:ks_alpha`,
+`nwpw:ks_maxit_orb`, `nwpw:ks_maxit_orbs`, and `nwpw:diis_histories` directly.
 NWPW Brillouin-zone and
 simulation-cell stanzas cover k-point grids, explicit k-vectors, boundary
 conditions, 3x3 cell vectors, FFT grids, and related periodic-cell RTDB state.

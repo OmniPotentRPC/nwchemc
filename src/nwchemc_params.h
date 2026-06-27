@@ -14,6 +14,19 @@
 #define NWCHEMC_DIRECT_SET_VALUE_INTEGER 3
 #define NWCHEMC_DIRECT_SET_VALUE_LOGICAL 4
 
+typedef struct NWChemNwpwScfNumericControls {
+  int kerker_g0_set;
+  double kerker_g0;
+  int ks_alpha_set;
+  double ks_alpha;
+  int ks_maxit_orb_set;
+  int ks_maxit_orb;
+  int ks_maxit_orbs_set;
+  int ks_maxit_orbs;
+  int diis_histories_set;
+  int diis_histories;
+} NWChemNwpwScfNumericControls;
+
 int nwchemc_params_root(const void *params_capnp,
                         size_t params_capnp_size_bytes, struct capn *arena,
                         NWChemParams_ptr *params);
@@ -196,6 +209,10 @@ int nwchemc_params_extract_direct_nwpw_minimizer(
 int nwchemc_params_extract_direct_nwpw_scf_algorithms(
     NWChemParams_ptr params, int *has_options, int *ks_algorithm,
     int *scf_algorithm, int *precondition);
+
+int nwchemc_params_extract_direct_nwpw_scf_numeric(
+    NWChemParams_ptr params, int *has_options,
+    NWChemNwpwScfNumericControls *controls);
 
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
