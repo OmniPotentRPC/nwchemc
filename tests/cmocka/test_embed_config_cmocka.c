@@ -116,6 +116,7 @@ static int g_frequency_calls = 0;
 static int g_frequency_cell_calls = 0;
 static int g_stress_calls = 0;
 static int g_stress_cell_calls = 0;
+static double g_last_energy_h = 0.0;
 static int g_call_n_atoms[8];
 static int g_call_has_cell[8];
 static int g_call_charge[8];
@@ -835,6 +836,7 @@ static int capture_hessian_call(const int *n_atoms, const double *positions_ang,
                                         : 0.0;
   }
   ++g_hessian_calls;
+  g_last_energy_h = -1.125;
   int ndof = (*n_atoms) * 3;
   for (int i = 0; i < ndof * ndof; ++i)
     hessian_h_bohr2[i] = (double)(i + 10);
@@ -861,6 +863,13 @@ int nwchemc_embed_hessian_cell(const int *n_atoms, const double *positions_ang,
   return capture_hessian_call(n_atoms, positions_ang, atomic_numbers, cell_ang,
                               has_cell, charge, multiplicity, hessian_h_bohr2,
                               errmsg, errmsg_len);
+}
+
+int nwchemc_embed_last_energy(double *energy_h) {
+  if (!energy_h)
+    return -1;
+  *energy_h = g_last_energy_h;
+  return 0;
 }
 
 static int capture_dipole_call(const int *n_atoms, const double *positions_ang,
@@ -1037,6 +1046,7 @@ static int capture_frequency_call(
           cell_ang && g_frequency_has_cell[call] ? cell_ang[i] : 0.0;
   }
   ++g_frequency_calls;
+  g_last_energy_h = -1.625;
   int ndof = (*n_atoms) * 3;
   for (int i = 0; i < ndof; ++i) {
     frequencies_cm1[i] = 100.0 + (double)i;
@@ -1199,6 +1209,7 @@ static void reset_embed_captures(void) {
   g_frequency_cell_calls = 0;
   g_stress_calls = 0;
   g_stress_cell_calls = 0;
+  g_last_energy_h = 0.0;
   memset(g_call_n_atoms, 0, sizeof(g_call_n_atoms));
   memset(g_call_has_cell, 0, sizeof(g_call_has_cell));
   memset(g_call_charge, 0, sizeof(g_call_charge));
@@ -1305,6 +1316,7 @@ static void assert_potential_result_energy_only(const unsigned char *message,
 
 static void assert_potential_result_hessian(const unsigned char *message,
                                             size_t message_size,
+                                            double expected_energy,
                                             const double *expected_hessian,
                                             size_t expected_hessian_count,
                                             double tolerance) {
@@ -1315,6 +1327,7 @@ static void assert_potential_result_hessian(const unsigned char *message,
   assert_int_equal(root.p.type, CAPN_STRUCT);
   struct PotentialResult result;
   read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, tolerance);
   capn_resolve(&result.hessian.p);
   assert_int_equal(result.hessian.p.type, CAPN_LIST);
   assert_int_equal(result.hessian.p.datasz, 8);
@@ -1422,7 +1435,7 @@ static void assert_potential_result_optimized(
 }
 
 static void assert_potential_result_frequencies(
-    const unsigned char *message, size_t message_size,
+    const unsigned char *message, size_t message_size, double expected_energy,
     const double *expected_frequencies, const double *expected_intensities,
     size_t expected_count, double tolerance) {
   struct capn arena;
@@ -1432,6 +1445,7 @@ static void assert_potential_result_frequencies(
   assert_int_equal(root.p.type, CAPN_STRUCT);
   struct PotentialResult result;
   read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, tolerance);
   capn_resolve(&result.frequencies.p);
   assert_int_equal(result.frequencies.p.type, CAPN_LIST);
   assert_int_equal(result.frequencies.p.datasz, 8);
@@ -3510,6 +3524,7 @@ static void test_session_calculate_hessian_accepts_force_input_step(
   NWChemCResult first = nwchemc_session_calculate_hessian(
       session, step_a, step_a_size, hessian, 36);
   assert_int_equal(first.ok, 1);
+  assert_close(first.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 1);
   assert_int_equal(g_set_config_calls, 1);
@@ -3782,6 +3797,7 @@ static void test_session_calculate_frequencies_accepts_force_input_step(
   NWChemCResult first = nwchemc_session_calculate_frequencies(
       session, step_a, step_a_size, frequencies, 6, intensities, 6);
   assert_int_equal(first.ok, 1);
+  assert_close(first.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);
   assert_int_equal(g_set_config_calls, 1);
@@ -4047,6 +4063,7 @@ static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
       nwchemc_hessian(2, positions, atomic_numbers, message, message_size,
                       hessian);
   assert_int_equal(hessian_result.ok, 1);
+  assert_close(hessian_result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 0);
@@ -4087,6 +4104,7 @@ static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
       nwchemc_frequencies(2, positions, atomic_numbers, message, message_size,
                           frequencies, intensities);
   assert_int_equal(frequencies_result.ok, 1);
+  assert_close(frequencies_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 0);
@@ -4108,6 +4126,7 @@ static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
       nwchemc_frequencies(2, positions, atomic_numbers, message, message_size,
                           frequencies, NULL);
   assert_int_equal(frequencies_without_intensities.ok, 1);
+  assert_close(frequencies_without_intensities.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 0);
   assert_close(frequencies[0], 100.0, 1.0e-12);
@@ -4138,6 +4157,7 @@ static void test_direct_coordinate_config_abi_calls_embed_wrappers(
   NWChemCResult hessian_result = nwchemc_hessian_from_config(
       2, positions, atomic_numbers, config, config_size, hessian);
   assert_int_equal(hessian_result.ok, 1);
+  assert_close(hessian_result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 1);
@@ -4177,6 +4197,7 @@ static void test_direct_coordinate_config_abi_calls_embed_wrappers(
       2, positions, atomic_numbers, config, config_size, frequencies,
       intensities);
   assert_int_equal(frequencies_result.ok, 1);
+  assert_close(frequencies_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);
@@ -4198,6 +4219,7 @@ static void test_direct_coordinate_config_abi_calls_embed_wrappers(
       nwchemc_frequencies_from_config(2, positions, atomic_numbers, config,
                                       config_size, frequencies, NULL);
   assert_int_equal(frequencies_without_intensities.ok, 1);
+  assert_close(frequencies_without_intensities.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);
   assert_close(frequencies[0], 100.0, 1.0e-12);
@@ -4224,6 +4246,7 @@ static void test_session_coordinate_abi_calls_embed_wrappers(void **state) {
   NWChemCResult hessian_result =
       nwchemc_session_hessian(session, 2, positions, atomic_numbers, hessian);
   assert_int_equal(hessian_result.ok, 1);
+  assert_close(hessian_result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 1);
@@ -4260,6 +4283,7 @@ static void test_session_coordinate_abi_calls_embed_wrappers(void **state) {
   NWChemCResult frequencies_result = nwchemc_session_frequencies(
       session, 2, positions, atomic_numbers, frequencies, intensities);
   assert_int_equal(frequencies_result.ok, 1);
+  assert_close(frequencies_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);
@@ -4579,6 +4603,7 @@ static void test_session_force_input_state_overrides_params(void **state) {
   NWChemCResult hessian_result = nwchemc_session_calculate_hessian(
       session, step_state, step_state_size, hessian, 36);
   assert_int_equal(hessian_result.ok, 1);
+  assert_close(hessian_result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_hessian_charge[0], -2);
   assert_int_equal(g_hessian_multiplicity[0], 5);
 
@@ -4587,6 +4612,7 @@ static void test_session_force_input_state_overrides_params(void **state) {
       session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
       &result_size);
   assert_int_equal(hessian_carrier.ok, 1);
+  assert_close(hessian_carrier.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_hessian_charge[1], -2);
   assert_int_equal(g_hessian_multiplicity[1], 5);
 
@@ -4656,6 +4682,7 @@ static void test_session_force_input_state_overrides_params(void **state) {
   NWChemCResult frequencies_raw = nwchemc_session_calculate_frequencies(
       session, step_state, step_state_size, frequencies, 6, intensities, 6);
   assert_int_equal(frequencies_raw.ok, 1);
+  assert_close(frequencies_raw.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_frequency_charge[0], -2);
   assert_int_equal(g_frequency_multiplicity[0], 5);
 
@@ -4665,6 +4692,7 @@ static void test_session_force_input_state_overrides_params(void **state) {
           session, step_state, step_state_size, result_bytes,
           sizeof(result_bytes), &result_size);
   assert_int_equal(frequency_carrier.ok, 1);
+  assert_close(frequency_carrier.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_frequency_charge[1], -2);
   assert_int_equal(g_frequency_multiplicity[1], 5);
 
@@ -4895,6 +4923,7 @@ static void test_session_calculate_hessian_result_writes_potential_result(
       session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
       &result_size);
   assert_int_equal(result.ok, 1);
+  assert_close(result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(result_size, expected_size);
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 1);
@@ -4903,8 +4932,8 @@ static void test_session_calculate_hessian_result_writes_potential_result(
   for (int i = 0; i < 36; ++i)
     expected_hessian[i] =
         (double)(i + 10) / (bohr_to_angstrom * bohr_to_angstrom);
-  assert_potential_result_hessian(result_bytes, result_size, expected_hessian,
-                                  36, 1.0e-10);
+  assert_potential_result_hessian(result_bytes, result_size, -1.125,
+                                  expected_hessian, 36, 1.0e-10);
 
   size_t changed_result_size = 0;
   NWChemCResult changed_species = nwchemc_session_calculate_hessian_result(
@@ -5254,6 +5283,7 @@ static void test_session_calculate_structural_results_write_potential_result(
           session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
           &result_size);
   assert_int_equal(frequencies_result.ok, 1);
+  assert_close(frequencies_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(result_size, expected_frequencies_size);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);
@@ -5261,7 +5291,7 @@ static void test_session_calculate_structural_results_write_potential_result(
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
                                           0.04, 0.05, 0.06};
-  assert_potential_result_frequencies(result_bytes, result_size,
+  assert_potential_result_frequencies(result_bytes, result_size, -1.625,
                                       expected_frequencies,
                                       expected_intensities, 6, 1.0e-12);
 
@@ -5368,6 +5398,7 @@ static void test_calculate_hessian_result_one_shot_writes_potential_result(
       message, message_size, step_a, step_a_size, result_bytes,
       sizeof(result_bytes), &result_size);
   assert_int_equal(result.ok, 1);
+  assert_close(result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(result_size, expected_size);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_calls, 1);
@@ -5377,8 +5408,8 @@ static void test_calculate_hessian_result_one_shot_writes_potential_result(
   for (int i = 0; i < 36; ++i)
     expected_hessian[i] =
         (double)(i + 10) / (bohr_to_angstrom * bohr_to_angstrom);
-  assert_potential_result_hessian(result_bytes, result_size, expected_hessian,
-                                  36, 1.0e-10);
+  assert_potential_result_hessian(result_bytes, result_size, -1.125,
+                                  expected_hessian, 36, 1.0e-10);
 
   reset_embed_captures();
   unsigned char short_result[127];
@@ -5626,6 +5657,7 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
       message, message_size, step_a, step_a_size, result_bytes,
       sizeof(result_bytes), &result_size);
   assert_int_equal(frequencies_result.ok, 1);
+  assert_close(frequencies_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(result_size, expected_frequencies_size);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
@@ -5633,7 +5665,7 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
                                           0.04, 0.05, 0.06};
-  assert_potential_result_frequencies(result_bytes, result_size,
+  assert_potential_result_frequencies(result_bytes, result_size, -1.625,
                                       expected_frequencies,
                                       expected_intensities, 6, 1.0e-12);
 
@@ -5735,6 +5767,7 @@ static void test_calculate_config_results_one_shot_write_potential_results(
           config, config_size, step_a, step_a_size, result_bytes,
           sizeof(result_bytes), &result_size);
   assert_int_equal(hessian_result.ok, 1);
+  assert_close(hessian_result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(result_size, expected_hessian_size);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_calls, 1);
@@ -5742,8 +5775,8 @@ static void test_calculate_config_results_one_shot_write_potential_results(
   for (int i = 0; i < 36; ++i)
     expected_hessian[i] =
         (double)(i + 10) / (bohr_to_angstrom * bohr_to_angstrom);
-  assert_potential_result_hessian(result_bytes, result_size, expected_hessian,
-                                  36, 1.0e-10);
+  assert_potential_result_hessian(result_bytes, result_size, -1.125,
+                                  expected_hessian, 36, 1.0e-10);
 
   reset_embed_captures();
   result_size = 0;
@@ -5826,6 +5859,7 @@ static void test_calculate_config_results_one_shot_write_potential_results(
           config, config_size, step_a, step_a_size, result_bytes,
           sizeof(result_bytes), &result_size);
   assert_int_equal(frequencies_result.ok, 1);
+  assert_close(frequencies_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(result_size, expected_frequencies_size);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
@@ -5833,7 +5867,7 @@ static void test_calculate_config_results_one_shot_write_potential_results(
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
                                           0.04, 0.05, 0.06};
-  assert_potential_result_frequencies(result_bytes, result_size,
+  assert_potential_result_frequencies(result_bytes, result_size, -1.625,
                                       expected_frequencies,
                                       expected_intensities, 6, 1.0e-12);
 
@@ -5901,6 +5935,7 @@ static void test_calculate_hessian_and_dipole_one_shot_accept_force_input(
   NWChemCResult hessian_result = nwchemc_calculate_hessian(
       message, message_size, step_a, step_a_size, hessian, 36);
   assert_int_equal(hessian_result.ok, 1);
+  assert_close(hessian_result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 1);
@@ -6039,6 +6074,7 @@ static void test_calculate_frequencies_one_shot_accepts_force_input(
       message, message_size, step_a, step_a_size, frequencies, 6, intensities,
       6);
   assert_int_equal(frequency_result.ok, 1);
+  assert_close(frequency_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);
@@ -6138,6 +6174,7 @@ static void test_calculate_config_raw_one_shot_accepts_force_input(
   NWChemCResult hessian_result = nwchemc_calculate_hessian_from_config(
       config, config_size, step_a, step_a_size, hessian, 36);
   assert_int_equal(hessian_result.ok, 1);
+  assert_close(hessian_result.energy_h, -1.125, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 1);
@@ -6233,6 +6270,7 @@ static void test_calculate_config_raw_one_shot_accepts_force_input(
       config, config_size, step_a, step_a_size, frequencies, 6, intensities,
       6);
   assert_int_equal(frequency_result.ok, 1);
+  assert_close(frequency_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);

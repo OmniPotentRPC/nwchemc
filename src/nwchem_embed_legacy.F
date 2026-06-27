@@ -957,7 +957,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     brillouin_has_options, brillouin_zone_name,
      $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     brillouin_kvector_count, brillouin_kvectors,
-     $     hessian_h_bohr2, errmsg, ok)
+     $     energy_h, hessian_h_bohr2, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -999,6 +999,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
       double precision driver_xmax_tol, driver_xrms_tol
+      double precision energy_h
       double precision hessian_h_bohr2(*)
       character*(*) errmsg
       integer n3, i, j
@@ -1013,6 +1014,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 
       ok = -1
       errmsg = ' '
+      energy_h = 0.0d0
       if (rtdb .lt. 0 .or. n_atoms .le. 0) then
          errmsg = 'invalid rtdb or n_atoms'
          return
@@ -1068,6 +1070,17 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'task_hessian failed'
          return
       endif
+      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1,
+     $     energy_h)) then
+         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
+     $        energy_h)) then
+            if (.not. rtdb_get(rtdb, 'dft:energy', mt_dbl, 1,
+     $         energy_h)) then
+               errmsg = 'rtdb_get task/scf/dft energy failed'
+               return
+            endif
+         endif
+      endif
       if (.not. rtdb_cget(rtdb, 'task:hessian file name', 1,
      $     filehess)) then
          call util_file_name('hess', .false., .false., filehess)
@@ -1116,7 +1129,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     brillouin_has_options, brillouin_zone_name,
      $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     brillouin_kvector_count, brillouin_kvectors,
-     $     frequencies_cm1, intensities_au, errmsg, ok)
+     $     energy_h, frequencies_cm1, intensities_au, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -1158,6 +1171,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision scf_thresh, scf_tol2e
       double precision driver_gmax_tol, driver_grms_tol
       double precision driver_xmax_tol, driver_xrms_tol
+      double precision energy_h
       double precision frequencies_cm1(*)
       double precision intensities_au(*)
       character*(*) errmsg
@@ -1170,6 +1184,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 
       ok = -1
       errmsg = ' '
+      energy_h = 0.0d0
       if (rtdb .lt. 0 .or. n_atoms .le. 0) then
          errmsg = 'invalid rtdb or n_atoms'
          return
@@ -1227,6 +1242,17 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       if (.not. task_freq(rtdb)) then
          errmsg = 'task_freq failed'
          return
+      endif
+      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1,
+     $     energy_h)) then
+         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
+     $        energy_h)) then
+            if (.not. rtdb_get(rtdb, 'dft:energy', mt_dbl, 1,
+     $         energy_h)) then
+               errmsg = 'rtdb_get task/scf/dft energy failed'
+               return
+            endif
+         endif
       endif
       if (.not. rtdb_get(rtdb, 'vib:frequencies', mt_dbl, n3,
      $     frequencies_cm1(1))) then

@@ -14,6 +14,7 @@
 
 extern void nwchemc_embed_init(void);
 extern int nwchemc_embed_available(void);
+extern int nwchemc_embed_last_energy(double *energy_h);
 extern int nwchemc_embed_reset_rtdb(void);
 extern int nwchemc_embed_set_config(const char *basis, int basis_len,
                                     const char *theory, int theory_len,
@@ -4167,6 +4168,7 @@ NWChemCResult nwchemc_hessian(
   int n = n_atoms;
   int ch = params.charge;
   int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  double eh = 0.0;
   int rc = nwchemc_embed_hessian(&n, positions_ang, atomic_numbers, &ch, &mult,
                                  hessian_h_bohr2, errmsg,
                                  (int)sizeof(errmsg) - 1);
@@ -4176,7 +4178,12 @@ NWChemCResult nwchemc_hessian(
              errmsg[0] ? errmsg : "nwchem embed hessian failed");
     return r;
   }
+  if (nwchemc_embed_last_energy(&eh) != 0) {
+    snprintf(r.message, sizeof(r.message), "nwchem embed energy unavailable");
+    return r;
+  }
   r.ok = 1;
+  r.energy_h = eh;
   snprintf(r.message, sizeof(r.message), "ok");
   return r;
 }
@@ -4413,6 +4420,7 @@ NWChemCResult nwchemc_frequencies(
   int n = n_atoms;
   int ch = params.charge;
   int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  double eh = 0.0;
   int rc = nwchemc_embed_frequencies(&n, positions_ang, atomic_numbers, &ch,
                                      &mult, frequencies_cm1, intensity_arg,
                                      errmsg, (int)sizeof(errmsg) - 1);
@@ -4423,7 +4431,12 @@ NWChemCResult nwchemc_frequencies(
              errmsg[0] ? errmsg : "nwchem embed frequencies failed");
     return r;
   }
+  if (nwchemc_embed_last_energy(&eh) != 0) {
+    snprintf(r.message, sizeof(r.message), "nwchem embed energy unavailable");
+    return r;
+  }
   r.ok = 1;
+  r.energy_h = eh;
   snprintf(r.message, sizeof(r.message), "ok");
   return r;
 }
@@ -5493,6 +5506,7 @@ static NWChemCResult session_frequencies_cell(
   double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
                           0.0, 0.0, 0.0, 0.0};
   const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  double eh = 0.0;
   int rc = nwchemc_embed_frequencies_cell(
       &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
       frequencies_cm1, intensity_arg, errmsg, (int)sizeof(errmsg) - 1);
@@ -5502,7 +5516,12 @@ static NWChemCResult session_frequencies_cell(
              errmsg[0] ? errmsg : "nwchem embed frequencies failed");
     return r;
   }
+  if (nwchemc_embed_last_energy(&eh) != 0) {
+    snprintf(r.message, sizeof(r.message), "nwchem embed energy unavailable");
+    return r;
+  }
   r.ok = 1;
+  r.energy_h = eh;
   snprintf(r.message, sizeof(r.message), "ok");
   return r;
 }
@@ -6370,6 +6389,7 @@ static NWChemCResult session_hessian_cell(NWChemCSession *session, int n_atoms,
   double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
                           0.0, 0.0, 0.0, 0.0};
   const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  double eh = 0.0;
   int rc = nwchemc_embed_hessian_cell(
       &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
       hessian_h_bohr2, errmsg, (int)sizeof(errmsg) - 1);
@@ -6378,7 +6398,12 @@ static NWChemCResult session_hessian_cell(NWChemCSession *session, int n_atoms,
              errmsg[0] ? errmsg : "nwchem embed hessian failed");
     return r;
   }
+  if (nwchemc_embed_last_energy(&eh) != 0) {
+    snprintf(r.message, sizeof(r.message), "nwchem embed energy unavailable");
+    return r;
+  }
   r.ok = 1;
+  r.energy_h = eh;
   snprintf(r.message, sizeof(r.message), "ok");
   return r;
 }

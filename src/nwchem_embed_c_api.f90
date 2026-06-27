@@ -18,6 +18,7 @@ module nwchem_embed_c_api
   ! C ABI (stable names - match nwchem_c_abi.c extern declarations)
   public :: nwchemc_embed_init
   public :: nwchemc_embed_available
+  public :: nwchemc_embed_last_energy
   public :: nwchemc_embed_reset_rtdb
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_set_dft_direct
@@ -53,6 +54,7 @@ module nwchem_embed_c_api
   logical, save :: owns_mpi_runtime = .false.
   logical, save :: runtime_finalized = .false.
   integer, save :: rtdb_handle = -1
+  real(real64), save :: last_task_energy_h = 0.0_real64
   character(len=64), save :: cfg_basis = 'sto-3g'
   character(len=64), save :: cfg_theory = 'scf'
   character(len=64), save :: cfg_scf = 'rhf'
@@ -412,7 +414,7 @@ module nwchem_embed_c_api
         brillouin_has_options, brillouin_zone_name, &
         brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
         brillouin_kvector_count, brillouin_kvectors, &
-        hessian_h_bohr2, errmsg, ok)
+        energy_h, hessian_h_bohr2, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -449,6 +451,7 @@ module nwchem_embed_c_api
       real(real64), intent(in) :: brillouin_kvectors(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
+      real(real64), intent(out) :: energy_h
       real(real64), intent(out) :: hessian_h_bohr2(*)
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
@@ -467,7 +470,7 @@ module nwchem_embed_c_api
         brillouin_has_options, brillouin_zone_name, &
         brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
         brillouin_kvector_count, brillouin_kvectors, &
-        frequencies_cm1, intensities_au, errmsg, ok)
+        energy_h, frequencies_cm1, intensities_au, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -504,6 +507,7 @@ module nwchem_embed_c_api
       real(real64), intent(in) :: brillouin_kvectors(*)
       real(real64), intent(in) :: dft_smear_sigma
       real(real64), intent(in) :: scf_thresh, scf_tol2e
+      real(real64), intent(out) :: energy_h
       real(real64), intent(out) :: frequencies_cm1(*)
       real(real64), intent(out) :: intensities_au(*)
       character(len=*), intent(out) :: errmsg
@@ -631,6 +635,20 @@ contains
       avail = 0_c_int
     end if
   end function nwchemc_embed_available
+
+  !> Energy from the most recent embedded NWChem task.
+  function nwchemc_embed_last_energy(energy_h) result(rc) &
+      bind(C, name='nwchemc_embed_last_energy')
+    real(c_double), intent(out) :: energy_h
+    integer(c_int) :: rc
+
+    energy_h = real(last_task_energy_h, kind=c_double)
+    if (rtdb_ready) then
+      rc = 0_c_int
+    else
+      rc = -1_c_int
+    end if
+  end function nwchemc_embed_last_energy
 
   !> Apply method options from C strings (lengths explicit for C interop).
   function nwchemc_embed_set_config(basis, basis_len, theory, theory_len, &
@@ -1709,10 +1727,12 @@ contains
     integer(c_int) :: rc
     integer :: ok, n, ndof, i
     character(len=512) :: msg
+    real(real64) :: energy_h
     real(real64), allocatable :: pos(:), freq(:), intensity(:), cell(:)
     integer, allocatable :: z(:)
 
     rc = -1_c_int
+    last_task_energy_h = 0.0_real64
     call clear_c_errmsg(errmsg, errmsg_len)
 
     call nwchemc_embed_init()
@@ -1762,14 +1782,17 @@ contains
         cfg_brillouin_has_options, cfg_brillouin_zone_name, &
         cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
         cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
-        freq, intensity, msg, ok)
+        energy_h, freq, intensity, msg, ok)
 
     do i = 1, ndof
       frequencies_cm1(i) = real(freq(i), kind=c_double)
       intensities_au(i) = real(intensity(i), kind=c_double)
     end do
     call set_c_errmsg(errmsg, errmsg_len, trim(msg))
-    if (ok == 0) rc = 0_c_int
+    if (ok == 0) then
+      last_task_energy_h = energy_h
+      rc = 0_c_int
+    end if
     deallocate (pos, freq, intensity, cell, z)
   end function nwchemc_embed_frequencies_impl
 
@@ -1832,10 +1855,12 @@ contains
     integer(c_int) :: rc
     integer :: ok, n, n2, i
     character(len=512) :: msg
+    real(real64) :: energy_h
     real(real64), allocatable :: pos(:), hess(:), cell(:)
     integer, allocatable :: z(:)
 
     rc = -1_c_int
+    last_task_energy_h = 0.0_real64
     call clear_c_errmsg(errmsg, errmsg_len)
 
     call nwchemc_embed_init()
@@ -1883,13 +1908,16 @@ contains
         cfg_brillouin_has_options, cfg_brillouin_zone_name, &
         cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
         cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
-        hess, msg, ok)
+        energy_h, hess, msg, ok)
 
     do i = 1, n2
       hessian_h_bohr2(i) = real(hess(i), kind=c_double)
     end do
     call set_c_errmsg(errmsg, errmsg_len, trim(msg))
-    if (ok == 0) rc = 0_c_int
+    if (ok == 0) then
+      last_task_energy_h = energy_h
+      rc = 0_c_int
+    end if
     deallocate (pos, hess, cell, z)
   end function nwchemc_embed_hessian_impl
 
