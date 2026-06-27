@@ -3392,6 +3392,145 @@ static void test_session_calculate_frequencies_accepts_force_input_step(
   free(message);
 }
 
+static void test_direct_coordinate_energy_abi_calls_embed_wrappers(
+    void **state) {
+  (void)state;
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  const double positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.7414};
+  const int atomic_numbers[2] = {1, 8};
+
+  reset_embed_captures();
+  NWChemCResult energy_result =
+      nwchemc_energy(2, positions, atomic_numbers, message, message_size);
+  assert_int_equal(energy_result.ok, 1);
+  assert_close(energy_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_only_calls, 1);
+  assert_int_equal(g_energy_only_cell_calls, 0);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+
+  reset_embed_captures();
+  double grad[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult gradient_result = nwchemc_energy_gradient(
+      2, positions, atomic_numbers, message, message_size, grad);
+  assert_int_equal(gradient_result.ok, 1);
+  assert_close(gradient_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+  assert_close(grad[0], 1.0, 1.0e-12);
+  assert_close(grad[5], 6.0, 1.0e-12);
+
+  reset_embed_captures();
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult force_result = nwchemc_energy_forces(
+      2, positions, atomic_numbers, message, message_size, forces);
+  assert_int_equal(force_result.ok, 1);
+  assert_close(force_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+  assert_close(forces[0], -1.0, 1.0e-12);
+  assert_close(forces[5], -6.0, 1.0e-12);
+
+  free(message);
+}
+
+static void test_session_coordinate_energy_abi_calls_embed_wrappers(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  const double positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.7414};
+  const int atomic_numbers[2] = {1, 8};
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  NWChemCResult energy_result =
+      nwchemc_session_energy(session, 2, positions, atomic_numbers);
+  assert_int_equal(energy_result.ok, 1);
+  assert_close(energy_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_only_calls, 1);
+  assert_int_equal(g_energy_only_cell_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+
+  double grad[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult gradient_result = nwchemc_session_energy_gradient(
+      session, 2, positions, atomic_numbers, grad);
+  assert_int_equal(gradient_result.ok, 1);
+  assert_close(gradient_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_n_atoms[0], 2);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][0], 1);
+  assert_int_equal(g_call_atomic_numbers[0][1], 8);
+  assert_close(g_call_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[0], 0);
+  assert_close(grad[0], 1.0, 1.0e-12);
+  assert_close(grad[5], 6.0, 1.0e-12);
+
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult force_result = nwchemc_session_energy_forces(
+      session, 2, positions, atomic_numbers, forces);
+  assert_int_equal(force_result.ok, 1);
+  assert_close(force_result.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_call_n_atoms[1], 2);
+  assert_int_equal(g_call_charge[1], 0);
+  assert_int_equal(g_call_multiplicity[1], 1);
+  assert_int_equal(g_call_atomic_numbers[1][0], 1);
+  assert_int_equal(g_call_atomic_numbers[1][1], 8);
+  assert_close(g_call_positions_ang[1][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_call_has_cell[1], 0);
+  assert_close(forces[0], -1.0, 1.0e-12);
+  assert_close(forces[5], -6.0, 1.0e-12);
+
+  int changed_atomic_numbers[2] = {1, 1};
+  NWChemCResult changed_topology =
+      nwchemc_session_energy(session, 2, positions, changed_atomic_numbers);
+  assert_int_equal(changed_topology.ok, 0);
+  assert_non_null(strstr(changed_topology.message, "topology"));
+  assert_int_equal(g_energy_only_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(message);
+}
+
 static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
   (void)state;
   size_t message_size = 0;
@@ -5040,6 +5179,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_calculate_optimize_accepts_force_input_step),
       cmocka_unit_test(
           test_session_calculate_frequencies_accepts_force_input_step),
+      cmocka_unit_test(test_direct_coordinate_energy_abi_calls_embed_wrappers),
+      cmocka_unit_test(test_session_coordinate_energy_abi_calls_embed_wrappers),
       cmocka_unit_test(test_direct_coordinate_abi_calls_embed_wrappers),
       cmocka_unit_test(test_session_coordinate_abi_calls_embed_wrappers),
       cmocka_unit_test(
