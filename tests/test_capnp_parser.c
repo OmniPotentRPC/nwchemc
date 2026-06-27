@@ -160,6 +160,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "apc 1.25 0.5 0.25 0.125"));
   assert_non_null(strstr(input_blocks, "translation false"));
   assert_non_null(strstr(input_blocks, "lmbfgs stiefel"));
+  assert_non_null(strstr(input_blocks, "scf density rmm-diis diis precondition"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -424,7 +425,9 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "translation false"));
   assert_null(strstr(input_blocks, "cgsd:allow_translation"));
   assert_null(strstr(input_blocks, "lmbfgs stiefel"));
+  assert_null(strstr(input_blocks, "scf density rmm-diis"));
   assert_null(strstr(input_blocks, "nwpw:minimizer"));
+  assert_null(strstr(input_blocks, "nwpw:ks_algorithm"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -934,7 +937,20 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                        params_root, &has_minimizer, &minimizer),
                    0);
   assert_int_equal(has_minimizer, 1);
-  assert_int_equal(minimizer, NWChemNwpwMinimizer_lmbfgsStiefel);
+  assert_int_equal(minimizer, NWChemNwpwMinimizer_scfDensity);
+
+  int has_scf_algorithms = 0;
+  int ks_algorithm = 0;
+  int scf_algorithm = 0;
+  int precondition = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_scf_algorithms(
+                       params_root, &has_scf_algorithms, &ks_algorithm,
+                       &scf_algorithm, &precondition),
+                   0);
+  assert_int_equal(has_scf_algorithms, 1);
+  assert_int_equal(ks_algorithm, NWChemNwpwKsAlgorithm_rmmDiis);
+  assert_int_equal(scf_algorithm, NWChemNwpwScfAlgorithm_diis);
+  assert_int_equal(precondition, NWChemNwpwToggle_enabled);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

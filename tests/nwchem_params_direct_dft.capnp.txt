@@ -243,6 +243,15 @@
       )
     ),
     (
+      kind = nwpw,
+      nwpw = (
+        minimizer = scfDensity,
+        ksAlgorithm = rmmDiis,
+        scfAlgorithm = diis,
+        precondition = enabled
+      )
+    ),
+    (
       kind = brillouinZone,
       brillouinZone = (
         zoneName = "zoneA",
