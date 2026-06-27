@@ -272,7 +272,17 @@
         minimizer = scfDensity,
         ksAlgorithm = rmmDiis,
         scfAlgorithm = diis,
-        precondition = enabled
+        precondition = enabled,
+        kerkerG0Set = true,
+        kerkerG0 = 0.375,
+        ksAlphaSet = true,
+        ksAlpha = 0.125,
+        ksMaxitOrbSet = true,
+        ksMaxitOrb = 12,
+        ksMaxitOrbsSet = true,
+        ksMaxitOrbs = 4,
+        diisHistoriesSet = true,
+        diisHistories = 6
       )
     ),
     (

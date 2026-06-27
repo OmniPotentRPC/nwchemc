@@ -160,7 +160,10 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "apc 1.25 0.5 0.25 0.125"));
   assert_non_null(strstr(input_blocks, "translation false"));
   assert_non_null(strstr(input_blocks, "lmbfgs stiefel"));
-  assert_non_null(strstr(input_blocks, "scf density rmm-diis diis precondition"));
+  assert_non_null(strstr(input_blocks,
+                         "scf density rmm-diis diis precondition kerker "
+                         "0.375 alpha 0.125 iterations 12 "
+                         "outer_iterations 4 diis_histories 6"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -428,6 +431,7 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "scf density rmm-diis"));
   assert_null(strstr(input_blocks, "nwpw:minimizer"));
   assert_null(strstr(input_blocks, "nwpw:ks_algorithm"));
+  assert_null(strstr(input_blocks, "nwpw:kerker_g0"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -951,6 +955,25 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(ks_algorithm, NWChemNwpwKsAlgorithm_rmmDiis);
   assert_int_equal(scf_algorithm, NWChemNwpwScfAlgorithm_diis);
   assert_int_equal(precondition, NWChemNwpwToggle_enabled);
+
+  int has_scf_numeric = 0;
+  NWChemNwpwScfNumericControls scf_numeric = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_scf_numeric(
+                       params_root, &has_scf_numeric, &scf_numeric),
+                   0);
+  assert_int_equal(has_scf_numeric, 1);
+  assert_int_equal(scf_numeric.kerker_g0_set, 1);
+  assert_true(scf_numeric.kerker_g0 > 0.374);
+  assert_true(scf_numeric.kerker_g0 < 0.376);
+  assert_int_equal(scf_numeric.ks_alpha_set, 1);
+  assert_true(scf_numeric.ks_alpha > 0.124);
+  assert_true(scf_numeric.ks_alpha < 0.126);
+  assert_int_equal(scf_numeric.ks_maxit_orb_set, 1);
+  assert_int_equal(scf_numeric.ks_maxit_orb, 12);
+  assert_int_equal(scf_numeric.ks_maxit_orbs_set, 1);
+  assert_int_equal(scf_numeric.ks_maxit_orbs, 4);
+  assert_int_equal(scf_numeric.diis_histories_set, 1);
+  assert_int_equal(scf_numeric.diis_histories, 6);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
