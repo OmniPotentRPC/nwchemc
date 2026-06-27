@@ -381,24 +381,3 @@
       if ((finish_ok .ne. 0) .and. (result .eq. 0)) result = 90
       return
       end
-
-      logical function nwchemc_probe_get_int(rtdb, key, value)
-      implicit none
-#include "bafdecls.fh"
-#include "btdb.fh"
-      integer rtdb, value
-      character*(*) key
-      nwchemc_probe_get_int = btdb_get(rtdb, key, mt_int, 1, value)
-      return
-      end
-
-      logical function nwchemc_probe_get_log(rtdb, key, value)
-      implicit none
-#include "bafdecls.fh"
-#include "btdb.fh"
-      integer rtdb
-      logical value
-      character*(*) key
-      nwchemc_probe_get_log = rtdb_get(rtdb, key, mt_log, 1, value)
-      return
-      end

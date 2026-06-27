@@ -1259,6 +1259,8 @@ if get_option('with_tests')
       [
         'tests/test_nwchem_pseudopotential_rtdb.c',
         'tests/nwchem_pseudopotential_rtdb_probe.F',
+        'tests/nwchem_rtdb_probe_get_log.F',
+        'tests/nwchem_rtdb_probe_get_int.F',
         'tests/nwchem_rtdb_probe_get_dbl_array.F',
         'tests/nwchem_rtdb_probe_get_int_array.F',
       ],
@@ -1274,6 +1276,32 @@ if get_option('with_tests')
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_rtdb_test,
       args: nwchem_test_mpi_ranks > 1
         ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_rtdb_test]
+        : [],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
+    nwchem_nwpw_rtdb_test = executable(
+      'test_nwchem_nwpw_rtdb',
+      [
+        'tests/test_nwchem_nwpw_rtdb.c',
+        'tests/nwchem_nwpw_rtdb_probe.F',
+        'tests/nwchem_rtdb_probe_get_log.F',
+        'tests/nwchem_rtdb_probe_get_int.F',
+        'tests/nwchem_rtdb_probe_get_dbl_array.F',
+        'tests/nwchem_rtdb_probe_get_int_array.F',
+      ],
+      include_directories: inc,
+      dependencies: [cmocka_dep],
+      link_with: nwchemc_legacy,
+      link_args: nwchem_link_args,
+      c_args: common_c_args,
+      fortran_args: nwchem_legacy_args,
+    )
+    test(
+      'nwchem-nwpw-rtdb',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_nwpw_rtdb_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_nwpw_rtdb_test]
         : [],
       env: nwchem_test_mpi_env,
       is_parallel: false,
