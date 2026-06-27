@@ -71,10 +71,17 @@ extern NWChemCResult nwchemc_session_calculate_stress(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *stress_au,
     size_t stress_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_energy(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_forces(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *forces_h_bohr, size_t forces_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_energy(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -267,6 +274,14 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_step =
       nwchemc_session_calculate_forces(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step.ok, 0);
+  assert_true(nwchemc_session_calculate_energy != NULL);
+  NWChemCResult session_step_energy =
+      nwchemc_session_calculate_energy(NULL, NULL, 0);
+  assert_int_equal(session_step_energy.ok, 0);
+  assert_true(nwchemc_calculate_energy != NULL);
+  NWChemCResult one_shot_energy =
+      nwchemc_calculate_energy(NULL, 0, NULL, 0);
+  assert_int_equal(one_shot_energy.ok, 0);
   assert_true(nwchemc_calculate_forces != NULL);
   NWChemCResult one_shot_forces =
       nwchemc_calculate_forces(NULL, 0, NULL, 0, forces_h_bohr, 1);
