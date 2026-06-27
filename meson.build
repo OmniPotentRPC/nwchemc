@@ -1266,8 +1266,8 @@ if get_option('with_tests')
       'nwchem-potential-config-pseudopotential',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_potential_config_pseudopotential_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_potential_config_pseudopotential_test, potential_config_pseudopotential_bin]
-        : [potential_config_pseudopotential_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_potential_config_pseudopotential_test, potential_config_pseudopotential_bin, force_input_h2_eq_bin]
+        : [potential_config_pseudopotential_bin, force_input_h2_eq_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
