@@ -26,8 +26,10 @@ Every ~NWChemModuleName~, input stanza kind, top-level ~NWChemParams~ field, and
 public ABI entrypoint is interned in ~schema/inventory/nwchem_features.json~
 with a C query table (~include/nwchemc_features.h~, ~src/nwchemc_features.c~).
 Regenerate with ~pixi run inventory-gen~; validate with ~pixi run inventory-check~.
-The configuration contract (typed stanzas vs ~raw~/~set~/~custom~ escape hatches)
-is documented in [[file:reference/nwchem-options.org][NWChem option mapping]].
+The configuration contract is split between typed stanzas and the ~raw~, ~set~,
+and ~custom~ escape hatches documented in the NWChem option mapping reference.
+
+Use the stub/parser path for ABI and schema work that does not need NWChem:
 
 #+begin_src bash
 git clone https://github.com/OmniPotentRPC/nwchemc.git
@@ -38,6 +40,13 @@ pixi run test-cmocka
 meson setup build -Dwith_tests=true
 meson test -C build --suite inventory --print-errorlogs
 #+end_src
+
+Use the real embed path when an NWChem source/build tree is available. The
+quickstart shows the static Meson build, MPI-launched real tests, CMake
+equivalents, and CLI-vs-embed comparison workflow. The embed root must contain
+NWChem build artifacts such as ~src/config/nwchem_config.h~,
+~src/tools/install/bin/ga-config~, ~src/stubs.o~, source include directories,
+and ~lib/$NWCHEM_TARGET~.
 
 #+begin_export rst
 .. toctree::

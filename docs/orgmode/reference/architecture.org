@@ -137,8 +137,9 @@ same ABI call works under ~mpirun -np 2~.
 * Build Systems
 Meson is the primary build.
 CMake builds the same capnp-c generation path, stub/parser tests, optional
-NWChem shared library, install targets, cmocka C tests, and CTest
-serial/MPI gradient plus serial Hessian checks.
+real NWChem library, install targets, cmocka C tests, and CTest real embed
+checks. Both build systems can launch the real embed tests through ~mpirun~
+when the selected NWChem target requires an MPI runtime.
 The release metadata keeps Meson, CMake, pixi, and changelog versions in
 lockstep.
 
@@ -151,4 +152,4 @@ directories, Global Arrays install directories, and ~lib/$NWCHEM_TARGET~.
 A package-manager runtime prefix with ~bin/nwchem~, ~lib~, and
 ~share/nwchem~ is a different shape. It can support an executable backend, but
 it does not provide the metadata and object files that the direct C ABI uses for
-the shared embed library.
+the in-process embed library.
