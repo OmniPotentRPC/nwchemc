@@ -367,7 +367,10 @@ disk-use, and SCS scaling settings through direct `ccsd:*` RTDB writes.
 
 ## Build
 
-Frontend/stub build without NWChem:
+### Stub and parser build
+
+This path does not link NWChem. It builds the C ABI stub, Cap'n Proto parser,
+feature inventory, and cmocka tests.
 
 ```bash
 meson setup build -Dwith_tests=true
@@ -375,48 +378,142 @@ meson compile -C build
 meson test -C build --print-errorlogs
 ```
 
-Tests use cmocka through pkg-config. The pixi environment includes the test
-dependency.
+The pixi environment provides cmocka, Cap'n Proto, Meson, and the lint/test
+tools used by the normal developer loop:
 
 ```bash
-pixi run test-stub      # stub/parser Meson suite
-pixi run test-cmocka    # intern inventory + cmocka feature tests + driver
+pixi run test-stub
+pixi run test-cmocka
 pixi run inventory-check
-pixi run inventory-gen  # regenerate schema/inventory + C tables after schema edits
-pixi run coverage       # gcov/lcov on instrumented stub build (see build-coverage/)
-pixi run prek-validate  # validate prek.toml
-pixi run prek           # all hooks: baseline + Fortran fprettify + lychee + inventory
-pixi run fortran-lint   # fprettify check on src/*.f90 and src/*.F
-pixi run lychee         # link check README + docs/orgmode + newsfragments
-pixi run test-integration-matrix   # validate tests/integration/task_matrix.json
-pixi run debug-backtrace-smoke     # feature driver debug handlers + crash-test backtrace
-# CLI integration vs conda-forge nwchem (NOT embed SDK; linux-64 pixi env):
-pixi run -e nwchem-runtime test-nwchem-compare
-# CLI + embed numeric compare (tolerances in task_matrix.json; needs build-nwchem):
-#   python3 tools/compare_nwchem_cli.py --out-dir build/nwchem-compare-embed \
-#     --embed-build build-nwchem --require-cli
-#   # or: pixi run test-nwchem-compare-embed  (after build-nwchem exists)
-# Embed integration (separate NWChem *build tree* with PIC libs):
-#   meson setup build-nwchem -Dwith_nwchem=true -Dnwchem_root=$NWCHEM_TOP -Dwith_tests=true
-#   meson test -C build-nwchem nwchem-energy-gradient nwchem-energy-forces nwchem-hessian
-# Embed test writes NWCHEMC_COMPARE_JSON for the harness (energy + gradient vectors).
+pixi run inventory-gen
+pixi run test-integration-matrix
+pixi run debug-backtrace-smoke
+pixi run fortran-lint
+pixi run lychee
+pixi run prek
 ```
 
-Debug: `tools/nwchemc_debug.c` installs `SIGSEGV`/`SIGABRT`/`SIGFPE` handlers and
-prints `backtrace(3)` frames (execinfo; optional C++ `backward.hpp` path not required).
-Meson option `-Dwith_debug_backtrace=true` (default) links debug helpers into
-`nwchemc_feature_driver`. Enable handlers with `NWCHEMC_DEBUG=1`, or run
-`./build/nwchemc_feature_driver crash-test` for a deliberate abort smoke test.
+`tools/nwchemc_debug.c` installs optional `SIGSEGV` / `SIGABRT` / `SIGFPE`
+handlers and prints `backtrace(3)` frames. Meson option
+`-Dwith_debug_backtrace=true` is enabled by default for
+`nwchemc_feature_driver`. Use `NWCHEMC_DEBUG=1` to enable handlers in tools, or
+run `./build/nwchemc_feature_driver crash-test` for the deliberate abort smoke
+test.
 
-Integration/CI: `tests/integration/task_matrix.json` lists CLI `.nw` tasks under
-`tests/integration/nw/`. `.github/workflows/ci.yml` runs stub/cmocka + debug smoke
-always and optional `nwchem-runtime` CLI compare over the matrix (embed SDK is not
-on GHA by default; local embed-vs-CLI uses `--embed-build` and exit 3 if incomplete).
+### Real NWChem embed build
 
-Lint hooks live in `prek.toml` (`prek install` for commit hooks). Lychee scope is
-controlled by `.lychee.toml`. Coverage is tracked for instrumentable in-tree C
-exercised by stub/parser/cmocka suites; embed/Fortran/NWChem-only units require
-a real embed build and are listed as explicit exceptions in the coverage report.
+`-Dnwchem_root` must point at an NWChem source/build tree, not at a packaged
+runtime prefix. The tree must contain:
+
+- `src/config/nwchem_config.h`
+- `src/tools/install/bin/ga-config`
+- `src/stubs.o`
+- source include directories under `src/`
+- archives under `lib/$NWCHEM_TARGET`
+
+Build `src/stubs.o` through NWChem if the object is missing:
+
+```bash
+export NWCHEM_TOP=/path/to/nwchem
+export NWCHEM_TARGET=LINUX64
+make -C "$NWCHEM_TOP/src" stubs.o
+```
+
+Many NWChem builds provide non-PIC static archives. In that case, build
+`nwchemc` as a static library and link the real tests as executables:
+
+```bash
+meson setup build-nwchem \
+  -Dwith_nwchem=true \
+  -Dnwchem_root="$NWCHEM_TOP" \
+  -Dnwchem_target="$NWCHEM_TARGET" \
+  -Dwith_tests=true \
+  -Ddefault_library=static
+meson compile -C build-nwchem
+meson test -C build-nwchem --print-errorlogs
+```
+
+If the NWChem build requires an MPI launch even for small in-process tests, set
+the real-test rank count at configure time. The `OMPI_MCA_*` variables are
+Open MPI transport controls and are only needed on hosts that require them:
+
+```bash
+meson setup build-nwchem \
+  -Dwith_nwchem=true \
+  -Dnwchem_root="$NWCHEM_TOP" \
+  -Dnwchem_target="$NWCHEM_TARGET" \
+  -Dwith_tests=true \
+  -Ddefault_library=static \
+  -Dnwchem_test_mpi_ranks=2
+env OMPI_MCA_pml=ob1 OMPI_MCA_btl=self,tcp \
+  meson test -C build-nwchem --print-errorlogs --num-processes 2
+```
+
+The build reads `NW_MODULE_LIBS` from `nwchem_config.h`, GA linker flags from
+`ga-config`, and optional support archives from the NWChem library directory.
+`libperfm` is always requested; `libpeigs` and `libpeigs_comm` are added only
+when the corresponding archive exists.
+
+Shared `libnwchemc.so` builds are still supported when the selected NWChem
+archives are PIC-compatible:
+
+```bash
+meson setup build-nwchem-shared \
+  -Dwith_nwchem=true \
+  -Dnwchem_root="$NWCHEM_TOP" \
+  -Dnwchem_target="$NWCHEM_TARGET" \
+  -Dwith_tests=true
+```
+
+If the shared link probe reports `relocation R_X86_64_PC32 ... can not be used
+when making a shared object`, use the static build above or rebuild the NWChem
+archives with PIC flags for the target.
+
+### CLI and embed comparison
+
+The CLI matrix uses `.nw` files under `tests/integration/nw/` and tolerances in
+`tests/integration/task_matrix.json`.
+
+CLI-only comparison:
+
+```bash
+pixi run -e nwchem-runtime test-nwchem-compare
+```
+
+CLI-vs-embed comparison with direct executables:
+
+```bash
+python3 tools/compare_nwchem_cli.py \
+  --out-dir build/nwchem-compare-embed \
+  --embed-build build-nwchem \
+  --require-cli \
+  --require-embed
+```
+
+CLI-vs-embed comparison when both legs need an MPI launcher:
+
+```bash
+python3 tools/compare_nwchem_cli.py \
+  --out-dir build/nwchem-compare-embed \
+  --embed-build build-nwchem \
+  --require-cli \
+  --require-embed \
+  --nwchem-command "mpirun -np 2 $NWCHEM_TOP/bin/$NWCHEM_TARGET/nwchem" \
+  --embed-command "mpirun -np 2"
+```
+
+The comparison report is written as `nwchem_compare_report.txt` and
+`nwchem_compare_report.json` in the selected output directory. The embed test
+leg writes `NWCHEMC_COMPARE_JSON` with the energy and gradient vector captured
+from the C ABI test binary.
+
+Integration/CI: `.github/workflows/ci.yml` runs the stub/cmocka/debug smoke
+path and optional CLI comparison. CI does not provide an NWChem embed build
+tree by default.
+
+Lint hooks live in `prek.toml` (`prek install` for commit hooks). Lychee scope
+is controlled by `.lychee.toml`. Coverage tracks instrumentable in-tree C from
+the stub/parser/cmocka suites; real embed coverage needs an NWChem build tree.
 
 ## Feature inventory and C driver
 
@@ -430,34 +527,6 @@ public `nwchemc_*` ABI entrypoint is interned in
 entry points (inventory/validate/stub-abi/params/all). Meson registers it under
 the `cmocka` / `inventory` / `drivers` suites. Params mode needs a flat
 `NWChemParams` fixture (`NWCHEMC_PARSER_FIXTURE` or argv[2]).
-
-Embed build against an NWChem source/build tree:
-
-```bash
-export NWCHEM_TOP=/path/to/nwchem
-meson setup build-nwchem \
-  -Dwith_nwchem=true \
-  -Dnwchem_root="$NWCHEM_TOP" \
-  -Dnwchem_target=LINUX64 \
-  -Dwith_tests=true
-meson compile -C build-nwchem
-```
-
-`libnwchemc.so` links NWChem into a shared library, so `nwchem_root` must point
-at the NWChem build-tree layout containing `src/config/nwchem_config.h`,
-`src/tools/install/bin/ga-config`, `src/stubs.o`, source include directories,
-and `lib/$NWCHEM_TARGET`. The conda-forge `nwchem` package is useful as an
-executable/runtime package, but it is not the embed SDK shape required by this
-in-process ABI.
-
-Static NWChem archives must be built as position-independent code. If Meson
-fails during the NWChem link probe with `relocation R_X86_64_PC32 ... can not
-be used when making a shared object`, rebuild the NWChem archives with PIC
-flags for the selected target.
-
-The resulting shared library exports `nwchemc_*` symbols. Downstream projects
-load it with `dlopen()` and pass the serialized `NWChemParams` message bytes
-directly.
 
 `nwchemc_hessian()` fills a dense row-major Cartesian Hessian in
 Hartree/Bohr^2. It accepts the same `NWChemParams` Cap'n Proto message as the

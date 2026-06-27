@@ -34,6 +34,90 @@ NWChemCResult stress = nwchemc_stress(
 It can come from pycapnp, a memory mapped file, rgpot, or another Cap'n Proto
 binding that writes the standard flat stream format.
 
+* Build and Verification
+A real embed build needs an NWChem source/build tree, not only the ~nwchem~
+runtime executable. ~-Dnwchem_root~ must point at the tree that provides the
+configuration header, Global Arrays configuration helper, NWChem object files,
+source include directories, and static archives:
+
+- ~src/config/nwchem_config.h~
+- ~src/tools/install/bin/ga-config~
+- ~src/stubs.o~
+- source include directories under ~src/~
+- archives under ~lib/$NWCHEM_TARGET~
+
+Build ~src/stubs.o~ through NWChem if the object is missing:
+
+#+begin_src bash
+export NWCHEM_TOP=/path/to/nwchem
+export NWCHEM_TARGET=LINUX64
+make -C "$NWCHEM_TOP/src" stubs.o
+#+end_src
+
+Many NWChem builds provide non-PIC static archives. Build ~nwchemc~ as a static
+library when the selected archives are not suitable for a shared object:
+
+#+begin_src bash
+meson setup build-nwchem \
+  -Dwith_nwchem=true \
+  -Dnwchem_root="$NWCHEM_TOP" \
+  -Dnwchem_target="$NWCHEM_TARGET" \
+  -Dwith_tests=true \
+  -Ddefault_library=static
+meson compile -C build-nwchem
+meson test -C build-nwchem --print-errorlogs
+#+end_src
+
+If the selected NWChem build requires an MPI launcher for in-process tests, set
+the test rank count at configure time. The ~OMPI_MCA_*~ variables are Open MPI
+transport controls and are only needed on hosts that require them:
+
+#+begin_src bash
+meson setup build-nwchem \
+  -Dwith_nwchem=true \
+  -Dnwchem_root="$NWCHEM_TOP" \
+  -Dnwchem_target="$NWCHEM_TARGET" \
+  -Dwith_tests=true \
+  -Ddefault_library=static \
+  -Dnwchem_test_mpi_ranks=2
+env OMPI_MCA_pml=ob1 OMPI_MCA_btl=self,tcp \
+  meson test -C build-nwchem --print-errorlogs --num-processes 2
+#+end_src
+
+The build reads ~NW_MODULE_LIBS~ from ~nwchem_config.h~, Global Arrays linker
+flags from ~ga-config~, and optional support archives from the NWChem library
+directory. ~libperfm~ is always requested; ~libpeigs~ and ~libpeigs_comm~ are
+added only when the corresponding archive exists.
+
+Use the comparison driver to check the C ABI results against the NWChem CLI
+for the integration cases under ~tests/integration/nw/~:
+
+#+begin_src bash
+python3 tools/compare_nwchem_cli.py \
+  --out-dir build/nwchem-compare-embed \
+  --embed-build build-nwchem \
+  --require-cli \
+  --require-embed
+#+end_src
+
+When both the CLI and embed test leg need an MPI launcher, pass both launcher
+commands explicitly:
+
+#+begin_src bash
+python3 tools/compare_nwchem_cli.py \
+  --out-dir build/nwchem-compare-embed \
+  --embed-build build-nwchem \
+  --require-cli \
+  --require-embed \
+  --nwchem-command "mpirun -np 2 $NWCHEM_TOP/bin/$NWCHEM_TARGET/nwchem" \
+  --embed-command "mpirun -np 2"
+#+end_src
+
+The comparison report is written as ~nwchem_compare_report.txt~ and
+~nwchem_compare_report.json~ in the selected output directory. The embed leg
+writes ~NWCHEMC_COMPARE_JSON~ through the real C ABI test binary so the report
+captures the embedded energy and gradient vector.
+
 * Session Step Calls
 Callers that drive multiple geometry steps can keep the NWChem configuration in
 a session and pass a serialized ~ForceInput~ message for each step. The same
