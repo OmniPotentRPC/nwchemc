@@ -263,7 +263,7 @@ RTDB values directly:
 | ~initialVelocitiesTemperature~ | first argument in ~initial_velocities <temperature> <seed>~ | ~nwpw:init_velocities_temperature~, ~nwpw:init_velocities~ |
 | ~initialVelocitiesSeed~ | second argument in ~initial_velocities <temperature> <seed>~ | ~nwpw:init_velocities_seed~ |
 | ~makeHmass2~ | ~makehmass2 true~ or ~false~ | ~nwpw:makehmass2~ |
-| ~translateVectorSet~, ~translateVectorX~, ~translateVectorY~, ~translateVectorZ~ | ~translate_vector <x> <y> <z>~ | ~nwpw:translate_vector~ |
+| ~translateVectorSet~, ~translateVectorX~, ~translateVectorY~, ~translateVectorZ~ | ~translate_vector <x> <y> <z>~; omitted ~y~ defaults to ~x~ and omitted ~z~ defaults to ~y~ | ~nwpw:translate_vector~ |
 | ~translateGeometryName~ | geometry name token in ~translate_vector~ | ~nwpw:translate_geom_name~ |
 | ~translateReorder~ | ~reorder~ or ~noreorder~ token in ~translate_vector~ | ~nwpw:translate_reorder~ |
 | ~socketType~ | type token in ~socket <type> <ip>~ | ~nwpw:socket_type~ |

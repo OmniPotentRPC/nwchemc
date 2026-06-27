@@ -2754,9 +2754,13 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                     make_hmass2_logical) != 0)
     return -1;
   if (include_direct_promoted && nwpw.translateVectorSet) {
+    double translate_y =
+        nwpw.translateVectorY != 0.0 ? nwpw.translateVectorY
+                                     : nwpw.translateVectorX;
+    double translate_z =
+        nwpw.translateVectorZ != 0.0 ? nwpw.translateVectorZ : translate_y;
     if (append_format(block, sizeof(block), "  translate_vector %.15g %.15g %.15g",
-                      nwpw.translateVectorX, nwpw.translateVectorY,
-                      nwpw.translateVectorZ) != 0)
+                      nwpw.translateVectorX, translate_y, translate_z) != 0)
       return -1;
     if (nwpw.translateGeometryName.len > 0 &&
         (append_format(block, sizeof(block), " ") != 0 ||
@@ -5092,8 +5096,10 @@ int nwchemc_params_extract_direct_nwpw_translate_vector(
 
     *has_options = 1;
     vector[0] = nwpw.translateVectorX;
-    vector[1] = nwpw.translateVectorY;
-    vector[2] = nwpw.translateVectorZ;
+    vector[1] =
+        nwpw.translateVectorY != 0.0 ? nwpw.translateVectorY : vector[0];
+    vector[2] =
+        nwpw.translateVectorZ != 0.0 ? nwpw.translateVectorZ : vector[1];
     *geometry_name = nwpw.translateGeometryName;
     *reorder = nwpw.translateReorder;
   }
