@@ -621,6 +621,113 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
   free(config);
 }
 
+static void test_rgpot_config_raw_forceinput_operations(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t config_size = 0;
+  size_t force_input_size = 0;
+  unsigned char *config = read_file(g_config_path, &config_size);
+  unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  assert_non_null(config);
+  assert_non_null(force_input);
+
+  NWChemCResult energy_status = nwchemc_calculate_energy_from_config(
+      config, config_size, force_input, force_input_size);
+  assert_status_energy("nwchemc_calculate_energy_from_config", energy_status);
+
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult forces_status = nwchemc_calculate_forces_from_config(
+      config, config_size, force_input, force_input_size, forces, 6);
+  assert_status_energy("nwchemc_calculate_forces_from_config", forces_status);
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(forces[i]))
+      fail_msg("non-finite raw force[%d]", i);
+  }
+
+  double hessian[36] = {0.0};
+  NWChemCResult hessian_status = nwchemc_calculate_hessian_from_config(
+      config, config_size, force_input, force_input_size, hessian, 36);
+  assert_status_energy("nwchemc_calculate_hessian_from_config",
+                       hessian_status);
+  const int ncoord = 6;
+  double max_hessian_abs = 0.0;
+  for (int i = 0; i < ncoord; ++i) {
+    for (int j = 0; j < ncoord; ++j) {
+      double hij = hessian[i * ncoord + j];
+      double hji = hessian[j * ncoord + i];
+      if (!isfinite(hij))
+        fail_msg("non-finite raw hessian[%d,%d]", i, j);
+      double scale = fmax(1.0, fmax(fabs(hij), fabs(hji)));
+      if (fabs(hij - hji) > 1e-7 * scale)
+        fail_msg("raw hessian symmetry mismatch at %d,%d", i, j);
+      max_hessian_abs = fmax(max_hessian_abs, fabs(hij));
+    }
+  }
+  assert_true(max_hessian_abs >= 1e-6);
+
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_status = nwchemc_calculate_dipole_from_config(
+      config, config_size, force_input, force_input_size, dipole, 3);
+  assert_status_energy("nwchemc_calculate_dipole_from_config", dipole_status);
+  for (int i = 0; i < 3; ++i) {
+    if (!isfinite(dipole[i]))
+      fail_msg("non-finite raw dipole[%d]", i);
+    assert_true(fabs(dipole[i]) < 1.0e-7);
+  }
+
+  double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult quadrupole_status =
+      nwchemc_calculate_quadrupole_from_config(
+          config, config_size, force_input, force_input_size, quadrupole, 6);
+  assert_status_energy("nwchemc_calculate_quadrupole_from_config",
+                       quadrupole_status);
+  double max_quadrupole_abs = 0.0;
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(quadrupole[i]))
+      fail_msg("non-finite raw quadrupole[%d]", i);
+    max_quadrupole_abs = fmax(max_quadrupole_abs, fabs(quadrupole[i]));
+  }
+  assert_true(max_quadrupole_abs > 1.0e-6);
+  double trace = quadrupole[0] + quadrupole[3] + quadrupole[5];
+  assert_true(fabs(trace) < 1.0e-7 * fmax(1.0, max_quadrupole_abs));
+
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_status = nwchemc_calculate_optimize_from_config(
+      config, config_size, force_input, force_input_size, optimized_positions,
+      6);
+  assert_status_energy("nwchemc_calculate_optimize_from_config",
+                       optimize_status);
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(optimized_positions[i]))
+      fail_msg("non-finite raw optimized position[%d]", i);
+  }
+  double bond = h2_bond_length(optimized_positions);
+  assert_true(bond > 0.5);
+  assert_true(bond < 1.0);
+
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequencies_status =
+      nwchemc_calculate_frequencies_from_config(
+          config, config_size, force_input, force_input_size, frequencies, 6,
+          intensities, 6);
+  assert_status_energy("nwchemc_calculate_frequencies_from_config",
+                       frequencies_status);
+  double max_frequency_abs = 0.0;
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(frequencies[i]))
+      fail_msg("non-finite raw frequency[%d]", i);
+    if (!isfinite(intensities[i]))
+      fail_msg("non-finite raw intensity[%d]", i);
+    max_frequency_abs = fmax(max_frequency_abs, fabs(frequencies[i]));
+  }
+  assert_true(max_frequency_abs > 1.0);
+
+  free(force_input);
+  free(config);
+}
+
 int main(int argc, char **argv) {
   if (argc != 3) {
     fprintf(stderr, "usage: %s POTENTIAL_CONFIG_BIN FORCE_INPUT_BIN\n",
@@ -633,6 +740,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_rgpot_config_forceinput_result_carrier),
       cmocka_unit_test(test_rgpot_config_named_result_carriers),
       cmocka_unit_test(test_rgpot_config_session_named_result_carriers),
+      cmocka_unit_test(test_rgpot_config_raw_forceinput_operations),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }
