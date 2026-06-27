@@ -40,6 +40,17 @@ int nwchemc_set_params(const void *params_capnp,
                        size_t params_capnp_size_bytes);
 
 /**
+ * @brief Apply NWChem method parameters from a `PotentialConfig` message.
+ *
+ * @param config_capnp Pointer to an unpacked flat `PotentialConfig` message.
+ *        The `nwchem` union arm carries the embedded `NWChemParams` payload.
+ * @param config_capnp_size_bytes Size of `config_capnp` in bytes.
+ * @return 0 on success, -1 on parse or configuration failure.
+ */
+int nwchemc_configure(const void *config_capnp,
+                      size_t config_capnp_size_bytes);
+
+/**
  * @brief Compute energy and nuclear gradient for an atomic configuration.
  *
  * @param n_atoms Number of atoms.
@@ -197,6 +208,16 @@ NWChemCSession *nwchemc_session_create(const void *params_capnp,
                                        size_t params_capnp_size_bytes);
 
 /**
+ * @brief Create a persistent evaluation session from a `PotentialConfig`.
+ *
+ * The `nwchem` union arm supplies the same `NWChemParams` payload accepted by
+ * `nwchemc_session_create()`.
+ */
+NWChemCSession *
+nwchemc_session_create_from_config(const void *config_capnp,
+                                   size_t config_capnp_size_bytes);
+
+/**
  * @brief Replace the Cap'n Proto parameter message for an existing session.
  *
  * Replacement is accepted only before the session has accepted a topology from
@@ -206,6 +227,16 @@ NWChemCSession *nwchemc_session_create(const void *params_capnp,
 int nwchemc_session_set_params(NWChemCSession *session,
                                const void *params_capnp,
                                size_t params_capnp_size_bytes);
+
+/**
+ * @brief Configure an existing session from a `PotentialConfig` message.
+ *
+ * Configuration is accepted only before the session has accepted a topology
+ * from an evaluation call.
+ */
+int nwchemc_session_configure(NWChemCSession *session,
+                              const void *config_capnp,
+                              size_t config_capnp_size_bytes);
 
 /**
  * @brief Release a persistent evaluation session.

@@ -220,6 +220,16 @@ extern NWChemCResult nwchemc_calculate_stress_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern int nwchemc_configure(const void *config_capnp,
+                             size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
+extern NWChemCSession *nwchemc_session_create_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
+extern int nwchemc_session_configure(NWChemCSession *session,
+                                     const void *config_capnp,
+                                     size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
 
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
@@ -228,6 +238,8 @@ static void test_stub_reports_unavailable(void **state) {
   assert_non_null(version);
   assert_non_null(strstr(version, "stub"));
   assert_int_not_equal(nwchemc_set_params(NULL, 0), 0);
+  assert_true(nwchemc_configure != NULL);
+  assert_int_not_equal(nwchemc_configure(NULL, 0), 0);
   NWChemCResult energy_result = nwchemc_energy(0, NULL, NULL, NULL, 0);
   assert_int_equal(energy_result.ok, 0);
   NWChemCResult result =
@@ -268,6 +280,10 @@ static void test_stub_reports_unavailable(void **state) {
   assert_int_equal(stress_result.ok, 0);
   assert_null(nwchemc_session_create(NULL, 0));
   assert_int_not_equal(nwchemc_session_set_params(NULL, NULL, 0), 0);
+  assert_true(nwchemc_session_create_from_config != NULL);
+  assert_null(nwchemc_session_create_from_config(NULL, 0));
+  assert_true(nwchemc_session_configure != NULL);
+  assert_int_not_equal(nwchemc_session_configure(NULL, NULL, 0), 0);
   nwchemc_session_destroy(NULL);
   NWChemCResult session_energy =
       nwchemc_session_energy(NULL, 0, NULL, NULL);

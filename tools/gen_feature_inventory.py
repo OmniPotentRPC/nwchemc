@@ -268,6 +268,11 @@ def main() -> int:
                 "embed": "applies Cap'n Proto params",
             },
             {
+                "name": "nwchemc_configure",
+                "stub": "fails non-zero",
+                "embed": "applies PotentialConfig.nwchem params",
+            },
+            {
                 "name": "nwchemc_energy_gradient",
                 "stub": "fails ok==0",
                 "embed": "runs energy/gradient",
@@ -318,9 +323,19 @@ def main() -> int:
                 "embed": "creates persistent Cap'n Proto session",
             },
             {
+                "name": "nwchemc_session_create_from_config",
+                "stub": "returns NULL",
+                "embed": "creates persistent PotentialConfig session",
+            },
+            {
                 "name": "nwchemc_session_set_params",
                 "stub": "fails non-zero",
                 "embed": "replaces params before topology",
+            },
+            {
+                "name": "nwchemc_session_configure",
+                "stub": "fails non-zero",
+                "embed": "configures PotentialConfig before topology",
             },
             {
                 "name": "nwchemc_session_destroy",

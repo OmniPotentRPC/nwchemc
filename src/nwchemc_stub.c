@@ -11,6 +11,13 @@ int nwchemc_set_params(const void *params_capnp,
   return -1;
 }
 
+int nwchemc_configure(const void *config_capnp,
+                      size_t config_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  return -1;
+}
+
 NWChemCResult nwchemc_energy_gradient(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -159,12 +166,29 @@ NWChemCSession *nwchemc_session_create(const void *params_capnp,
   return NULL;
 }
 
+NWChemCSession *
+nwchemc_session_create_from_config(const void *config_capnp,
+                                   size_t config_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  return NULL;
+}
+
 int nwchemc_session_set_params(NWChemCSession *session,
                                const void *params_capnp,
                                size_t params_capnp_size_bytes) {
   (void)session;
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  return -1;
+}
+
+int nwchemc_session_configure(NWChemCSession *session,
+                              const void *config_capnp,
+                              size_t config_capnp_size_bytes) {
+  (void)session;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   return -1;
 }
 

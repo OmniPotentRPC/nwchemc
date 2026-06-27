@@ -341,6 +341,16 @@ extern NWChemCResult nwchemc_calculate_frequencies_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern int nwchemc_configure(const void *config_capnp,
+                             size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
+extern NWChemCSession *nwchemc_session_create_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
+extern int nwchemc_session_configure(NWChemCSession *session,
+                                     const void *config_capnp,
+                                     size_t config_capnp_size_bytes)
+    NWCHEMC_TEST_WEAK;
 
 static void copy_span(char *dst, size_t dst_size, const char *src, int len) {
   size_t n = len > 0 ? (size_t)len : 0;
@@ -380,6 +390,49 @@ static unsigned char *read_file(const char *path, size_t *size) {
   fclose(fp);
   *size = (size_t)n;
   return buf;
+}
+
+static unsigned char *wrap_params_in_config(const unsigned char *params_bytes,
+                                            size_t params_size,
+                                            size_t *config_size) {
+  struct capn source_arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(nwchemc_params_root(params_bytes, params_size,
+                                       &source_arena, &params_root),
+                   0);
+
+  struct capn config_arena;
+  capn_init_malloc(&config_arena);
+  capn_ptr root = capn_root(&config_arena);
+  assert_int_not_equal(root.type, CAPN_NULL);
+  PotentialConfig_ptr config = new_PotentialConfig(root.seg);
+  assert_int_not_equal(config.p.type, CAPN_NULL);
+
+  struct PotentialConfig config_view;
+  memset(&config_view, 0, sizeof(config_view));
+  config_view.which = PotentialConfig_nwchem;
+  config_view.nwchem = params_root;
+  write_PotentialConfig(&config_view, config);
+  assert_int_equal(capn_setp(root, 0, config.p), 0);
+
+  size_t capacity = params_size + 1024u;
+  if (capacity < 4096u)
+    capacity = 4096u;
+  unsigned char *buffer = NULL;
+  int written = -1;
+  for (int attempt = 0; attempt < 6 && written < 0; ++attempt) {
+    unsigned char *next = (unsigned char *)realloc(buffer, capacity);
+    assert_non_null(next);
+    buffer = next;
+    written = capn_write_mem(&config_arena, buffer, capacity, 0);
+    capacity *= 2u;
+  }
+  assert_true(written > 0);
+  *config_size = (size_t)written;
+
+  capn_free(&config_arena);
+  nwchemc_params_release(&source_arena);
+  return buffer;
 }
 
 void nwchemc_embed_init(void) {}
@@ -2157,6 +2210,152 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_null(strstr(g_input_blocks, "set dft:smear_sigma double 0.0015"));
   assert_null(strstr(g_input_blocks, "set dft:spinset logical false"));
 
+  free(message);
+}
+
+static void test_configure_accepts_potential_config_nwchem(void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_configure != NULL);
+  size_t message_size = 0;
+  size_t config_size = 0;
+  unsigned char *message = read_file(g_config_options_path, &message_size);
+  assert_non_null(message);
+  unsigned char *config = wrap_params_in_config(message, message_size,
+                                                &config_size);
+  assert_non_null(config);
+
+  assert_int_equal(nwchemc_configure(config, config_size), 0);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_string_equal(g_basis, "6-31g");
+  assert_string_equal(g_theory, "scf");
+  assert_string_equal(g_scf_type, "rhf");
+  assert_int_equal(g_set_scf_direct_calls, 1);
+  assert_int_equal(g_scf_has_options, 1);
+  assert_int_equal(g_scf_maxiter, 50);
+  assert_int_equal(g_set_driver_direct_calls, 1);
+  assert_int_equal(g_driver_has_options, 1);
+  assert_int_equal(g_driver_maxiter, 40);
+  assert_int_equal(g_set_rtdb_strings_calls, 1);
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 3);
+  assert_null(strstr(g_input_blocks, "task scf energy"));
+
+  free(config);
+  free(message);
+}
+
+static void test_session_create_from_config_applies_nwchem(void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_session_create_from_config != NULL);
+  size_t message_size = 0;
+  size_t config_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+  unsigned char *config = wrap_params_in_config(message, message_size,
+                                                &config_size);
+  assert_non_null(config);
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config, config_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_string_equal(g_basis, "sto-3g");
+  assert_string_equal(g_theory, "dft");
+  assert_int_equal(g_set_dft_direct_calls, 1);
+  assert_int_equal(g_set_pseudopotential_calls, 1);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_session_energy_gradient(session, 1, pos, z, grad);
+  assert_int_equal(result.ok, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_set_config_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(config);
+  free(message);
+}
+
+static void test_session_configure_replaces_before_topology(void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_session_configure != NULL);
+  size_t message_size = 0;
+  size_t replacement_size = 0;
+  size_t config_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *replacement =
+      read_file(g_config_options_path, &replacement_size);
+  assert_non_null(message);
+  assert_non_null(replacement);
+  unsigned char *config = wrap_params_in_config(replacement, replacement_size,
+                                                &config_size);
+  assert_non_null(config);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_string_equal(g_basis, "sto-3g");
+  assert_string_equal(g_theory, "dft");
+  assert_int_equal(g_set_dft_direct_calls, 1);
+
+  assert_int_equal(nwchemc_session_configure(session, config, config_size), 0);
+  assert_int_equal(g_set_config_calls, 2);
+  assert_string_equal(g_basis, "6-31g");
+  assert_string_equal(g_theory, "scf");
+  assert_string_equal(g_scf_type, "rhf");
+  assert_int_equal(g_set_scf_direct_calls, 2);
+  assert_int_equal(g_scf_has_options, 1);
+  assert_int_equal(g_scf_maxiter, 50);
+  assert_int_equal(g_set_driver_direct_calls, 2);
+  assert_int_equal(g_driver_has_options, 1);
+  assert_int_equal(g_driver_maxiter, 40);
+
+  nwchemc_session_destroy(session);
+  free(config);
+  free(replacement);
+  free(message);
+}
+
+static void test_session_configure_rejects_after_topology(void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_session_configure != NULL);
+  size_t message_size = 0;
+  size_t replacement_size = 0;
+  size_t config_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *replacement =
+      read_file(g_config_options_path, &replacement_size);
+  assert_non_null(message);
+  assert_non_null(replacement);
+  unsigned char *config = wrap_params_in_config(replacement, replacement_size,
+                                                &config_size);
+  assert_non_null(config);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult first =
+      nwchemc_session_energy_gradient(session, 1, pos, z, grad);
+  assert_int_equal(first.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+
+  assert_int_not_equal(nwchemc_session_configure(session, config, config_size),
+                       0);
+  assert_int_equal(g_set_config_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(config);
+  free(replacement);
   free(message);
 }
 
@@ -5370,6 +5569,10 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
       cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
+      cmocka_unit_test(test_configure_accepts_potential_config_nwchem),
+      cmocka_unit_test(test_session_create_from_config_applies_nwchem),
+      cmocka_unit_test(test_session_configure_replaces_before_topology),
+      cmocka_unit_test(test_session_configure_rejects_after_topology),
       cmocka_unit_test(test_embed_config_promotes_pspspin_rules),
       cmocka_unit_test(test_embed_config_promotes_large_pspspin_ion_list),
       cmocka_unit_test(test_embed_config_promotes_nwpw_spin_mode),

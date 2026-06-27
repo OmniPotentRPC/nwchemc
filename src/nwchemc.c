@@ -4529,6 +4529,134 @@ static int apply_message_to_embed(const void *params_capnp,
   return rc;
 }
 
+static int potential_config_root(const void *config_capnp,
+                                 size_t config_capnp_size_bytes,
+                                 struct capn *arena,
+                                 PotentialConfig_ptr *config) {
+  if (!config_capnp || config_capnp_size_bytes == 0 || !arena || !config)
+    return -1;
+
+  memset(arena, 0, sizeof(*arena));
+  memset(config, 0, sizeof(*config));
+  if (capn_init_mem(arena, (const uint8_t *)config_capnp,
+                    config_capnp_size_bytes, 0) != 0)
+    return -1;
+
+  config->p = capn_getp(capn_root(arena), 0, 1);
+  if (config->p.type != CAPN_STRUCT) {
+    nwchemc_params_release(arena);
+    memset(config, 0, sizeof(*config));
+    return -1;
+  }
+  return 0;
+}
+
+static int potential_config_nwchem_root(const void *config_capnp,
+                                        size_t config_capnp_size_bytes,
+                                        struct capn *arena,
+                                        NWChemParams_ptr *params_root,
+                                        int *is_none) {
+  if (!arena || !params_root || !is_none)
+    return -1;
+  memset(params_root, 0, sizeof(*params_root));
+  *is_none = 0;
+
+  PotentialConfig_ptr config_root;
+  if (potential_config_root(config_capnp, config_capnp_size_bytes, arena,
+                            &config_root) != 0)
+    return -1;
+
+  struct PotentialConfig config;
+  memset(&config, 0, sizeof(config));
+  read_PotentialConfig(&config, config_root);
+  if (config.which == PotentialConfig_none) {
+    *is_none = 1;
+    return 0;
+  }
+  if (config.which != PotentialConfig_nwchem) {
+    nwchemc_params_release(arena);
+    return -1;
+  }
+  capn_resolve(&config.nwchem.p);
+  if (config.nwchem.p.type != CAPN_STRUCT) {
+    nwchemc_params_release(arena);
+    return -1;
+  }
+  *params_root = config.nwchem;
+  return 0;
+}
+
+static int write_nwchem_params_root_flat(NWChemParams_ptr params_root,
+                                         unsigned char **params_capnp,
+                                         size_t *params_capnp_size_bytes) {
+  if (params_root.p.type == CAPN_NULL || !params_capnp ||
+      !params_capnp_size_bytes)
+    return -1;
+  *params_capnp = NULL;
+  *params_capnp_size_bytes = 0;
+
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  if (root.type == CAPN_NULL) {
+    capn_free(&arena);
+    return -1;
+  }
+  if (capn_setp(root, 0, params_root.p) != 0) {
+    capn_free(&arena);
+    return -1;
+  }
+
+  size_t capacity = 4096u;
+  unsigned char *buffer = NULL;
+  int written = -1;
+  for (int attempt = 0; attempt < 16 && written < 0; ++attempt) {
+    unsigned char *next = (unsigned char *)realloc(buffer, capacity);
+    if (!next) {
+      free(buffer);
+      capn_free(&arena);
+      return -1;
+    }
+    buffer = next;
+    written = capn_write_mem(&arena, (uint8_t *)buffer, capacity, 0);
+    if (written < 0) {
+      if (capacity > SIZE_MAX / 2u) {
+        free(buffer);
+        capn_free(&arena);
+        return -1;
+      }
+      capacity *= 2u;
+    }
+  }
+  capn_free(&arena);
+  if (written < 0) {
+    free(buffer);
+    return -1;
+  }
+  *params_capnp = buffer;
+  *params_capnp_size_bytes = (size_t)written;
+  return 0;
+}
+
+int nwchemc_configure(const void *config_capnp,
+                      size_t config_capnp_size_bytes) {
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  int is_none = 0;
+  if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
+                                   &arena, &params_root, &is_none) != 0)
+    return -1;
+  if (is_none) {
+    nwchemc_params_release(&arena);
+    return 0;
+  }
+  int rc = apply_root_to_embed(params_root);
+  if (rc == 0)
+    g_active_session = NULL;
+  nwchemc_params_release(&arena);
+  return rc == 0 ? 0 : -1;
+}
+
 static int session_install_params(NWChemCSession *session,
                                   const void *params_capnp,
                                   size_t params_capnp_size_bytes) {
@@ -4636,6 +4764,44 @@ NWChemCSession *nwchemc_session_create(const void *params_capnp,
   return session;
 }
 
+NWChemCSession *
+nwchemc_session_create_from_config(const void *config_capnp,
+                                   size_t config_capnp_size_bytes) {
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  int is_none = 0;
+  if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
+                                   &arena, &params_root, &is_none) != 0)
+    return NULL;
+  if (is_none) {
+    nwchemc_params_release(&arena);
+    return NULL;
+  }
+
+  unsigned char *params_bytes = NULL;
+  size_t params_size = 0;
+  if (write_nwchem_params_root_flat(params_root, &params_bytes,
+                                    &params_size) != 0) {
+    nwchemc_params_release(&arena);
+    return NULL;
+  }
+  nwchemc_params_release(&arena);
+
+  NWChemCSession *session =
+      (NWChemCSession *)calloc(1, sizeof(NWChemCSession));
+  if (!session) {
+    free(params_bytes);
+    return NULL;
+  }
+  if (session_install_params(session, params_bytes, params_size) != 0) {
+    free(params_bytes);
+    free(session);
+    return NULL;
+  }
+  free(params_bytes);
+  return session;
+}
+
 int nwchemc_session_set_params(NWChemCSession *session,
                                const void *params_capnp,
                                size_t params_capnp_size_bytes) {
@@ -4645,6 +4811,38 @@ int nwchemc_session_set_params(NWChemCSession *session,
     return -1;
   return session_install_params(session, params_capnp,
                                 params_capnp_size_bytes);
+}
+
+int nwchemc_session_configure(NWChemCSession *session,
+                              const void *config_capnp,
+                              size_t config_capnp_size_bytes) {
+  if (!session || !config_capnp || config_capnp_size_bytes == 0)
+    return -1;
+  if (session->topology_atom_count != 0)
+    return -1;
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  int is_none = 0;
+  if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
+                                   &arena, &params_root, &is_none) != 0)
+    return -1;
+  if (is_none) {
+    nwchemc_params_release(&arena);
+    return 0;
+  }
+
+  unsigned char *params_bytes = NULL;
+  size_t params_size = 0;
+  if (write_nwchem_params_root_flat(params_root, &params_bytes,
+                                    &params_size) != 0) {
+    nwchemc_params_release(&arena);
+    return -1;
+  }
+  nwchemc_params_release(&arena);
+  int rc = session_install_params(session, params_bytes, params_size);
+  free(params_bytes);
+  return rc;
 }
 
 void nwchemc_session_destroy(NWChemCSession *session) {
@@ -7147,6 +7345,13 @@ int nwchemc_set_params(const void *params_capnp,
   return -1;
 }
 
+int nwchemc_configure(const void *config_capnp,
+                      size_t config_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  return -1;
+}
+
 NWChemCResult nwchemc_energy_gradient(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -7312,12 +7517,29 @@ NWChemCSession *nwchemc_session_create(const void *params_capnp,
   return NULL;
 }
 
+NWChemCSession *
+nwchemc_session_create_from_config(const void *config_capnp,
+                                   size_t config_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  return NULL;
+}
+
 int nwchemc_session_set_params(NWChemCSession *session,
                                const void *params_capnp,
                                size_t params_capnp_size_bytes) {
   (void)session;
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  return -1;
+}
+
+int nwchemc_session_configure(NWChemCSession *session,
+                              const void *config_capnp,
+                              size_t config_capnp_size_bytes) {
+  (void)session;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   return -1;
 }
 

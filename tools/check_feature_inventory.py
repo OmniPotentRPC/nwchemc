@@ -144,6 +144,7 @@ def main() -> int:
             errors.append(f"C intern table missing method.{name}")
     required_abi = (
         "nwchemc_set_params",
+        "nwchemc_configure",
         "nwchemc_energy_gradient",
         "nwchemc_energy",
         "nwchemc_energy_forces",
@@ -154,7 +155,9 @@ def main() -> int:
         "nwchemc_optimize",
         "nwchemc_frequencies",
         "nwchemc_session_create",
+        "nwchemc_session_create_from_config",
         "nwchemc_session_set_params",
+        "nwchemc_session_configure",
         "nwchemc_session_destroy",
         "nwchemc_session_energy_gradient",
         "nwchemc_session_energy",

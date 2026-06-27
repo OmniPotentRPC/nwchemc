@@ -1,7 +1,8 @@
 # nwchemc
 
 Stable C ABI for embedding NWChem from language-neutral Cap'n Proto
-`NWChemParams` messages.
+`PotentialConfig`, `NWChemParams`, `ForceInput`, and `PotentialResult`
+messages.
 
 `nwchemc` builds `libnwchemc.so` from a C ABI layer, modern Fortran
 `iso_c_binding` / `iso_fortran_env` bridge code, and the legacy NWChem embed
@@ -12,6 +13,7 @@ The public ABI does not expose C++ or Rust types:
 
 ```c
 int nwchemc_set_params(const void *params_capnp, size_t params_capnp_size_bytes);
+int nwchemc_configure(const void *config_capnp, size_t config_capnp_size_bytes);
 NWChemCResult nwchemc_energy_gradient(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -49,9 +51,14 @@ NWChemCResult nwchemc_frequencies(
     double *frequencies_cm1, double *intensities_au);
 NWChemCSession *nwchemc_session_create(
     const void *params_capnp, size_t params_capnp_size_bytes);
+NWChemCSession *nwchemc_session_create_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes);
 int nwchemc_session_set_params(NWChemCSession *session,
                                const void *params_capnp,
                                size_t params_capnp_size_bytes);
+int nwchemc_session_configure(NWChemCSession *session,
+                              const void *config_capnp,
+                              size_t config_capnp_size_bytes);
 void nwchemc_session_destroy(NWChemCSession *session);
 NWChemCResult nwchemc_session_energy_gradient(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
@@ -277,15 +284,20 @@ void nwchemc_finalize(void);
 ```
 
 `params_capnp` is an unpacked flat Cap'n Proto message whose root is
-`NWChemParams` from `schema/Potentials.capnp`. It can be produced by pycapnp,
-rgpot, mmap-backed readers, or another Cap'n Proto binding that writes the
-standard flat stream format. `nwchemc` reads that message through generated
-`capnp-c` bindings; it does not define a parallel user configuration format.
+`NWChemParams` from `schema/Potentials.capnp`. `config_capnp` is the schema-level
+configuration carrier whose root is `PotentialConfig`; the `nwchem` union arm
+carries the embedded `NWChemParams` payload. Both formats can be produced by
+pycapnp, rgpot, mmap-backed readers, or another Cap'n Proto binding that writes
+the standard flat stream format. `nwchemc` reads those messages through
+generated `capnp-c` bindings; it does not define a parallel user configuration
+format.
 
-Long-running callers should create one `NWChemCSession` from `NWChemParams`,
-then pass a serialized `ForceInput` for each geometry step. The result sizing
-helper parses the step message only, so callers can allocate or reuse an
-unpacked flat `PotentialResult` buffer before calling
+Long-running callers should create one `NWChemCSession` from `PotentialConfig`
+with `nwchemc_session_create_from_config()` or from raw `NWChemParams` with
+`nwchemc_session_create()`, then pass a serialized `ForceInput` for each
+geometry step. The result sizing helper parses the step message only, so
+callers can allocate or reuse an unpacked flat `PotentialResult` buffer before
+calling
 `nwchemc_session_calculate_result()`. The evaluating call keeps
 `NWChemCResult.energy_h` in Hartree and writes `PotentialResult.energy` /
 `PotentialResult.forces` in `ForceInput.energyUnit` and
@@ -328,8 +340,10 @@ wrappers populate `PotentialResult.frequencies` in cm^-1 and
 The Cap'n Proto `Potential` RPC interface mirrors the operation surface with
 explicit `calculateEnergy`, `calculateForces`, `calculateHessian`,
 `calculateDipole`, `calculateQuadrupole`, `calculateStress`,
-`calculateOptimize`, and `calculateFrequencies` methods. The original
-`calculate` method remains the compatibility energy/forces call.
+`calculateOptimize`, and `calculateFrequencies` methods. `Potential.configure`
+maps to `nwchemc_configure()` and `nwchemc_session_configure()` for C ABI
+callers. The original `calculate` method remains the compatibility
+energy/forces call.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,
