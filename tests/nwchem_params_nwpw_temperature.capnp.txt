@@ -1,0 +1,19 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = nwpw,
+      nwpw = (
+        temperatureIon = 400.0,
+        temperatureIonPeriod = 1200.0,
+        temperatureElectron = 350.0,
+        temperatureElectronPeriod = 900.0,
+        temperatureRestart = disabled,
+        temperatureIonChainLength = 4,
+        temperatureElectronChainLength = 5
+      )
+    )
+  ]
+)
