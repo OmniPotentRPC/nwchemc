@@ -24,6 +24,10 @@ double quadrupole_au[6];
 NWChemCResult quadrupole = nwchemc_quadrupole(
     n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
     quadrupole_au);
+double stress_au[9];
+NWChemCResult stress = nwchemc_stress(
+    n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
+    stress_au);
 #+end_src
 
 ~params_bytes~ is an unpacked flat Cap'n Proto message.
@@ -34,7 +38,7 @@ binding that writes the standard flat stream format.
 Callers that drive multiple geometry steps can keep the NWChem configuration in
 a session and pass a serialized ~ForceInput~ message for each step. The same
 step carrier works for force, serialized result, Hessian, dipole, and
-quadrupole entry points.
+quadrupole, and stress entry points.
 
 #+begin_src c
 NWChemCSession *session = nwchemc_session_create(params_bytes, params_size);
@@ -64,6 +68,9 @@ if (session != NULL) {
   double quadrupole_au[6];
   NWChemCResult multipole = nwchemc_session_calculate_quadrupole(
       session, force_input_bytes, force_input_size, quadrupole_au, 6);
+  double stress_au[9];
+  NWChemCResult cell_stress = nwchemc_session_calculate_stress(
+      session, force_input_bytes, force_input_size, stress_au, 9);
   free(potential_result_bytes);
   nwchemc_session_destroy(session);
 }
@@ -88,6 +95,9 @@ the dense row-major Cartesian Hessian in
 ~nwchemc_session_calculate_dipole_result~ and
 ~nwchemc_session_calculate_quadrupole_result~ fill ~PotentialResult.dipole~ and
 ~PotentialResult.quadrupole~ in atomic units.
+~nwchemc_session_calculate_stress_result~ fills ~PotentialResult.stress~ with
+the row-major 3x3 stress tensor in
+~ForceInput.energyUnit / ForceInput.lengthUnit^3~.
 ~nwchemc_session_calculate_optimize_result~ fills
 ~PotentialResult.optimizedPos~ in ~ForceInput.lengthUnit~ and
 ~PotentialResult.energy~ in ~ForceInput.energyUnit~.
@@ -110,13 +120,17 @@ through ~potential_result_size~ and does not evaluate NWChem.
 ~nwchemc_hessian_result_size_for_force_input~ provides the same preflight size
 for Hessian result messages. ~nwchemc_dipole_result_size_for_force_input~ and
 ~nwchemc_quadrupole_result_size_for_force_input~ provide the fixed-size
-property result preflight. ~nwchemc_optimize_result_size_for_force_input~ and
+property result preflight. ~nwchemc_stress_result_size_for_force_input~
+provides the fixed-size stress result preflight.
+~nwchemc_optimize_result_size_for_force_input~ and
 ~nwchemc_frequencies_result_size_for_force_input~ provide the same preflight
 contract for optimized coordinates and frequency/intensity result messages.
 ~hessian_h_bohr2~ is filled in Hartree per Bohr squared. ~dipole_au~ is filled
 with a three-element total dipole vector in atomic units. ~quadrupole_au~ is
 filled with six total traceless quadrupole tensor components in atomic units,
 ordered ~xx, xy, xz, yy, yz, zz~.
+~stress_au~ is filled with nine row-major 3x3 stress tensor components in
+NWChem atomic stress units.
 
 For a single geometry step, ~nwchemc_calculate_result~ accepts
 ~NWChemParams~, one ~ForceInput~, and the caller-owned ~PotentialResult~ output
@@ -126,11 +140,14 @@ without initializing NWChem when the buffer is too small.
 ~nwchemc_calculate_hessian~ and ~nwchemc_calculate_dipole~ provide the same
 one-shot ~NWChemParams~ + ~ForceInput~ carrier for native Hessian and dipole
 buffers. ~nwchemc_calculate_quadrupole~ provides the same carrier for the
-six-component quadrupole buffer. ~nwchemc_calculate_hessian_result~ uses the
-same one-shot carrier and writes the Hessian to ~PotentialResult.hessian~.
+six-component quadrupole buffer. ~nwchemc_calculate_stress~ provides the same
+carrier for the nine-component stress buffer.
+~nwchemc_calculate_hessian_result~ uses the same one-shot carrier and writes
+the Hessian to ~PotentialResult.hessian~.
 ~nwchemc_calculate_dipole_result~ and
 ~nwchemc_calculate_quadrupole_result~ write the corresponding property lists to
-~PotentialResult~. ~nwchemc_calculate_optimize_result~ and
+~PotentialResult~. ~nwchemc_calculate_stress_result~ writes
+~PotentialResult.stress~. ~nwchemc_calculate_optimize_result~ and
 ~nwchemc_calculate_frequencies_result~ write optimized coordinates and
 frequency/intensity lists through the same one-shot result-carrier contract.
 
@@ -158,7 +175,7 @@ Hartree per Bohr squared, with length ~(natoms * 3) * (natoms * 3)~.
 ~nwchemc_calculate_hessian_result()~ write that same Hessian to
 ~PotentialResult.hessian~ after conversion to
 ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
-~nwchemc_dipole()~, ~nwchemc_session_dipole()~, and
+~nwchemc_dipole()~, ~nwchemc_session_dipole()~,
 ~nwchemc_session_calculate_dipole()~, and ~nwchemc_calculate_dipole()~ fill a
 three-element total dipole vector in atomic units and keep
 ~NWChemCResult.energy_h~ in Hartree.
@@ -172,6 +189,13 @@ fill six total traceless quadrupole components in atomic units as
 ~nwchemc_session_calculate_quadrupole_result()~ and
 ~nwchemc_calculate_quadrupole_result()~ write those components to
 ~PotentialResult.quadrupole~.
+~nwchemc_stress()~, ~nwchemc_session_stress()~,
+~nwchemc_session_calculate_stress()~, and ~nwchemc_calculate_stress()~ fill a
+nine-component row-major 3x3 stress tensor in NWChem atomic stress units.
+~nwchemc_session_calculate_stress_result()~ and
+~nwchemc_calculate_stress_result()~ write that tensor to
+~PotentialResult.stress~ after conversion to
+~ForceInput.energyUnit / ForceInput.lengthUnit^3~.
 ~nwchemc_optimize()~, ~nwchemc_session_optimize()~,
 ~nwchemc_session_calculate_optimize()~, and ~nwchemc_calculate_optimize()~ fill
 optimized Cartesian coordinates in Angstrom and keep ~NWChemCResult.energy_h~

@@ -12,6 +12,7 @@ directly. The public calculation entry points are:
 - ~nwchemc_hessian~
 - ~nwchemc_dipole~
 - ~nwchemc_quadrupole~
+- ~nwchemc_stress~
 - ~nwchemc_session_create~
 - ~nwchemc_session_set_params~
 - ~nwchemc_session_destroy~
@@ -20,16 +21,20 @@ directly. The public calculation entry points are:
 - ~nwchemc_session_energy_forces~
 - ~nwchemc_session_dipole~
 - ~nwchemc_session_quadrupole~
+- ~nwchemc_session_stress~
 - ~nwchemc_session_calculate_forces~
 - ~nwchemc_session_calculate_result~
 - ~nwchemc_calculate_result~
 - ~nwchemc_calculate_hessian~
 - ~nwchemc_calculate_dipole~
 - ~nwchemc_calculate_quadrupole~
+- ~nwchemc_calculate_stress~
 - ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_calculate_dipole~
 - ~nwchemc_session_calculate_quadrupole~
+- ~nwchemc_session_calculate_stress~
 - ~nwchemc_session_hessian~
+- ~nwchemc_stress_result_size_for_force_input~
 - ~nwchemc_potential_result_size_for_force_input~
 - ~nwchemc_available~
 - ~nwchemc_version~
@@ -61,6 +66,10 @@ The quadrupole ABI calls use the same numeric geometry and basis setup, run
 ~task_energy~, load NWChem geometry and AO basis handles from RTDB, initialize
 the integral package, and call ~hnd_mtpole2~ directly. The returned buffer holds
 the six total traceless quadrupole components in ~xx, xy, xz, yy, yz, zz~ order.
+The stress ABI calls store the same geometry, basis, pseudopotential, and
+method state, set ~task:operation~ to ~stress~, call the generic NWChem task
+dispatcher, and read ~pspw:stress~, ~band:stress~, ~paw:stress~, or
+~ofpw:stress~ from RTDB.
 
 NWChem modules read and mutate RTDB entries inside task routines and module
 input handlers. Direct RTDB writes must therefore preserve this order:
@@ -152,14 +161,16 @@ feature tests verify the generated inventory lookup table and ABI coverage.
 ** Long-Running Step Calls
 ~nwchemc_session_calculate_forces~,
 ~nwchemc_session_calculate_result~,
-~nwchemc_session_calculate_hessian~, and
-~nwchemc_session_calculate_dipole~, and
-~nwchemc_session_calculate_quadrupole~ are C ABI entry points for socket-style,
-optimizer-style, property, and vibrational callers. They take the session's
-persistent ~NWChemParams~ and a per-call serialized ~ForceInput~ message,
-validate atom counts and output buffer sizes, convert coordinates and cells to
-the C ABI units, call the embed bridge, and return either native NWChem buffers
-or a serialized ~PotentialResult~ in the caller's requested units.
+~nwchemc_session_calculate_hessian~,
+~nwchemc_session_calculate_dipole~,
+~nwchemc_session_calculate_quadrupole~, and
+~nwchemc_session_calculate_stress~ are C ABI entry points for socket-style,
+optimizer-style, property, stress, and vibrational callers. They take the
+session's persistent ~NWChemParams~ and a per-call serialized ~ForceInput~
+message, validate atom counts and output buffer sizes, convert coordinates and
+cells to the C ABI units, call the embed bridge, and return either native
+NWChem buffers or a serialized ~PotentialResult~ in the caller's requested
+units.
 ~nwchemc_potential_result_size_for_force_input~ gives callers the
 ~PotentialResult~ byte count from the per-step ~ForceInput~ without evaluating
 NWChem.
@@ -167,9 +178,10 @@ NWChem.
 ~NWChemParams + ForceInput -> PotentialResult~ path. Multi-step callers should
 reuse a session so configuration is applied once and per-step calls only carry
 coordinates, cell data, atom numbers, and requested units.
-~nwchemc_calculate_hessian~, ~nwchemc_calculate_dipole~, and
-~nwchemc_calculate_quadrupole~ are one-shot wrappers around the same session
-ForceInput validation and direct numeric geometry path.
+~nwchemc_calculate_hessian~, ~nwchemc_calculate_dipole~,
+~nwchemc_calculate_quadrupole~, and ~nwchemc_calculate_stress~ are one-shot
+wrappers around the same session ForceInput validation and direct numeric
+geometry path.
 The session owns the topology invariant. A caller that changes atom count or
 species ordering is rejected before NWChem evaluation. Resetting or replacing
 that topology is explicit: create a separate session, or add a dedicated reset
@@ -197,7 +209,9 @@ Typed/list ~NWChemSetDirective.valueType~ + ~values~ entries are also promoted:
 
 The result-carrier path keeps the native C force buffer ABI available for
 low-overhead callers and gives RPC-style callers the same ~PotentialResult~
-message used by rgpot.
+message used by rgpot. Stress result carriers write ~PotentialResult.stress~
+in ~ForceInput.energyUnit / ForceInput.lengthUnit^3~; native stress buffers
+keep NWChem atomic stress units.
 
 ** DONE (partial) Direct DFT promotion
 ~nwchemc_params_extract_direct_dft~ pulls ~xc~, ~direct~, and smearing from the
@@ -333,6 +347,8 @@ from RTDB instead of rendering a text property task.
 The quadrupole entry points set ~task:operation~ to ~energy~ and call
 ~hnd_mtpole2~ through loaded RTDB geometry and basis handles instead of
 rendering a text property task.
+The stress entry points set ~task:operation~ to ~stress~ and read the NWPW
+stress RTDB arrays directly.
 
 Simple named ~exchangeCorrelation~ values also reset ~pspw:SIC_all~,
 ~pspw:HFX~, ~band:HFX~, ~pspw:SIC_xc_parameter~, ~pspw:SIC_h_parameter~,

@@ -41,13 +41,15 @@ grammar is intentionally upstream NWChem input text.
 ~nwchemc_session_create()~ applies an ~NWChemParams~ message once and keeps the
 NWChem runtime state inside the session.
 ~nwchemc_session_calculate_forces()~,
-~nwchemc_session_calculate_result()~, and
-~nwchemc_session_calculate_hessian()~ accept serialized ~ForceInput~ messages,
-so molecular dynamics, optimizers, vibrational workflows, and socket-style
-drivers can update coordinates and the periodic cell without rebuilding the
-full configuration carrier. The result-carrier entry points write unpacked flat
-~PotentialResult~ messages for RPC callers and report the exact byte count
-required before an NWChem evaluation when the caller's buffer is too small.
+~nwchemc_session_calculate_result()~,
+~nwchemc_session_calculate_hessian()~, and
+~nwchemc_session_calculate_stress()~ accept serialized ~ForceInput~ messages,
+so molecular dynamics, optimizers, stress probes, vibrational workflows, and
+socket-style drivers can update coordinates and the periodic cell without
+rebuilding the full configuration carrier. The result-carrier entry points write
+unpacked flat ~PotentialResult~ messages for RPC callers and report the exact
+byte count required before an NWChem evaluation when the caller's buffer is too
+small.
 ~nwchemc_potential_result_size_for_force_input()~ exposes the same size
 calculation without touching the NWChem runtime, which lets long-running loops
 allocate or grow the result buffer from the per-step ~ForceInput~ alone.
@@ -56,6 +58,8 @@ allocate or grow the result buffer from the per-step ~ForceInput~ alone.
 Dipole and quadrupole result-size helpers validate the same ~ForceInput~ carrier
 and return the fixed property result sizes for ~PotentialResult.dipole~ and
 ~PotentialResult.quadrupole~.
+~nwchemc_stress_result_size_for_force_input()~ validates the same carrier and
+returns the fixed stress result size for ~PotentialResult.stress~.
 Optimization and frequency result-size helpers validate the same ~ForceInput~
 carrier and return per-degree-of-freedom sizes for
 ~PotentialResult.optimizedPos~, ~PotentialResult.frequencies~, and
@@ -86,7 +90,9 @@ for the bridge call, so the session defaults remain available to other calls.
 caller units named by ~ForceInput.energyUnit~ and ~ForceInput.lengthUnit~.
 ~PotentialResult.hessian~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
 ~PotentialResult.dipole~ and ~PotentialResult.quadrupole~ use NWChem atomic
-units. ~PotentialResult.optimizedPos~ uses ~ForceInput.lengthUnit~,
+units. ~PotentialResult.stress~ uses
+~ForceInput.energyUnit / ForceInput.lengthUnit^3~.
+~PotentialResult.optimizedPos~ uses ~ForceInput.lengthUnit~,
 ~PotentialResult.frequencies~ uses cm^-1, and ~PotentialResult.intensities~
 uses atomic units.
 Native C buffers keep NWChem units for callers that want direct numerical

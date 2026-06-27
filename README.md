@@ -6,7 +6,7 @@ Stable C ABI for embedding NWChem from language-neutral Cap'n Proto
 `nwchemc` builds `libnwchemc.so` from a C ABI layer, modern Fortran
 `iso_c_binding` / `iso_fortran_env` bridge code, and the legacy NWChem embed
 entry points required for RTDB, geometry, basis, energy, gradient, Hessian, and
-dipole calls.
+dipole, quadrupole, stress, optimization, and frequency calls.
 
 The public ABI does not expose C++ or Rust types:
 
@@ -24,6 +24,10 @@ NWChemCResult nwchemc_dipole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *dipole_au);
+NWChemCResult nwchemc_stress(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *stress_au);
 NWChemCSession *nwchemc_session_create(
     const void *params_capnp, size_t params_capnp_size_bytes);
 size_t nwchemc_potential_result_size_for_force_input(
@@ -85,6 +89,24 @@ NWChemCResult nwchemc_session_calculate_quadrupole_result(
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
 NWChemCResult nwchemc_calculate_quadrupole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_stress(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *stress_au, size_t stress_len);
+size_t nwchemc_stress_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_stress_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_stress_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -152,9 +174,11 @@ callers with multiple steps should reuse `NWChemCSession`.
 `nwchemc_calculate_hessian_result()` populate `PotentialResult.hessian` in
 `ForceInput.energyUnit / ForceInput.lengthUnit^2`. Dipole and quadrupole
 result-carrier wrappers populate `PotentialResult.dipole` and
-`PotentialResult.quadrupole` in atomic units. Raw Hessian, dipole, and
-quadrupole wrappers use the same `NWChemParams + ForceInput` carrier for
-callers that want native C buffers. Optimization result-carrier wrappers
+`PotentialResult.quadrupole` in atomic units. Stress result-carrier wrappers
+populate `PotentialResult.stress` in
+`ForceInput.energyUnit / ForceInput.lengthUnit^3`. Raw Hessian, dipole,
+quadrupole, and stress wrappers use the same `NWChemParams + ForceInput`
+carrier for callers that want native C buffers. Optimization result-carrier wrappers
 populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
 `PotentialResult.energy` in `ForceInput.energyUnit`; frequency result-carrier
 wrappers populate `PotentialResult.frequencies` in cm^-1 and
@@ -290,6 +314,9 @@ Hartree/Bohr^2. It accepts the same `NWChemParams` Cap'n Proto message as the
 energy/gradient call.
 `nwchemc_dipole()` fills a three-element total dipole vector in atomic units and
 returns the associated total energy in `NWChemCResult.energy_h`.
+`nwchemc_stress()` fills a row-major 3x3 stress tensor in NWChem atomic stress
+units and returns the associated total energy in `NWChemCResult.energy_h` when
+available.
 
 ## Cap'n Proto C
 

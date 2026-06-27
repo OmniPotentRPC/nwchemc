@@ -92,7 +92,8 @@ through ~rtdb_cput~ before method state is applied.
 ~MT_DBL~, ~integer~ maps to ~MT_INT~, and ~logical~ maps to ~MT_LOG~.
 ~nwchemc_params_extract_direct_set_values~ and
 ~nwchemc_embed_set_rtdb_values~ keep those typed/list values out of
-~nw_inp_from_character~ for gradient, Hessian, dipole, and quadrupole calls.
+~nw_inp_from_character~ for gradient, Hessian, dipole, quadrupole, and stress
+calls.
 The older single ~value~ field remains valid for one text value. Literal NWChem
 text remains available for parser-specific ~set~ syntax that does not fit this
 typed value carrier.
@@ -476,6 +477,7 @@ spin-scaling rules.
 | ~nwchemc_hessian~ | ~abi.nwchemc_hessian~ | fails | Cartesian Hessian |
 | ~nwchemc_dipole~ | ~abi.nwchemc_dipole~ | fails | total dipole |
 | ~nwchemc_quadrupole~ | ~abi.nwchemc_quadrupole~ | fails | total traceless quadrupole |
+| ~nwchemc_stress~ | ~abi.nwchemc_stress~ | fails | stress tensor |
 | ~nwchemc_optimize~ | ~abi.nwchemc_optimize~ | fails | geometry optimization |
 | ~nwchemc_frequencies~ | ~abi.nwchemc_frequencies~ | fails | harmonic frequencies |
 | ~nwchemc_session_create~ | ~abi.nwchemc_session_create~ | NULL | create persistent session |
@@ -486,6 +488,7 @@ spin-scaling rules.
 | ~nwchemc_session_energy_forces~ | ~abi.nwchemc_session_energy_forces~ | fails | session energy/forces |
 | ~nwchemc_session_dipole~ | ~abi.nwchemc_session_dipole~ | fails | session total dipole |
 | ~nwchemc_session_quadrupole~ | ~abi.nwchemc_session_quadrupole~ | fails | session total traceless quadrupole |
+| ~nwchemc_session_stress~ | ~abi.nwchemc_session_stress~ | fails | session stress tensor |
 | ~nwchemc_session_optimize~ | ~abi.nwchemc_session_optimize~ | fails | session geometry optimization |
 | ~nwchemc_session_frequencies~ | ~abi.nwchemc_session_frequencies~ | fails | session harmonic frequencies |
 | ~nwchemc_session_calculate_forces~ | ~abi.nwchemc_session_calculate_forces~ | fails | ForceInput energy/forces |
@@ -503,6 +506,10 @@ spin-scaling rules.
 | ~nwchemc_quadrupole_result_size_for_force_input~ | ~abi.nwchemc_quadrupole_result_size_for_force_input~ | 0 | quadrupole PotentialResult sizing |
 | ~nwchemc_session_calculate_quadrupole_result~ | ~abi.nwchemc_session_calculate_quadrupole_result~ | fails | ForceInput quadrupole PotentialResult |
 | ~nwchemc_calculate_quadrupole_result~ | ~abi.nwchemc_calculate_quadrupole_result~ | fails | one-shot ForceInput quadrupole PotentialResult |
+| ~nwchemc_calculate_stress~ | ~abi.nwchemc_calculate_stress~ | fails | one-shot ForceInput stress |
+| ~nwchemc_stress_result_size_for_force_input~ | ~abi.nwchemc_stress_result_size_for_force_input~ | 0 | stress PotentialResult sizing |
+| ~nwchemc_session_calculate_stress_result~ | ~abi.nwchemc_session_calculate_stress_result~ | fails | ForceInput stress PotentialResult |
+| ~nwchemc_calculate_stress_result~ | ~abi.nwchemc_calculate_stress_result~ | fails | one-shot ForceInput stress PotentialResult |
 | ~nwchemc_calculate_optimize~ | ~abi.nwchemc_calculate_optimize~ | fails | one-shot ForceInput optimization |
 | ~nwchemc_optimize_result_size_for_force_input~ | ~abi.nwchemc_optimize_result_size_for_force_input~ | 0 | optimization PotentialResult sizing |
 | ~nwchemc_session_calculate_optimize_result~ | ~abi.nwchemc_session_calculate_optimize_result~ | fails | ForceInput optimization PotentialResult |
@@ -514,6 +521,7 @@ spin-scaling rules.
 | ~nwchemc_session_calculate_hessian~ | ~abi.nwchemc_session_calculate_hessian~ | fails | ForceInput Hessian |
 | ~nwchemc_session_calculate_dipole~ | ~abi.nwchemc_session_calculate_dipole~ | fails | ForceInput dipole |
 | ~nwchemc_session_calculate_quadrupole~ | ~abi.nwchemc_session_calculate_quadrupole~ | fails | ForceInput quadrupole |
+| ~nwchemc_session_calculate_stress~ | ~abi.nwchemc_session_calculate_stress~ | fails | ForceInput stress |
 | ~nwchemc_session_calculate_optimize~ | ~abi.nwchemc_session_calculate_optimize~ | fails | ForceInput optimization |
 | ~nwchemc_session_calculate_frequencies~ | ~abi.nwchemc_session_calculate_frequencies~ | fails | ForceInput frequencies |
 | ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails | session Cartesian Hessian |
