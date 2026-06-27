@@ -3099,6 +3099,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.fmm",
+      "schema_path": "NWChemNwpwStanza.fmm",
+      "struct": "NWChemNwpwStanza",
+      "name": "fmm",
+      "field_id": 76,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.fmm Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fmmLmax",
+      "schema_path": "NWChemNwpwStanza.fmmLmax",
+      "struct": "NWChemNwpwStanza",
+      "name": "fmmLmax",
+      "field_id": 77,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.fmmLmax Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fmmLongRange",
+      "schema_path": "NWChemNwpwStanza.fmmLongRange",
+      "struct": "NWChemNwpwStanza",
+      "name": "fmmLongRange",
+      "field_id": 78,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.fmmLongRange Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

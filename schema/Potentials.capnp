@@ -442,6 +442,9 @@ struct NWChemNwpwStanza {
   dipoleMotion                @73 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW dipole_motion.
   dipoleMotionFilename        @74 :Text = "";       # Emit/promote NWPW dipole_motion filename.
   rhoUseSymmetry              @75 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW symmetry.
+  fmm                         @76 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW fmm.
+  fmmLmax                     @77 :Int32 = 0;       # NWPW fmm lmax value.
+  fmmLongRange                @78 :Int32 = 0;       # NWPW fmm lr value.
 }
 
 # @struct NWChemScfStanza

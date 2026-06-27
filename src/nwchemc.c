@@ -1568,6 +1568,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_rho_use_symmetry_has_options,
           &nwpw_rho_use_symmetry) != 0)
     return -1;
+  int nwpw_fmm_has_options = 0;
+  int nwpw_fmm = NWChemNwpwToggle_unspecified;
+  int nwpw_fmm_lmax = 0;
+  int nwpw_fmm_long_range = 0;
+  if (nwchemc_params_extract_direct_nwpw_fmm(
+          params_root, &nwpw_fmm_has_options, &nwpw_fmm, &nwpw_fmm_lmax,
+          &nwpw_fmm_long_range) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2621,6 +2629,37 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:rho_use_symmetry",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (nwpw_fmm_has_options) {
+    const char *fmm_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_fmm);
+    if (fmm_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:fmm", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+            fmm_value) != 0)
+      return -1;
+    char lmax_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char long_range_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(lmax_value, sizeof(lmax_value), "%d", nwpw_fmm_lmax);
+    snprintf(long_range_value, sizeof(long_range_value), "%d",
+             nwpw_fmm_long_range);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:fmm_lmax",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, lmax_value) != 0)
+      return -1;
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:fmm_lr",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, long_range_value) != 0)
       return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));

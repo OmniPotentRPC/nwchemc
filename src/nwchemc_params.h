@@ -140,6 +140,11 @@ int nwchemc_params_extract_direct_nwpw_dipole_motion(
 int nwchemc_params_extract_direct_nwpw_rho_use_symmetry(
     NWChemParams_ptr params, int *has_options, int *rho_use_symmetry);
 
+int nwchemc_params_extract_direct_nwpw_fmm(NWChemParams_ptr params,
+                                           int *has_options, int *fmm,
+                                           int *fmm_lmax,
+                                           int *fmm_long_range);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
