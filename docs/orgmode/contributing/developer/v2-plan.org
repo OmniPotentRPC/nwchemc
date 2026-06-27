@@ -117,7 +117,8 @@ controls write ~nwpw:born~, ~nwpw:born_dielec~, ~nwpw:born_relax~, and
 ~nwpw:born_vradii~ directly; the Cap'n Proto radii field uses Angstrom
 input values and the direct RTDB path stores Bohr values. CPMD property
 and grid-comparison controls write ~nwpw:cpmd_properties~ and
-~nwpw:use_grid_cmp~ directly. Structured
+~nwpw:use_grid_cmp~ directly. Director controls write
+~nwpw:use_director~ and optional ~nwpw:director_filename~ directly. Structured
 simulation-cell controls write boundary conditions, 3x3 cell vectors, FFT
 grids, small grids, box delta, box orientation, and box-type state to the
 matching ~<cell>:*~ RTDB keys.
@@ -336,6 +337,8 @@ module prefix:
 | ~bornVRadiiAngstrom~ | ~born_vradii~ | ~nwpw~ |
 | ~cpmdProperties~ | ~cpmd_properties~ | ~nwpw~ |
 | ~useGridComparison~ | ~use_grid_cmp~ | ~nwpw~ |
+| ~director~ | ~use_director~ | ~nwpw~ |
+| ~directorFilename~ | ~director_filename~ | ~nwpw~ |
 | ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
 | ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
 | ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |

@@ -2281,6 +2281,23 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  use_grid_cmp %s\n",
                     use_grid_comparison_logical) != 0)
     return -1;
+  if (include_direct_promoted &&
+      (nwpw.director != NWChemNwpwToggle_unspecified ||
+       nwpw.directorFilename.len > 0)) {
+    if (nwpw.director == NWChemNwpwToggle_disabled) {
+      if (append_format(block, sizeof(block), "  director false\n") != 0)
+        return -1;
+    } else {
+      if (append_format(block, sizeof(block), "  director") != 0)
+        return -1;
+      if (nwpw.directorFilename.len > 0 &&
+          (append_format(block, sizeof(block), " ") != 0 ||
+           append_text(block, sizeof(block), nwpw.directorFilename) != 0))
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3753,6 +3770,47 @@ int nwchemc_params_extract_direct_nwpw_cpmd_grid(
       *has_options = 1;
       *use_grid_comparison = nwpw.useGridComparison;
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_director(
+    NWChemParams_ptr params, int *has_options, int *director,
+    capn_text *filename) {
+  if (params.p.type == CAPN_NULL || !has_options || !director || !filename)
+    return -1;
+
+  *has_options = 0;
+  *director = NWChemNwpwToggle_unspecified;
+  *filename = (capn_text){0};
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    const int has_director =
+        nwpw.director != NWChemNwpwToggle_unspecified ||
+        nwpw.directorFilename.len > 0;
+    if (!has_director)
+      continue;
+
+    *has_options = 1;
+    *director = nwpw.director == NWChemNwpwToggle_unspecified
+                    ? NWChemNwpwToggle_enabled
+                    : nwpw.director;
+    *filename = nwpw.directorFilename;
   }
 
   return 0;

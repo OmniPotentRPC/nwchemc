@@ -1595,6 +1595,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_cpmd_grid_has_options, &nwpw_cpmd_properties,
           &nwpw_use_grid_comparison) != 0)
     return -1;
+  int nwpw_director_has_options = 0;
+  int nwpw_director = NWChemNwpwToggle_unspecified;
+  capn_text nwpw_director_filename = {0};
+  if (nwchemc_params_extract_direct_nwpw_director(
+          params_root, &nwpw_director_has_options, &nwpw_director,
+          &nwpw_director_filename) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2759,6 +2766,30 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
             use_grid_comparison_value) != 0)
       return -1;
+  }
+  if (nwpw_director_has_options) {
+    const char *director_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_director);
+    if (director_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:use_director",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, director_value) != 0)
+      return -1;
+    if (nwpw_director == NWChemNwpwToggle_enabled &&
+        nwpw_director_filename.len > 0) {
+      char filename[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(filename, sizeof(filename), nwpw_director_filename);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:director_filename",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, filename) != 0)
+        return -1;
+    }
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

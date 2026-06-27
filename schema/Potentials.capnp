@@ -451,6 +451,8 @@ struct NWChemNwpwStanza {
   bornVRadiiAngstrom          @82 :List(Float64);    # NWPW born input radii in Angstrom.
   cpmdProperties              @83 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW cpmd_properties.
   useGridComparison           @84 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW use_grid_cmp.
+  director                    @85 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW director.
+  directorFilename            @86 :Text = "";       # Emit/promote NWPW director filename.
 }
 
 # @struct NWChemScfStanza

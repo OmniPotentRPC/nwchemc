@@ -154,6 +154,10 @@ int nwchemc_params_extract_direct_nwpw_cpmd_grid(
     NWChemParams_ptr params, int *has_options, int *cpmd_properties,
     int *use_grid_comparison);
 
+int nwchemc_params_extract_direct_nwpw_director(
+    NWChemParams_ptr params, int *has_options, int *director,
+    capn_text *filename);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
