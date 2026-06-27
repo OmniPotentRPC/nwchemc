@@ -240,6 +240,7 @@
         bornDielectric = 78.4,
         bornRelax = enabled,
         bornVRadiiAngstrom = [0.529177, 1.058354],
+        vfieldFilenames = ["vf_a.ascii", "vf_b.ascii"],
         cpmdProperties = enabled,
         useGridComparison = disabled,
         director = enabled,

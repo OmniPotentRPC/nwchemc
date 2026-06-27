@@ -1309,6 +1309,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:fmm"));
   assert_null(strstr(g_input_blocks, "born 78.4"));
   assert_null(strstr(g_input_blocks, "nwpw:born"));
+  assert_null(strstr(g_input_blocks, "vfield vf_a.ascii"));
+  assert_null(strstr(g_input_blocks, "nwpw:vfield_filenames"));
   assert_null(strstr(g_input_blocks, "cpmd_properties true"));
   assert_null(strstr(g_input_blocks, "nwpw:cpmd_properties"));
   assert_null(strstr(g_input_blocks, "use_grid_cmp false"));
@@ -1349,9 +1351,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_strings_calls, 1);
-  assert_int_equal(g_set_string_count, 2);
+  assert_int_equal(g_set_string_count, 3);
   assert_set_string("band_structure:zone_name", "structureA");
   assert_set_string("band_fft:zone_name", "fftA");
+  assert_set_string("nwpw:vfield_filenames", "vf_a.ascii vf_b.ascii");
   assert_int_equal(g_set_rtdb_values_calls, 1);
   assert_int_equal(g_typed_set_count, 235);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
