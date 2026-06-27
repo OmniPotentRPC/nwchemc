@@ -14,6 +14,7 @@
 
 extern void nwchemc_embed_init(void);
 extern int nwchemc_embed_available(void);
+extern int nwchemc_embed_reset_rtdb(void);
 extern int nwchemc_embed_set_config(const char *basis, int basis_len,
                                     const char *theory, int theory_len,
                                     const char *scf_type, int scf_len,
@@ -3919,6 +3920,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
 
   apply_env_hints(params);
   ensure_init();
+  if (nwchemc_embed_reset_rtdb() != 0)
+    return -1;
+  g_active_session = NULL;
   int ch = params->charge;
   int mult = params->multiplicity > 0 ? params->multiplicity : 1;
   int basis_len = 0;

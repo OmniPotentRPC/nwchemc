@@ -18,6 +18,7 @@ module nwchem_embed_c_api
   ! C ABI (stable names - match nwchem_c_abi.c extern declarations)
   public :: nwchemc_embed_init
   public :: nwchemc_embed_available
+  public :: nwchemc_embed_reset_rtdb
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_set_dft_direct
   public :: nwchemc_embed_set_scf_direct
@@ -114,6 +115,11 @@ module nwchem_embed_c_api
       integer, intent(in) :: owns_mpi
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_finalize
+
+    subroutine nwchem_legacy_reset_rtdb(rtdb, ok)
+      integer, intent(inout) :: rtdb
+      integer, intent(out) :: ok
+    end subroutine nwchem_legacy_reset_rtdb
 
     subroutine nwchem_legacy_energy_only(rtdb, n_atoms, pos_ang, atmnrs, &
         cell_ang, has_cell, basis_name, theory_name, scf_type, input_blocks, &
@@ -580,6 +586,25 @@ contains
       rtdb_ready = .true.
     end if
   end subroutine nwchemc_embed_init
+
+  function nwchemc_embed_reset_rtdb() result(rc) &
+      bind(C, name='nwchemc_embed_reset_rtdb')
+    integer(c_int) :: rc
+    integer :: ok
+
+    rc = -1_c_int
+    if (runtime_finalized) return
+    call nwchemc_embed_init()
+    if (.not. rtdb_ready) return
+    call nwchem_legacy_reset_rtdb(rtdb_handle, ok)
+    if (ok == 0) then
+      rtdb_ready = .true.
+      rc = 0_c_int
+    else
+      rtdb_handle = -1
+      rtdb_ready = .false.
+    end if
+  end function nwchemc_embed_reset_rtdb
 
   !> Tear down the owned in-process NWChem runtime.
   subroutine nwchemc_embed_finalize() bind(C, name='nwchemc_embed_finalize')

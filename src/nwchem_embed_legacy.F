@@ -77,6 +77,43 @@ C     RTDB in permanent/scratch via util_file_name (needs dirs above).
       return
       end
 
+      subroutine nwchem_legacy_reset_rtdb(rtdb, ok)
+      implicit none
+#include "rtdb.fh"
+#include "cfileprefix.fh"
+      integer rtdb, ok
+      logical status
+      character*256 rtdb_name
+      external util_file_name
+      external util_file_info_rtdb
+      external util_file_prefix_set
+      external util_set_default_scratch_dir
+      external util_set_default_permanent_dir
+      external nxtask_init
+      ok = -1
+      if (rtdb .ge. 0) then
+         status = rtdb_close(rtdb, 'delete')
+         if (.not. status) return
+         rtdb = -1
+      endif
+      call util_file_prefix_set('nwchemc')
+      call util_set_default_scratch_dir(scratch_dir)
+      call util_set_default_permanent_dir(permanent_dir)
+      call util_file_name('nwchemc_embed', .true., .false., rtdb_name)
+      status = rtdb_open(rtdb_name, 'empty', rtdb)
+      if (.not. status) then
+         rtdb = -1
+         return
+      endif
+      call util_file_info_rtdb(rtdb)
+      call util_set_rtdb_state(rtdb, .true., .false.,
+     $     .false.)
+      call geom_hnd_parallel(.true.)
+      call nxtask_init(rtdb)
+      ok = 0
+      return
+      end
+
       subroutine nwchem_legacy_finalize(rtdb, owns_mpi, ok)
       implicit none
 #include "global.fh"
