@@ -838,6 +838,14 @@ if get_option('with_tests')
     env: probe_test_env,
   )
   test(
+    'nwchem-cli-command',
+    python,
+    args: [
+      meson.current_source_dir() / 'tests/test_compare_nwchem_cli_command.py',
+    ],
+    env: probe_test_env,
+  )
+  test(
     'schema-module-coverage',
     python,
     args: [

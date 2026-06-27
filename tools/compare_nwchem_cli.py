@@ -17,6 +17,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -56,6 +57,19 @@ EMBED_BIN_CANDIDATES = [
 ]
 
 
+def split_command(command: str | None) -> list[str] | None:
+    if not command:
+        return None
+    parts = shlex.split(command)
+    return parts if parts else None
+
+
+def format_command(command: list[str] | None) -> str | None:
+    if command is None:
+        return None
+    return " ".join(shlex.quote(part) for part in command)
+
+
 def parse_energy(text: str) -> float | None:
     m = ENERGY_RE.search(text)
     if m:
@@ -92,10 +106,9 @@ def max_abs_delta(a: list[float], b: list[float]) -> float:
     return max(abs(x - y) for x, y in zip(a, b)) if a else 0.0
 
 
-def run_nwchem_cli(nw_path: Path, work: Path) -> tuple[int, str, float | None, list[float] | None]:
-    nwchem = shutil.which("nwchem")
-    if not nwchem:
-        return 127, "nwchem not on PATH (enable pixi feature nwchem-runtime)", None, None
+def run_nwchem_cli(
+    nw_path: Path, work: Path, nwchem_command: list[str]
+) -> tuple[int, str, float | None, list[float] | None]:
     src = (ROOT / nw_path).resolve()
     if not src.is_file():
         return 2, f"missing input {src}", None, None
@@ -104,7 +117,7 @@ def run_nwchem_cli(nw_path: Path, work: Path) -> tuple[int, str, float | None, l
     local_nw.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
     log_path = work / (src.stem + ".out")
     proc = subprocess.run(
-        [nwchem, str(local_nw)],
+        nwchem_command + [str(local_nw)],
         cwd=str(work),
         capture_output=True,
         text=True,
@@ -266,6 +279,15 @@ def main() -> int:
         action="store_true",
         help="Exit 2/3 if embed leg cannot run (implies --embed-build must work)",
     )
+    ap.add_argument(
+        "--nwchem-command",
+        default=os.environ.get("NWCHEM_COMMAND"),
+        help=(
+            "Command used to launch NWChem; defaults to `nwchem` on PATH. "
+            "Use quotes for launchers, for example: "
+            "`mpirun -np 2 /path/to/nwchem`."
+        ),
+    )
     args = ap.parse_args()
 
     if args.require_embed and not args.embed_build:
@@ -278,17 +300,26 @@ def main() -> int:
     out_dir: Path = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    nwchem_command = split_command(args.nwchem_command)
+    if nwchem_command is None:
+        nwchem_path = shutil.which("nwchem")
+        nwchem_command = [nwchem_path] if nwchem_path else None
+    else:
+        exe = nwchem_command[0]
+        if not Path(exe).is_file() and shutil.which(exe) is None:
+            nwchem_command = None
+
     want_embed = args.embed_build is not None
     report: dict = {
         "matrix": str(MATRIX.relative_to(ROOT)),
-        "nwchem": shutil.which("nwchem"),
+        "nwchem": format_command(nwchem_command),
         "embed_build": str(args.embed_build) if args.embed_build else None,
         "tolerances": matrix["tolerances"],
         "tasks": [],
     }
 
-    if not report["nwchem"]:
-        msg = "SKIP-INCOMPLETE: nwchem CLI not installed (pixi run -e nwchem-runtime ...)"
+    if nwchem_command is None:
+        msg = "SKIP-INCOMPLETE: nwchem CLI command not available"
         print(msg, file=sys.stderr)
         report["status"] = "skipped-incomplete-cli"
         (out_dir / "nwchem_compare_report.json").write_text(
@@ -324,7 +355,9 @@ def main() -> int:
     for task in matrix["tasks"]:
         tid = task["id"]
         work = out_dir / tid
-        rc, _text, energy, grad = run_nwchem_cli(Path(task["nw_input"]), work)
+        rc, _text, energy, grad = run_nwchem_cli(
+            Path(task["nw_input"]), work, nwchem_command
+        )
         entry: dict = {
             "id": tid,
             "quantities": task.get("quantities", ["energy"]),
