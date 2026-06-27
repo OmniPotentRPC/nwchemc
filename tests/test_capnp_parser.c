@@ -133,6 +133,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "atom_efield"));
   assert_non_null(strstr(input_blocks, "atom_efield_grad"));
   assert_non_null(strstr(input_blocks, "mulliken kawai"));
+  assert_non_null(strstr(input_blocks, "periodic_dipole true"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -349,6 +350,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "atom_efield_grad"));
   assert_null(strstr(input_blocks, "mulliken kawai"));
   assert_null(strstr(input_blocks, "nwpw:mulliken"));
+  assert_null(strstr(input_blocks, "periodic_dipole"));
+  assert_null(strstr(input_blocks, "nwpw:periodic_dipole"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -599,6 +602,14 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(has_mulliken, 1);
   assert_int_equal(nwpw_mulliken, NWChemNwpwToggle_enabled);
   assert_int_equal(nwpw_mulliken_kawai, NWChemNwpwToggle_enabled);
+
+  int has_periodic_dipole = 0;
+  int periodic_dipole = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_periodic_dipole(
+                       params_root, &has_periodic_dipole, &periodic_dipole),
+                   0);
+  assert_int_equal(has_periodic_dipole, 1);
+  assert_int_equal(periodic_dipole, NWChemNwpwToggle_enabled);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

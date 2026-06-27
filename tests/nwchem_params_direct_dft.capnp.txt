@@ -186,7 +186,8 @@
         atomEfield = enabled,
         atomEfieldGradient = enabled,
         mulliken = enabled,
-        mullikenKawai = enabled
+        mullikenKawai = enabled,
+        periodicDipole = enabled
       )
     ),
     (
