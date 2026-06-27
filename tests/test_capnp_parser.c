@@ -141,6 +141,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "fast_erf true"));
   assert_non_null(strstr(input_blocks, "dipole_motion dipole.mov"));
   assert_non_null(strstr(input_blocks, "symmetry false"));
+  assert_non_null(strstr(input_blocks, "fmm true 12 2"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -371,6 +372,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:dipole_motion"));
   assert_null(strstr(input_blocks, "symmetry false"));
   assert_null(strstr(input_blocks, "nwpw:rho_use_symmetry"));
+  assert_null(strstr(input_blocks, "fmm true"));
+  assert_null(strstr(input_blocks, "nwpw:fmm"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -707,6 +710,19 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_rho_use_symmetry, 1);
   assert_int_equal(rho_use_symmetry, NWChemNwpwToggle_disabled);
+
+  int has_fmm = 0;
+  int fmm = 0;
+  int fmm_lmax = 0;
+  int fmm_long_range = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_fmm(
+                       params_root, &has_fmm, &fmm, &fmm_lmax,
+                       &fmm_long_range),
+                   0);
+  assert_int_equal(has_fmm, 1);
+  assert_int_equal(fmm, NWChemNwpwToggle_enabled);
+  assert_int_equal(fmm_lmax, 12);
+  assert_int_equal(fmm_long_range, 2);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

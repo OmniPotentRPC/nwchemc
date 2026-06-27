@@ -228,7 +228,10 @@
         fastErf = enabled,
         dipoleMotion = enabled,
         dipoleMotionFilename = "dipole.mov",
-        rhoUseSymmetry = disabled
+        rhoUseSymmetry = disabled,
+        fmm = enabled,
+        fmmLmax = 12,
+        fmmLongRange = 2
       )
     ),
     (
