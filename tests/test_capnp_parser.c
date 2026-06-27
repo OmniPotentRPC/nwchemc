@@ -141,6 +141,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "fast_erf true"));
   assert_non_null(strstr(input_blocks, "dipole_motion dipole.mov"));
   assert_non_null(strstr(input_blocks, "symmetry false"));
+  assert_non_null(strstr(input_blocks, "one_electron_guess 25 3 2"));
   assert_non_null(strstr(input_blocks, "fmm true 12 2"));
   assert_non_null(
       strstr(input_blocks, "born 78.4 relax true 0.529177 1.058354"));
@@ -396,6 +397,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:dipole_motion"));
   assert_null(strstr(input_blocks, "symmetry false"));
   assert_null(strstr(input_blocks, "nwpw:rho_use_symmetry"));
+  assert_null(strstr(input_blocks, "one_electron_guess 25"));
+  assert_null(strstr(input_blocks, "nwpw:H1_it_in"));
   assert_null(strstr(input_blocks, "fmm true"));
   assert_null(strstr(input_blocks, "nwpw:fmm"));
   assert_null(strstr(input_blocks, "born 78.4"));
@@ -771,6 +774,20 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
                    0);
   assert_int_equal(has_rho_use_symmetry, 1);
   assert_int_equal(rho_use_symmetry, NWChemNwpwToggle_disabled);
+
+  int has_one_electron_guess = 0;
+  int one_electron_guess_it_in = 0;
+  int one_electron_guess_it_out = 0;
+  int one_electron_guess_it_ortho = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_one_electron_guess(
+                       params_root, &has_one_electron_guess,
+                       &one_electron_guess_it_in, &one_electron_guess_it_out,
+                       &one_electron_guess_it_ortho),
+                   0);
+  assert_int_equal(has_one_electron_guess, 1);
+  assert_int_equal(one_electron_guess_it_in, 25);
+  assert_int_equal(one_electron_guess_it_out, 3);
+  assert_int_equal(one_electron_guess_it_ortho, 2);
 
   int has_fmm = 0;
   int fmm = 0;

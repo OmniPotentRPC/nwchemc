@@ -1302,6 +1302,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:dipole_motion"));
   assert_null(strstr(g_input_blocks, "symmetry false"));
   assert_null(strstr(g_input_blocks, "nwpw:rho_use_symmetry"));
+  assert_null(strstr(g_input_blocks, "one_electron_guess 25"));
+  assert_null(strstr(g_input_blocks, "nwpw:H1_it_in"));
   assert_null(strstr(g_input_blocks, "fmm true"));
   assert_null(strstr(g_input_blocks, "nwpw:fmm"));
   assert_null(strstr(g_input_blocks, "born 78.4"));
@@ -1350,7 +1352,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_set_string("band_structure:zone_name", "structureA");
   assert_set_string("band_fft:zone_name", "fftA");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 226);
+  assert_int_equal(g_typed_set_count, 229);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1525,6 +1527,12 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_TEXT, "dipole.mov");
   assert_typed_set_scalar("nwpw:rho_use_symmetry",
                           NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
+  assert_typed_set_scalar("nwpw:H1_it_in", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "25");
+  assert_typed_set_scalar("nwpw:H1_it_out", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "3");
+  assert_typed_set_scalar("nwpw:H1_it_ortho",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
   assert_typed_set_scalar("nwpw:fmm", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
                           "true");
   assert_typed_set_scalar("nwpw:fmm_lmax", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
