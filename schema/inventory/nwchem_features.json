@@ -4335,6 +4335,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.boTimeStepSet",
+      "schema_path": "NWChemNwpwStanza.boTimeStepSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "boTimeStepSet",
+      "field_id": 163,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.boTimeStepSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

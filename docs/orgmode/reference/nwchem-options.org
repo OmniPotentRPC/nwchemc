@@ -185,7 +185,7 @@ RTDB values directly:
 | ~balanceMode~ | ~balance~ or ~nobalance~ | ~nwpw:balance~ |
 | ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~; omitted ~end~ defaults to ~100~ | ~nwpw:bo_steps~ |
 | ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~; omitted ~end~ defaults to ~100~ | ~nwpw:bo_steps~ |
-| ~boTimeStep~ | ~bo_time_step <value>~ | ~nwpw:bo_time_step~ |
+| ~boTimeStepSet~, ~boTimeStep~ | ~bo_time_step [value]~; omitted value defaults to ~15~ | ~nwpw:bo_time_step~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
 | ~boFakeMass~ | ~bo_fake_mass <value>~ | ~nwpw:bo_fake_mass~ |
 | ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ | ~nwpw:scaling~, ~cpmd:scaling~ |
@@ -417,7 +417,7 @@ controls:
 | ~balanceMode~ | ~balance~ or ~nobalance~ |
 | ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~; omitted ~end~ defaults to ~100~ |
 | ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~; omitted ~end~ defaults to ~100~ |
-| ~boTimeStep~ | ~bo_time_step <value>~ |
+| ~boTimeStepSet~, ~boTimeStep~ | ~bo_time_step [value]~; omitted value defaults to ~15~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
 | ~boFakeMass~ | ~bo_fake_mass <value>~ |
 | ~scalingFirst~, ~scalingSecond~ | ~scaling <first> <second>~ |
