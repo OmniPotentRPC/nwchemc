@@ -256,6 +256,7 @@
           (allElements = true, libraryType = pspwLibrary, libraryName = "pspw_default")
         ],
         pspSpin = disabled,
+        semicoreSmall = enabled,
         spinRules = [
           (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [1, 3]),
           (

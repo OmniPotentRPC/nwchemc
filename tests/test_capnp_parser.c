@@ -92,6 +92,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "N teter N.teter"));
   assert_non_null(strstr(input_blocks, "* pspw_library pspw_default"));
   assert_non_null(strstr(input_blocks, "pspspin off"));
+  assert_non_null(
+      strstr(input_blocks, "set nwpw:psp:semicore_small logical true"));
   assert_non_null(strstr(input_blocks, "pspspin up p 1.25 1 3"));
   assert_non_null(strstr(input_blocks, "pspspin not_m 0 down d 0.75 2"));
   assert_non_null(strstr(input_blocks, "energy_cutoff 12.5"));
@@ -341,6 +343,7 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "dipole"));
   assert_null(strstr(input_blocks, "nwpw"));
   assert_null(strstr(input_blocks, "pspspin off"));
+  assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
   assert_non_null(strstr(input_blocks, "dft"));
   assert_non_null(strstr(input_blocks, "iterations 40"));
@@ -697,6 +700,19 @@ static void test_parser_extracts_direct_pseudopotentials(void **state) {
   assert_int_equal(nwchemc_params_extract_direct_pseudopotentials(
                        params_root, elements, types, names, 4, &count),
                    -1);
+
+  int has_psp_spin = 0;
+  int pspspin_enabled = 0;
+  int pspspin_count = 0;
+  int semicore_small = 0;
+  assert_int_equal(nwchemc_params_extract_direct_pseudopotential_spin(
+                       params_root, &has_psp_spin, &pspspin_enabled,
+                       &pspspin_count, &semicore_small),
+                   0);
+  assert_int_equal(has_psp_spin, 1);
+  assert_int_equal(pspspin_enabled, 0);
+  assert_int_equal(pspspin_count, 0);
+  assert_int_equal(semicore_small, NWChemToggle_enabled);
 
   nwchemc_params_release(&arena);
   free(message);
