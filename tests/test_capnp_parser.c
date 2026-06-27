@@ -21,6 +21,7 @@ static const char *g_nwpw_et_params_path = NULL;
 static const char *g_nwpw_temperature_params_path = NULL;
 static const char *g_nwpw_mapping_alias_params_path = NULL;
 static const char *g_nwpw_virtual_alias_params_path = NULL;
+static const char *g_nwpw_one_electron_guess_defaults_params_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -1589,6 +1590,48 @@ static void test_parser_extracts_direct_nwpw_virtual_alias(void **state) {
   free(message);
 }
 
+static void
+test_parser_extracts_direct_nwpw_one_electron_guess_defaults(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(
+      g_nwpw_one_electron_guess_defaults_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks, "  one_electron_guess 50 1 1\n"));
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "  one_electron_guess"));
+
+  int has_one_electron_guess = 0;
+  int it_in = 0;
+  int it_out = 0;
+  int it_ortho = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_one_electron_guess(
+                       params_root, &has_one_electron_guess, &it_in, &it_out,
+                       &it_ortho),
+                   0);
+  assert_int_equal(has_one_electron_guess, 1);
+  assert_int_equal(it_in, 50);
+  assert_int_equal(it_out, 1);
+  assert_int_equal(it_ortho, 1);
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_parser_extracts_direct_pseudopotentials(void **state) {
   (void)state;
 
@@ -1726,14 +1769,15 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 12) {
+  if (argc != 13) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
             "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
             "NWPW_MC_STEPS_PARAMS_BIN BRILLOUIN_TETRAHEDRON_PARAMS_BIN "
             "BRILLOUIN_DOS_GRID_PARAMS_BIN NWPW_ET_PARAMS_BIN "
             "NWPW_TEMPERATURE_PARAMS_BIN NWPW_MAPPING_ALIAS_PARAMS_BIN "
-            "NWPW_VIRTUAL_ALIAS_PARAMS_BIN\n",
+            "NWPW_VIRTUAL_ALIAS_PARAMS_BIN "
+            "NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN\n",
             argv[0]);
     return 2;
   }
@@ -1748,6 +1792,7 @@ int main(int argc, char **argv) {
   g_nwpw_temperature_params_path = argv[9];
   g_nwpw_mapping_alias_params_path = argv[10];
   g_nwpw_virtual_alias_params_path = argv[11];
+  g_nwpw_one_electron_guess_defaults_params_path = argv[12];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
@@ -1762,6 +1807,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_parser_extracts_direct_nwpw_temperature),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_mapping_alias),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_virtual_alias),
+      cmocka_unit_test(
+          test_parser_extracts_direct_nwpw_one_electron_guess_defaults),
       cmocka_unit_test(test_parser_extracts_direct_pseudopotentials),
       cmocka_unit_test(test_parser_walks_direct_pseudopotential_capnp_entries),
   };

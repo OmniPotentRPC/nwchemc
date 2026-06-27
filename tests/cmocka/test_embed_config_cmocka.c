@@ -24,6 +24,7 @@ static const char *g_nwpw_et_path = NULL;
 static const char *g_nwpw_temperature_path = NULL;
 static const char *g_nwpw_mapping_alias_path = NULL;
 static const char *g_nwpw_virtual_alias_path = NULL;
+static const char *g_nwpw_one_electron_guess_defaults_path = NULL;
 static const char *g_compact_cells_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
@@ -2352,6 +2353,35 @@ static void test_embed_config_promotes_nwpw_virtual_alias(void **state) {
   free(message);
 }
 
+static void
+test_embed_config_promotes_nwpw_one_electron_guess_defaults(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message =
+      read_file(g_nwpw_one_electron_guess_defaults_path, &message_size);
+  assert_non_null(message);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+
+  assert_int_equal(result.ok, 1);
+  assert_null(strstr(g_input_blocks, "  one_electron_guess"));
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 3);
+  assert_typed_set_scalar("nwpw:H1_it_in", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "50");
+  assert_typed_set_scalar("nwpw:H1_it_out", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "1");
+  assert_typed_set_scalar("nwpw:H1_it_ortho",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+
+  free(message);
+}
+
 static void test_session_reuses_config_across_geometry_steps(void **state) {
   (void)state;
   reset_embed_captures();
@@ -3796,7 +3826,7 @@ static void test_calculate_frequencies_one_shot_accepts_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 22) {
+  if (argc != 23) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
             "PSPSPIN_MANY_PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
@@ -3805,6 +3835,7 @@ int main(int argc, char **argv) {
             "BRILLOUIN_DOS_GRID_PARAMS_BIN NWPW_ET_PARAMS_BIN "
             "NWPW_TEMPERATURE_PARAMS_BIN NWPW_MAPPING_ALIAS_PARAMS_BIN "
             "NWPW_VIRTUAL_ALIAS_PARAMS_BIN "
+            "NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN "
             "FORCE_STEP_A_BIN FORCE_STEP_B_BIN FORCE_STEP_EV_BIN "
             "FORCE_STEP_CHANGED_SPECIES_BIN "
             "FORCE_STEP_STATE_BIN TCE_METHODS_BIN COMPACT_CELLS_BIN\n",
@@ -3825,13 +3856,14 @@ int main(int argc, char **argv) {
   g_nwpw_temperature_path = argv[12];
   g_nwpw_mapping_alias_path = argv[13];
   g_nwpw_virtual_alias_path = argv[14];
-  g_force_step_a_path = argv[15];
-  g_force_step_b_path = argv[16];
-  g_force_step_ev_path = argv[17];
-  g_force_step_changed_species_path = argv[18];
-  g_force_step_state_path = argv[19];
-  g_tce_methods_path = argv[20];
-  g_compact_cells_path = argv[21];
+  g_nwpw_one_electron_guess_defaults_path = argv[15];
+  g_force_step_a_path = argv[16];
+  g_force_step_b_path = argv[17];
+  g_force_step_ev_path = argv[18];
+  g_force_step_changed_species_path = argv[19];
+  g_force_step_state_path = argv[20];
+  g_tce_methods_path = argv[21];
+  g_compact_cells_path = argv[22];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
@@ -3849,6 +3881,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_promotes_nwpw_temperature),
       cmocka_unit_test(test_embed_config_promotes_nwpw_mapping_alias),
       cmocka_unit_test(test_embed_config_promotes_nwpw_virtual_alias),
+      cmocka_unit_test(
+          test_embed_config_promotes_nwpw_one_electron_guess_defaults),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_rejects_param_replacement_after_topology),

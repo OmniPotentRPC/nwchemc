@@ -445,6 +445,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_nwpw_one_electron_guess_defaults_params_bin = custom_target(
+    'nwchem_nwpw_one_electron_guess_defaults_params_bin',
+    input: 'tests/nwchem_params_nwpw_one_electron_guess_defaults.capnp.txt',
+    output: 'nwchem_params_nwpw_one_electron_guess_defaults.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_step_a_bin = custom_target(
     'force_input_step_a_bin',
     input: 'tests/force_input_step_a.capnp.txt',
@@ -632,6 +646,7 @@ if get_option('with_tests')
       nwchem_nwpw_temperature_params_bin,
       nwchem_nwpw_mapping_alias_params_bin,
       nwchem_nwpw_virtual_alias_params_bin,
+      nwchem_nwpw_one_electron_guess_defaults_params_bin,
     ],
   )
   test(
@@ -658,6 +673,7 @@ if get_option('with_tests')
       nwchem_nwpw_temperature_params_bin,
       nwchem_nwpw_mapping_alias_params_bin,
       nwchem_nwpw_virtual_alias_params_bin,
+      nwchem_nwpw_one_electron_guess_defaults_params_bin,
       force_input_step_a_bin,
       force_input_step_b_bin,
       force_input_step_ev_bin,
