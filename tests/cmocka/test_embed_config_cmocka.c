@@ -18,6 +18,7 @@ static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
 static const char *g_force_step_ev_path = NULL;
 static const char *g_force_step_changed_species_path = NULL;
+static const char *g_force_step_state_path = NULL;
 static const char *g_tce_methods_path = NULL;
 
 static char g_basis[64];
@@ -85,31 +86,43 @@ static int g_frequency_calls = 0;
 static int g_frequency_cell_calls = 0;
 static int g_call_n_atoms[8];
 static int g_call_has_cell[8];
+static int g_call_charge[8];
+static int g_call_multiplicity[8];
 static int g_call_atomic_numbers[8][8];
 static double g_call_positions_ang[8][24];
 static double g_call_cell_ang[8][9];
 static int g_hessian_n_atoms[8];
 static int g_hessian_has_cell[8];
+static int g_hessian_charge[8];
+static int g_hessian_multiplicity[8];
 static int g_hessian_atomic_numbers[8][8];
 static double g_hessian_positions_ang[8][24];
 static double g_hessian_cell_ang[8][9];
 static int g_dipole_n_atoms[8];
 static int g_dipole_has_cell[8];
+static int g_dipole_charge[8];
+static int g_dipole_multiplicity[8];
 static int g_dipole_atomic_numbers[8][8];
 static double g_dipole_positions_ang[8][24];
 static double g_dipole_cell_ang[8][9];
 static int g_quadrupole_n_atoms[8];
 static int g_quadrupole_has_cell[8];
+static int g_quadrupole_charge[8];
+static int g_quadrupole_multiplicity[8];
 static int g_quadrupole_atomic_numbers[8][8];
 static double g_quadrupole_positions_ang[8][24];
 static double g_quadrupole_cell_ang[8][9];
 static int g_optimize_n_atoms[8];
 static int g_optimize_has_cell[8];
+static int g_optimize_charge[8];
+static int g_optimize_multiplicity[8];
 static int g_optimize_atomic_numbers[8][8];
 static double g_optimize_positions_ang[8][24];
 static double g_optimize_cell_ang[8][9];
 static int g_frequency_n_atoms[8];
 static int g_frequency_has_cell[8];
+static int g_frequency_charge[8];
+static int g_frequency_multiplicity[8];
 static int g_frequency_atomic_numbers[8][8];
 static double g_frequency_positions_ang[8][24];
 static double g_frequency_cell_ang[8][9];
@@ -437,13 +450,13 @@ static int capture_energy_grad_call(const int *n_atoms,
                                     double *energy_h, double *grad_h_bohr,
                                     char *errmsg, int errmsg_len) {
   int call = g_energy_grad_calls;
-  (void)charge;
-  (void)multiplicity;
   if (call < 8) {
     int ncopy = *n_atoms < 8 ? *n_atoms : 8;
     int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
     g_call_n_atoms[call] = *n_atoms;
     g_call_has_cell[call] = has_cell ? *has_cell : 0;
+    g_call_charge[call] = charge ? *charge : 0;
+    g_call_multiplicity[call] = multiplicity ? *multiplicity : 0;
     for (int i = 0; i < ncopy; ++i)
       g_call_atomic_numbers[call][i] = atomic_numbers[i];
     for (int i = 0; i < ncoord; ++i)
@@ -488,13 +501,13 @@ static int capture_hessian_call(const int *n_atoms, const double *positions_ang,
                                 double *hessian_h_bohr2, char *errmsg,
                                 int errmsg_len) {
   int call = g_hessian_calls;
-  (void)charge;
-  (void)multiplicity;
   if (call < 8) {
     int ncopy = *n_atoms < 8 ? *n_atoms : 8;
     int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
     g_hessian_n_atoms[call] = *n_atoms;
     g_hessian_has_cell[call] = has_cell ? *has_cell : 0;
+    g_hessian_charge[call] = charge ? *charge : 0;
+    g_hessian_multiplicity[call] = multiplicity ? *multiplicity : 0;
     for (int i = 0; i < ncopy; ++i)
       g_hessian_atomic_numbers[call][i] = atomic_numbers[i];
     for (int i = 0; i < ncoord; ++i)
@@ -540,13 +553,13 @@ static int capture_dipole_call(const int *n_atoms, const double *positions_ang,
                                double *energy_h, double *dipole_au,
                                char *errmsg, int errmsg_len) {
   int call = g_dipole_calls;
-  (void)charge;
-  (void)multiplicity;
   if (call < 8) {
     int ncopy = *n_atoms < 8 ? *n_atoms : 8;
     int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
     g_dipole_n_atoms[call] = *n_atoms;
     g_dipole_has_cell[call] = has_cell ? *has_cell : 0;
+    g_dipole_charge[call] = charge ? *charge : 0;
+    g_dipole_multiplicity[call] = multiplicity ? *multiplicity : 0;
     for (int i = 0; i < ncopy; ++i)
       g_dipole_atomic_numbers[call][i] = atomic_numbers[i];
     for (int i = 0; i < ncoord; ++i)
@@ -591,13 +604,13 @@ static int capture_quadrupole_call(
     const int *charge, const int *multiplicity, double *energy_h,
     double *quadrupole_au, char *errmsg, int errmsg_len) {
   int call = g_quadrupole_calls;
-  (void)charge;
-  (void)multiplicity;
   if (call < 8) {
     int ncopy = *n_atoms < 8 ? *n_atoms : 8;
     int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
     g_quadrupole_n_atoms[call] = *n_atoms;
     g_quadrupole_has_cell[call] = has_cell ? *has_cell : 0;
+    g_quadrupole_charge[call] = charge ? *charge : 0;
+    g_quadrupole_multiplicity[call] = multiplicity ? *multiplicity : 0;
     for (int i = 0; i < ncopy; ++i)
       g_quadrupole_atomic_numbers[call][i] = atomic_numbers[i];
     for (int i = 0; i < ncoord; ++i)
@@ -640,13 +653,13 @@ static int capture_optimize_call(
     const int *charge, const int *multiplicity, double *energy_h,
     double *optimized_positions_ang, char *errmsg, int errmsg_len) {
   int call = g_optimize_calls;
-  (void)charge;
-  (void)multiplicity;
   if (call < 8) {
     int ncopy = *n_atoms < 8 ? *n_atoms : 8;
     int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
     g_optimize_n_atoms[call] = *n_atoms;
     g_optimize_has_cell[call] = has_cell ? *has_cell : 0;
+    g_optimize_charge[call] = charge ? *charge : 0;
+    g_optimize_multiplicity[call] = multiplicity ? *multiplicity : 0;
     for (int i = 0; i < ncopy; ++i)
       g_optimize_atomic_numbers[call][i] = atomic_numbers[i];
     for (int i = 0; i < ncoord; ++i)
@@ -691,13 +704,13 @@ static int capture_frequency_call(
     const int *charge, const int *multiplicity, double *frequencies_cm1,
     double *intensities_au, char *errmsg, int errmsg_len) {
   int call = g_frequency_calls;
-  (void)charge;
-  (void)multiplicity;
   if (call < 8) {
     int ncopy = *n_atoms < 8 ? *n_atoms : 8;
     int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
     g_frequency_n_atoms[call] = *n_atoms;
     g_frequency_has_cell[call] = has_cell ? *has_cell : 0;
+    g_frequency_charge[call] = charge ? *charge : 0;
+    g_frequency_multiplicity[call] = multiplicity ? *multiplicity : 0;
     for (int i = 0; i < ncopy; ++i)
       g_frequency_atomic_numbers[call][i] = atomic_numbers[i];
     for (int i = 0; i < ncoord; ++i)
@@ -815,21 +828,29 @@ static void reset_embed_captures(void) {
   g_frequency_cell_calls = 0;
   memset(g_call_n_atoms, 0, sizeof(g_call_n_atoms));
   memset(g_call_has_cell, 0, sizeof(g_call_has_cell));
+  memset(g_call_charge, 0, sizeof(g_call_charge));
+  memset(g_call_multiplicity, 0, sizeof(g_call_multiplicity));
   memset(g_call_atomic_numbers, 0, sizeof(g_call_atomic_numbers));
   memset(g_call_positions_ang, 0, sizeof(g_call_positions_ang));
   memset(g_call_cell_ang, 0, sizeof(g_call_cell_ang));
   memset(g_hessian_n_atoms, 0, sizeof(g_hessian_n_atoms));
   memset(g_hessian_has_cell, 0, sizeof(g_hessian_has_cell));
+  memset(g_hessian_charge, 0, sizeof(g_hessian_charge));
+  memset(g_hessian_multiplicity, 0, sizeof(g_hessian_multiplicity));
   memset(g_hessian_atomic_numbers, 0, sizeof(g_hessian_atomic_numbers));
   memset(g_hessian_positions_ang, 0, sizeof(g_hessian_positions_ang));
   memset(g_hessian_cell_ang, 0, sizeof(g_hessian_cell_ang));
   memset(g_dipole_n_atoms, 0, sizeof(g_dipole_n_atoms));
   memset(g_dipole_has_cell, 0, sizeof(g_dipole_has_cell));
+  memset(g_dipole_charge, 0, sizeof(g_dipole_charge));
+  memset(g_dipole_multiplicity, 0, sizeof(g_dipole_multiplicity));
   memset(g_dipole_atomic_numbers, 0, sizeof(g_dipole_atomic_numbers));
   memset(g_dipole_positions_ang, 0, sizeof(g_dipole_positions_ang));
   memset(g_dipole_cell_ang, 0, sizeof(g_dipole_cell_ang));
   memset(g_quadrupole_n_atoms, 0, sizeof(g_quadrupole_n_atoms));
   memset(g_quadrupole_has_cell, 0, sizeof(g_quadrupole_has_cell));
+  memset(g_quadrupole_charge, 0, sizeof(g_quadrupole_charge));
+  memset(g_quadrupole_multiplicity, 0, sizeof(g_quadrupole_multiplicity));
   memset(g_quadrupole_atomic_numbers, 0,
          sizeof(g_quadrupole_atomic_numbers));
   memset(g_quadrupole_positions_ang, 0,
@@ -837,11 +858,15 @@ static void reset_embed_captures(void) {
   memset(g_quadrupole_cell_ang, 0, sizeof(g_quadrupole_cell_ang));
   memset(g_optimize_n_atoms, 0, sizeof(g_optimize_n_atoms));
   memset(g_optimize_has_cell, 0, sizeof(g_optimize_has_cell));
+  memset(g_optimize_charge, 0, sizeof(g_optimize_charge));
+  memset(g_optimize_multiplicity, 0, sizeof(g_optimize_multiplicity));
   memset(g_optimize_atomic_numbers, 0, sizeof(g_optimize_atomic_numbers));
   memset(g_optimize_positions_ang, 0, sizeof(g_optimize_positions_ang));
   memset(g_optimize_cell_ang, 0, sizeof(g_optimize_cell_ang));
   memset(g_frequency_n_atoms, 0, sizeof(g_frequency_n_atoms));
   memset(g_frequency_has_cell, 0, sizeof(g_frequency_has_cell));
+  memset(g_frequency_charge, 0, sizeof(g_frequency_charge));
+  memset(g_frequency_multiplicity, 0, sizeof(g_frequency_multiplicity));
   memset(g_frequency_atomic_numbers, 0, sizeof(g_frequency_atomic_numbers));
   memset(g_frequency_positions_ang, 0, sizeof(g_frequency_positions_ang));
   memset(g_frequency_cell_ang, 0, sizeof(g_frequency_cell_ang));
@@ -2124,6 +2149,100 @@ static void test_session_calculate_frequencies_accepts_force_input_step(
   free(message);
 }
 
+static void test_session_force_input_state_overrides_params(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_state_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_state = read_file(g_force_step_state_path,
+                                        &step_state_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_state);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult default_forces =
+      nwchemc_session_calculate_forces(session, step_a, step_a_size, forces, 6);
+  assert_int_equal(default_forces.ok, 1);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+
+  NWChemCResult override_forces = nwchemc_session_calculate_forces(
+      session, step_state, step_state_size, forces, 6);
+  assert_int_equal(override_forces.ok, 1);
+  assert_int_equal(g_call_charge[1], -2);
+  assert_int_equal(g_call_multiplicity[1], 5);
+
+  unsigned char result_bytes[512];
+  size_t result_size = 0;
+  NWChemCResult force_result = nwchemc_session_calculate_result(
+      session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(force_result.ok, 1);
+  assert_int_equal(g_call_charge[2], -2);
+  assert_int_equal(g_call_multiplicity[2], 5);
+
+  double hessian[36] = {0.0};
+  NWChemCResult hessian_result = nwchemc_session_calculate_hessian(
+      session, step_state, step_state_size, hessian, 36);
+  assert_int_equal(hessian_result.ok, 1);
+  assert_int_equal(g_hessian_charge[0], -2);
+  assert_int_equal(g_hessian_multiplicity[0], 5);
+
+  result_size = 0;
+  NWChemCResult hessian_carrier = nwchemc_session_calculate_hessian_result(
+      session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(hessian_carrier.ok, 1);
+  assert_int_equal(g_hessian_charge[1], -2);
+  assert_int_equal(g_hessian_multiplicity[1], 5);
+
+  result_size = 0;
+  NWChemCResult dipole_carrier = nwchemc_session_calculate_dipole_result(
+      session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(dipole_carrier.ok, 1);
+  assert_int_equal(g_dipole_charge[0], -2);
+  assert_int_equal(g_dipole_multiplicity[0], 5);
+
+  result_size = 0;
+  NWChemCResult quadrupole_carrier =
+      nwchemc_session_calculate_quadrupole_result(
+          session, step_state, step_state_size, result_bytes,
+          sizeof(result_bytes), &result_size);
+  assert_int_equal(quadrupole_carrier.ok, 1);
+  assert_int_equal(g_quadrupole_charge[0], -2);
+  assert_int_equal(g_quadrupole_multiplicity[0], 5);
+
+  result_size = 0;
+  NWChemCResult optimize_carrier = nwchemc_session_calculate_optimize_result(
+      session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(optimize_carrier.ok, 1);
+  assert_int_equal(g_optimize_charge[0], -2);
+  assert_int_equal(g_optimize_multiplicity[0], 5);
+
+  result_size = 0;
+  NWChemCResult frequency_carrier =
+      nwchemc_session_calculate_frequencies_result(
+          session, step_state, step_state_size, result_bytes,
+          sizeof(result_bytes), &result_size);
+  assert_int_equal(frequency_carrier.ok, 1);
+  assert_int_equal(g_frequency_charge[0], -2);
+  assert_int_equal(g_frequency_multiplicity[0], 5);
+
+  nwchemc_session_destroy(session);
+  free(step_state);
+  free(step_a);
+  free(message);
+}
+
 static void test_session_calculate_result_writes_potential_result(
     void **state) {
   (void)state;
@@ -2936,12 +3055,12 @@ static void test_calculate_frequencies_one_shot_accepts_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 10) {
+  if (argc != 11) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
             "PSPSPIN_MANY_PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
             "FORCE_STEP_EV_BIN FORCE_STEP_CHANGED_SPECIES_BIN "
-            "TCE_METHODS_BIN\n",
+            "FORCE_STEP_STATE_BIN TCE_METHODS_BIN\n",
             argv[0]);
     return 2;
   }
@@ -2953,7 +3072,8 @@ int main(int argc, char **argv) {
   g_force_step_b_path = argv[6];
   g_force_step_ev_path = argv[7];
   g_force_step_changed_species_path = argv[8];
-  g_tce_methods_path = argv[9];
+  g_force_step_state_path = argv[9];
+  g_tce_methods_path = argv[10];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),
@@ -2971,6 +3091,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_calculate_optimize_accepts_force_input_step),
       cmocka_unit_test(
           test_session_calculate_frequencies_accepts_force_input_step),
+      cmocka_unit_test(test_session_force_input_state_overrides_params),
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
       cmocka_unit_test(
           test_session_calculate_hessian_result_writes_potential_result),

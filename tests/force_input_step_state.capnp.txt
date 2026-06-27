@@ -1,0 +1,18 @@
+(
+  pos = [
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.7414
+  ],
+  atmnrs = [1, 8],
+  box = [
+    10.0, 0.0, 0.0,
+    0.0, 10.0, 0.0,
+    0.0, 0.0, 10.0
+  ],
+  lengthUnit = "angstrom",
+  energyUnit = "hartree",
+  hasCharge = true,
+  charge = -2,
+  hasMultiplicity = true,
+  multiplicity = 5
+)
