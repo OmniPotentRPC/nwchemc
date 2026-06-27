@@ -2198,6 +2198,18 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  fast_erf %s\n",
                     fast_erf_logical) != 0)
     return -1;
+  if (include_direct_promoted &&
+      (nwpw.dipoleMotion == NWChemNwpwToggle_enabled ||
+       nwpw.dipoleMotionFilename.len > 0)) {
+    if (append_format(block, sizeof(block), "  dipole_motion") != 0)
+      return -1;
+    if (nwpw.dipoleMotionFilename.len > 0 &&
+        (append_format(block, sizeof(block), " ") != 0 ||
+         append_text(block, sizeof(block), nwpw.dipoleMotionFilename) != 0))
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3450,6 +3462,50 @@ int nwchemc_params_extract_direct_nwpw_fast_erf(NWChemParams_ptr params,
       *has_options = 1;
       *fast_erf = nwpw.fastErf;
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_dipole_motion(
+    NWChemParams_ptr params, int *has_options, int *dipole_motion,
+    capn_text *filename) {
+  if (params.p.type == CAPN_NULL || !has_options || !dipole_motion ||
+      !filename)
+    return -1;
+
+  *has_options = 0;
+  *dipole_motion = NWChemNwpwToggle_unspecified;
+  filename->str = NULL;
+  filename->len = 0;
+  filename->seg = NULL;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    const int has_dipole_motion =
+        nwpw.dipoleMotion != NWChemNwpwToggle_unspecified ||
+        nwpw.dipoleMotionFilename.len > 0;
+    if (!has_dipole_motion)
+      continue;
+
+    *has_options = 1;
+    *dipole_motion = nwpw.dipoleMotion == NWChemNwpwToggle_unspecified
+                         ? NWChemNwpwToggle_enabled
+                         : nwpw.dipoleMotion;
+    *filename = nwpw.dipoleMotionFilename;
   }
 
   return 0;

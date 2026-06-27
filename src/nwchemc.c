@@ -1555,6 +1555,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_params_extract_direct_nwpw_fast_erf(
           params_root, &nwpw_fast_erf_has_options, &nwpw_fast_erf) != 0)
     return -1;
+  int nwpw_dipole_motion_has_options = 0;
+  int nwpw_dipole_motion = NWChemNwpwToggle_unspecified;
+  capn_text nwpw_dipole_motion_filename = {0};
+  if (nwchemc_params_extract_direct_nwpw_dipole_motion(
+          params_root, &nwpw_dipole_motion_has_options, &nwpw_dipole_motion,
+          &nwpw_dipole_motion_filename) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2572,6 +2579,31 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:fast_erf",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
+  }
+  if (nwpw_dipole_motion_has_options) {
+    const char *value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_dipole_motion);
+    if (value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:dipole_motion",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+    if (nwpw_dipole_motion == NWChemNwpwToggle_enabled &&
+        nwpw_dipole_motion_filename.len > 0) {
+      char filename[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(filename, sizeof(filename), nwpw_dipole_motion_filename);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values,
+              "nwpw:dipole_motion_filename", NWCHEMC_DIRECT_SET_VALUE_TEXT,
+              filename) != 0)
+        return -1;
+    }
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

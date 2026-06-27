@@ -439,6 +439,8 @@ struct NWChemNwpwStanza {
   smoothCutoffSigma           @70 :Float64 = 0.0;    # Second NWPW smooth_cutoff value.
   cutoffBootWavefunction      @71 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW cutoff_boot_wavefunction.
   fastErf                     @72 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW fast_erf.
+  dipoleMotion                @73 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW dipole_motion.
+  dipoleMotionFilename        @74 :Text = "";       # Emit/promote NWPW dipole_motion filename.
 }
 
 # @struct NWChemScfStanza
