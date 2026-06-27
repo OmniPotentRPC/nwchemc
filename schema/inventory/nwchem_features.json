@@ -3975,6 +3975,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.multiplicity",
+      "schema_path": "NWChemNwpwStanza.multiplicity",
+      "struct": "NWChemNwpwStanza",
+      "name": "multiplicity",
+      "field_id": 141,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.multiplicity Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

@@ -348,6 +348,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.dosFilename", "NWChemNwpwStanza.dosFilename", "NWChemNwpwStanza.dosFilename Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 138, 1, 1},
     {"field.NWChemNwpwStanza.geometryOptimize", "NWChemNwpwStanza.geometryOptimize", "NWChemNwpwStanza.geometryOptimize Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 139, 1, 1},
     {"field.NWChemNwpwStanza.auxiliaryPotentials", "NWChemNwpwStanza.auxiliaryPotentials", "NWChemNwpwStanza.auxiliaryPotentials Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 140, 1, 1},
+    {"field.NWChemNwpwStanza.multiplicity", "NWChemNwpwStanza.multiplicity", "NWChemNwpwStanza.multiplicity Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 141, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -573,7 +574,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 568;
+static const size_t k_feature_count = 569;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

@@ -1863,6 +1863,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_auxiliary_potentials_has_options,
           &nwpw_auxiliary_potentials) != 0)
     return -1;
+  int nwpw_multiplicity_has_options = 0;
+  int nwpw_multiplicity = 0;
+  int nwpw_ispin = 0;
+  if (nwchemc_params_extract_direct_nwpw_multiplicity(
+          params_root, &nwpw_multiplicity_has_options, &nwpw_multiplicity,
+          &nwpw_ispin) != 0)
+    return -1;
   int nwpw_dos_has_options = 0;
   int nwpw_dos_alpha_set = 0;
   double nwpw_dos_alpha = 0.0;
@@ -3271,6 +3278,32 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "pspw_qmmm_auxon",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
       return -1;
+  }
+  if (nwpw_multiplicity_has_options) {
+    static const char *spin_prefixes[] = {"cgsd", "band", "cpsd"};
+    for (size_t i = 0; i < sizeof(spin_prefixes) / sizeof(spin_prefixes[0]);
+         ++i) {
+      char key[NWCHEMC_DIRECT_SET_KEY_LEN];
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(key, sizeof(key), "%s:ispin", spin_prefixes[i]);
+      snprintf(value, sizeof(value), "%d", nwpw_ispin);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, key,
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+      snprintf(key, sizeof(key), "%s:mult", spin_prefixes[i]);
+      snprintf(value, sizeof(value), "%d", nwpw_multiplicity);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, key,
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
   }
   if (nwpw_dos_has_options) {
     if (nwpw_dos_alpha_set) {

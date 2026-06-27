@@ -552,6 +552,7 @@ struct NWChemNwpwStanza {
   dosFilename                 @138 :Text = "";      # Emit/promote NWPW dos_filename.
   geometryOptimize            @139 :Bool = false;   # Emit/promote NWPW geometry_optimize.
   auxiliaryPotentials         @140 :Bool = false;   # Emit/promote NWPW auxiliary_potentials.
+  multiplicity                @141 :Int32 = 0;      # Emit/promote NWPW mult.
 }
 
 # @struct NWChemScfStanza

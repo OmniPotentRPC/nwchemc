@@ -180,6 +180,9 @@ int nwchemc_params_extract_direct_nwpw_geometry_optimize(
 int nwchemc_params_extract_direct_nwpw_auxiliary_potentials(
     NWChemParams_ptr params, int *has_options, int *auxiliary_potentials);
 
+int nwchemc_params_extract_direct_nwpw_multiplicity(
+    NWChemParams_ptr params, int *has_options, int *multiplicity, int *ispin);
+
 int nwchemc_params_extract_direct_nwpw_dos(
     NWChemParams_ptr params, int *has_options, int *dos_alpha_set,
     double *dos_alpha, int *dos_npoints_set, int *dos_npoints,
