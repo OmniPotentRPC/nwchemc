@@ -470,6 +470,8 @@ struct NWChemNwpwStanza {
   translateVectorZ            @101 :Float64 = 0.0;  # Third NWPW translate_vector value.
   translateGeometryName       @102 :Text = "";      # Optional NWPW translate_vector geometry name.
   translateReorder            @103 :NWChemNwpwToggle = unspecified; # Optional NWPW translate_vector reorder flag.
+  socketType                  @104 :Text = "";      # NWPW socket type token.
+  socketIp                    @105 :Text = "";      # Optional NWPW socket IP or socket path token.
 }
 
 # @struct NWChemScfStanza

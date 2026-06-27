@@ -1646,6 +1646,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           nwpw_translate_vector, &nwpw_translate_geometry_name,
           &nwpw_translate_reorder) != 0)
     return -1;
+  int nwpw_socket_has_options = 0;
+  capn_text nwpw_socket_type = {0};
+  capn_text nwpw_socket_ip = {0};
+  if (nwchemc_params_extract_direct_nwpw_socket(
+          params_root, &nwpw_socket_has_options, &nwpw_socket_type,
+          &nwpw_socket_ip) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -3001,6 +3008,28 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:translate_reorder",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, reorder_value) != 0)
       return -1;
+  }
+  if (nwpw_socket_has_options) {
+    char socket_type[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    copy_text_record(socket_type, sizeof(socket_type), nwpw_socket_type);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:socket_type",
+            NWCHEMC_DIRECT_SET_VALUE_TEXT, socket_type) != 0)
+      return -1;
+    if (nwpw_socket_ip.len > 0) {
+      char socket_ip[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(socket_ip, sizeof(socket_ip), nwpw_socket_ip);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:socket_ip",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, socket_ip) != 0)
+        return -1;
+    }
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

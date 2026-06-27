@@ -249,6 +249,8 @@ RTDB values directly:
 | ~translateVectorSet~, ~translateVectorX~, ~translateVectorY~, ~translateVectorZ~ | ~translate_vector <x> <y> <z>~ | ~nwpw:translate_vector~ |
 | ~translateGeometryName~ | geometry name token in ~translate_vector~ | ~nwpw:translate_geom_name~ |
 | ~translateReorder~ | ~reorder~ or ~noreorder~ token in ~translate_vector~ | ~nwpw:translate_reorder~ |
+| ~socketType~ | type token in ~socket <type> <ip>~ | ~nwpw:socket_type~ |
+| ~socketIp~ | optional address token in ~socket <type> <ip>~ | ~nwpw:socket_ip~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

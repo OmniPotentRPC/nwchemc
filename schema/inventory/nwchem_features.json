@@ -3435,6 +3435,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.socketType",
+      "schema_path": "NWChemNwpwStanza.socketType",
+      "struct": "NWChemNwpwStanza",
+      "name": "socketType",
+      "field_id": 104,
+      "type": "Text = \"\"",
+      "role": "NWChemNwpwStanza.socketType Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.socketIp",
+      "schema_path": "NWChemNwpwStanza.socketIp",
+      "struct": "NWChemNwpwStanza",
+      "name": "socketIp",
+      "field_id": 105,
+      "type": "Text = \"\"",
+      "role": "NWChemNwpwStanza.socketIp Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

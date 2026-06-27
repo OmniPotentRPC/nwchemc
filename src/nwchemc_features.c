@@ -303,6 +303,8 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.translateVectorZ", "NWChemNwpwStanza.translateVectorZ", "NWChemNwpwStanza.translateVectorZ Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 101, 1, 1},
     {"field.NWChemNwpwStanza.translateGeometryName", "NWChemNwpwStanza.translateGeometryName", "NWChemNwpwStanza.translateGeometryName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 102, 1, 1},
     {"field.NWChemNwpwStanza.translateReorder", "NWChemNwpwStanza.translateReorder", "NWChemNwpwStanza.translateReorder Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 103, 1, 1},
+    {"field.NWChemNwpwStanza.socketType", "NWChemNwpwStanza.socketType", "NWChemNwpwStanza.socketType Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 104, 1, 1},
+    {"field.NWChemNwpwStanza.socketIp", "NWChemNwpwStanza.socketIp", "NWChemNwpwStanza.socketIp Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 105, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -528,7 +530,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 523;
+static const size_t k_feature_count = 525;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
