@@ -1064,6 +1064,25 @@ if get_option('with_tests')
         '@OUTPUT@',
       ],
     )
+    potential_config_structured_text = configure_file(
+      input: 'tests/potential_config_structured.capnp.txt.in',
+      output: 'potential_config_structured.capnp.txt',
+      configuration: params_conf,
+    )
+    potential_config_structured_bin = custom_target(
+      'potential_config_structured_bin',
+      input: potential_config_structured_text,
+      output: 'potential_config_structured.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'PotentialConfig',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_hessian_params_text = configure_file(
       input: 'tests/nwchem_params_hessian.capnp.txt.in',
       output: 'nwchem_params_hessian.capnp.txt',
@@ -1137,6 +1156,25 @@ if get_option('with_tests')
       args: nwchem_test_mpi_ranks > 1
         ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_gradient_structured_test, nwchem_structured_params_bin]
         : [nwchem_structured_params_bin],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
+    nwchem_config_parity_test = executable(
+      'test_nwchem_config_parity',
+      'tests/test_nwchem_config_parity.c',
+      include_directories: inc,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+    )
+    test(
+      'nwchem-config-parity',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_config_parity_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_config_parity_test, nwchem_input_blocks_params_bin, potential_config_structured_bin, force_input_h2_eq_bin]
+        : [nwchem_input_blocks_params_bin, potential_config_structured_bin, force_input_h2_eq_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
