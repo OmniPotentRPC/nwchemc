@@ -2453,6 +2453,9 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
     if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  if (include_direct_promoted && nwpw.singlePrecisionHfx &&
+      append_format(block, sizeof(block), "  single_precision_hfx\n") != 0)
+    return -1;
   const char *cpmd_properties_logical =
       nwpw_toggle_logical_keyword(nwpw.cpmdProperties);
   if (include_direct_promoted && cpmd_properties_logical &&
@@ -4150,6 +4153,39 @@ int nwchemc_params_extract_direct_nwpw_vfield(
       for (int j = 0; j < nfilenames; ++j)
         filenames[j] = capn_get_text(nwpw.vfieldFilenames, j, empty_text);
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_single_precision_hfx(
+    NWChemParams_ptr params, int *has_options, int *single_precision_hfx) {
+  if (params.p.type == CAPN_NULL || !has_options || !single_precision_hfx)
+    return -1;
+
+  *has_options = 0;
+  *single_precision_hfx = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (!nwpw.singlePrecisionHfx)
+      continue;
+
+    *has_options = 1;
+    *single_precision_hfx = 1;
   }
 
   return 0;

@@ -3831,6 +3831,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.singlePrecisionHfx",
+      "schema_path": "NWChemNwpwStanza.singlePrecisionHfx",
+      "struct": "NWChemNwpwStanza",
+      "name": "singlePrecisionHfx",
+      "field_id": 129,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.singlePrecisionHfx Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

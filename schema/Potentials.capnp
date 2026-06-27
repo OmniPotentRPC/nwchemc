@@ -540,6 +540,7 @@ struct NWChemNwpwStanza {
   oneElectronGuessItOut       @126 :Int32 = 0;      # NWPW one-electron guess outer iterations.
   oneElectronGuessItOrtho     @127 :Int32 = 0;      # NWPW one-electron guess orthogonalization iterations.
   vfieldFilenames             @128 :List(Text);     # Emit/promote NWPW vfield filenames.
+  singlePrecisionHfx          @129 :Bool = false;   # Emit/promote NWPW single_precision_hfx.
 }
 
 # @struct NWChemScfStanza

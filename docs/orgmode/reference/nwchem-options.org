@@ -235,6 +235,7 @@ RTDB values directly:
 | ~bornRelax~ | ~relax true~ or ~false~ in ~born~ | ~nwpw:born_relax~ |
 | ~bornVRadiiAngstrom~ | trailing input radii in ~born~ | ~nwpw:born_vradii~ in Bohr |
 | ~vfieldFilenames~ | ~vfield <filename...>~ | ~nwpw:vfield_filenames~ |
+| ~singlePrecisionHfx~ | ~single_precision_hfx~ | ~pspw:HFX_single_precision~ |
 | ~cpmdProperties~ | ~cpmd_properties true~ or ~false~ | ~nwpw:cpmd_properties~ |
 | ~useGridComparison~ | ~use_grid_cmp true~ or ~false~ | ~nwpw:use_grid_cmp~ |
 | ~director~ | ~director~, ~director true~, or ~director false~ | ~nwpw:use_director~ |

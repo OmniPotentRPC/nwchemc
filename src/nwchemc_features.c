@@ -336,6 +336,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.oneElectronGuessItOut", "NWChemNwpwStanza.oneElectronGuessItOut", "NWChemNwpwStanza.oneElectronGuessItOut Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 126, 1, 1},
     {"field.NWChemNwpwStanza.oneElectronGuessItOrtho", "NWChemNwpwStanza.oneElectronGuessItOrtho", "NWChemNwpwStanza.oneElectronGuessItOrtho Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 127, 1, 1},
     {"field.NWChemNwpwStanza.vfieldFilenames", "NWChemNwpwStanza.vfieldFilenames", "NWChemNwpwStanza.vfieldFilenames Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 128, 1, 1},
+    {"field.NWChemNwpwStanza.singlePrecisionHfx", "NWChemNwpwStanza.singlePrecisionHfx", "NWChemNwpwStanza.singlePrecisionHfx Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 129, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -561,7 +562,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 556;
+static const size_t k_feature_count = 557;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

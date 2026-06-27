@@ -1845,6 +1845,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_vfield_has_options, nwpw_vfield_filenames,
           NWCHEMC_DIRECT_SET_VALUE_MAX, &nwpw_vfield_count) != 0)
     return -1;
+  int nwpw_single_precision_hfx_has_options = 0;
+  int nwpw_single_precision_hfx = 0;
+  if (nwchemc_params_extract_direct_nwpw_single_precision_hfx(
+          params_root, &nwpw_single_precision_hfx_has_options,
+          &nwpw_single_precision_hfx) != 0)
+    return -1;
   int nwpw_cpmd_grid_has_options = 0;
   int nwpw_cpmd_properties = NWChemNwpwToggle_unspecified;
   int nwpw_use_grid_comparison = NWChemNwpwToggle_unspecified;
@@ -3193,6 +3199,15 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               nwpw_born_vradii_count) != 0)
         return -1;
     }
+  }
+  if (nwpw_single_precision_hfx_has_options && nwpw_single_precision_hfx) {
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "pspw:HFX_single_precision",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+      return -1;
   }
   if (nwpw_cpmd_grid_has_options) {
     const char *cpmd_properties_value = nwpw_toggle_logical_value(

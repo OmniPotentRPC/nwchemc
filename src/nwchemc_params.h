@@ -171,6 +171,9 @@ int nwchemc_params_extract_direct_nwpw_vfield(
     NWChemParams_ptr params, int *has_options, capn_text *filenames,
     size_t filename_capacity, size_t *filename_count);
 
+int nwchemc_params_extract_direct_nwpw_single_precision_hfx(
+    NWChemParams_ptr params, int *has_options, int *single_precision_hfx);
+
 int nwchemc_params_extract_direct_nwpw_cpmd_grid(
     NWChemParams_ptr params, int *has_options, int *cpmd_properties,
     int *use_grid_comparison);
