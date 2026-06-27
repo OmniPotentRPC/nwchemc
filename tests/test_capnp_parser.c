@@ -130,6 +130,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "lcao_skip"));
   assert_non_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
   assert_non_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
+  assert_non_null(strstr(input_blocks, "atom_efield"));
+  assert_non_null(strstr(input_blocks, "atom_efield_grad"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -342,6 +344,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_non_null(strstr(input_blocks, "tce\n  freeze core atomic\nend"));
   assert_null(strstr(input_blocks, "dipole"));
   assert_null(strstr(input_blocks, "nwpw"));
+  assert_null(strstr(input_blocks, "atom_efield"));
+  assert_null(strstr(input_blocks, "atom_efield_grad"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -570,6 +574,17 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(nose_ion_temperature < 400.001);
   assert_int_equal(nose_electron_chain_length, 2);
   assert_int_equal(nose_ion_chain_length, 3);
+
+  int has_electric_field = 0;
+  int atom_efield = 0;
+  int atom_efield_gradient = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_electric_field(
+                       params_root, &has_electric_field, &atom_efield,
+                       &atom_efield_gradient),
+                   0);
+  assert_int_equal(has_electric_field, 1);
+  assert_int_equal(atom_efield, NWChemNwpwToggle_enabled);
+  assert_int_equal(atom_efield_gradient, NWChemNwpwToggle_enabled);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

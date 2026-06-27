@@ -1274,13 +1274,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_non_null(strstr(g_input_blocks, "  2222ba\n"));
   assert_non_null(strstr(g_input_blocks, "tce\n  freeze core atomic\nend"));
   assert_null(strstr(g_input_blocks, "dipole"));
+  assert_null(strstr(g_input_blocks, "atom_efield"));
+  assert_null(strstr(g_input_blocks, "atom_efield_grad"));
   assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_null(strstr(g_input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 165);
+  assert_int_equal(g_typed_set_count, 167);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1411,6 +1413,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "3");
   assert_typed_set_scalar("nwpw:Nchain", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "3");
+  assert_typed_set_scalar("nwpw:atom_efield",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("nwpw:atom_efield_grad",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
   assert_typed_set_scalar("cellA:boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "periodic");
   const char *unita_values[9] = {"1", "0", "0", "0", "2",

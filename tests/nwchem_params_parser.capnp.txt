@@ -206,7 +206,9 @@
         noseIonPeriod = 34.0,
         noseIonTemperature = 400.0,
         noseElectronChainLength = 2,
-        noseIonChainLength = 3
+        noseIonChainLength = 3,
+        atomEfield = enabled,
+        atomEfieldGradient = enabled
       )
     ),
     (
