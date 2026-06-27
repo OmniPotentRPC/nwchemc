@@ -537,6 +537,110 @@ static void test_session_named_property_and_structural_results(void **state) {
   free(params);
 }
 
+static void test_session_raw_property_and_structural_buffers(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  size_t step_eq_size = 0;
+  size_t step_stretched_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  unsigned char *step_eq = read_file(g_step_eq_path, &step_eq_size);
+  unsigned char *step_stretched =
+      read_file(g_step_stretched_path, &step_stretched_size);
+  assert_non_null(params);
+  assert_non_null(step_eq);
+  assert_non_null(step_stretched);
+
+  NWChemCSession *session = nwchemc_session_create(params, params_size);
+  assert_non_null(session);
+
+  const int ncoord = 6;
+  double hessian[36];
+  memset(hessian, 0, sizeof(hessian));
+  NWChemCResult hessian_status = nwchemc_session_calculate_hessian(
+      session, step_eq, step_eq_size, hessian, 36);
+  if (!hessian_status.ok)
+    fail_msg("nwchemc_session_calculate_hessian failed: %s",
+             hessian_status.message);
+
+  double max_hessian_abs = 0.0;
+  for (int i = 0; i < ncoord; ++i) {
+    for (int j = 0; j < ncoord; ++j) {
+      double hij = hessian[i * ncoord + j];
+      double hji = hessian[j * ncoord + i];
+      if (!isfinite(hij))
+        fail_msg("non-finite session hessian[%d,%d]", i, j);
+      double scale = fmax(1.0, fmax(fabs(hij), fabs(hji)));
+      if (fabs(hij - hji) > 1e-7 * scale)
+        fail_msg("session hessian symmetry mismatch at %d,%d", i, j);
+      max_hessian_abs = fmax(max_hessian_abs, fabs(hij));
+    }
+  }
+  assert_true(max_hessian_abs >= 1e-6);
+
+  double dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult dipole_status = nwchemc_session_calculate_dipole(
+      session, step_eq, step_eq_size, dipole, 3);
+  if (!dipole_status.ok)
+    fail_msg("nwchemc_session_calculate_dipole failed: %s",
+             dipole_status.message);
+  for (int i = 0; i < 3; ++i) {
+    if (!isfinite(dipole[i]))
+      fail_msg("non-finite session dipole[%d]", i);
+    assert_true(fabs(dipole[i]) < 1.0e-7);
+  }
+
+  double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult quadrupole_status = nwchemc_session_calculate_quadrupole(
+      session, step_eq, step_eq_size, quadrupole, 6);
+  if (!quadrupole_status.ok)
+    fail_msg("nwchemc_session_calculate_quadrupole failed: %s",
+             quadrupole_status.message);
+  double max_quadrupole_abs = 0.0;
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(quadrupole[i]))
+      fail_msg("non-finite session quadrupole[%d]", i);
+    max_quadrupole_abs = fmax(max_quadrupole_abs, fabs(quadrupole[i]));
+  }
+  assert_true(max_quadrupole_abs > 1.0e-6);
+  double trace = quadrupole[0] + quadrupole[3] + quadrupole[5];
+  assert_true(fabs(trace) < 1.0e-7 * fmax(1.0, max_quadrupole_abs));
+
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_status = nwchemc_session_calculate_optimize(
+      session, step_stretched, step_stretched_size, optimized_positions, 6);
+  if (!optimize_status.ok)
+    fail_msg("nwchemc_session_calculate_optimize failed: %s",
+             optimize_status.message);
+  assert_finite_positions(optimized_positions, 6);
+  double optimized_bond = h2_bond_length(optimized_positions);
+  assert_true(optimized_bond > 0.5);
+  assert_true(optimized_bond < 1.0);
+
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequencies_status = nwchemc_session_calculate_frequencies(
+      session, step_eq, step_eq_size, frequencies, 6, intensities, 6);
+  if (!frequencies_status.ok)
+    fail_msg("nwchemc_session_calculate_frequencies failed: %s",
+             frequencies_status.message);
+  double max_frequency_abs = 0.0;
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(frequencies[i]))
+      fail_msg("non-finite session frequency[%d]", i);
+    if (!isfinite(intensities[i]))
+      fail_msg("non-finite session intensity[%d]", i);
+    max_frequency_abs = fmax(max_frequency_abs, fabs(frequencies[i]));
+  }
+  assert_true(max_frequency_abs > 1.0);
+
+  nwchemc_session_destroy(session);
+  free(step_stretched);
+  free(step_eq);
+  free(params);
+}
+
 static void test_calculate_hessian_and_dipole_one_shot(void **state) {
   (void)state;
   assert_true(nwchemc_available());
@@ -692,6 +796,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(
           test_session_named_energy_and_forces_results_reuse_config),
       cmocka_unit_test(test_session_named_property_and_structural_results),
+      cmocka_unit_test(test_session_raw_property_and_structural_buffers),
       cmocka_unit_test(test_calculate_hessian_and_dipole_one_shot),
       cmocka_unit_test(test_calculate_optimize_returns_final_geometry),
   };
