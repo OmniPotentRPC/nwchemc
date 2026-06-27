@@ -427,6 +427,7 @@ pseudopotential selection:
 | ~entries[].libraryName~ | Library or file token used by NWChem. |
 | ~entries[].allElements~ | NWChem ~*~ default entry for every element. |
 | ~pspSpin~ | ~pspspin on~ or ~pspspin off~. |
+| ~semicoreSmall~ | ~set nwpw:psp:semicore_small logical <value>~. |
 | ~spinRules[].channel~ | ~up~ or ~down~ channel for indexed ~pspspin~ rules. |
 | ~spinRules[].angularMomentum~ | ~s~, ~p~, ~d~, or ~f~ angular-momentum selector. |
 | ~spinRules[].scale~ | Numeric spin-scaling factor. |
@@ -447,8 +448,11 @@ fallback RTDB keys such as ~*:pspw_library~, ~*:pspw_library_type~, and
 ~pspSpin~ is structured so callers do not need a free-form directive for the
 common ~pspspin~ reset. In embed mode, ~pspSpin = disabled~ writes
 ~nwpw:pspspin~ = false and ~nwpw:pspspin_count~ = 0 directly, matching
-~nwpw_input.F~. ~spinRules~ cover the indexed ~pspspin up/down~ spin-scaling
-grammar without using free-form directives. Full-deck rendering emits lines
+~nwpw_input.F~. ~semicoreSmall~ writes the
+~nwpw:psp:semicore_small~ logical key used by NWPW semicore force and stress
+kernels, rendering as a top-level ~set~ directive in full decks and as a typed
+RTDB value in embed mode. ~spinRules~ cover the indexed ~pspspin up/down~
+spin-scaling grammar without using free-form directives. Full-deck rendering emits lines
 such as ~pspspin up p 1.25 1 3~ and
 ~pspspin not_m 0 down d 0.75 2~. Embed rendering omits those lines and writes
 ~nwpw:pspspin~ = true, ~nwpw:pspspin_count~, and indexed RTDB entries with
@@ -554,7 +558,7 @@ top-level convenience index for ~NWChemParams~.
 * Coverage Model
 Typed fields cover the ABI-critical method, charge, multiplicity, directory,
 DFT smearing controls, NWPW Brillouin-zone grids, and NWPW pseudopotential
-library selection.
+library selection and semicore controls.
 Known module stanzas represent the normal NWChem block vocabulary with enum
 selection and tokenized directives.
 The generic stanza and directive model represents arbitrary named NWChem blocks

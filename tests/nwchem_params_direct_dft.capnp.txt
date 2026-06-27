@@ -231,7 +231,8 @@
           (element = "N", libraryType = teter, libraryName = "N.teter"),
           (allElements = true, libraryType = pspwLibrary, libraryName = "pspw_default")
         ],
-        pspSpin = disabled
+        pspSpin = disabled,
+        semicoreSmall = enabled
       )
     )
   ]

@@ -128,7 +128,8 @@ The schema contains typed stanzas for:
 - raw NWChem fragments
 - module blocks backed by the ~NWChemModuleName~ enum
 - ~nwpw~ pseudopotential blocks with library, PSPW, PAW, CPI, and Teter entries
-  plus structured ~allElements~ default entries and ~pspspin~ mode
+  plus structured ~allElements~ default entries, ~pspspin~ mode, and the
+  semicore-small RTDB toggle
 - ~nwpw~ cutoff controls for energy, wavefunction, Ewald real-space, and Ewald
   reciprocal-space cutoffs
 - ~nwpw~ state controls and simple named exchange-correlation functionals
@@ -393,8 +394,9 @@ rendering omits the structured library entries and promotes
 ~pspSpin = disabled~ to the direct ~nwpw:pspspin~ and
 ~nwpw:pspspin_count~ RTDB reset keys. Indexed ~pspspin up/down~ spin-scaling
 rules are walked with ~nwchemc_params_for_each_direct_pseudopotential_spin_rule~
-as generated c-capnproto structs and promoted to typed RTDB values. Extra
-directives stay in text.
+as generated c-capnproto structs and promoted to typed RTDB values.
+~semicoreSmall~ promotes to the ~nwpw:psp:semicore_small~ logical RTDB key
+read by NWPW semicore force and stress kernels. Extra directives stay in text.
 
 The fixed-form bridge writes:
 
@@ -406,6 +408,7 @@ The fixed-form bridge writes:
 | ~teter~ | ~<element>:pspw_library~, ~<element>:pspw_library_type~ = 3, ~<element>:psp_reset~ = true |
 | ~allElements~ | same keys with ~*~ as the element target |
 | ~pspSpin = disabled~ | ~nwpw:pspspin~ = false, ~nwpw:pspspin_count~ = 0 |
+| ~semicoreSmall~ | ~nwpw:psp:semicore_small~ logical |
 | ~spinRules[]~ | ~nwpw:pspspin~ = true, ~nwpw:pspspin_count~, ~nwpw:pspspin_iamup:_000001~, channel-specific ~scale~, ~l~, optional ~m~, and ~ions~ keys |
 
 The ~nwchem-pseudopotential-rtdb~ integration test initializes a real NWChem

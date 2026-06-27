@@ -699,6 +699,19 @@ static int render_pseudopotential_spin_rules(
   return 0;
 }
 
+static const char *pseudopotential_semicore_small_logical(
+    enum NWChemToggle toggle) {
+  switch (toggle) {
+  case NWChemToggle_enabled:
+    return "true";
+  case NWChemToggle_disabled:
+    return "false";
+  case NWChemToggle_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
                                          char *dst, size_t dst_size,
                                          int include_direct_entries) {
@@ -735,6 +748,13 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
       strcmp(block, "nwpw\n") == 0)
     return 0;
   if (append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  const char *semicore_small = pseudopotential_semicore_small_logical(
+      pseudopotential.semicoreSmall);
+  if (include_direct_entries && semicore_small &&
+      append_format(block, sizeof(block),
+                    "\nset nwpw:psp:semicore_small logical %s",
+                    semicore_small) != 0)
     return -1;
   return append_block(dst, dst_size, block);
 }
@@ -3227,14 +3247,15 @@ int nwchemc_params_extract_direct_pseudopotentials(
 
 int nwchemc_params_extract_direct_pseudopotential_spin(
     NWChemParams_ptr params, int *has_options, int *pspspin_enabled,
-    int *pspspin_count) {
+    int *pspspin_count, int *semicore_small) {
   if (params.p.type == CAPN_NULL || !has_options || !pspspin_enabled ||
-      !pspspin_count)
+      !pspspin_count || !semicore_small)
     return -1;
 
   *has_options = 0;
   *pspspin_enabled = 0;
   *pspspin_count = 0;
+  *semicore_small = NWChemToggle_unspecified;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -3252,6 +3273,10 @@ int nwchemc_params_extract_direct_pseudopotential_spin(
     struct NWChemPseudopotentialStanza pseudopotential;
     read_NWChemPseudopotentialStanza(&pseudopotential,
                                      stanza.pseudopotential);
+    if (pseudopotential.semicoreSmall != NWChemToggle_unspecified) {
+      *has_options = 1;
+      *semicore_small = pseudopotential.semicoreSmall;
+    }
     if (pseudopotential.pspSpin ==
         NWChemPseudopotentialSpinMode_disabled) {
       *has_options = 1;

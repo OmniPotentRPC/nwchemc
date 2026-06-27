@@ -232,6 +232,7 @@ struct NWChemPseudopotentialStanza {
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
   pspSpin    @2 :NWChemPseudopotentialSpinMode = unspecified; # Emit pspspin on/off.
   spinRules  @3 :List(NWChemPseudopotentialSpinRule); # Emit/promote pspspin up/down scaling rules.
+  semicoreSmall @4 :NWChemToggle = unspecified; # Promote nwpw:psp:semicore_small.
 }
 
 struct NWChemKVector {

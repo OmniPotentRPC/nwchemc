@@ -134,7 +134,7 @@ int nwchemc_params_extract_direct_pseudopotentials(
 
 int nwchemc_params_extract_direct_pseudopotential_spin(
     NWChemParams_ptr params, int *has_options, int *pspspin_enabled,
-    int *pspspin_count);
+    int *pspspin_count, int *semicore_small);
 
 int nwchemc_params_extract_direct_set_strings(NWChemParams_ptr params,
                                               capn_text *keys,

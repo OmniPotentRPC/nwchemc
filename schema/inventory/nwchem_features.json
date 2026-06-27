@@ -1863,6 +1863,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemPseudopotentialStanza.semicoreSmall",
+      "schema_path": "NWChemPseudopotentialStanza.semicoreSmall",
+      "struct": "NWChemPseudopotentialStanza",
+      "name": "semicoreSmall",
+      "field_id": 4,
+      "type": "NWChemToggle = unspecified",
+      "role": "NWChemPseudopotentialStanza.semicoreSmall Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemKVector.x",
       "schema_path": "NWChemKVector.x",
       "struct": "NWChemKVector",
