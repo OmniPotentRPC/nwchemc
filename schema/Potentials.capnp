@@ -445,6 +445,10 @@ struct NWChemNwpwStanza {
   fmm                         @76 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW fmm.
   fmmLmax                     @77 :Int32 = 0;       # NWPW fmm lmax value.
   fmmLongRange                @78 :Int32 = 0;       # NWPW fmm lr value.
+  born                        @79 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW Born solvation.
+  bornDielectric              @80 :Float64 = 0.0;   # NWPW born dielectric value.
+  bornRelax                   @81 :NWChemNwpwToggle = unspecified; # NWPW born relax flag.
+  bornVRadiiAngstrom          @82 :List(Float64);    # NWPW born input radii in Angstrom.
 }
 
 # @struct NWChemScfStanza

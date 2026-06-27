@@ -2228,6 +2228,47 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       fmm_lmax, fmm_long_range) != 0)
       return -1;
   }
+  capn_list64 born_vradii_angstrom = nwpw.bornVRadiiAngstrom;
+  capn_resolve(&born_vradii_angstrom.p);
+  int nborn_vradii = 0;
+  if (born_vradii_angstrom.p.type != CAPN_NULL) {
+    if (born_vradii_angstrom.p.type != CAPN_LIST ||
+        born_vradii_angstrom.p.datasz != 8)
+      return -1;
+    nborn_vradii = born_vradii_angstrom.p.len;
+  }
+  const int has_born = nwpw.born != NWChemNwpwToggle_unspecified ||
+                       nwpw.bornDielectric > 0.0 ||
+                       nwpw.bornRelax != NWChemNwpwToggle_unspecified ||
+                       nborn_vradii > 0;
+  if (include_direct_promoted && has_born) {
+    const int born_enabled = nwpw.born != NWChemNwpwToggle_disabled;
+    if (!born_enabled) {
+      if (append_format(block, sizeof(block), "  born false\n") != 0)
+        return -1;
+    } else {
+      if (append_format(block, sizeof(block), "  born") != 0)
+        return -1;
+      if (nwpw.bornDielectric > 0.0 &&
+          append_format(block, sizeof(block), " %.15g",
+                        nwpw.bornDielectric) != 0)
+        return -1;
+      if (nwpw.bornRelax != NWChemNwpwToggle_unspecified) {
+        const char *relax =
+            nwpw.bornRelax == NWChemNwpwToggle_enabled ? "true" : "false";
+        if (append_format(block, sizeof(block), " relax %s", relax) != 0)
+          return -1;
+      }
+      for (int i = 0; i < nborn_vradii; ++i) {
+        double radius =
+            capn_to_f64(capn_get64(born_vradii_angstrom, i));
+        if (append_format(block, sizeof(block), " %.15g", radius) != 0)
+          return -1;
+      }
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3599,6 +3640,68 @@ int nwchemc_params_extract_direct_nwpw_fmm(NWChemParams_ptr params,
                                                     : nwpw.fmm;
     *fmm_lmax = nwpw.fmmLmax > 0 ? nwpw.fmmLmax : 10;
     *fmm_long_range = nwpw.fmmLongRange > 0 ? nwpw.fmmLongRange : 1;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_born(
+    NWChemParams_ptr params, int *has_options, int *born, double *dielectric,
+    int *relax, double *vradii_angstrom, size_t vradii_capacity,
+    size_t *vradii_count) {
+  if (params.p.type == CAPN_NULL || !has_options || !born || !dielectric ||
+      !relax || !vradii_count)
+    return -1;
+
+  *has_options = 0;
+  *born = NWChemNwpwToggle_unspecified;
+  *dielectric = 0.0;
+  *relax = NWChemNwpwToggle_unspecified;
+  *vradii_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    capn_list64 born_vradii = nwpw.bornVRadiiAngstrom;
+    capn_resolve(&born_vradii.p);
+    int nradii = 0;
+    if (born_vradii.p.type != CAPN_NULL) {
+      if (born_vradii.p.type != CAPN_LIST || born_vradii.p.datasz != 8)
+        return -1;
+      nradii = born_vradii.p.len;
+    }
+    const int has_born = nwpw.born != NWChemNwpwToggle_unspecified ||
+                         nwpw.bornDielectric > 0.0 ||
+                         nwpw.bornRelax != NWChemNwpwToggle_unspecified ||
+                         nradii > 0;
+    if (!has_born)
+      continue;
+
+    *has_options = 1;
+    *born = nwpw.born == NWChemNwpwToggle_unspecified
+                ? NWChemNwpwToggle_enabled
+                : nwpw.born;
+    *dielectric = nwpw.bornDielectric;
+    *relax = nwpw.bornRelax;
+    *vradii_count = (size_t)nradii;
+    if (nradii > 0 && vradii_angstrom) {
+      if ((size_t)nradii > vradii_capacity)
+        return -1;
+      for (int j = 0; j < nradii; ++j)
+        vradii_angstrom[j] = capn_to_f64(capn_get64(born_vradii, j));
+    }
   }
 
   return 0;

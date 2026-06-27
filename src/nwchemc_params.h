@@ -145,6 +145,11 @@ int nwchemc_params_extract_direct_nwpw_fmm(NWChemParams_ptr params,
                                            int *fmm_lmax,
                                            int *fmm_long_range);
 
+int nwchemc_params_extract_direct_nwpw_born(
+    NWChemParams_ptr params, int *has_options, int *born, double *dielectric,
+    int *relax, double *vradii_angstrom, size_t vradii_capacity,
+    size_t *vradii_count);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

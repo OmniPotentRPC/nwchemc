@@ -229,6 +229,10 @@ RTDB values directly:
 | ~rhoUseSymmetry~ | ~symmetry true~ or ~false~ | ~nwpw:rho_use_symmetry~ |
 | ~fmm~ | ~fmm true~ or ~false~ | ~nwpw:fmm~ |
 | ~fmmLmax~, ~fmmLongRange~ | ~fmm <state> <lmax> <lr>~ | ~nwpw:fmm_lmax~, ~nwpw:fmm_lr~ |
+| ~born~ | ~born true~ or ~false~ | ~nwpw:born~ |
+| ~bornDielectric~ | first numeric argument in ~born <dielec> ...~ | ~nwpw:born_dielec~ |
+| ~bornRelax~ | ~relax true~ or ~false~ in ~born~ | ~nwpw:born_relax~ |
+| ~bornVRadiiAngstrom~ | trailing input radii in ~born~ | ~nwpw:born_vradii~ in Bohr |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

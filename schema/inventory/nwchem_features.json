@@ -3135,6 +3135,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.born",
+      "schema_path": "NWChemNwpwStanza.born",
+      "struct": "NWChemNwpwStanza",
+      "name": "born",
+      "field_id": 79,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.born Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.bornDielectric",
+      "schema_path": "NWChemNwpwStanza.bornDielectric",
+      "struct": "NWChemNwpwStanza",
+      "name": "bornDielectric",
+      "field_id": 80,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.bornDielectric Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.bornRelax",
+      "schema_path": "NWChemNwpwStanza.bornRelax",
+      "struct": "NWChemNwpwStanza",
+      "name": "bornRelax",
+      "field_id": 81,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.bornRelax Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.bornVRadiiAngstrom",
+      "schema_path": "NWChemNwpwStanza.bornVRadiiAngstrom",
+      "struct": "NWChemNwpwStanza",
+      "name": "bornVRadiiAngstrom",
+      "field_id": 82,
+      "type": "List(Float64)",
+      "role": "NWChemNwpwStanza.bornVRadiiAngstrom Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

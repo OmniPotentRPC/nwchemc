@@ -153,7 +153,7 @@ enum {
   NWCHEMC_DIRECT_PSP_MAX = 64,
   NWCHEMC_DIRECT_PSP_ELEMENT_LEN = 16,
   NWCHEMC_DIRECT_PSP_NAME_LEN = 256,
-  NWCHEMC_DIRECT_SET_MAX = 192,
+  NWCHEMC_DIRECT_SET_MAX = 256,
   NWCHEMC_DIRECT_SET_VALUE_MAX = 64,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
   NWCHEMC_DIRECT_SET_VALUE_LEN = 256,
@@ -1576,6 +1576,18 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_fmm_has_options, &nwpw_fmm, &nwpw_fmm_lmax,
           &nwpw_fmm_long_range) != 0)
     return -1;
+  int nwpw_born_has_options = 0;
+  int nwpw_born = NWChemNwpwToggle_unspecified;
+  double nwpw_born_dielectric = 0.0;
+  int nwpw_born_relax = NWChemNwpwToggle_unspecified;
+  double nwpw_born_vradii_angstrom[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0.0};
+  size_t nwpw_born_vradii_count = 0;
+  if (nwchemc_params_extract_direct_nwpw_born(
+          params_root, &nwpw_born_has_options, &nwpw_born,
+          &nwpw_born_dielectric, &nwpw_born_relax,
+          nwpw_born_vradii_angstrom, NWCHEMC_DIRECT_SET_VALUE_MAX,
+          &nwpw_born_vradii_count) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2661,6 +2673,62 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "nwpw:fmm_lr",
             NWCHEMC_DIRECT_SET_VALUE_INTEGER, long_range_value) != 0)
       return -1;
+  }
+  if (nwpw_born_has_options) {
+    const char *born_value =
+        nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_born);
+    if (born_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:born", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+            born_value) != 0)
+      return -1;
+    if (nwpw_born_dielectric > 0.0) {
+      char dielectric_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(dielectric_value, sizeof(dielectric_value), "%.15g",
+               nwpw_born_dielectric);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:born_dielec",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, dielectric_value) != 0)
+        return -1;
+    }
+    if (nwpw_born_relax != NWChemNwpwToggle_unspecified) {
+      const char *relax_value =
+          nwpw_toggle_logical_value((enum NWChemNwpwToggle)nwpw_born_relax);
+      if (relax_value &&
+          append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:born_relax",
+              NWCHEMC_DIRECT_SET_VALUE_LOGICAL, relax_value) != 0)
+        return -1;
+    }
+    if (nwpw_born == NWChemNwpwToggle_enabled &&
+        nwpw_born_vradii_count > 0) {
+      char radius_values_storage[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                                [NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *radius_values[NWCHEMC_DIRECT_SET_VALUE_MAX];
+      for (size_t i = 0; i < nwpw_born_vradii_count; ++i) {
+        double radius_bohr = nwpw_born_vradii_angstrom[i] / 0.529177;
+        snprintf(radius_values_storage[i], sizeof(radius_values_storage[i]),
+                 "%.15g", radius_bohr);
+        radius_values[i] = radius_values_storage[i];
+      }
+      if (append_direct_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:born_vradii",
+              NWCHEMC_DIRECT_SET_VALUE_DOUBLE, radius_values,
+              nwpw_born_vradii_count) != 0)
+        return -1;
+    }
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

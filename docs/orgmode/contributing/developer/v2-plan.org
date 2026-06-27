@@ -112,7 +112,10 @@ the ~nwpw:fast_erf~ logical key directly. Dipole motion controls write the
 ~nwpw:dipole_motion~ logical key and optional
 ~nwpw:dipole_motion_filename~ text key directly. Rho symmetry controls write
 the ~nwpw:rho_use_symmetry~ logical key directly. FMM controls write
-~nwpw:fmm~, ~nwpw:fmm_lmax~, and ~nwpw:fmm_lr~ directly. Structured
+~nwpw:fmm~, ~nwpw:fmm_lmax~, and ~nwpw:fmm_lr~ directly. Born solvation
+controls write ~nwpw:born~, ~nwpw:born_dielec~, ~nwpw:born_relax~, and
+~nwpw:born_vradii~ directly; the Cap'n Proto radii field uses Angstrom
+input values and the direct RTDB path stores Bohr values. Structured
 simulation-cell controls write boundary conditions, 3x3 cell vectors, FFT
 grids, small grids, box delta, box orientation, and box-type state to the
 matching ~<cell>:*~ RTDB keys.
@@ -325,6 +328,10 @@ module prefix:
 | ~rhoUseSymmetry~ | ~rho_use_symmetry~ | ~nwpw~ |
 | ~fmm~ | ~fmm~ | ~nwpw~ |
 | ~fmmLmax~ / ~fmmLongRange~ | ~fmm_lmax~ / ~fmm_lr~ | ~nwpw~ |
+| ~born~ | ~born~ | ~nwpw~ |
+| ~bornDielectric~ | ~born_dielec~ | ~nwpw~ |
+| ~bornRelax~ | ~born_relax~ | ~nwpw~ |
+| ~bornVRadiiAngstrom~ | ~born_vradii~ | ~nwpw~ |
 | ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
 | ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
 | ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |
