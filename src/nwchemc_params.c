@@ -2436,6 +2436,23 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         return -1;
     }
   }
+  int nvfield_filenames = pointer_list_len(&nwpw.vfieldFilenames);
+  if (nvfield_filenames < 0)
+    return -1;
+  if (include_direct_promoted && nvfield_filenames > 0) {
+    if (append_format(block, sizeof(block), "  vfield") != 0)
+      return -1;
+    for (int i = 0; i < nvfield_filenames; ++i) {
+      capn_text filename = capn_get_text(nwpw.vfieldFilenames, i, empty_text);
+      if (filename.len <= 0)
+        continue;
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), filename) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   const char *cpmd_properties_logical =
       nwpw_toggle_logical_keyword(nwpw.cpmdProperties);
   if (include_direct_promoted && cpmd_properties_logical &&
@@ -4089,6 +4106,49 @@ int nwchemc_params_extract_direct_nwpw_born(
         return -1;
       for (int j = 0; j < nradii; ++j)
         vradii_angstrom[j] = capn_to_f64(capn_get64(born_vradii, j));
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_vfield(
+    NWChemParams_ptr params, int *has_options, capn_text *filenames,
+    size_t filename_capacity, size_t *filename_count) {
+  if (params.p.type == CAPN_NULL || !has_options || !filename_count)
+    return -1;
+
+  *has_options = 0;
+  *filename_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    int nfilenames = pointer_list_len(&nwpw.vfieldFilenames);
+    if (nfilenames < 0)
+      return -1;
+    if (nfilenames == 0)
+      continue;
+
+    *has_options = 1;
+    *filename_count = (size_t)nfilenames;
+    if (filenames) {
+      if ((size_t)nfilenames > filename_capacity)
+        return -1;
+      for (int j = 0; j < nfilenames; ++j)
+        filenames[j] = capn_get_text(nwpw.vfieldFilenames, j, empty_text);
     }
   }
 

@@ -308,6 +308,30 @@ static int append_direct_string_value(capn_text *keys, capn_text *values,
   return 0;
 }
 
+static int append_owned_direct_string_value(
+    capn_text *keys, capn_text *values, size_t capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_LEN], const char *key,
+    const char *value) {
+  if (!keys || !values || !count || !key_storage || !value_storage || !key ||
+      !value)
+    return -1;
+  if (*count >= capacity)
+    return -1;
+  int nkey = snprintf(key_storage[*count], NWCHEMC_DIRECT_SET_KEY_LEN, "%s",
+                      key);
+  if (nkey < 0 || (size_t)nkey >= NWCHEMC_DIRECT_SET_KEY_LEN)
+    return -1;
+  int nvalue = snprintf(value_storage[*count], NWCHEMC_DIRECT_SET_VALUE_LEN,
+                        "%s", value);
+  if (nvalue < 0 || (size_t)nvalue >= NWCHEMC_DIRECT_SET_VALUE_LEN)
+    return -1;
+  keys[*count] = text_from_cstr(key_storage[*count]);
+  values[*count] = text_from_cstr(value_storage[*count]);
+  ++*count;
+  return 0;
+}
+
 static int append_brillouin_zone_alias_strings(NWChemParams_ptr params,
                                                capn_text *keys,
                                                capn_text *values,
@@ -1814,6 +1838,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           nwpw_born_vradii_angstrom, NWCHEMC_DIRECT_SET_VALUE_MAX,
           &nwpw_born_vradii_count) != 0)
     return -1;
+  int nwpw_vfield_has_options = 0;
+  capn_text nwpw_vfield_filenames[NWCHEMC_DIRECT_SET_VALUE_MAX];
+  size_t nwpw_vfield_count = 0;
+  if (nwchemc_params_extract_direct_nwpw_vfield(
+          params_root, &nwpw_vfield_has_options, nwpw_vfield_filenames,
+          NWCHEMC_DIRECT_SET_VALUE_MAX, &nwpw_vfield_count) != 0)
+    return -1;
   int nwpw_cpmd_grid_has_options = 0;
   int nwpw_cpmd_properties = NWChemNwpwToggle_unspecified;
   int nwpw_use_grid_comparison = NWChemNwpwToggle_unspecified;
@@ -1945,6 +1976,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   static char nwpw_direct_values[NWCHEMC_DIRECT_SET_MAX]
                                 [NWCHEMC_DIRECT_SET_VALUE_MAX]
                                 [NWCHEMC_DIRECT_SET_VALUE_LEN];
+  char nwpw_direct_string_keys[NWCHEMC_DIRECT_SET_MAX]
+                              [NWCHEMC_DIRECT_SET_KEY_LEN];
+  char nwpw_direct_string_values[NWCHEMC_DIRECT_SET_MAX]
+                                [NWCHEMC_DIRECT_SET_VALUE_LEN];
   char packed_set_keys[NWCHEMC_DIRECT_SET_MAX * NWCHEMC_DIRECT_SET_KEY_LEN];
   char packed_set_values[NWCHEMC_DIRECT_SET_MAX *
                          NWCHEMC_DIRECT_SET_VALUE_LEN];
@@ -1987,6 +2022,35 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
           &set_count) != 0)
     return -1;
+  if (nwpw_vfield_has_options && nwpw_vfield_count > 0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    size_t used = 0;
+    value[0] = '\0';
+    for (size_t i = 0; i < nwpw_vfield_count; ++i) {
+      capn_text filename = nwpw_vfield_filenames[i];
+      if (filename.len <= 0)
+        continue;
+      if (!filename.str)
+        return -1;
+      size_t len = (size_t)filename.len;
+      if (used > 0) {
+        if (used + 1 >= sizeof(value))
+          return -1;
+        value[used++] = ' ';
+      }
+      if (len >= sizeof(value) - used)
+        return -1;
+      memcpy(value + used, filename.str, len);
+      used += len;
+      value[used] = '\0';
+    }
+    if (used > 0 &&
+        append_owned_direct_string_value(
+            set_keys, set_values, NWCHEMC_DIRECT_SET_MAX, &set_count,
+            nwpw_direct_string_keys, nwpw_direct_string_values,
+            "nwpw:vfield_filenames", value) != 0)
+      return -1;
+  }
   if (nwchemc_params_extract_direct_set_values(
           params_root, typed_set_keys, typed_set_types, typed_set_value_counts,
           typed_set_values, NWCHEMC_DIRECT_SET_MAX, NWCHEMC_DIRECT_SET_VALUE_MAX,

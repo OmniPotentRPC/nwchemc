@@ -3819,6 +3819,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.vfieldFilenames",
+      "schema_path": "NWChemNwpwStanza.vfieldFilenames",
+      "struct": "NWChemNwpwStanza",
+      "name": "vfieldFilenames",
+      "field_id": 128,
+      "type": "List(Text)",
+      "role": "NWChemNwpwStanza.vfieldFilenames Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

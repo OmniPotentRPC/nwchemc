@@ -211,8 +211,9 @@ structured and promoted to direct `nwpw:*` RTDB values. Nose-Hoover thermostat
 controls expose the paired `cpmd:*` / `nwpw:*` nose, restart, period,
 temperature, and chain-length RTDB keys directly. Born solvation controls
 expose `nwpw:born`, `nwpw:born_dielec`, `nwpw:born_relax`, and
-`nwpw:born_vradii` directly. CPMD property and grid-comparison flags expose
-`nwpw:cpmd_properties` and `nwpw:use_grid_cmp` directly. Director controls
+`nwpw:born_vradii` directly. Vfield filename lists expose
+`nwpw:vfield_filenames` directly. CPMD property and grid-comparison flags
+expose `nwpw:cpmd_properties` and `nwpw:use_grid_cmp` directly. Director controls
 expose `nwpw:use_director` and `nwpw:director_filename` directly. Cell
 expansion and mapping controls expose `nwpw:cell_expand` and `nwpw:mapping`
 directly. Rotation and multipole controls expose `nwpw:rotation` and
