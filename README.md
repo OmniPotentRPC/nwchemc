@@ -135,6 +135,10 @@ unpacked flat `PotentialResult` buffer before calling
 `NWChemCResult.energy_h` in Hartree and writes `PotentialResult.energy` /
 `PotentialResult.forces` in `ForceInput.energyUnit` and
 `ForceInput.energyUnit / ForceInput.lengthUnit`.
+`ForceInput.hasCharge` / `ForceInput.charge` and
+`ForceInput.hasMultiplicity` / `ForceInput.multiplicity` can override the
+session charge or spin multiplicity for that serialized step; unset flags keep
+the values from `NWChemParams`.
 The first accepted session evaluation fixes the atom count and ordered
 atomic-number list for that session; later steps may change coordinates, units,
 and cell vectors, but atom-count or species changes require a separate session.

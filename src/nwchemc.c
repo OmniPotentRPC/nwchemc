@@ -128,6 +128,9 @@ struct NWChemCSession {
   /* Session-owned scalar state decoded from installed params. */
   int charge;
   int multiplicity;
+  int step_state_override;
+  int step_charge;
+  int step_multiplicity;
   double *step_positions_ang;
   int *step_atomic_numbers;
   size_t step_atom_capacity;
@@ -2884,9 +2887,41 @@ static int session_apply_config(NWChemCSession *session) {
 
 static void session_charge_multiplicity(NWChemCSession *session, int *charge,
                                         int *multiplicity) {
-  /* Session step calls reuse decoded scalar state. */
+  *charge =
+      session->step_state_override ? session->step_charge : session->charge;
+  *multiplicity = session->step_state_override ? session->step_multiplicity
+                                               : session->multiplicity;
+}
+
+static void session_set_step_state(NWChemCSession *session, int charge,
+                                   int multiplicity) {
+  session->step_state_override = 1;
+  session->step_charge = charge;
+  session->step_multiplicity = multiplicity;
+}
+
+static void session_clear_step_state(NWChemCSession *session) {
+  session->step_state_override = 0;
+}
+
+static int force_input_electronic_state(NWChemCSession *session,
+                                        ForceInput_ptr force_input,
+                                        int *charge, int *multiplicity) {
+  if (!session || force_input.p.type == CAPN_NULL || !charge || !multiplicity)
+    return -1;
+
+  struct ForceInput view;
+  read_ForceInput(&view, force_input);
   *charge = session->charge;
   *multiplicity = session->multiplicity;
+  if (view.hasCharge)
+    *charge = view.charge;
+  if (view.hasMultiplicity) {
+    if (view.multiplicity <= 0)
+      return -1;
+    *multiplicity = view.multiplicity;
+  }
+  return 0;
 }
 
 NWChemCSession *nwchemc_session_create(const void *params_capnp,
@@ -3321,6 +3356,14 @@ NWChemCResult nwchemc_session_calculate_forces(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -3332,10 +3375,12 @@ NWChemCResult nwchemc_session_calculate_forces(
   }
   nwchemc_params_release(&arena);
 
+  session_set_step_state(session, step_charge, step_multiplicity);
   r = session_energy_gradient_cell(session, (int)n_atoms,
                                    session->step_positions_ang,
                                    session->step_atomic_numbers, cell_ang,
                                    has_cell, forces_h_bohr);
+  session_clear_step_state(session);
   if (r.ok) {
     for (size_t i = 0; i < n_atoms * 3u; ++i)
       forces_h_bohr[i] = -forces_h_bohr[i];
@@ -3403,6 +3448,14 @@ NWChemCResult nwchemc_session_calculate_result(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -3419,10 +3472,12 @@ NWChemCResult nwchemc_session_calculate_result(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  session_set_step_state(session, step_charge, step_multiplicity);
   r = session_energy_gradient_cell(session, (int)n_atoms,
                                    session->step_positions_ang,
                                    session->step_atomic_numbers, cell_ang,
                                    has_cell, forces);
+  session_clear_step_state(session);
   if (r.ok) {
     for (size_t i = 0; i < force_count; ++i)
       forces[i] = -forces[i] * force_factor;
@@ -3709,6 +3764,14 @@ NWChemCResult nwchemc_session_calculate_hessian(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -3720,9 +3783,12 @@ NWChemCResult nwchemc_session_calculate_hessian(
   }
   nwchemc_params_release(&arena);
 
-  return session_hessian_cell(session, (int)n_atoms, session->step_positions_ang,
-                              session->step_atomic_numbers, cell_ang, has_cell,
-                              hessian_h_bohr2);
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_hessian_cell(session, (int)n_atoms, session->step_positions_ang,
+                           session->step_atomic_numbers, cell_ang, has_cell,
+                           hessian_h_bohr2);
+  session_clear_step_state(session);
+  return r;
 }
 
 NWChemCResult nwchemc_session_calculate_hessian_result(
@@ -3791,6 +3857,14 @@ NWChemCResult nwchemc_session_calculate_hessian_result(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -3807,9 +3881,11 @@ NWChemCResult nwchemc_session_calculate_hessian_result(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  session_set_step_state(session, step_charge, step_multiplicity);
   r = session_hessian_cell(session, (int)n_atoms, session->step_positions_ang,
                            session->step_atomic_numbers, cell_ang, has_cell,
                            hessian);
+  session_clear_step_state(session);
   if (r.ok) {
     for (size_t i = 0; i < hessian_count; ++i)
       hessian[i] *= hessian_factor;
@@ -3868,6 +3944,14 @@ NWChemCResult nwchemc_session_calculate_dipole(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -3879,9 +3963,12 @@ NWChemCResult nwchemc_session_calculate_dipole(
   }
   nwchemc_params_release(&arena);
 
-  return session_dipole_cell(session, (int)n_atoms, session->step_positions_ang,
-                             session->step_atomic_numbers, cell_ang, has_cell,
-                             dipole_au);
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_dipole_cell(session, (int)n_atoms, session->step_positions_ang,
+                          session->step_atomic_numbers, cell_ang, has_cell,
+                          dipole_au);
+  session_clear_step_state(session);
+  return r;
 }
 
 NWChemCResult nwchemc_session_calculate_dipole_result(
@@ -3961,6 +4048,14 @@ NWChemCResult nwchemc_session_calculate_quadrupole(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -3972,9 +4067,12 @@ NWChemCResult nwchemc_session_calculate_quadrupole(
   }
   nwchemc_params_release(&arena);
 
-  return session_quadrupole_cell(
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_quadrupole_cell(
       session, (int)n_atoms, session->step_positions_ang,
       session->step_atomic_numbers, cell_ang, has_cell, quadrupole_au);
+  session_clear_step_state(session);
+  return r;
 }
 
 NWChemCResult nwchemc_session_calculate_quadrupole_result(
@@ -4055,6 +4153,14 @@ NWChemCResult nwchemc_session_calculate_optimize(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -4066,10 +4172,13 @@ NWChemCResult nwchemc_session_calculate_optimize(
   }
   nwchemc_params_release(&arena);
 
-  return session_optimize_cell(
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_optimize_cell(
       session, (int)n_atoms, session->step_positions_ang,
       session->step_atomic_numbers, cell_ang, has_cell,
       optimized_positions_ang);
+  session_clear_step_state(session);
+  return r;
 }
 
 NWChemCResult nwchemc_session_calculate_optimize_result(
@@ -4191,6 +4300,14 @@ NWChemCResult nwchemc_session_calculate_frequencies(
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
 
   double cell_ang[9];
   if (nwchemc_force_input_copy_geometry(
@@ -4202,10 +4319,13 @@ NWChemCResult nwchemc_session_calculate_frequencies(
   }
   nwchemc_params_release(&arena);
 
-  return session_frequencies_cell(
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_frequencies_cell(
       session, (int)n_atoms, session->step_positions_ang,
       session->step_atomic_numbers, cell_ang, has_cell, frequencies_cm1,
       intensities_au);
+  session_clear_step_state(session);
+  return r;
 }
 
 NWChemCResult nwchemc_session_calculate_frequencies_result(

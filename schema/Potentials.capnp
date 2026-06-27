@@ -21,6 +21,10 @@ struct ForceInput {
   box        @2 :List(Float64); # @brief Simulation cell vectors [9] (row-major 3x3).
   lengthUnit @3 :Text = "angstrom"; # @brief Unit for positions and box vectors.
   energyUnit @4 :Text = "eV";       # @brief Unit for energy and forces output.
+  hasCharge @5 :Bool = false;       # @brief Override NWChemParams.charge for this step.
+  charge @6 :Int32 = 0;             # @brief Per-step charge when hasCharge is true.
+  hasMultiplicity @7 :Bool = false; # @brief Override NWChemParams.multiplicity for this step.
+  multiplicity @8 :Int32 = 1;       # @brief Per-step spin multiplicity when hasMultiplicity is true.
 }
 
 # @struct PotentialResult

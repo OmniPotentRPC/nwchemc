@@ -40,7 +40,8 @@ configuration carrier. The runtime does not copy the parameter tree into a
 second public configuration struct.
 Long-running callers can keep one ~NWChemParams~ configuration in a session and
 send per-step ~ForceInput~ Cap'n Proto messages for coordinates, atomic
-numbers, length units, optional cell vectors, and unit-aware
+numbers, length units, optional cell vectors, optional charge or multiplicity
+overrides, and unit-aware
 ~PotentialResult~ output.
 The first accepted session evaluation establishes the session topology from
 atom count and ordered atomic numbers. Later session evaluations reject atom
@@ -139,7 +140,7 @@ The schema contains typed stanzas for:
   ~tceMrcc~ module stanzas, plus structured classic ~ccsd~, TCE, and
   MRCCDATA controls
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
-  optional row-major 3x3 cells
+  optional row-major 3x3 cells, charge, and spin multiplicity
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
   ~PotentialResult~
 

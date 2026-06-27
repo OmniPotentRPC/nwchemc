@@ -128,6 +128,10 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.ForceInput.box", "ForceInput.box", "ForceInput.box Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
     {"field.ForceInput.lengthUnit", "ForceInput.lengthUnit", "ForceInput.lengthUnit Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 1},
     {"field.ForceInput.energyUnit", "ForceInput.energyUnit", "ForceInput.energyUnit Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 1},
+    {"field.ForceInput.hasCharge", "ForceInput.hasCharge", "ForceInput.hasCharge Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 1},
+    {"field.ForceInput.charge", "ForceInput.charge", "ForceInput.charge Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 1},
+    {"field.ForceInput.hasMultiplicity", "ForceInput.hasMultiplicity", "ForceInput.hasMultiplicity Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 1},
+    {"field.ForceInput.multiplicity", "ForceInput.multiplicity", "ForceInput.multiplicity Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 1},
     {"field.PotentialResult.energy", "PotentialResult.energy", "PotentialResult.energy Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.PotentialResult.forces", "PotentialResult.forces", "PotentialResult.forces Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.PotentialResult.hessian", "PotentialResult.hessian", "PotentialResult.hessian Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -465,7 +469,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 460;
+static const size_t k_feature_count = 464;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

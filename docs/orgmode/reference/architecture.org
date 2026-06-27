@@ -69,15 +69,19 @@ atomic-number list as the session topology. Session calls reject later
 ~ForceInput~ or raw C-array evaluations with a different topology before
 calling the embed bridge. This matches the long-running NWChem socket model:
 the configuration and topology stay fixed while coordinates, units, and cell
-vectors vary step by step. ~nwchemc_session_set_params~ may replace the
-configuration before any topology has been accepted. After the first accepted
-evaluation, parameter replacement is rejected; callers create a separate session
-for a new configuration.
+vectors vary step by step. Serialized ~ForceInput~ calls can also set
+per-step charge or spin multiplicity overrides; raw C-array session calls keep
+the values installed by ~NWChemParams~. ~nwchemc_session_set_params~ may
+replace the configuration before any topology has been accepted. After the
+first accepted evaluation, parameter replacement is rejected; callers create a
+separate session for a new configuration.
 
 The C layer keeps reusable numeric scratch for per-step positions and atomic
 numbers. It does not introduce a second configuration struct. ~ForceInput.pos~
 and ~ForceInput.box~ are copied from the Cap'n Proto message into contiguous C
 arrays with explicit unit conversion, then handed to the Fortran bridge.
+Per-step electronic-state overrides are held as temporary session state only
+for the bridge call, so the session defaults remain available to other calls.
 ~PotentialResult.energy~ and ~PotentialResult.forces~ are converted to the
 caller units named by ~ForceInput.energyUnit~ and ~ForceInput.lengthUnit~.
 ~PotentialResult.hessian~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.

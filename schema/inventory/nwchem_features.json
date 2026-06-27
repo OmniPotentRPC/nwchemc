@@ -1335,6 +1335,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.ForceInput.hasCharge",
+      "schema_path": "ForceInput.hasCharge",
+      "struct": "ForceInput",
+      "name": "hasCharge",
+      "field_id": 5,
+      "type": "Bool = false",
+      "role": "ForceInput.hasCharge Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.ForceInput.charge",
+      "schema_path": "ForceInput.charge",
+      "struct": "ForceInput",
+      "name": "charge",
+      "field_id": 6,
+      "type": "Int32 = 0",
+      "role": "ForceInput.charge Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.ForceInput.hasMultiplicity",
+      "schema_path": "ForceInput.hasMultiplicity",
+      "struct": "ForceInput",
+      "name": "hasMultiplicity",
+      "field_id": 7,
+      "type": "Bool = false",
+      "role": "ForceInput.hasMultiplicity Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.ForceInput.multiplicity",
+      "schema_path": "ForceInput.multiplicity",
+      "struct": "ForceInput",
+      "name": "multiplicity",
+      "field_id": 8,
+      "type": "Int32 = 1",
+      "role": "ForceInput.multiplicity Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.PotentialResult.energy",
       "schema_path": "PotentialResult.energy",
       "struct": "PotentialResult",
