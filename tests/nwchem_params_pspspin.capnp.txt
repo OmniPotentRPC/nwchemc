@@ -6,6 +6,9 @@
     (
       kind = pseudopotential,
       pseudopotential = (
+        entries = [
+          (element = "X", libraryName = "")
+        ],
         spinRules = [
           (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [1, 3]),
           (
