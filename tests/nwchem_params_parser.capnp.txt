@@ -258,7 +258,10 @@
         translateGeometryName = "geomA",
         translateReorder = enabled,
         socketType = "ipi_client",
-        socketIp = "127.0.0.1:31415"
+        socketIp = "127.0.0.1:31415",
+        apcSet = true,
+        apcGc = 1.25,
+        apcGamma = [0.5, 0.25, 0.125]
       )
     ),
     (

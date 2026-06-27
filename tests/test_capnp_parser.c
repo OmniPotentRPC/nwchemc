@@ -157,6 +157,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(
       strstr(input_blocks, "translate_vector 0.1 0.2 0.3 geomA reorder"));
   assert_non_null(strstr(input_blocks, "socket ipi_client 127.0.0.1:31415"));
+  assert_non_null(strstr(input_blocks, "apc 1.25 0.5 0.25 0.125"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -416,6 +417,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:translate_vector"));
   assert_null(strstr(input_blocks, "socket ipi_client"));
   assert_null(strstr(input_blocks, "nwpw:socket_type"));
+  assert_null(strstr(input_blocks, "apc 1.25"));
+  assert_null(strstr(input_blocks, "nwpw_APC:Gc"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -891,6 +894,25 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(has_socket, 1);
   assert_true(text_equals(socket_type, "ipi_client"));
   assert_true(text_equals(socket_ip, "127.0.0.1:31415"));
+
+  int has_apc = 0;
+  double apc_gc = 0.0;
+  double apc_gamma[4] = {0.0, 0.0, 0.0, 0.0};
+  size_t apc_gamma_count = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_apc(
+                       params_root, &has_apc, &apc_gc, apc_gamma, 4,
+                       &apc_gamma_count),
+                   0);
+  assert_int_equal(has_apc, 1);
+  assert_true(apc_gc > 1.249);
+  assert_true(apc_gc < 1.251);
+  assert_int_equal((int)apc_gamma_count, 3);
+  assert_true(apc_gamma[0] > 0.499);
+  assert_true(apc_gamma[0] < 0.501);
+  assert_true(apc_gamma[1] > 0.249);
+  assert_true(apc_gamma[1] < 0.251);
+  assert_true(apc_gamma[2] > 0.124);
+  assert_true(apc_gamma[2] < 0.126);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
