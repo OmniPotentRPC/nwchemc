@@ -241,6 +241,8 @@ RTDB values directly:
 | ~mapping~ | ~mapping <value>~ | ~nwpw:mapping~ |
 | ~rotation~ | ~rotation true~ or ~false~ | ~nwpw:rotation~ |
 | ~lmaxMultipole~ | ~integrate_mult_l <value>~ | ~nwpw:lmax_multipole~ |
+| ~fei~ | ~Fei~ | ~cpmd:fei~, ~nwpw:fei~ |
+| ~feiFilename~ | filename token in ~Fei <filename>~ | ~cpmd:fei_filename~, ~nwpw:fei_filename~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

@@ -459,6 +459,8 @@ struct NWChemNwpwStanza {
   mapping                     @90 :Int32 = 0;       # NWPW mapping value.
   rotation                    @91 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW rotation.
   lmaxMultipole               @92 :Int32 = -1;      # NWPW integrate_mult_l / lmax_multipole value.
+  fei                         @93 :Bool = false;    # Emit/promote NWPW Fei.
+  feiFilename                 @94 :Text = "";       # Filename token in NWPW Fei.
 }
 
 # @struct NWChemScfStanza

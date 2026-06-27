@@ -166,6 +166,9 @@ int nwchemc_params_extract_direct_nwpw_rotation_multipole(
     NWChemParams_ptr params, int *has_options, int *rotation,
     int *lmax_multipole);
 
+int nwchemc_params_extract_direct_nwpw_fei(
+    NWChemParams_ptr params, int *has_options, int *fei, capn_text *filename);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

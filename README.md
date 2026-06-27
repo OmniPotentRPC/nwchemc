@@ -216,7 +216,9 @@ expose `nwpw:born`, `nwpw:born_dielec`, `nwpw:born_relax`, and
 expose `nwpw:use_director` and `nwpw:director_filename` directly. Cell
 expansion and mapping controls expose `nwpw:cell_expand` and `nwpw:mapping`
 directly. Rotation and multipole controls expose `nwpw:rotation` and
-`nwpw:lmax_multipole` directly. NWPW Brillouin-zone and
+`nwpw:lmax_multipole` directly. FEI controls expose the paired
+`cpmd:fei`, `nwpw:fei`, `cpmd:fei_filename`, and `nwpw:fei_filename` keys
+directly. NWPW Brillouin-zone and
 simulation-cell stanzas cover k-point grids, explicit k-vectors, boundary
 conditions, 3x3 cell vectors, FFT grids, and related periodic-cell RTDB state.
 Classic CCSD scalar controls cover iteration, threshold, DIIS, frozen-orbital,

@@ -1616,6 +1616,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_rotation_multipole_has_options, &nwpw_rotation,
           &nwpw_lmax_multipole) != 0)
     return -1;
+  int nwpw_fei_has_options = 0;
+  int nwpw_fei = 0;
+  capn_text nwpw_fei_filename = {0};
+  if (nwchemc_params_extract_direct_nwpw_fei(
+          params_root, &nwpw_fei_has_options, &nwpw_fei,
+          &nwpw_fei_filename) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2854,6 +2861,42 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
               nwpw_direct_keys, nwpw_direct_values, "nwpw:lmax_multipole",
               NWCHEMC_DIRECT_SET_VALUE_INTEGER, lmax_value) != 0)
+        return -1;
+    }
+  }
+  if (nwpw_fei_has_options) {
+    if (nwpw_fei_filename.len > 0) {
+      char filename[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      copy_text_record(filename, sizeof(filename), nwpw_fei_filename);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "cpmd:fei_filename",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, filename) != 0)
+        return -1;
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:fei_filename",
+              NWCHEMC_DIRECT_SET_VALUE_TEXT, filename) != 0)
+        return -1;
+    }
+    if (nwpw_fei) {
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "cpmd:fei",
+              NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
+        return -1;
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:fei",
+              NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true") != 0)
         return -1;
     }
   }

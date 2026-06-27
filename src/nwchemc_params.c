@@ -2316,6 +2316,16 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  integrate_mult_l %d\n",
                     nwpw.lmaxMultipole) != 0)
     return -1;
+  if (include_direct_promoted && (nwpw.fei || nwpw.feiFilename.len > 0)) {
+    if (append_format(block, sizeof(block), "  Fei") != 0)
+      return -1;
+    if (nwpw.feiFilename.len > 0 &&
+        (append_format(block, sizeof(block), " ") != 0 ||
+         append_text(block, sizeof(block), nwpw.feiFilename) != 0))
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3911,6 +3921,41 @@ int nwchemc_params_extract_direct_nwpw_rotation_multipole(
       *has_options = 1;
       *lmax_multipole = nwpw.lmaxMultipole;
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_fei(
+    NWChemParams_ptr params, int *has_options, int *fei, capn_text *filename) {
+  if (params.p.type == CAPN_NULL || !has_options || !fei || !filename)
+    return -1;
+
+  *has_options = 0;
+  *fei = 0;
+  *filename = (capn_text){0};
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (!nwpw.fei && nwpw.feiFilename.len <= 0)
+      continue;
+
+    *has_options = 1;
+    *fei = 1;
+    *filename = nwpw.feiFilename;
   }
 
   return 0;

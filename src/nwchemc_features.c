@@ -292,6 +292,8 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.mapping", "NWChemNwpwStanza.mapping", "NWChemNwpwStanza.mapping Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 90, 1, 1},
     {"field.NWChemNwpwStanza.rotation", "NWChemNwpwStanza.rotation", "NWChemNwpwStanza.rotation Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 91, 1, 1},
     {"field.NWChemNwpwStanza.lmaxMultipole", "NWChemNwpwStanza.lmaxMultipole", "NWChemNwpwStanza.lmaxMultipole Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 92, 1, 1},
+    {"field.NWChemNwpwStanza.fei", "NWChemNwpwStanza.fei", "NWChemNwpwStanza.fei Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 93, 1, 1},
+    {"field.NWChemNwpwStanza.feiFilename", "NWChemNwpwStanza.feiFilename", "NWChemNwpwStanza.feiFilename Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 94, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -517,7 +519,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 512;
+static const size_t k_feature_count = 514;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
