@@ -218,6 +218,7 @@
         bornVRadiiAngstrom = [0.529177, 1.058354],
         vfieldFilenames = ["vf_a.ascii", "vf_b.ascii"],
         singlePrecisionHfx = true,
+        geometryOptimize = true,
         dosAlphaSet = true,
         dosAlpha = 0.0025,
         dosNpointsSet = true,
