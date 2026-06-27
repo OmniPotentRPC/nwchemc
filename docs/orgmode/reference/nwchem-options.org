@@ -183,7 +183,7 @@ RTDB values directly:
 | ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ | ~cgsd:tolerances~, ~band:tolerances~ |
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ | ~cgsd:exchange_correlation~, ~band:exchange_correlation~, ~cpsd:exchange_correlation~, ~cpmd:exchange_correlation~ |
 | ~balanceMode~ | ~balance~ or ~nobalance~ | ~nwpw:balance~ |
-| ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~ | ~nwpw:bo_steps~ |
+| ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~; omitted ~end~ defaults to ~100~ | ~nwpw:bo_steps~ |
 | ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~ | ~nwpw:bo_steps~ |
 | ~boTimeStep~ | ~bo_time_step <value>~ | ~nwpw:bo_time_step~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ | ~nwpw:bo_algorithm~ |
@@ -415,7 +415,7 @@ controls:
 | ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ |
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ |
 | ~balanceMode~ | ~balance~ or ~nobalance~ |
-| ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~ |
+| ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~; omitted ~end~ defaults to ~100~ |
 | ~mcStepStart~, ~mcStepEnd~ | ~mc_steps <start> <end>~ |
 | ~boTimeStep~ | ~bo_time_step <value>~ |
 | ~boAlgorithm~ | ~bo_algorithm verlet~, ~velocity-verlet~, or ~leap-frog~ |
