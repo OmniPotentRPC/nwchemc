@@ -441,6 +441,8 @@ Simple ~exchangeCorrelation~ names use the direct RTDB path. Use
 | ~monkhorstPackX~, ~monkhorstPackY~, ~monkhorstPackZ~ | ~monkhorst-pack <x> <y> <z> [zone]~ | ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:monkhorst-pack~ |
 | ~kVectors[]~ | nested ~brillouin_zone~ / ~kvector x y z weight~ entries | ~<zone>:number_kvectors~, ~<zone>:kvectors~ |
 | ~maxKpointsPrint~ | nested ~max_kpoints_print <n>~ | ~<zone>:number_kvectors_print~ |
+| ~zoneStructureName~ | top-level ~zone_structure_name <name>~ | ~band_structure:zone_name~ |
+| ~zoneFftName~ | top-level ~zone_fft_name <name>~ | ~band_fft:zone_name~ |
 | ~directives~ | Extra nested ~brillouin_zone~ directives | full-input text path |
 
 The embed path generates Monkhorst-Pack k-vectors directly from the numeric grid

@@ -250,6 +250,8 @@ struct NWChemBrillouinZoneStanza {
   monkhorstPackY    @4 :Int32 = 0; # Second monkhorst-pack grid value.
   monkhorstPackZ    @5 :Int32 = 0; # Third monkhorst-pack grid value.
   directives        @6 :List(NWChemDirective);
+  zoneStructureName @7 :Text = ""; # Emit/promote band_structure:zone_name.
+  zoneFftName       @8 :Text = ""; # Emit/promote band_fft:zone_name.
 }
 
 enum NWChemSimulationCellLatticeKind {

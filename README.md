@@ -232,7 +232,8 @@ SCF numeric controls expose `nwpw:kerker_g0`, `nwpw:ks_alpha`,
 `nwpw:ks_maxit_orb`, `nwpw:ks_maxit_orbs`, and `nwpw:diis_histories` directly.
 NWPW Brillouin-zone and
 simulation-cell stanzas cover k-point grids, explicit k-vectors, boundary
-conditions, 3x3 cell vectors, FFT grids, and related periodic-cell RTDB state.
+conditions, zone aliases, 3x3 cell vectors, FFT grids, and related periodic-cell
+RTDB state.
 Classic CCSD scalar controls cover iteration, threshold, DIIS, frozen-orbital,
 disk-use, and SCS scaling settings through direct `ccsd:*` RTDB writes.
 

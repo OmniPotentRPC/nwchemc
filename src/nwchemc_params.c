@@ -786,7 +786,8 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
   if (has_directives < 0)
     return -1;
   if (!has_monkhorst && nk == 0 && zone.maxKpointsPrint <= 0 &&
-      !has_directives && zone.zoneName.len <= 0)
+      !has_directives && zone.zoneName.len <= 0 &&
+      zone.zoneStructureName.len <= 0 && zone.zoneFftName.len <= 0)
     return 0;
 
   if (append_format(block, sizeof(block), "nwpw\n") != 0)
@@ -831,6 +832,18 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
   if (zone.zoneName.len > 0) {
     if (append_format(block, sizeof(block), "  zone_name ") != 0 ||
         append_text(block, sizeof(block), zone.zoneName) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (zone.zoneStructureName.len > 0) {
+    if (append_format(block, sizeof(block), "  zone_structure_name ") != 0 ||
+        append_text(block, sizeof(block), zone.zoneStructureName) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (zone.zoneFftName.len > 0) {
+    if (append_format(block, sizeof(block), "  zone_fft_name ") != 0 ||
+        append_text(block, sizeof(block), zone.zoneFftName) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }

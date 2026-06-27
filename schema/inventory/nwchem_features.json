@@ -2007,6 +2007,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemBrillouinZoneStanza.zoneStructureName",
+      "schema_path": "NWChemBrillouinZoneStanza.zoneStructureName",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "zoneStructureName",
+      "field_id": 7,
+      "type": "Text = \"\"",
+      "role": "NWChemBrillouinZoneStanza.zoneStructureName Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.zoneFftName",
+      "schema_path": "NWChemBrillouinZoneStanza.zoneFftName",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "zoneFftName",
+      "field_id": 8,
+      "type": "Text = \"\"",
+      "role": "NWChemBrillouinZoneStanza.zoneFftName Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemSimulationCellStanza.cellName",
       "schema_path": "NWChemSimulationCellStanza.cellName",
       "struct": "NWChemSimulationCellStanza",

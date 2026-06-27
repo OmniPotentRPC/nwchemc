@@ -293,6 +293,57 @@ static int append_direct_typed_value(
                                     value_type, value_list, 1);
 }
 
+static int append_direct_string_value(capn_text *keys, capn_text *values,
+                                      size_t capacity, size_t *count,
+                                      const char *key, capn_text value) {
+  if (!keys || !values || !count || !key)
+    return -1;
+  if (value.len <= 0)
+    return 0;
+  if (*count >= capacity)
+    return -1;
+  keys[*count] = text_from_cstr(key);
+  values[*count] = value;
+  ++*count;
+  return 0;
+}
+
+static int append_brillouin_zone_alias_strings(NWChemParams_ptr params,
+                                               capn_text *keys,
+                                               capn_text *values,
+                                               size_t capacity,
+                                               size_t *count) {
+  if (params.p.type == CAPN_NULL || !keys || !values || !count)
+    return -1;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = direct_struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_brillouinZone ||
+        stanza.brillouinZone.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemBrillouinZoneStanza zone;
+    read_NWChemBrillouinZoneStanza(&zone, stanza.brillouinZone);
+    if (append_direct_string_value(keys, values, capacity, count,
+                                   "band_structure:zone_name",
+                                   zone.zoneStructureName) != 0)
+      return -1;
+    if (append_direct_string_value(keys, values, capacity, count,
+                                   "band_fft:zone_name",
+                                   zone.zoneFftName) != 0)
+      return -1;
+  }
+
+  return 0;
+}
+
 static int append_nwpw_direct_typed_values(
     capn_text *keys, int *value_types, int *value_counts, capn_text *values,
     size_t key_capacity, size_t value_capacity, size_t *count,
@@ -1815,6 +1866,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &psp_spin_count, &psp_semicore_small) != 0)
     return -1;
   if (nwchemc_params_extract_direct_set_strings(
+          params_root, set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
+          &set_count) != 0)
+    return -1;
+  if (append_brillouin_zone_alias_strings(
           params_root, set_keys, set_values, NWCHEMC_DIRECT_SET_MAX,
           &set_count) != 0)
     return -1;
