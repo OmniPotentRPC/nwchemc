@@ -1294,13 +1294,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:rho_use_symmetry"));
   assert_null(strstr(g_input_blocks, "fmm true"));
   assert_null(strstr(g_input_blocks, "nwpw:fmm"));
+  assert_null(strstr(g_input_blocks, "born 78.4"));
+  assert_null(strstr(g_input_blocks, "nwpw:born"));
   assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_null(strstr(g_input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 187);
+  assert_int_equal(g_typed_set_count, 191);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1481,6 +1483,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           "12");
   assert_typed_set_scalar("nwpw:fmm_lr", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "2");
+  assert_typed_set_scalar("nwpw:born", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("nwpw:born_dielec", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "78.4");
+  assert_typed_set_scalar("nwpw:born_relax", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  const char *born_vradii_values[2] = {"1", "2"};
+  assert_typed_set_values("nwpw:born_vradii", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          2, born_vradii_values);
   assert_typed_set_scalar("cellA:boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "periodic");
   const char *unita_values[9] = {"1", "0", "0", "0", "2",

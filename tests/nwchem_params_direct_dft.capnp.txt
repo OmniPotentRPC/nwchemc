@@ -207,7 +207,11 @@
         rhoUseSymmetry = disabled,
         fmm = enabled,
         fmmLmax = 12,
-        fmmLongRange = 2
+        fmmLongRange = 2,
+        born = enabled,
+        bornDielectric = 78.4,
+        bornRelax = enabled,
+        bornVRadiiAngstrom = [0.529177, 1.058354]
       )
     ),
     (

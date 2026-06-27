@@ -142,6 +142,8 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "dipole_motion dipole.mov"));
   assert_non_null(strstr(input_blocks, "symmetry false"));
   assert_non_null(strstr(input_blocks, "fmm true 12 2"));
+  assert_non_null(
+      strstr(input_blocks, "born 78.4 relax true 0.529177 1.058354"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -374,6 +376,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:rho_use_symmetry"));
   assert_null(strstr(input_blocks, "fmm true"));
   assert_null(strstr(input_blocks, "nwpw:fmm"));
+  assert_null(strstr(input_blocks, "born 78.4"));
+  assert_null(strstr(input_blocks, "nwpw:born"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -723,6 +727,28 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(fmm, NWChemNwpwToggle_enabled);
   assert_int_equal(fmm_lmax, 12);
   assert_int_equal(fmm_long_range, 2);
+
+  int has_born = 0;
+  int born = 0;
+  double born_dielectric = 0.0;
+  int born_relax = 0;
+  double born_vradii_angstrom[4] = {0.0, 0.0, 0.0, 0.0};
+  size_t born_vradii_count = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_born(
+                       params_root, &has_born, &born, &born_dielectric,
+                       &born_relax, born_vradii_angstrom, 4,
+                       &born_vradii_count),
+                   0);
+  assert_int_equal(has_born, 1);
+  assert_int_equal(born, NWChemNwpwToggle_enabled);
+  assert_true(born_dielectric > 78.399);
+  assert_true(born_dielectric < 78.401);
+  assert_int_equal(born_relax, NWChemNwpwToggle_enabled);
+  assert_int_equal((int)born_vradii_count, 2);
+  assert_true(born_vradii_angstrom[0] > 0.529176);
+  assert_true(born_vradii_angstrom[0] < 0.529178);
+  assert_true(born_vradii_angstrom[1] > 1.058353);
+  assert_true(born_vradii_angstrom[1] < 1.058355);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
