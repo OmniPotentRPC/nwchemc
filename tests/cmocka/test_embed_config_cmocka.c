@@ -2960,6 +2960,53 @@ static void test_session_reapplies_after_one_shot_config(void **state) {
   free(message);
 }
 
+static void test_session_set_params_replaces_before_topology(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  size_t replacement_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *replacement =
+      read_file(g_config_options_path, &replacement_size);
+  assert_non_null(message);
+  assert_non_null(replacement);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_string_equal(g_basis, "sto-3g");
+  assert_string_equal(g_theory, "dft");
+  assert_int_equal(g_set_dft_direct_calls, 1);
+
+  assert_int_equal(
+      nwchemc_session_set_params(session, replacement, replacement_size), 0);
+  assert_int_equal(g_set_config_calls, 2);
+  assert_string_equal(g_basis, "6-31g");
+  assert_string_equal(g_theory, "scf");
+  assert_string_equal(g_scf_type, "rhf");
+  assert_int_equal(g_set_scf_direct_calls, 1);
+  assert_int_equal(g_scf_has_options, 1);
+  assert_int_equal(g_scf_maxiter, 50);
+  assert_int_equal(g_set_driver_direct_calls, 1);
+  assert_int_equal(g_driver_has_options, 1);
+  assert_int_equal(g_driver_maxiter, 40);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_session_energy_gradient(session, 1, pos, z, grad);
+  assert_int_equal(result.ok, 1);
+  assert_int_equal(g_set_config_calls, 2);
+  assert_int_equal(g_energy_grad_calls, 1);
+  assert_int_equal(g_call_charge[0], 0);
+  assert_int_equal(g_call_multiplicity[0], 1);
+
+  nwchemc_session_destroy(session);
+  free(replacement);
+  free(message);
+}
+
 static void test_session_rejects_param_replacement_after_topology(
     void **state) {
   (void)state;
@@ -5169,6 +5216,7 @@ int main(int argc, char **argv) {
           test_embed_config_promotes_brillouin_monkhorst_default),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
+      cmocka_unit_test(test_session_set_params_replaces_before_topology),
       cmocka_unit_test(test_session_rejects_param_replacement_after_topology),
       cmocka_unit_test(test_session_calculate_forces_accepts_force_input_steps),
       cmocka_unit_test(test_session_calculate_hessian_accepts_force_input_step),
