@@ -418,6 +418,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput energy-only into PotentialResult",
             },
             {
+                "name": "nwchemc_calculate_energy_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig energy-only into PotentialResult",
+            },
+            {
                 "name": "nwchemc_session_calculate_result",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput energy/forces into PotentialResult",
@@ -426,6 +431,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_result",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput energy/forces into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig energy/forces into PotentialResult",
             },
             {
                 "name": "nwchemc_forces_result_size_for_force_input",
@@ -441,6 +451,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_forces_result",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput forces into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_forces_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig forces into PotentialResult",
             },
             {
                 "name": "nwchemc_calculate_hessian",
@@ -463,6 +478,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput Hessian into PotentialResult",
             },
             {
+                "name": "nwchemc_calculate_hessian_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig Hessian into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_dipole",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput dipole",
@@ -481,6 +501,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_dipole_result",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput dipole into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_dipole_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig dipole into PotentialResult",
             },
             {
                 "name": "nwchemc_calculate_quadrupole",
@@ -503,6 +528,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput quadrupole into PotentialResult",
             },
             {
+                "name": "nwchemc_calculate_quadrupole_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig quadrupole into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_stress",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput stress",
@@ -521,6 +551,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_stress_result",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput stress into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_stress_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig stress into PotentialResult",
             },
             {
                 "name": "nwchemc_calculate_optimize",
@@ -543,6 +578,11 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput optimization into PotentialResult",
             },
             {
+                "name": "nwchemc_calculate_optimize_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig optimization into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_frequencies",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput harmonic frequencies",
@@ -561,6 +601,11 @@ def main() -> int:
                 "name": "nwchemc_calculate_frequencies_result",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput frequencies into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_frequencies_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig frequencies into PotentialResult",
             },
             {
                 "name": "nwchemc_potential_result_size_for_force_input",

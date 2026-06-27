@@ -5637,6 +5637,56 @@ NWChemCResult nwchemc_session_calculate_forces_result(
       potential_result_capnp_size_bytes);
 }
 
+typedef size_t (*nwchemc_result_size_fn)(const void *, size_t);
+typedef NWChemCResult (*nwchemc_session_result_fn)(
+    NWChemCSession *, const void *, size_t, void *, size_t, size_t *);
+
+static NWChemCResult calculate_config_result(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes,
+    nwchemc_result_size_fn size_fn,
+    nwchemc_session_result_fn session_fn) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!config_capnp || config_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !potential_result_capnp_size_bytes ||
+      !size_fn || !session_fn) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes = 0;
+
+  size_t required_size =
+      size_fn(force_input_capnp, force_input_capnp_size_bytes);
+  *potential_result_capnp_size_bytes = required_size;
+  if (required_size == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes < required_size) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = session_fn(session, force_input_capnp, force_input_capnp_size_bytes,
+                 potential_result_capnp, potential_result_capnp_capacity_bytes,
+                 potential_result_capnp_size_bytes);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
 NWChemCResult nwchemc_calculate_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -5681,6 +5731,20 @@ NWChemCResult nwchemc_calculate_result(
   return r;
 }
 
+NWChemCResult nwchemc_calculate_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_potential_result_size_for_force_input,
+      nwchemc_session_calculate_result);
+}
+
 NWChemCResult nwchemc_calculate_forces_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -5691,6 +5755,20 @@ NWChemCResult nwchemc_calculate_forces_result(
       params_capnp, params_capnp_size_bytes, force_input_capnp,
       force_input_capnp_size_bytes, potential_result_capnp,
       potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes);
+}
+
+NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_forces_result_size_for_force_input,
+      nwchemc_session_calculate_forces_result);
 }
 
 NWChemCResult nwchemc_calculate_energy_result(
@@ -5735,6 +5813,20 @@ NWChemCResult nwchemc_calculate_energy_result(
       potential_result_capnp_size_bytes);
   nwchemc_session_destroy(session);
   return r;
+}
+
+NWChemCResult nwchemc_calculate_energy_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_energy_result_size_for_force_input,
+      nwchemc_session_calculate_energy_result);
 }
 
 NWChemCResult nwchemc_calculate_forces(
@@ -6886,6 +6978,20 @@ NWChemCResult nwchemc_calculate_hessian_result(
   return r;
 }
 
+NWChemCResult nwchemc_calculate_hessian_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_hessian_result_size_for_force_input,
+      nwchemc_session_calculate_hessian_result);
+}
+
 NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -7004,6 +7110,20 @@ NWChemCResult nwchemc_calculate_dipole_result(
   return r;
 }
 
+NWChemCResult nwchemc_calculate_dipole_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_dipole_result_size_for_force_input,
+      nwchemc_session_calculate_dipole_result);
+}
+
 NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -7081,6 +7201,20 @@ NWChemCResult nwchemc_calculate_quadrupole_result(
       potential_result_capnp_size_bytes);
   nwchemc_session_destroy(session);
   return r;
+}
+
+NWChemCResult nwchemc_calculate_quadrupole_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_quadrupole_result_size_for_force_input,
+      nwchemc_session_calculate_quadrupole_result);
 }
 
 NWChemCResult nwchemc_calculate_stress(
@@ -7162,6 +7296,20 @@ NWChemCResult nwchemc_calculate_stress_result(
   return r;
 }
 
+NWChemCResult nwchemc_calculate_stress_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_stress_result_size_for_force_input,
+      nwchemc_session_calculate_stress_result);
+}
+
 NWChemCResult nwchemc_calculate_optimize(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -7239,6 +7387,20 @@ NWChemCResult nwchemc_calculate_optimize_result(
       potential_result_capnp_size_bytes);
   nwchemc_session_destroy(session);
   return r;
+}
+
+NWChemCResult nwchemc_calculate_optimize_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_optimize_result_size_for_force_input,
+      nwchemc_session_calculate_optimize_result);
 }
 
 NWChemCResult nwchemc_calculate_frequencies(
@@ -7319,6 +7481,20 @@ NWChemCResult nwchemc_calculate_frequencies_result(
       potential_result_capnp_size_bytes);
   nwchemc_session_destroy(session);
   return r;
+}
+
+NWChemCResult nwchemc_calculate_frequencies_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_frequencies_result_size_for_force_input,
+      nwchemc_session_calculate_frequencies_result);
 }
 
 const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
@@ -7753,6 +7929,150 @@ NWChemCResult nwchemc_calculate_energy_result(
     size_t *potential_result_capnp_size_bytes) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_energy_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_hessian_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_dipole_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_quadrupole_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_stress_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_optimize_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_frequencies_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
   (void)potential_result_capnp;

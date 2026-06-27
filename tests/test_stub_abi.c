@@ -230,6 +230,60 @@ extern int nwchemc_session_configure(NWChemCSession *session,
                                      const void *config_capnp,
                                      size_t config_capnp_size_bytes)
     NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_energy_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_hessian_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_dipole_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_quadrupole_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_stress_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_optimize_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_frequencies_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 
 static void test_stub_reports_unavailable(void **state) {
   (void)state;
@@ -351,6 +405,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_energy_result = nwchemc_calculate_energy_result(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_energy_result.ok, 0);
+  assert_true(nwchemc_calculate_energy_result_from_config != NULL);
+  NWChemCResult config_energy_result =
+      nwchemc_calculate_energy_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_energy_result.ok, 0);
   assert_true(nwchemc_forces_result_size_for_force_input != NULL);
   assert_int_equal(nwchemc_forces_result_size_for_force_input(NULL, 0), 0);
   assert_true(nwchemc_session_calculate_forces_result != NULL);
@@ -363,6 +422,15 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_forces_result = nwchemc_calculate_forces_result(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_forces_result.ok, 0);
+  assert_true(nwchemc_calculate_forces_result_from_config != NULL);
+  NWChemCResult config_forces_result =
+      nwchemc_calculate_forces_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_forces_result.ok, 0);
+  assert_true(nwchemc_calculate_result_from_config != NULL);
+  NWChemCResult config_result = nwchemc_calculate_result_from_config(
+      NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_result.ok, 0);
   NWChemCResult session_step_hessian =
       nwchemc_session_calculate_hessian(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step_hessian.ok, 0);
@@ -383,6 +451,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_hessian_result = nwchemc_calculate_hessian_result(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_hessian_result.ok, 0);
+  assert_true(nwchemc_calculate_hessian_result_from_config != NULL);
+  NWChemCResult config_hessian_result =
+      nwchemc_calculate_hessian_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_hessian_result.ok, 0);
   assert_true(nwchemc_session_calculate_dipole != NULL);
   NWChemCResult session_step_dipole =
       nwchemc_session_calculate_dipole(NULL, NULL, 0, dipole_au, 3);
@@ -399,6 +472,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_dipole_result = nwchemc_calculate_dipole_result(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_dipole_result.ok, 0);
+  assert_true(nwchemc_calculate_dipole_result_from_config != NULL);
+  NWChemCResult config_dipole_result =
+      nwchemc_calculate_dipole_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_dipole_result.ok, 0);
   assert_true(nwchemc_session_calculate_quadrupole != NULL);
   NWChemCResult session_step_quadrupole =
       nwchemc_session_calculate_quadrupole(NULL, NULL, 0, quadrupole_au, 6);
@@ -416,6 +494,11 @@ static void test_stub_reports_unavailable(void **state) {
       nwchemc_calculate_quadrupole_result(NULL, 0, NULL, 0, result_bytes,
                                           sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_quadrupole_result.ok, 0);
+  assert_true(nwchemc_calculate_quadrupole_result_from_config != NULL);
+  NWChemCResult config_quadrupole_result =
+      nwchemc_calculate_quadrupole_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_quadrupole_result.ok, 0);
   assert_true(nwchemc_session_calculate_optimize != NULL);
   NWChemCResult session_step_optimize = nwchemc_session_calculate_optimize(
       NULL, NULL, 0, optimized_positions_ang, 6);
@@ -433,6 +516,11 @@ static void test_stub_reports_unavailable(void **state) {
       nwchemc_calculate_optimize_result(NULL, 0, NULL, 0, result_bytes,
                                         sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_optimize_result.ok, 0);
+  assert_true(nwchemc_calculate_optimize_result_from_config != NULL);
+  NWChemCResult config_optimize_result =
+      nwchemc_calculate_optimize_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_optimize_result.ok, 0);
   assert_true(nwchemc_session_calculate_frequencies != NULL);
   NWChemCResult session_step_frequency =
       nwchemc_session_calculate_frequencies(NULL, NULL, 0, frequencies_cm1, 6,
@@ -456,6 +544,11 @@ static void test_stub_reports_unavailable(void **state) {
       nwchemc_calculate_frequencies_result(NULL, 0, NULL, 0, result_bytes,
                                            sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_frequencies_result.ok, 0);
+  assert_true(nwchemc_calculate_frequencies_result_from_config != NULL);
+  NWChemCResult config_frequencies_result =
+      nwchemc_calculate_frequencies_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_frequencies_result.ok, 0);
   assert_true(nwchemc_stress_result_size_for_force_input != NULL);
   assert_int_equal(nwchemc_stress_result_size_for_force_input(NULL, 0), 0);
   assert_true(nwchemc_session_calculate_stress_result != NULL);
@@ -468,6 +561,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_stress_result = nwchemc_calculate_stress_result(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_stress_result.ok, 0);
+  assert_true(nwchemc_calculate_stress_result_from_config != NULL);
+  NWChemCResult config_stress_result =
+      nwchemc_calculate_stress_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_stress_result.ok, 0);
   assert_true(nwchemc_calculate_dipole != NULL);
   NWChemCResult one_shot_dipole =
       nwchemc_calculate_dipole(NULL, 0, NULL, 0, dipole_au, 3);
