@@ -997,6 +997,12 @@ if get_option('with_tests')
   if has_nwchem
     test_scratch_dir = meson.current_build_dir() / 'nwchem-test-scratch'
     test_permanent_dir = meson.current_build_dir() / 'nwchem-test-permanent'
+    nwchem_test_mpi_ranks = get_option('nwchem_test_mpi_ranks')
+    nwchem_test_mpi_env = []
+    if nwchem_test_mpi_ranks > 1
+      nwchem_test_mpirun = find_program('mpirun', required: true)
+      nwchem_test_mpi_env += ['OMPI_MCA_prte_create_session_dirs=true']
+    endif
     params_conf = configuration_data()
     params_conf.set('NWCHEM_ROOT', nwchem_root)
     params_conf.set('NWCHEMC_TEST_SCRATCH', test_scratch_dir)
@@ -1077,136 +1083,166 @@ if get_option('with_tests')
         '@OUTPUT@',
       ],
     )
+    nwchem_energy_gradient_test = executable(
+      'test_nwchem_energy_gradient',
+      'tests/test_nwchem_energy_gradient.c',
+      include_directories: inc,
+      dependencies: [cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+    )
     test(
       'nwchem-energy-gradient',
-      executable(
-        'test_nwchem_energy_gradient',
-        'tests/test_nwchem_energy_gradient.c',
-        include_directories: inc,
-        dependencies: [cmocka_dep, nwchemc_dep],
-        c_args: common_c_args + [
-          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-        ],
-      ),
-      args: [nwchem_params_bin],
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_gradient_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_gradient_test, nwchem_params_bin]
+        : [nwchem_params_bin],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
+    )
+    nwchem_energy_gradient_input_blocks_test = executable(
+      'test_nwchem_energy_gradient_input_blocks',
+      'tests/test_nwchem_energy_gradient.c',
+      include_directories: inc,
+      dependencies: [cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
     )
     test(
       'nwchem-energy-gradient-input-blocks',
-      executable(
-        'test_nwchem_energy_gradient_input_blocks',
-        'tests/test_nwchem_energy_gradient.c',
-        include_directories: inc,
-        dependencies: [cmocka_dep, nwchemc_dep],
-        c_args: common_c_args + [
-          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-        ],
-      ),
-      args: [nwchem_input_blocks_params_bin],
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_gradient_input_blocks_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_gradient_input_blocks_test, nwchem_input_blocks_params_bin]
+        : [nwchem_input_blocks_params_bin],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
+    )
+    nwchem_energy_gradient_structured_test = executable(
+      'test_nwchem_energy_gradient_structured',
+      'tests/test_nwchem_energy_gradient.c',
+      include_directories: inc,
+      dependencies: [cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
     )
     test(
       'nwchem-energy-gradient-structured',
-      executable(
-        'test_nwchem_energy_gradient_structured',
-        'tests/test_nwchem_energy_gradient.c',
-        include_directories: inc,
-        dependencies: [cmocka_dep, nwchemc_dep],
-        c_args: common_c_args + [
-          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-        ],
-      ),
-      args: [nwchem_structured_params_bin],
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_gradient_structured_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_gradient_structured_test, nwchem_structured_params_bin]
+        : [nwchem_structured_params_bin],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
+    )
+    nwchem_energy_forces_test = executable(
+      'test_nwchem_energy_forces',
+      'tests/test_nwchem_energy_forces.c',
+      include_directories: inc,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
     )
     test(
       'nwchem-energy-forces',
-      executable(
-        'test_nwchem_energy_forces',
-        'tests/test_nwchem_energy_forces.c',
-        include_directories: inc,
-        dependencies: [math_dep, cmocka_dep, nwchemc_dep],
-        c_args: common_c_args + [
-          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-        ],
-      ),
-      args: [nwchem_params_bin],
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_forces_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, nwchem_params_bin]
+        : [nwchem_params_bin],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
+    )
+    nwchem_session_result_test = executable(
+      'test_nwchem_session_result',
+      'tests/test_nwchem_session_result.c',
+      include_directories: [inc] + nwchemc_params_includes,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
     )
     test(
       'nwchem-session-result',
-      executable(
-        'test_nwchem_session_result',
-        'tests/test_nwchem_session_result.c',
-        include_directories: [inc] + nwchemc_params_includes,
-        dependencies: [math_dep, cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
-        c_args: common_c_args + [
-          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-        ],
-      ),
-      args: [
-        nwchem_params_bin,
-        force_input_h2_eq_bin,
-        force_input_h2_stretched_bin,
-      ],
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_session_result_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_session_result_test, nwchem_params_bin, force_input_h2_eq_bin, force_input_h2_stretched_bin]
+        : [nwchem_params_bin, force_input_h2_eq_bin, force_input_h2_stretched_bin],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
+    )
+    nwchem_hessian_test = executable(
+      'test_nwchem_hessian',
+      'tests/test_nwchem_hessian.c',
+      include_directories: inc,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
     )
     test(
       'nwchem-hessian',
-      executable(
-        'test_nwchem_hessian',
-        'tests/test_nwchem_hessian.c',
-        include_directories: inc,
-        dependencies: [math_dep, cmocka_dep, nwchemc_dep],
-        c_args: common_c_args + [
-          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-        ],
-      ),
-      args: [nwchem_hessian_params_bin],
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_hessian_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_hessian_test, nwchem_hessian_params_bin]
+        : [nwchem_hessian_params_bin],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
+    )
+    nwchem_pseudopotential_rtdb_test = executable(
+      'test_nwchem_pseudopotential_rtdb',
+      [
+        'tests/test_nwchem_pseudopotential_rtdb.c',
+        'tests/nwchem_pseudopotential_rtdb_probe.F',
+      ],
+      include_directories: inc,
+      dependencies: [cmocka_dep],
+      link_with: nwchemc_legacy,
+      link_args: nwchem_link_args,
+      c_args: common_c_args,
+      fortran_args: nwchem_legacy_args,
     )
     test(
       'nwchem-pseudopotential-rtdb',
-      executable(
-        'test_nwchem_pseudopotential_rtdb',
-        [
-          'tests/test_nwchem_pseudopotential_rtdb.c',
-          'tests/nwchem_pseudopotential_rtdb_probe.F',
-        ],
-        include_directories: inc,
-        dependencies: [cmocka_dep],
-        link_with: nwchemc_legacy,
-        link_args: nwchem_link_args,
-        c_args: common_c_args,
-        fortran_args: nwchem_legacy_args,
-      ),
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_rtdb_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_rtdb_test]
+        : [],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
+    )
+    nwchem_geometry_basis_rtdb_test = executable(
+      'test_nwchem_geometry_basis_rtdb',
+      [
+        'tests/test_nwchem_geometry_basis_rtdb.c',
+        'tests/nwchem_geometry_basis_rtdb_probe.F',
+      ],
+      include_directories: inc,
+      dependencies: [cmocka_dep],
+      link_with: nwchemc_legacy,
+      link_args: nwchem_link_args,
+      c_args: common_c_args,
+      fortran_args: nwchem_legacy_args,
     )
     test(
       'nwchem-geometry-basis-rtdb',
-      executable(
-        'test_nwchem_geometry_basis_rtdb',
-        [
-          'tests/test_nwchem_geometry_basis_rtdb.c',
-          'tests/nwchem_geometry_basis_rtdb_probe.F',
-        ],
-        include_directories: inc,
-        dependencies: [cmocka_dep],
-        link_with: nwchemc_legacy,
-        link_args: nwchem_link_args,
-        c_args: common_c_args,
-        fortran_args: nwchem_legacy_args,
-      ),
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_geometry_basis_rtdb_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_geometry_basis_rtdb_test]
+        : [],
+      env: nwchem_test_mpi_env,
       is_parallel: false,
     )
     mpirun = find_program('mpirun', required: false)
-    if mpirun.found()
+    if mpirun.found() and nwchem_test_mpi_ranks == 1
       nwchem_mpi_test = executable(
         'test_nwchem_energy_gradient_mpi',
         'tests/test_nwchem_energy_gradient.c',

@@ -11,6 +11,9 @@ option(NWCHEMC_WITH_NWCHEM "Build the real NWChem embed library" OFF)
 option(NWCHEMC_BUILD_SHARED "Build nwchemc as a shared library" ON)
 set(NWCHEMC_NWCHEM_ROOT "" CACHE PATH "NWChem source/build tree root")
 set(NWCHEMC_NWCHEM_TARGET "LINUX64" CACHE STRING "NWChem target library directory")
+set(NWCHEMC_NWCHEM_TEST_MPI_RANKS "1" CACHE STRING
+  "MPI ranks used to launch real NWChem embed tests"
+)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 if(NWCHEMC_BUILD_TESTS)
@@ -612,6 +615,39 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     set(NWCHEMC_TEST_PERMANENT
       "${CMAKE_CURRENT_BINARY_DIR}/nwchem-test-permanent"
     )
+    if(NWCHEMC_NWCHEM_TEST_MPI_RANKS LESS 1)
+      message(FATAL_ERROR "NWCHEMC_NWCHEM_TEST_MPI_RANKS must be at least 1")
+    endif()
+    set(NWCHEMC_NWCHEM_TEST_ENV)
+    if(NWCHEMC_NWCHEM_TEST_MPI_RANKS GREATER 1)
+      find_program(MPIRUN_EXECUTABLE mpirun REQUIRED)
+      list(APPEND NWCHEMC_NWCHEM_TEST_ENV
+        "OMPI_MCA_prte_create_session_dirs=true"
+      )
+    endif()
+
+    function(nwchemc_add_real_nwchem_test test_name target_name)
+      if(NWCHEMC_NWCHEM_TEST_MPI_RANKS GREATER 1)
+        add_test(
+          NAME "${test_name}"
+          COMMAND
+            "${MPIRUN_EXECUTABLE}" -np "${NWCHEMC_NWCHEM_TEST_MPI_RANKS}"
+            "$<TARGET_FILE:${target_name}>"
+            ${ARGN}
+        )
+      else()
+        add_test(
+          NAME "${test_name}"
+          COMMAND "$<TARGET_FILE:${target_name}>" ${ARGN}
+        )
+      endif()
+      set_tests_properties("${test_name}" PROPERTIES RUN_SERIAL TRUE)
+      if(NWCHEMC_NWCHEM_TEST_ENV)
+        set_tests_properties("${test_name}" PROPERTIES
+          ENVIRONMENT "${NWCHEMC_NWCHEM_TEST_ENV}"
+        )
+      endif()
+    endfunction()
 
     function(nwchemc_configure_params input_name output_name)
       configure_file(
@@ -654,8 +690,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
         "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
       )
       add_dependencies("${target_name}" "${params_bin_target}")
-      add_test(NAME "${target_name}" COMMAND "${target_name}" "${params_bin}")
-      set_tests_properties("${target_name}" PROPERTIES RUN_SERIAL TRUE)
+      nwchemc_add_real_nwchem_test("${target_name}" "${target_name}" "${params_bin}")
     endfunction()
 
     nwchemc_add_gradient_test(
@@ -685,11 +720,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
     )
     add_dependencies(nwchem-energy-forces nwchem_params_bin)
-    add_test(
-      NAME nwchem-energy-forces
-      COMMAND nwchem-energy-forces "${nwchem_params_BIN}"
+    nwchemc_add_real_nwchem_test(
+      nwchem-energy-forces
+      nwchem-energy-forces
+      "${nwchem_params_BIN}"
     )
-    set_tests_properties(nwchem-energy-forces PROPERTIES RUN_SERIAL TRUE)
 
     add_executable(nwchem-session-result tests/test_nwchem_session_result.c)
     target_sources(nwchem-session-result PRIVATE "${NWCHEMC_POTENTIALS_CAPNP_C}")
@@ -717,14 +752,13 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       force_input_h2_eq_bin
       force_input_h2_stretched_bin
     )
-    add_test(
-      NAME nwchem-session-result
-      COMMAND nwchem-session-result
-        "${nwchem_params_BIN}"
-        "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
-        "${NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN}"
+    nwchemc_add_real_nwchem_test(
+      nwchem-session-result
+      nwchem-session-result
+      "${nwchem_params_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN}"
     )
-    set_tests_properties(nwchem-session-result PROPERTIES RUN_SERIAL TRUE)
 
     add_executable(nwchem-hessian tests/test_nwchem_hessian.c)
     target_link_libraries(nwchem-hessian PRIVATE nwchemc PkgConfig::CMOCKA)
@@ -737,11 +771,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
     )
     add_dependencies(nwchem-hessian nwchem_params_hessian_bin)
-    add_test(
-      NAME nwchem-hessian
-      COMMAND nwchem-hessian "${nwchem_params_hessian_BIN}"
+    nwchemc_add_real_nwchem_test(
+      nwchem-hessian
+      nwchem-hessian
+      "${nwchem_params_hessian_BIN}"
     )
-    set_tests_properties(nwchem-hessian PROPERTIES RUN_SERIAL TRUE)
 
     add_executable(nwchem-geometry-basis-rtdb
       tests/test_nwchem_geometry_basis_rtdb.c
@@ -767,14 +801,15 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "$<$<COMPILE_LANGUAGE:Fortran>:${NWCHEM_FORTRAN_OPTIONS}>"
       $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
     )
-    add_test(
-      NAME nwchem-geometry-basis-rtdb
-      COMMAND nwchem-geometry-basis-rtdb
+    nwchemc_add_real_nwchem_test(
+      nwchem-geometry-basis-rtdb
+      nwchem-geometry-basis-rtdb
     )
-    set_tests_properties(nwchem-geometry-basis-rtdb PROPERTIES RUN_SERIAL TRUE)
 
-    find_program(MPIRUN_EXECUTABLE mpirun)
-    if(MPIRUN_EXECUTABLE)
+    if(NWCHEMC_NWCHEM_TEST_MPI_RANKS EQUAL 1)
+      find_program(MPIRUN_EXECUTABLE mpirun)
+    endif()
+    if(MPIRUN_EXECUTABLE AND NWCHEMC_NWCHEM_TEST_MPI_RANKS EQUAL 1)
       add_executable(nwchem-energy-gradient-mpi
         tests/test_nwchem_energy_gradient.c
       )
