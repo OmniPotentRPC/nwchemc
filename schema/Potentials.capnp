@@ -437,6 +437,7 @@ struct NWChemNwpwStanza {
   smoothCutoff                @68 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW smooth_cutoff.
   smoothCutoffAfac            @69 :Float64 = 0.0;    # First NWPW smooth_cutoff value.
   smoothCutoffSigma           @70 :Float64 = 0.0;    # Second NWPW smooth_cutoff value.
+  cutoffBootWavefunction      @71 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW cutoff_boot_wavefunction.
 }
 
 # @struct NWChemScfStanza

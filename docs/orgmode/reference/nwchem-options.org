@@ -222,6 +222,7 @@ RTDB values directly:
 | ~electricFieldType~ | ~periodic~, ~APC~, or ~rgrid~ in ~efield~ | ~nwpw:efield_type~ |
 | ~smoothCutoff~ | ~smooth_cutoff true~ or ~false~ | ~nwpw:smooth_cutoff~ |
 | ~smoothCutoffAfac~, ~smoothCutoffSigma~ | ~smooth_cutoff true <Afac> <sigma>~ | ~nwpw:smooth_cutoff~ |
+| ~cutoffBootWavefunction~ | ~cutoff_boot_wavefunction true~ or ~false~ | ~nwpw:cutoff_boot_psi~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

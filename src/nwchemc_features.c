@@ -270,6 +270,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.smoothCutoff", "NWChemNwpwStanza.smoothCutoff", "NWChemNwpwStanza.smoothCutoff Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 68, 1, 1},
     {"field.NWChemNwpwStanza.smoothCutoffAfac", "NWChemNwpwStanza.smoothCutoffAfac", "NWChemNwpwStanza.smoothCutoffAfac Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 69, 1, 1},
     {"field.NWChemNwpwStanza.smoothCutoffSigma", "NWChemNwpwStanza.smoothCutoffSigma", "NWChemNwpwStanza.smoothCutoffSigma Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 70, 1, 1},
+    {"field.NWChemNwpwStanza.cutoffBootWavefunction", "NWChemNwpwStanza.cutoffBootWavefunction", "NWChemNwpwStanza.cutoffBootWavefunction Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 71, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -495,7 +496,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 490;
+static const size_t k_feature_count = 491;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
