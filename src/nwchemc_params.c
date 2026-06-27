@@ -772,9 +772,12 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   char block[4096];
   block[0] = '\0';
   read_NWChemPseudopotentialStanza(&pseudopotential, ptr);
+  int nentries = struct_list_len(&pseudopotential.entries.p);
+  if (nentries < 0)
+    return -1;
   if (append_format(block, sizeof(block), "nwpw\n") != 0)
     return -1;
-  if (include_direct_entries) {
+  if (include_direct_entries && nentries > 0) {
     if (append_format(block, sizeof(block), "  pseudopotentials\n") != 0 ||
         render_pseudopotential_entries(pseudopotential.entries, block,
                                        sizeof(block)) != 0 ||
