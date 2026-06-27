@@ -397,9 +397,39 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput geometry optimization",
             },
             {
+                "name": "nwchemc_optimize_result_size_for_force_input",
+                "stub": "returns 0",
+                "embed": "sizes ForceInput optimization PotentialResult",
+            },
+            {
+                "name": "nwchemc_session_calculate_optimize_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput optimization into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_optimize_result",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput optimization into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_frequencies",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput harmonic frequencies",
+            },
+            {
+                "name": "nwchemc_frequencies_result_size_for_force_input",
+                "stub": "returns 0",
+                "embed": "sizes ForceInput frequencies PotentialResult",
+            },
+            {
+                "name": "nwchemc_session_calculate_frequencies_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput frequencies into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_frequencies_result",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput frequencies into PotentialResult",
             },
             {
                 "name": "nwchemc_potential_result_size_for_force_input",

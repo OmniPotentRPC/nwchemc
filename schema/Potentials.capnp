@@ -31,6 +31,9 @@ struct PotentialResult {
   hessian @2 :List(Float64); # @brief Dense Cartesian Hessian [natoms * 3]^2.
   dipole  @3 :List(Float64); # @brief Total dipole vector [3] in atomic units.
   quadrupole @4 :List(Float64); # @brief Traceless quadrupole [6] in atomic units.
+  optimizedPos @5 :List(Float64); # @brief Optimized Cartesian coordinates [natoms * 3].
+  frequencies @6 :List(Float64); # @brief Harmonic vibrational frequencies [natoms * 3] in cm^-1.
+  intensities @7 :List(Float64); # @brief Harmonic IR intensities [natoms * 3] in atomic units.
 }
 
 # @struct NWChemParams

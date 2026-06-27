@@ -430,6 +430,33 @@ NWChemCResult nwchemc_calculate_optimize(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *optimized_positions_ang, size_t optimized_positions_len);
 
+/** @brief Return the byte count needed for an optimization `PotentialResult`. */
+size_t nwchemc_optimize_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Optimize one `ForceInput` step and write
+ * `PotentialResult.optimizedPos`.
+ *
+ * Final coordinates are converted from Angstrom to `ForceInput.lengthUnit`;
+ * `PotentialResult.energy` uses `ForceInput.energyUnit`.
+ */
+NWChemCResult nwchemc_session_calculate_optimize_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `NWChemParams + ForceInput -> PotentialResult.optimizedPos`.
+ */
+NWChemCResult nwchemc_calculate_optimize_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
 /**
  * @brief Compute one `ForceInput` step and write vibrational frequencies.
  *
@@ -442,6 +469,32 @@ NWChemCResult nwchemc_calculate_frequencies(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
     size_t intensities_len);
+
+/** @brief Return the byte count needed for a frequencies `PotentialResult`. */
+size_t nwchemc_frequencies_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Compute harmonic frequencies and write `PotentialResult` lists.
+ *
+ * `PotentialResult.frequencies` is in cm^-1 and
+ * `PotentialResult.intensities` is in atomic units.
+ */
+NWChemCResult nwchemc_session_calculate_frequencies_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `NWChemParams + ForceInput -> PotentialResult.frequencies`.
+ */
+NWChemCResult nwchemc_calculate_frequencies_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 
 /**
  * @brief Return the byte count needed for a `PotentialResult` step output.

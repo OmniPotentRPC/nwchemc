@@ -84,6 +84,12 @@ the dense row-major Cartesian Hessian in
 ~nwchemc_session_calculate_dipole_result~ and
 ~nwchemc_session_calculate_quadrupole_result~ fill ~PotentialResult.dipole~ and
 ~PotentialResult.quadrupole~ in atomic units.
+~nwchemc_session_calculate_optimize_result~ fills
+~PotentialResult.optimizedPos~ in ~ForceInput.lengthUnit~ and
+~PotentialResult.energy~ in ~ForceInput.energyUnit~.
+~nwchemc_session_calculate_frequencies_result~ fills
+~PotentialResult.frequencies~ in cm^-1 and ~PotentialResult.intensities~ in
+atomic units.
 
 The first successful session evaluation establishes the session topology: atom
 count and the ordered atomic-number list. Later session calls may change
@@ -100,10 +106,13 @@ through ~potential_result_size~ and does not evaluate NWChem.
 ~nwchemc_hessian_result_size_for_force_input~ provides the same preflight size
 for Hessian result messages. ~nwchemc_dipole_result_size_for_force_input~ and
 ~nwchemc_quadrupole_result_size_for_force_input~ provide the fixed-size
-property result preflight. ~hessian_h_bohr2~ is filled in Hartree per Bohr
-squared. ~dipole_au~ is filled with a three-element total dipole vector in
-atomic units. ~quadrupole_au~ is filled with six total traceless quadrupole
-tensor components in atomic units, ordered ~xx, xy, xz, yy, yz, zz~.
+property result preflight. ~nwchemc_optimize_result_size_for_force_input~ and
+~nwchemc_frequencies_result_size_for_force_input~ provide the same preflight
+contract for optimized coordinates and frequency/intensity result messages.
+~hessian_h_bohr2~ is filled in Hartree per Bohr squared. ~dipole_au~ is filled
+with a three-element total dipole vector in atomic units. ~quadrupole_au~ is
+filled with six total traceless quadrupole tensor components in atomic units,
+ordered ~xx, xy, xz, yy, yz, zz~.
 
 For a single geometry step, ~nwchemc_calculate_result~ accepts
 ~NWChemParams~, one ~ForceInput~, and the caller-owned ~PotentialResult~ output
@@ -117,7 +126,9 @@ six-component quadrupole buffer. ~nwchemc_calculate_hessian_result~ uses the
 same one-shot carrier and writes the Hessian to ~PotentialResult.hessian~.
 ~nwchemc_calculate_dipole_result~ and
 ~nwchemc_calculate_quadrupole_result~ write the corresponding property lists to
-~PotentialResult~.
+~PotentialResult~. ~nwchemc_calculate_optimize_result~ and
+~nwchemc_calculate_frequencies_result~ write optimized coordinates and
+frequency/intensity lists through the same one-shot result-carrier contract.
 
 * Parameter Ownership
 ~nwchemc~ reads the message with generated ~capnp-c~ bindings.
@@ -157,7 +168,21 @@ fill six total traceless quadrupole components in atomic units as
 ~nwchemc_session_calculate_quadrupole_result()~ and
 ~nwchemc_calculate_quadrupole_result()~ write those components to
 ~PotentialResult.quadrupole~.
-~xx, xy, xz, yy, yz, zz~ and keep ~NWChemCResult.energy_h~ in Hartree.
+~nwchemc_optimize()~, ~nwchemc_session_optimize()~,
+~nwchemc_session_calculate_optimize()~, and ~nwchemc_calculate_optimize()~ fill
+optimized Cartesian coordinates in Angstrom and keep ~NWChemCResult.energy_h~
+in Hartree.
+~nwchemc_session_calculate_optimize_result()~ and
+~nwchemc_calculate_optimize_result()~ write optimized coordinates to
+~PotentialResult.optimizedPos~ in ~ForceInput.lengthUnit~ and write
+~PotentialResult.energy~ in ~ForceInput.energyUnit~.
+~nwchemc_frequencies()~, ~nwchemc_session_frequencies()~,
+~nwchemc_session_calculate_frequencies()~, and
+~nwchemc_calculate_frequencies()~ fill harmonic frequencies in cm^-1 and
+optional IR intensities in atomic units.
+~nwchemc_session_calculate_frequencies_result()~ and
+~nwchemc_calculate_frequencies_result()~ write those arrays to
+~PotentialResult.frequencies~ and ~PotentialResult.intensities~.
 Input coordinates are Angstrom values in a flat ~[natoms * 3]~ array.
 
 * Language Bindings

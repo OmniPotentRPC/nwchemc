@@ -1395,6 +1395,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.PotentialResult.optimizedPos",
+      "schema_path": "PotentialResult.optimizedPos",
+      "struct": "PotentialResult",
+      "name": "optimizedPos",
+      "field_id": 5,
+      "type": "List(Float64)",
+      "role": "PotentialResult.optimizedPos Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.frequencies",
+      "schema_path": "PotentialResult.frequencies",
+      "struct": "PotentialResult",
+      "name": "frequencies",
+      "field_id": 6,
+      "type": "List(Float64)",
+      "role": "PotentialResult.frequencies Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.intensities",
+      "schema_path": "PotentialResult.intensities",
+      "struct": "PotentialResult",
+      "name": "intensities",
+      "field_id": 7,
+      "type": "List(Float64)",
+      "role": "PotentialResult.intensities Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDirective.keyword",
       "schema_path": "NWChemDirective.keyword",
       "struct": "NWChemDirective",
@@ -4872,9 +4908,39 @@
       "embed": "runs one-shot ForceInput geometry optimization"
     },
     {
+      "name": "nwchemc_optimize_result_size_for_force_input",
+      "stub": "returns 0",
+      "embed": "sizes ForceInput optimization PotentialResult"
+    },
+    {
+      "name": "nwchemc_session_calculate_optimize_result",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput optimization into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_optimize_result",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput optimization into PotentialResult"
+    },
+    {
       "name": "nwchemc_calculate_frequencies",
       "stub": "fails ok==0",
       "embed": "runs one-shot ForceInput harmonic frequencies"
+    },
+    {
+      "name": "nwchemc_frequencies_result_size_for_force_input",
+      "stub": "returns 0",
+      "embed": "sizes ForceInput frequencies PotentialResult"
+    },
+    {
+      "name": "nwchemc_session_calculate_frequencies_result",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput frequencies into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_frequencies_result",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput frequencies into PotentialResult"
     },
     {
       "name": "nwchemc_potential_result_size_for_force_input",

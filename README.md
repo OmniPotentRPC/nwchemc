@@ -90,6 +90,34 @@ NWChemCResult nwchemc_calculate_quadrupole_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+size_t nwchemc_optimize_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_optimize_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_optimize_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+size_t nwchemc_frequencies_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_frequencies_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_frequencies_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 void nwchemc_session_destroy(NWChemCSession *session);
 ```
 
@@ -122,7 +150,11 @@ callers with multiple steps should reuse `NWChemCSession`.
 result-carrier wrappers populate `PotentialResult.dipole` and
 `PotentialResult.quadrupole` in atomic units. Raw Hessian, dipole, and
 quadrupole wrappers use the same `NWChemParams + ForceInput` carrier for
-callers that want native C buffers.
+callers that want native C buffers. Optimization result-carrier wrappers
+populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
+`PotentialResult.energy` in `ForceInput.energyUnit`; frequency result-carrier
+wrappers populate `PotentialResult.frequencies` in cm^-1 and
+`PotentialResult.intensities` in atomic units.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,
