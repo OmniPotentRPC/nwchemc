@@ -1083,6 +1083,25 @@ if get_option('with_tests')
         '@OUTPUT@',
       ],
     )
+    potential_config_pseudopotential_text = configure_file(
+      input: 'tests/potential_config_pseudopotential.capnp.txt.in',
+      output: 'potential_config_pseudopotential.capnp.txt',
+      configuration: params_conf,
+    )
+    potential_config_pseudopotential_bin = custom_target(
+      'potential_config_pseudopotential_bin',
+      input: potential_config_pseudopotential_text,
+      output: 'potential_config_pseudopotential.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'PotentialConfig',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_hessian_params_text = configure_file(
       input: 'tests/nwchem_params_hessian.capnp.txt.in',
       output: 'nwchem_params_hessian.capnp.txt',
@@ -1194,6 +1213,33 @@ if get_option('with_tests')
       args: nwchem_test_mpi_ranks > 1
         ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_rgpot_smoke_test, potential_config_structured_bin, force_input_h2_eq_bin]
         : [potential_config_structured_bin, force_input_h2_eq_bin],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
+    nwchem_potential_config_pseudopotential_test = executable(
+      'test_nwchem_potential_config_pseudopotential',
+      [
+        'tests/test_nwchem_potential_config_pseudopotential.c',
+        'tests/nwchem_configured_pseudopotential_rtdb_probe.F',
+        'tests/nwchem_rtdb_probe_get_log.F',
+        'tests/nwchem_rtdb_probe_get_int.F',
+        'tests/nwchem_rtdb_probe_get_dbl_array.F',
+        'tests/nwchem_rtdb_probe_get_int_array.F',
+      ],
+      include_directories: inc,
+      dependencies: [cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+      fortran_args: nwchem_legacy_args,
+    )
+    test(
+      'nwchem-potential-config-pseudopotential',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_potential_config_pseudopotential_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_potential_config_pseudopotential_test, potential_config_pseudopotential_bin]
+        : [potential_config_pseudopotential_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )

@@ -801,9 +801,7 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
       return -1;
   }
   const char *psp_spin = pseudopotential_spin_literal(pseudopotential.pspSpin);
-  if (psp_spin &&
-      (include_direct_entries ||
-       pseudopotential.pspSpin != NWChemPseudopotentialSpinMode_disabled) &&
+  if (include_direct_entries && psp_spin &&
       append_format(block, sizeof(block), "  pspspin %s\n", psp_spin) != 0)
     return -1;
   if (include_direct_entries &&

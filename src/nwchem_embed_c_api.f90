@@ -10,7 +10,7 @@
 
 module nwchem_embed_c_api
   use, intrinsic :: iso_c_binding, only: &
-      c_char, c_double, c_int, c_null_char
+      c_char, c_double, c_int, c_long_long, c_null_char
   use, intrinsic :: iso_fortran_env, only: real64
   implicit none
   private
@@ -19,6 +19,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_init
   public :: nwchemc_embed_available
   public :: nwchemc_embed_last_energy
+  public :: nwchemc_embed_current_rtdb
   public :: nwchemc_embed_reset_rtdb
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_set_dft_direct
@@ -649,6 +650,17 @@ contains
       rc = -1_c_int
     end if
   end function nwchemc_embed_last_energy
+
+  !> Active RTDB handle for integration probes that verify embedded state.
+  function nwchemc_embed_current_rtdb() result(handle) &
+      bind(C, name='nwchemc_embed_current_rtdb')
+    integer(c_long_long) :: handle
+
+    handle = -1_c_long_long
+    if (runtime_finalized) return
+    call nwchemc_embed_init()
+    if (rtdb_ready) handle = int(rtdb_handle, c_long_long)
+  end function nwchemc_embed_current_rtdb
 
   !> Apply method options from C strings (lengths explicit for C interop).
   function nwchemc_embed_set_config(basis, basis_len, theory, theory_len, &
