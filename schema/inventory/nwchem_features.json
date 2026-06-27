@@ -3519,6 +3519,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.ksAlgorithm",
+      "schema_path": "NWChemNwpwStanza.ksAlgorithm",
+      "struct": "NWChemNwpwStanza",
+      "name": "ksAlgorithm",
+      "field_id": 111,
+      "type": "NWChemNwpwKsAlgorithm = unspecified",
+      "role": "NWChemNwpwStanza.ksAlgorithm Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.scfAlgorithm",
+      "schema_path": "NWChemNwpwStanza.scfAlgorithm",
+      "struct": "NWChemNwpwStanza",
+      "name": "scfAlgorithm",
+      "field_id": 112,
+      "type": "NWChemNwpwScfAlgorithm = unspecified",
+      "role": "NWChemNwpwStanza.scfAlgorithm Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.precondition",
+      "schema_path": "NWChemNwpwStanza.precondition",
+      "struct": "NWChemNwpwStanza",
+      "name": "precondition",
+      "field_id": 113,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.precondition Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

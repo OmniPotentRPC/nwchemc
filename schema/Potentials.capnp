@@ -302,6 +302,21 @@ enum NWChemNwpwMinimizer {
   scfPotential  @8; # Emit scf potential; promote nwpw:minimizer = 5.
 }
 
+enum NWChemNwpwKsAlgorithm {
+  unspecified @0; # Do not emit/promote nwpw:ks_algorithm.
+  blockCg     @1; # Emit block-cg; promote nwpw:ks_algorithm = -1.
+  cg          @2; # Emit cg; promote nwpw:ks_algorithm = 0.
+  rmmDiis     @3; # Emit rmm-diis; promote nwpw:ks_algorithm = 1.
+}
+
+enum NWChemNwpwScfAlgorithm {
+  unspecified @0; # Do not emit/promote nwpw:scf_algorithm.
+  simple      @1; # Emit simple; promote nwpw:scf_algorithm = 0.
+  broyden     @2; # Emit broyden; promote nwpw:scf_algorithm = 1.
+  diis        @3; # Emit diis; promote nwpw:scf_algorithm = 2.
+  anderson    @4; # Emit anderson; promote nwpw:scf_algorithm = 3.
+}
+
 enum NWChemNwpwToggle {
   unspecified @0; # Do not emit the option.
   enabled     @1; # Emit/promote the option as enabled.
@@ -489,6 +504,9 @@ struct NWChemNwpwStanza {
   apcGamma                    @108 :List(Float64);  # NWPW APC gamma values.
   translation                 @109 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW translation.
   minimizer                   @110 :NWChemNwpwMinimizer = unspecified; # Emit/promote NWPW minimizer.
+  ksAlgorithm                 @111 :NWChemNwpwKsAlgorithm = unspecified; # Emit/promote NWPW KS algorithm.
+  scfAlgorithm                @112 :NWChemNwpwScfAlgorithm = unspecified; # Emit/promote NWPW SCF algorithm.
+  precondition                @113 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW SCF precondition flag.
 }
 
 # @struct NWChemScfStanza

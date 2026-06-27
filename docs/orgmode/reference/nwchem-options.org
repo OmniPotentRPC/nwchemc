@@ -255,6 +255,9 @@ RTDB values directly:
 | ~apcGamma~ | trailing gamma values in ~apc~ | ~nwpw_APC:gamma~ |
 | ~translation~ | ~translation true~ or ~false~ | ~cgsd:allow_translation~, ~band:allow_translation~ |
 | ~minimizer~ | ~cg~, ~lmbfgs~, or ~scf~ with variant token | ~nwpw:minimizer~ |
+| ~ksAlgorithm~ | ~block-cg~, ~cg~, or ~rmm-diis~ token in ~scf~ | ~nwpw:ks_algorithm~ |
+| ~scfAlgorithm~ | ~simple~, ~broyden~, ~diis~, or ~anderson~ token in ~scf~ | ~nwpw:scf_algorithm~ |
+| ~precondition~ | ~precondition~ or ~noprecondition~ token in ~scf~ | ~nwpw:precondition~ |
 
 Callers still send one ~NWChemParams~ message; there is no second public config
 struct.

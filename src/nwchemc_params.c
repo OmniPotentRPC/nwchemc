@@ -1085,6 +1085,56 @@ nwpw_minimizer_variant(enum NWChemNwpwMinimizer minimizer) {
   }
 }
 
+static int nwpw_minimizer_is_scf(enum NWChemNwpwMinimizer minimizer) {
+  return minimizer == NWChemNwpwMinimizer_scfDensity ||
+         minimizer == NWChemNwpwMinimizer_scfPotential;
+}
+
+static const char *
+nwpw_ks_algorithm_keyword(enum NWChemNwpwKsAlgorithm algorithm) {
+  switch (algorithm) {
+  case NWChemNwpwKsAlgorithm_blockCg:
+    return "block-cg";
+  case NWChemNwpwKsAlgorithm_cg:
+    return "cg";
+  case NWChemNwpwKsAlgorithm_rmmDiis:
+    return "rmm-diis";
+  case NWChemNwpwKsAlgorithm_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static const char *
+nwpw_scf_algorithm_keyword(enum NWChemNwpwScfAlgorithm algorithm) {
+  switch (algorithm) {
+  case NWChemNwpwScfAlgorithm_simple:
+    return "simple";
+  case NWChemNwpwScfAlgorithm_broyden:
+    return "broyden";
+  case NWChemNwpwScfAlgorithm_diis:
+    return "diis";
+  case NWChemNwpwScfAlgorithm_anderson:
+    return "anderson";
+  case NWChemNwpwScfAlgorithm_unspecified:
+  default:
+    return NULL;
+  }
+}
+
+static const char *
+nwpw_precondition_keyword(enum NWChemNwpwToggle precondition) {
+  switch (precondition) {
+  case NWChemNwpwToggle_enabled:
+    return "precondition";
+  case NWChemNwpwToggle_disabled:
+    return "noprecondition";
+  case NWChemNwpwToggle_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 static const char *
 nwpw_efield_type_keyword(enum NWChemNwpwEfieldType efield_type) {
   switch (efield_type) {
@@ -2440,10 +2490,35 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       nwpw_minimizer_command(nwpw.minimizer);
   const char *minimizer_variant =
       nwpw_minimizer_variant(nwpw.minimizer);
-  if (include_direct_promoted && minimizer_command && minimizer_variant &&
-      append_format(block, sizeof(block), "  %s %s\n", minimizer_command,
-                    minimizer_variant) != 0)
+  const char *ks_algorithm = nwpw_ks_algorithm_keyword(nwpw.ksAlgorithm);
+  const char *scf_algorithm = nwpw_scf_algorithm_keyword(nwpw.scfAlgorithm);
+  const char *precondition = nwpw_precondition_keyword(nwpw.precondition);
+  const int has_scf_options =
+      ks_algorithm || scf_algorithm || precondition ||
+      nwpw_minimizer_is_scf(nwpw.minimizer);
+  if (include_direct_promoted && has_scf_options) {
+    const char *scf_variant = nwpw_minimizer_is_scf(nwpw.minimizer)
+                                  ? minimizer_variant
+                                  : "density";
+    if (append_format(block, sizeof(block), "  scf %s", scf_variant) != 0)
+      return -1;
+    if (ks_algorithm &&
+        append_format(block, sizeof(block), " %s", ks_algorithm) != 0)
+      return -1;
+    if (scf_algorithm &&
+        append_format(block, sizeof(block), " %s", scf_algorithm) != 0)
+      return -1;
+    if (precondition &&
+        append_format(block, sizeof(block), " %s", precondition) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  } else if (include_direct_promoted && minimizer_command &&
+             minimizer_variant &&
+             append_format(block, sizeof(block), "  %s %s\n",
+                           minimizer_command, minimizer_variant) != 0) {
     return -1;
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -4335,6 +4410,50 @@ int nwchemc_params_extract_direct_nwpw_minimizer(
     if (nwpw.minimizer != NWChemNwpwMinimizer_unspecified) {
       *has_options = 1;
       *minimizer = nwpw.minimizer;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_scf_algorithms(
+    NWChemParams_ptr params, int *has_options, int *ks_algorithm,
+    int *scf_algorithm, int *precondition) {
+  if (params.p.type == CAPN_NULL || !has_options || !ks_algorithm ||
+      !scf_algorithm || !precondition)
+    return -1;
+
+  *has_options = 0;
+  *ks_algorithm = NWChemNwpwKsAlgorithm_unspecified;
+  *scf_algorithm = NWChemNwpwScfAlgorithm_unspecified;
+  *precondition = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.ksAlgorithm != NWChemNwpwKsAlgorithm_unspecified) {
+      *has_options = 1;
+      *ks_algorithm = nwpw.ksAlgorithm;
+    }
+    if (nwpw.scfAlgorithm != NWChemNwpwScfAlgorithm_unspecified) {
+      *has_options = 1;
+      *scf_algorithm = nwpw.scfAlgorithm;
+    }
+    if (nwpw.precondition != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *precondition = nwpw.precondition;
     }
   }
 

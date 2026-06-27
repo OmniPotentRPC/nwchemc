@@ -658,6 +658,50 @@ static int nwpw_minimizer_rtdb_value(enum NWChemNwpwMinimizer minimizer) {
   }
 }
 
+static int nwpw_ks_algorithm_rtdb_value(enum NWChemNwpwKsAlgorithm algorithm,
+                                        int *value) {
+  if (!value)
+    return -1;
+  switch (algorithm) {
+  case NWChemNwpwKsAlgorithm_blockCg:
+    *value = -1;
+    return 1;
+  case NWChemNwpwKsAlgorithm_cg:
+    *value = 0;
+    return 1;
+  case NWChemNwpwKsAlgorithm_rmmDiis:
+    *value = 1;
+    return 1;
+  case NWChemNwpwKsAlgorithm_unspecified:
+  default:
+    return 0;
+  }
+}
+
+static int
+nwpw_scf_algorithm_rtdb_value(enum NWChemNwpwScfAlgorithm algorithm,
+                              int *value) {
+  if (!value)
+    return -1;
+  switch (algorithm) {
+  case NWChemNwpwScfAlgorithm_simple:
+    *value = 0;
+    return 1;
+  case NWChemNwpwScfAlgorithm_broyden:
+    *value = 1;
+    return 1;
+  case NWChemNwpwScfAlgorithm_diis:
+    *value = 2;
+    return 1;
+  case NWChemNwpwScfAlgorithm_anderson:
+    *value = 3;
+    return 1;
+  case NWChemNwpwScfAlgorithm_unspecified:
+  default:
+    return 0;
+  }
+}
+
 static int nwpw_efield_type_rtdb_value(enum NWChemNwpwEfieldType efield_type,
                                        int *value) {
   if (!value)
@@ -1695,6 +1739,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   int nwpw_minimizer = NWChemNwpwMinimizer_unspecified;
   if (nwchemc_params_extract_direct_nwpw_minimizer(
           params_root, &nwpw_minimizer_has_options, &nwpw_minimizer) != 0)
+    return -1;
+  int nwpw_scf_algorithms_has_options = 0;
+  int nwpw_ks_algorithm = NWChemNwpwKsAlgorithm_unspecified;
+  int nwpw_scf_algorithm = NWChemNwpwScfAlgorithm_unspecified;
+  int nwpw_precondition = NWChemNwpwToggle_unspecified;
+  if (nwchemc_params_extract_direct_nwpw_scf_algorithms(
+          params_root, &nwpw_scf_algorithms_has_options, &nwpw_ks_algorithm,
+          &nwpw_scf_algorithm, &nwpw_precondition) != 0)
     return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
@@ -3144,6 +3196,45 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
         return -1;
     }
+  }
+  if (nwpw_scf_algorithms_has_options) {
+    int algorithm_value = 0;
+    if (nwpw_ks_algorithm_rtdb_value(
+            (enum NWChemNwpwKsAlgorithm)nwpw_ks_algorithm,
+            &algorithm_value) > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", algorithm_value);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:ks_algorithm",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    if (nwpw_scf_algorithm_rtdb_value(
+            (enum NWChemNwpwScfAlgorithm)nwpw_scf_algorithm,
+            &algorithm_value) > 0) {
+      char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(value, sizeof(value), "%d", algorithm_value);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count,
+              nwpw_direct_keys, nwpw_direct_values, "nwpw:scf_algorithm",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+        return -1;
+    }
+    const char *precondition_value = nwpw_toggle_logical_value(
+        (enum NWChemNwpwToggle)nwpw_precondition);
+    if (precondition_value &&
+        append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:precondition",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, precondition_value) != 0)
+      return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));
