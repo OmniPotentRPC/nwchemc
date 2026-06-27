@@ -136,6 +136,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "periodic_dipole true"));
   assert_non_null(
       strstr(input_blocks, "efield true 0.1 0.2 0.3 center 1 2 3 APC"));
+  assert_non_null(strstr(input_blocks, "smooth_cutoff true 1.5 3.5"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -356,6 +357,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:periodic_dipole"));
   assert_null(strstr(input_blocks, "efield true"));
   assert_null(strstr(input_blocks, "nwpw:efield"));
+  assert_null(strstr(input_blocks, "smooth_cutoff"));
+  assert_null(strstr(input_blocks, "nwpw:smooth_cutoff"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -641,6 +644,20 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(efield_center[2] > 2.999);
   assert_true(efield_center[2] < 3.001);
   assert_int_equal(efield_type, NWChemNwpwEfieldType_apc);
+
+  int has_smooth_cutoff = 0;
+  int smooth_cutoff = 0;
+  double smooth_cutoff_values[2] = {0.0, 0.0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_smooth_cutoff(
+                       params_root, &has_smooth_cutoff, &smooth_cutoff,
+                       smooth_cutoff_values),
+                   0);
+  assert_int_equal(has_smooth_cutoff, 1);
+  assert_int_equal(smooth_cutoff, NWChemNwpwToggle_enabled);
+  assert_true(smooth_cutoff_values[0] > 1.499);
+  assert_true(smooth_cutoff_values[0] < 1.501);
+  assert_true(smooth_cutoff_values[1] > 3.499);
+  assert_true(smooth_cutoff_values[1] < 3.501);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};

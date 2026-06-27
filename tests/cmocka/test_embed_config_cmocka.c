@@ -1282,13 +1282,15 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "nwpw:periodic_dipole"));
   assert_null(strstr(g_input_blocks, "efield true"));
   assert_null(strstr(g_input_blocks, "nwpw:efield"));
+  assert_null(strstr(g_input_blocks, "smooth_cutoff"));
+  assert_null(strstr(g_input_blocks, "nwpw:smooth_cutoff"));
   assert_null(strstr(g_input_blocks, "pspspin off"));
   assert_null(strstr(g_input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(g_input_blocks, "print debug tile time"));
   assert_non_null(strstr(g_input_blocks, "iterations 40"));
   assert_non_null(strstr(g_input_blocks, "set int:acc_std 1e-8"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 178);
+  assert_int_equal(g_typed_set_count, 179);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -1449,6 +1451,10 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           efield_center_values);
   assert_typed_set_scalar("nwpw:efield_type",
                           NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  const char *smooth_cutoff_values[2] = {"1.5", "3.5"};
+  assert_typed_set_values("nwpw:smooth_cutoff",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, 2,
+                          smooth_cutoff_values);
   assert_typed_set_scalar("cellA:boundry", NWCHEMC_DIRECT_SET_VALUE_TEXT,
                           "periodic");
   const char *unita_values[9] = {"1", "0", "0", "0", "2",
