@@ -321,6 +321,43 @@ NWChemCResult nwchemc_calculate_energy(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 
 /**
+ * @brief Return the byte count needed for an energy-only `PotentialResult`.
+ *
+ * This parses the serialized `ForceInput` geometry and returns the size of the
+ * unpacked flat `PotentialResult` message with only its `energy` field
+ * populated. The function does not initialize or evaluate NWChem.
+ */
+size_t nwchemc_energy_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Compute energy for one `ForceInput` step and write `PotentialResult`.
+ *
+ * The returned `NWChemCResult.energy_h` remains in Hartree. The output message
+ * writes `PotentialResult.energy` in `ForceInput.energyUnit` and leaves
+ * `PotentialResult.forces` empty.
+ *
+ * When `potential_result_capnp_capacity_bytes` is too small, the function
+ * returns `ok == 0`, writes the required byte count to
+ * `potential_result_capnp_size_bytes`, and does not evaluate NWChem.
+ */
+NWChemCResult nwchemc_session_calculate_energy_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `NWChemParams + ForceInput -> PotentialResult.energy`.
+ */
+NWChemCResult nwchemc_calculate_energy_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief Compute forces for one `ForceInput` step and write `PotentialResult`.
  *
  * This is the Cap'n Proto result-carrier entry point for RPC-style callers.

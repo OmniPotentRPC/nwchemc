@@ -89,6 +89,20 @@ NWChemCResult nwchemc_calculate_forces(
 NWChemCResult nwchemc_calculate_energy(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+size_t nwchemc_energy_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_energy_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_energy_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_result(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -273,10 +287,13 @@ Session calls reject topology-changing steps instead of resetting the handle
 implicitly; callers that need a new topology or a new post-step configuration
 create a separate session.
 `nwchemc_session_calculate_energy()` returns only the native Hartree energy for
-callers that do not need forces or a `PotentialResult` carrier.
-`nwchemc_calculate_energy()` and `nwchemc_calculate_result()` offer the same
-`NWChemParams + ForceInput` carrier for one-shot callers and delegate through
-the session paths; callers with multiple steps should reuse `NWChemCSession`.
+callers that do not need a result carrier. `nwchemc_session_calculate_energy_result()`
+writes an energy-only `PotentialResult`, converting `PotentialResult.energy` to
+`ForceInput.energyUnit` while leaving `NWChemCResult.energy_h` in Hartree.
+`nwchemc_calculate_energy()`, `nwchemc_calculate_energy_result()`, and
+`nwchemc_calculate_result()` offer the same `NWChemParams + ForceInput` carrier
+for one-shot callers and delegate through the session paths; callers with
+multiple steps should reuse `NWChemCSession`.
 `nwchemc_session_calculate_hessian_result()` and
 `nwchemc_calculate_hessian_result()` populate `PotentialResult.hessian` in
 `ForceInput.energyUnit / ForceInput.lengthUnit^2`. Dipole and quadrupole

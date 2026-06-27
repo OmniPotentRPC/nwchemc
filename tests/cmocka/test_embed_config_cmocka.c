@@ -203,6 +203,20 @@ extern NWChemCResult nwchemc_calculate_energy(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_energy_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_energy_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_energy_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -1066,6 +1080,27 @@ static void assert_potential_result(const unsigned char *message,
   for (size_t i = 0; i < expected_force_count; ++i) {
     double actual = capn_to_f64(capn_get64(result.forces, (int)i));
     assert_close(actual, expected_forces[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
+static void assert_potential_result_energy_only(const unsigned char *message,
+                                                size_t message_size,
+                                                double expected_energy,
+                                                double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, tolerance);
+  capn_resolve(&result.forces.p);
+  if (result.forces.p.type != CAPN_NULL) {
+    assert_int_equal(result.forces.p.type, CAPN_LIST);
+    assert_int_equal(result.forces.p.datasz, 8);
+    assert_int_equal(result.forces.p.len, 0);
   }
   capn_free(&arena);
 }
@@ -4158,6 +4193,71 @@ static void test_session_calculate_result_writes_potential_result(
   free(message);
 }
 
+static void test_session_calculate_energy_result_writes_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_energy_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_energy_result != NULL);
+  assert_true(nwchemc_calculate_energy_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_ev_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_ev = read_file(g_force_step_ev_path, &step_ev_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_ev);
+
+  size_t expected_size =
+      nwchemc_energy_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_size > 0);
+  unsigned char result_bytes[256];
+  size_t result_size = 0;
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+
+  NWChemCResult native = nwchemc_session_calculate_energy_result(
+      session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(native.ok, 1);
+  assert_close(native.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(result_size, expected_size);
+  assert_potential_result_energy_only(result_bytes, result_size, -1.0,
+                                      1.0e-12);
+  assert_int_equal(g_energy_only_calls, 1);
+  assert_int_equal(g_energy_grad_calls, 0);
+
+  const double hartree_to_ev = 27.211386245988;
+  result_size = 0;
+  NWChemCResult ev = nwchemc_session_calculate_energy_result(
+      session, step_ev, step_ev_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(ev.ok, 1);
+  assert_close(ev.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(result_size, expected_size);
+  assert_potential_result_energy_only(result_bytes, result_size,
+                                      -hartree_to_ev, 1.0e-10);
+  assert_int_equal(g_energy_only_calls, 2);
+  assert_int_equal(g_energy_grad_calls, 0);
+  nwchemc_session_destroy(session);
+
+  result_size = 0;
+  NWChemCResult one_shot = nwchemc_calculate_energy_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot.ok, 1);
+  assert_close(one_shot.energy_h, -1.0, 1.0e-12);
+  assert_int_equal(result_size, expected_size);
+  assert_potential_result_energy_only(result_bytes, result_size, -1.0,
+                                      1.0e-12);
+
+  free(step_ev);
+  free(step_a);
+  free(message);
+}
+
 static void test_session_calculate_hessian_result_writes_potential_result(
     void **state) {
   (void)state;
@@ -5281,6 +5381,8 @@ int main(int argc, char **argv) {
           test_session_coordinate_property_stress_abi_calls_embed_wrappers),
       cmocka_unit_test(test_session_force_input_state_overrides_params),
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
+      cmocka_unit_test(
+          test_session_calculate_energy_result_writes_potential_result),
       cmocka_unit_test(
           test_session_calculate_hessian_result_writes_potential_result),
       cmocka_unit_test(

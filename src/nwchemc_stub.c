@@ -297,6 +297,20 @@ NWChemCResult nwchemc_session_calculate_energy(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_energy_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_result(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, void *potential_result_capnp,
@@ -312,6 +326,22 @@ NWChemCResult nwchemc_session_calculate_result(
 }
 
 NWChemCResult nwchemc_calculate_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_energy_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -361,6 +391,13 @@ NWChemCResult nwchemc_calculate_hessian(
   (void)hessian_h_bohr2;
   (void)hessian_len;
   return stub_fail();
+}
+
+size_t nwchemc_energy_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return 0;
 }
 
 size_t nwchemc_hessian_result_size_for_force_input(
