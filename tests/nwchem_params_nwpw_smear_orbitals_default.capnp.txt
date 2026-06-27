@@ -1,0 +1,14 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = nwpw,
+      nwpw = (
+        fractionalOrbitalsStart = 9,
+        smearTemperature = 0.03
+      )
+    )
+  ]
+)
