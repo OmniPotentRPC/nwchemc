@@ -2190,10 +2190,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       external bas_create, bas_tag_lib, bas_rtdb_store
       external bas_do_destroy, bas_set_library_name
       external bas_add_ucnt_init, bas_add_ucnt_tidy
-      external bas_set_spherical, bas_set_upcase
+      external bas_set_spherical
       logical bas_create, bas_rtdb_store, bas_do_destroy
       logical bas_add_ucnt_init, bas_add_ucnt_tidy
-      logical bas_set_spherical, bas_set_upcase
+      logical bas_set_spherical
 
       ok = .false.
       if (n_atoms .le. 0) then
@@ -2220,12 +2220,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       if (.not. bas_set_spherical(basis, .false.)) then
          errmsg = 'bas_set_spherical failed'
-         deallocate(tags)
-         status = bas_do_destroy(basis)
-         return
-      endif
-      if (.not. bas_set_upcase(basis, .false.)) then
-         errmsg = 'bas_set_upcase failed'
          deallocate(tags)
          status = bas_do_destroy(basis)
          return

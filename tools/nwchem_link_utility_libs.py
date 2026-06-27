@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 OPTIONAL_ARCHIVES = {
+    "peigs": ("libpeigs.a", "libpeigs.so", "libpeigs.dylib"),
     "peigs_comm": ("libpeigs_comm.a", "libpeigs_comm.so", "libpeigs_comm.dylib"),
 }
 

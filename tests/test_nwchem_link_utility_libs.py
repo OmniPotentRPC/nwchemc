@@ -20,13 +20,26 @@ def load_link_libs():
 
 
 class NWChemLinkUtilityLibsTest(unittest.TestCase):
-    def test_omits_absent_peigs_comm_archive(self):
+    def test_omits_absent_peigs_archives(self):
         link_libs = load_link_libs()
         with TemporaryDirectory(prefix="nwchemc-link-libs-") as root_name:
             root = Path(root_name)
             (root / "lib/LINUX64").mkdir(parents=True)
 
             self.assertEqual(link_libs.utility_libs(root, "LINUX64"), ["-lperfm"])
+
+    def test_includes_present_peigs_archive(self):
+        link_libs = load_link_libs()
+        with TemporaryDirectory(prefix="nwchemc-link-libs-") as root_name:
+            root = Path(root_name)
+            libdir = root / "lib/LINUX64"
+            libdir.mkdir(parents=True)
+            (libdir / "libpeigs.a").write_bytes(b"archive")
+
+            self.assertEqual(
+                link_libs.utility_libs(root, "LINUX64"),
+                ["-lperfm", "-lpeigs"],
+            )
 
     def test_includes_present_peigs_comm_archive(self):
         link_libs = load_link_libs()
@@ -46,6 +59,7 @@ class NWChemLinkUtilityLibsTest(unittest.TestCase):
             root = Path(root_name)
             libdir = root / "lib/LINUX64"
             libdir.mkdir(parents=True)
+            (libdir / "libpeigs.a").write_bytes(b"archive")
             (libdir / "libpeigs_comm.so").write_bytes(b"shared")
 
             proc = subprocess.run(
@@ -62,7 +76,7 @@ class NWChemLinkUtilityLibsTest(unittest.TestCase):
                 stderr=subprocess.PIPE,
             )
 
-            self.assertEqual(proc.stdout.strip(), "-lperfm -lpeigs_comm")
+            self.assertEqual(proc.stdout.strip(), "-lperfm -lpeigs -lpeigs_comm")
 
 
 if __name__ == "__main__":
