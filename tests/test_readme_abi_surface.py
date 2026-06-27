@@ -8,6 +8,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HEADER = Path(os.environ.get("NWCHEMC_HEADER_PATH", ROOT / "include" / "nwchemc.h"))
 README = Path(os.environ.get("NWCHEMC_README_PATH", ROOT / "README.md"))
+RGPOT_GUIDE = Path(
+    os.environ.get("NWCHEMC_RGPOT_GUIDE_PATH", ROOT / "docs" / "rgpot-integration.md")
+)
 V2_PLAN = Path(
     os.environ.get(
         "NWCHEMC_V2_PLAN_PATH",
@@ -91,6 +94,35 @@ class ReadmeAbiSurfaceTest(unittest.TestCase):
         self.assertEqual(missing, [])
         self.assertEqual(extra, [])
         self.assertEqual(plan_names, header_names)
+
+    def test_rgpot_integration_guide_covers_release_contract(self):
+        readme = README.read_text(encoding="utf-8")
+        self.assertIn("docs/rgpot-integration.md", readme)
+        self.assertTrue(RGPOT_GUIDE.exists())
+
+        guide = RGPOT_GUIDE.read_text(encoding="utf-8")
+        required_terms = [
+            "PotentialConfig.nwchem",
+            "ForceInput",
+            "PotentialResult",
+            "nwchemc_session_create_from_config",
+            "nwchemc_potential_result_size_for_force_input",
+            "nwchemc_session_calculate_result",
+            "nwchemc_calculate_result_from_config",
+            "nwchemc_calculate_hessian_result_from_config",
+            "nwchemc_calculate_dipole_result_from_config",
+            "nwchemc_calculate_quadrupole_result_from_config",
+            "nwchemc_calculate_stress_result_from_config",
+            "nwchemc_calculate_optimize_result_from_config",
+            "nwchemc_calculate_frequencies_result_from_config",
+            "tests/test_nwchem_rgpot_smoke.c",
+            "tests/test_nwchem_forceinput_cell_rtdb.c",
+            "tests/test_nwchem_potential_config_pseudopotential.c",
+            "NWPW-enabled NWChem",
+        ]
+        for term in required_terms:
+            with self.subTest(term=term):
+                self.assertIn(term, guide)
 
 
 if __name__ == "__main__":
