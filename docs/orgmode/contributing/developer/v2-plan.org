@@ -479,8 +479,10 @@ Simple named ~exchangeCorrelation~ values also reset ~pspw:SIC_all~,
 NWPW input handler for named functionals. The nested
 ~exchange_correlation new ...~ grammar remains in the text/directive path.
 
-Open direct-path checks: add embed regression that asserts direct path matches
-text-path energies when NWChem embed is available.
+Direct-path parity is covered by ~nwchem-config-parity~ when NWChem embed is
+available. It compares ~NWChemParams.inputBlocks~ against
+~PotentialConfig.nwchem~ structured DFT for the same H2 force input and catches
+RTDB state drift between one-shot config installs.
 
 ** DONE Simulation Cell Direct Path
 ~NWChemSimulationCellStanza~ renders full-deck ~nwpw / simulation_cell~ text
