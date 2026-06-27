@@ -519,6 +519,10 @@ struct NWChemNwpwStanza {
   ksMaxitOrbs                 @121 :Int32 = 0;      # NWPW SCF outer iteration count.
   diisHistoriesSet            @122 :Bool = false;   # Emit/promote NWPW SCF DIIS histories.
   diisHistories               @123 :Int32 = 0;      # NWPW SCF DIIS history count.
+  oneElectronGuessSet         @124 :Bool = false;   # Emit/promote NWPW one_electron_guess.
+  oneElectronGuessItIn        @125 :Int32 = 0;      # NWPW one-electron guess inner iterations.
+  oneElectronGuessItOut       @126 :Int32 = 0;      # NWPW one-electron guess outer iterations.
+  oneElectronGuessItOrtho     @127 :Int32 = 0;      # NWPW one-electron guess orthogonalization iterations.
 }
 
 # @struct NWChemScfStanza

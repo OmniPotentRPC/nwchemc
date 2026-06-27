@@ -153,6 +153,10 @@ int nwchemc_params_extract_direct_nwpw_dipole_motion(
 int nwchemc_params_extract_direct_nwpw_rho_use_symmetry(
     NWChemParams_ptr params, int *has_options, int *rho_use_symmetry);
 
+int nwchemc_params_extract_direct_nwpw_one_electron_guess(
+    NWChemParams_ptr params, int *has_options, int *it_in, int *it_out,
+    int *it_ortho);
+
 int nwchemc_params_extract_direct_nwpw_fmm(NWChemParams_ptr params,
                                            int *has_options, int *fmm,
                                            int *fmm_lmax,

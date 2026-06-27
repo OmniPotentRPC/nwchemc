@@ -1687,6 +1687,15 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &nwpw_rho_use_symmetry_has_options,
           &nwpw_rho_use_symmetry) != 0)
     return -1;
+  int nwpw_one_electron_guess_has_options = 0;
+  int nwpw_one_electron_guess_it_in = 0;
+  int nwpw_one_electron_guess_it_out = 0;
+  int nwpw_one_electron_guess_it_ortho = 0;
+  if (nwchemc_params_extract_direct_nwpw_one_electron_guess(
+          params_root, &nwpw_one_electron_guess_has_options,
+          &nwpw_one_electron_guess_it_in, &nwpw_one_electron_guess_it_out,
+          &nwpw_one_electron_guess_it_ortho) != 0)
+    return -1;
   int nwpw_fmm_has_options = 0;
   int nwpw_fmm = NWChemNwpwToggle_unspecified;
   int nwpw_fmm_lmax = 0;
@@ -2862,6 +2871,33 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:rho_use_symmetry",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (nwpw_one_electron_guess_has_options) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(value, sizeof(value), "%d", nwpw_one_electron_guess_it_in);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:H1_it_in",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+      return -1;
+    snprintf(value, sizeof(value), "%d", nwpw_one_electron_guess_it_out);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:H1_it_out",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
+      return -1;
+    snprintf(value, sizeof(value), "%d", nwpw_one_electron_guess_it_ortho);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:H1_it_ortho",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
       return -1;
   }
   if (nwpw_fmm_has_options) {

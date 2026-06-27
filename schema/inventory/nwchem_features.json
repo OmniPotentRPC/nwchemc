@@ -3699,6 +3699,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessSet",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "oneElectronGuessSet",
+      "field_id": 124,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.oneElectronGuessSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessItIn",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessItIn",
+      "struct": "NWChemNwpwStanza",
+      "name": "oneElectronGuessItIn",
+      "field_id": 125,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.oneElectronGuessItIn Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessItOut",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessItOut",
+      "struct": "NWChemNwpwStanza",
+      "name": "oneElectronGuessItOut",
+      "field_id": 126,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.oneElectronGuessItOut Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessItOrtho",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessItOrtho",
+      "struct": "NWChemNwpwStanza",
+      "name": "oneElectronGuessItOrtho",
+      "field_id": 127,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.oneElectronGuessItOrtho Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

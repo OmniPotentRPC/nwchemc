@@ -2321,6 +2321,12 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  symmetry %s\n",
                     rho_use_symmetry_logical) != 0)
     return -1;
+  if (include_direct_promoted && nwpw.oneElectronGuessSet &&
+      append_format(block, sizeof(block), "  one_electron_guess %d %d %d\n",
+                    nwpw.oneElectronGuessItIn,
+                    nwpw.oneElectronGuessItOut,
+                    nwpw.oneElectronGuessItOrtho) != 0)
+    return -1;
   const int has_fmm = nwpw.fmm != NWChemNwpwToggle_unspecified ||
                       nwpw.fmmLmax > 0 || nwpw.fmmLongRange > 0;
   if (include_direct_promoted && has_fmm) {
@@ -3884,6 +3890,45 @@ int nwchemc_params_extract_direct_nwpw_rho_use_symmetry(
       *has_options = 1;
       *rho_use_symmetry = nwpw.rhoUseSymmetry;
     }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_one_electron_guess(
+    NWChemParams_ptr params, int *has_options, int *it_in, int *it_out,
+    int *it_ortho) {
+  if (params.p.type == CAPN_NULL || !has_options || !it_in || !it_out ||
+      !it_ortho)
+    return -1;
+
+  *has_options = 0;
+  *it_in = 0;
+  *it_out = 0;
+  *it_ortho = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (!nwpw.oneElectronGuessSet)
+      continue;
+
+    *has_options = 1;
+    *it_in = nwpw.oneElectronGuessItIn;
+    *it_out = nwpw.oneElectronGuessItOut;
+    *it_ortho = nwpw.oneElectronGuessItOrtho;
   }
 
   return 0;

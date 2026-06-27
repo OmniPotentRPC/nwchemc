@@ -227,6 +227,7 @@ RTDB values directly:
 | ~dipoleMotion~ | ~dipole_motion~ | ~nwpw:dipole_motion~ |
 | ~dipoleMotionFilename~ | filename token in ~dipole_motion <filename>~ | ~nwpw:dipole_motion_filename~ |
 | ~rhoUseSymmetry~ | ~symmetry true~ or ~false~ | ~nwpw:rho_use_symmetry~ |
+| ~oneElectronGuessSet~, ~oneElectronGuessItIn~, ~oneElectronGuessItOut~, ~oneElectronGuessItOrtho~ | ~one_electron_guess <it_in> <it_out> <it_ortho>~ | ~nwpw:H1_it_in~, ~nwpw:H1_it_out~, ~nwpw:H1_it_ortho~ |
 | ~fmm~ | ~fmm true~ or ~false~ | ~nwpw:fmm~ |
 | ~fmmLmax~, ~fmmLongRange~ | ~fmm <state> <lmax> <lr>~ | ~nwpw:fmm_lmax~, ~nwpw:fmm_lr~ |
 | ~born~ | ~born true~ or ~false~ | ~nwpw:born~ |
