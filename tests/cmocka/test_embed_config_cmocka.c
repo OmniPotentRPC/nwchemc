@@ -3392,6 +3392,169 @@ static void test_session_calculate_frequencies_accepts_force_input_step(
   free(message);
 }
 
+static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
+  (void)state;
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  const double positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.7414};
+  const int atomic_numbers[2] = {1, 8};
+
+  reset_embed_captures();
+  double hessian[36] = {0.0};
+  NWChemCResult hessian_result =
+      nwchemc_hessian(2, positions, atomic_numbers, message, message_size,
+                      hessian);
+  assert_int_equal(hessian_result.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_hessian_calls, 1);
+  assert_int_equal(g_hessian_cell_calls, 0);
+  assert_int_equal(g_hessian_n_atoms[0], 2);
+  assert_int_equal(g_hessian_charge[0], -1);
+  assert_int_equal(g_hessian_multiplicity[0], 3);
+  assert_int_equal(g_hessian_atomic_numbers[0][0], 1);
+  assert_int_equal(g_hessian_atomic_numbers[0][1], 8);
+  assert_close(g_hessian_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_hessian_has_cell[0], 0);
+  assert_close(hessian[0], 10.0, 1.0e-12);
+  assert_close(hessian[35], 45.0, 1.0e-12);
+
+  reset_embed_captures();
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_result =
+      nwchemc_optimize(2, positions, atomic_numbers, message, message_size,
+                       optimized_positions);
+  assert_int_equal(optimize_result.ok, 1);
+  assert_close(optimize_result.energy_h, -1.75, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_optimize_calls, 1);
+  assert_int_equal(g_optimize_cell_calls, 0);
+  assert_int_equal(g_optimize_n_atoms[0], 2);
+  assert_int_equal(g_optimize_charge[0], -1);
+  assert_int_equal(g_optimize_multiplicity[0], 3);
+  assert_int_equal(g_optimize_atomic_numbers[0][0], 1);
+  assert_int_equal(g_optimize_atomic_numbers[0][1], 8);
+  assert_close(g_optimize_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_optimize_has_cell[0], 0);
+  assert_close(optimized_positions[0], 0.01, 1.0e-12);
+  assert_close(optimized_positions[5], 0.8014, 1.0e-12);
+
+  reset_embed_captures();
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequencies_result =
+      nwchemc_frequencies(2, positions, atomic_numbers, message, message_size,
+                          frequencies, intensities);
+  assert_int_equal(frequencies_result.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_cell_calls, 0);
+  assert_int_equal(g_frequency_n_atoms[0], 2);
+  assert_int_equal(g_frequency_charge[0], -1);
+  assert_int_equal(g_frequency_multiplicity[0], 3);
+  assert_int_equal(g_frequency_atomic_numbers[0][0], 1);
+  assert_int_equal(g_frequency_atomic_numbers[0][1], 8);
+  assert_close(g_frequency_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_frequency_has_cell[0], 0);
+  assert_close(frequencies[0], 100.0, 1.0e-12);
+  assert_close(frequencies[5], 105.0, 1.0e-12);
+  assert_close(intensities[0], 0.01, 1.0e-12);
+  assert_close(intensities[5], 0.06, 1.0e-12);
+
+  reset_embed_captures();
+  memset(frequencies, 0, sizeof(frequencies));
+  NWChemCResult frequencies_without_intensities =
+      nwchemc_frequencies(2, positions, atomic_numbers, message, message_size,
+                          frequencies, NULL);
+  assert_int_equal(frequencies_without_intensities.ok, 1);
+  assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_cell_calls, 0);
+  assert_close(frequencies[0], 100.0, 1.0e-12);
+  assert_close(frequencies[5], 105.0, 1.0e-12);
+
+  free(message);
+}
+
+static void test_session_coordinate_abi_calls_embed_wrappers(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+
+  const double positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.7414};
+  const int atomic_numbers[2] = {1, 8};
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  double hessian[36] = {0.0};
+  NWChemCResult hessian_result =
+      nwchemc_session_hessian(session, 2, positions, atomic_numbers, hessian);
+  assert_int_equal(hessian_result.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_hessian_calls, 1);
+  assert_int_equal(g_hessian_cell_calls, 1);
+  assert_int_equal(g_hessian_n_atoms[0], 2);
+  assert_int_equal(g_hessian_charge[0], -1);
+  assert_int_equal(g_hessian_multiplicity[0], 3);
+  assert_int_equal(g_hessian_atomic_numbers[0][0], 1);
+  assert_int_equal(g_hessian_atomic_numbers[0][1], 8);
+  assert_close(g_hessian_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_hessian_has_cell[0], 0);
+  assert_close(hessian[0], 10.0, 1.0e-12);
+  assert_close(hessian[35], 45.0, 1.0e-12);
+
+  double optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult optimize_result = nwchemc_session_optimize(
+      session, 2, positions, atomic_numbers, optimized_positions);
+  assert_int_equal(optimize_result.ok, 1);
+  assert_close(optimize_result.energy_h, -1.75, 1.0e-12);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_optimize_calls, 1);
+  assert_int_equal(g_optimize_cell_calls, 1);
+  assert_int_equal(g_optimize_n_atoms[0], 2);
+  assert_int_equal(g_optimize_charge[0], -1);
+  assert_int_equal(g_optimize_multiplicity[0], 3);
+  assert_int_equal(g_optimize_atomic_numbers[0][0], 1);
+  assert_int_equal(g_optimize_atomic_numbers[0][1], 8);
+  assert_close(g_optimize_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_optimize_has_cell[0], 0);
+  assert_close(optimized_positions[0], 0.01, 1.0e-12);
+  assert_close(optimized_positions[5], 0.8014, 1.0e-12);
+
+  double frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult frequencies_result = nwchemc_session_frequencies(
+      session, 2, positions, atomic_numbers, frequencies, intensities);
+  assert_int_equal(frequencies_result.ok, 1);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_cell_calls, 1);
+  assert_int_equal(g_frequency_n_atoms[0], 2);
+  assert_int_equal(g_frequency_charge[0], -1);
+  assert_int_equal(g_frequency_multiplicity[0], 3);
+  assert_int_equal(g_frequency_atomic_numbers[0][0], 1);
+  assert_int_equal(g_frequency_atomic_numbers[0][1], 8);
+  assert_close(g_frequency_positions_ang[0][5], 0.7414, 1.0e-12);
+  assert_int_equal(g_frequency_has_cell[0], 0);
+  assert_close(frequencies[0], 100.0, 1.0e-12);
+  assert_close(frequencies[5], 105.0, 1.0e-12);
+  assert_close(intensities[0], 0.01, 1.0e-12);
+  assert_close(intensities[5], 0.06, 1.0e-12);
+
+  int changed_atomic_numbers[2] = {1, 1};
+  NWChemCResult changed_topology = nwchemc_session_hessian(
+      session, 2, positions, changed_atomic_numbers, hessian);
+  assert_int_equal(changed_topology.ok, 0);
+  assert_non_null(strstr(changed_topology.message, "topology"));
+  assert_int_equal(g_hessian_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(message);
+}
+
 static void test_session_force_input_state_overrides_params(void **state) {
   (void)state;
   reset_embed_captures();
@@ -4732,6 +4895,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_calculate_optimize_accepts_force_input_step),
       cmocka_unit_test(
           test_session_calculate_frequencies_accepts_force_input_step),
+      cmocka_unit_test(test_direct_coordinate_abi_calls_embed_wrappers),
+      cmocka_unit_test(test_session_coordinate_abi_calls_embed_wrappers),
       cmocka_unit_test(test_session_force_input_state_overrides_params),
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
       cmocka_unit_test(
