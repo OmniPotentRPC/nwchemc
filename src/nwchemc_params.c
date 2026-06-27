@@ -2736,9 +2736,11 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
   if (include_direct_promoted && mapping_alias &&
       append_format(block, sizeof(block), "  %s\n", mapping_alias) != 0)
     return -1;
-  if (include_direct_promoted && nwpw.mapping > 0 &&
-      append_format(block, sizeof(block), "  mapping %d\n", nwpw.mapping) != 0)
-    return -1;
+  if (include_direct_promoted && (nwpw.mappingSet || nwpw.mapping > 0)) {
+    int mapping = nwpw.mapping > 0 ? nwpw.mapping : 1;
+    if (append_format(block, sizeof(block), "  mapping %d\n", mapping) != 0)
+      return -1;
+  }
   const char *rotation_logical = nwpw_toggle_logical_keyword(nwpw.rotation);
   if (include_direct_promoted && rotation_logical &&
       append_format(block, sizeof(block), "  rotation %s\n",
@@ -4890,9 +4892,9 @@ int nwchemc_params_extract_direct_nwpw_cell_mapping(
       *has_options = 1;
       *mapping = mapping_alias;
     }
-    if (nwpw.mapping > 0) {
+    if (nwpw.mappingSet || nwpw.mapping > 0) {
       *has_options = 1;
-      *mapping = nwpw.mapping;
+      *mapping = nwpw.mapping > 0 ? nwpw.mapping : 1;
     }
   }
 

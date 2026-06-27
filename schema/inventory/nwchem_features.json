@@ -4395,6 +4395,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.mappingSet",
+      "schema_path": "NWChemNwpwStanza.mappingSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "mappingSet",
+      "field_id": 168,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.mappingSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

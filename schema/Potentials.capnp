@@ -600,6 +600,7 @@ struct NWChemNwpwStanza {
   scalingSet                  @165 :Bool = false;   # Emit/promote NWPW scaling with default values when scalingFirst is unset.
   npDimensionsSet             @166 :Bool = false;   # Emit/promote NWPW np_dimensions with default values when all dimensions are unset.
   tolerancesSet               @167 :Bool = false;   # Emit/promote NWPW tolerances with default values when all tolerance fields are unset.
+  mappingSet                  @168 :Bool = false;   # Emit/promote NWPW mapping with the default value when mapping is unset.
 }
 
 # @struct NWChemScfStanza
