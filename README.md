@@ -543,6 +543,43 @@ grids, and related periodic-cell RTDB state.
 Classic CCSD scalar controls cover iteration, threshold, DIIS, frozen-orbital,
 disk-use, and SCS scaling settings through direct `ccsd:*` RTDB writes.
 
+## rgpot integration contract
+
+rgpot should treat `PotentialConfig.nwchem` as the configuration carrier and
+`ForceInput` as the per-step geometry carrier. The preferred long-running path
+is:
+
+```c
+NWChemCSession *session =
+    nwchemc_session_create_from_config(config_capnp, config_capnp_size);
+size_t result_capacity =
+    nwchemc_potential_result_size_for_force_input(force_input_capnp,
+                                                  force_input_capnp_size);
+NWChemCResult status =
+    nwchemc_session_calculate_result(session, force_input_capnp,
+                                     force_input_capnp_size, result_capnp,
+                                     result_capacity, &result_size);
+```
+
+One-shot callers can use `nwchemc_calculate_result_from_config()` with the same
+serialized messages. Method-specific calls such as
+`nwchemc_calculate_forces_result_from_config()` and
+`nwchemc_calculate_energy_result_from_config()` are available when rgpot wants a
+narrower result carrier.
+
+The merge/release bar for the rgpot wiring is:
+
+- `PotentialConfig.nwchem` and `ForceInput` buffers produced by rgpot are
+  accepted by the `_from_config()` and session APIs without schema-side
+  adapters.
+- Real NWChem embed tests pass for config parity, session result carriers,
+  energy/forces, Hessian, geometry/basis RTDB writes, and pseudopotential RTDB
+  writes.
+- An rgpot-shaped smoke case writes a `PotentialResult` with finite energy and
+  forces, with units matching the `ForceInput` unit fields.
+- The selected NWChem options are documented as either structured fields,
+  direct RTDB promotions, or explicit raw/input-block escape hatches.
+
 ## Build
 
 ### Stub and parser build
