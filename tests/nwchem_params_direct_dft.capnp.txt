@@ -199,7 +199,8 @@
         electricFieldType = apc,
         smoothCutoff = enabled,
         smoothCutoffAfac = 1.5,
-        smoothCutoffSigma = 3.5
+        smoothCutoffSigma = 3.5,
+        cutoffBootWavefunction = disabled
       )
     ),
     (

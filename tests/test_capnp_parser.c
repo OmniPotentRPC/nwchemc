@@ -137,6 +137,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(
       strstr(input_blocks, "efield true 0.1 0.2 0.3 center 1 2 3 APC"));
   assert_non_null(strstr(input_blocks, "smooth_cutoff true 1.5 3.5"));
+  assert_non_null(strstr(input_blocks, "cutoff_boot_wavefunction false"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -359,6 +360,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "nwpw:efield"));
   assert_null(strstr(input_blocks, "smooth_cutoff"));
   assert_null(strstr(input_blocks, "nwpw:smooth_cutoff"));
+  assert_null(strstr(input_blocks, "cutoff_boot_wavefunction"));
+  assert_null(strstr(input_blocks, "nwpw:cutoff_boot_psi"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -658,6 +661,16 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_true(smooth_cutoff_values[0] < 1.501);
   assert_true(smooth_cutoff_values[1] > 3.499);
   assert_true(smooth_cutoff_values[1] < 3.501);
+
+  int has_cutoff_boot_wavefunction = 0;
+  int cutoff_boot_wavefunction = 0;
+  assert_int_equal(
+      nwchemc_params_extract_direct_nwpw_cutoff_boot_wavefunction(
+          params_root, &has_cutoff_boot_wavefunction,
+          &cutoff_boot_wavefunction),
+      0);
+  assert_int_equal(has_cutoff_boot_wavefunction, 1);
+  assert_int_equal(cutoff_boot_wavefunction, NWChemNwpwToggle_disabled);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
