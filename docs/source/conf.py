@@ -22,7 +22,12 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "api/interface_nwchem_embed_c_api_nwchem_legacy_set_config.rst",
+]
 source_suffix = {
     ".rst": "restructuredtext",
     ".md": "markdown",
