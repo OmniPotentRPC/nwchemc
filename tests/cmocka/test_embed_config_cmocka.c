@@ -159,10 +159,38 @@ extern NWChemCResult nwchemc_calculate_dipole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_dipole_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_dipole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_dipole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *quadrupole_au, size_t quadrupole_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_quadrupole_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_quadrupole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_quadrupole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_optimize(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -840,6 +868,50 @@ static void assert_potential_result_hessian(const unsigned char *message,
   for (size_t i = 0; i < expected_hessian_count; ++i) {
     double actual = capn_to_f64(capn_get64(result.hessian, (int)i));
     assert_close(actual, expected_hessian[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
+static void assert_potential_result_dipole(const unsigned char *message,
+                                           size_t message_size,
+                                           const double *expected_dipole,
+                                           double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  capn_resolve(&result.dipole.p);
+  assert_int_equal(result.dipole.p.type, CAPN_LIST);
+  assert_int_equal(result.dipole.p.datasz, 8);
+  assert_int_equal(result.dipole.p.len, 3);
+  for (int i = 0; i < 3; ++i) {
+    double actual = capn_to_f64(capn_get64(result.dipole, i));
+    assert_close(actual, expected_dipole[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
+static void assert_potential_result_quadrupole(const unsigned char *message,
+                                               size_t message_size,
+                                               const double *expected,
+                                               double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  capn_resolve(&result.quadrupole.p);
+  assert_int_equal(result.quadrupole.p.type, CAPN_LIST);
+  assert_int_equal(result.quadrupole.p.datasz, 8);
+  assert_int_equal(result.quadrupole.p.len, 6);
+  for (int i = 0; i < 6; ++i) {
+    double actual = capn_to_f64(capn_get64(result.quadrupole, i));
+    assert_close(actual, expected[i], tolerance);
   }
   capn_free(&arena);
 }
@@ -2144,6 +2216,108 @@ static void test_session_calculate_hessian_result_writes_potential_result(
   free(message);
 }
 
+static void test_session_calculate_property_results_write_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_dipole_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_dipole_result != NULL);
+  assert_true(nwchemc_quadrupole_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_quadrupole_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_changed_species_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_changed_species);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  unsigned char result_bytes[256];
+  size_t dipole_result_size = 0;
+  size_t expected_dipole_size =
+      nwchemc_dipole_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_dipole_size > 0);
+  NWChemCResult dipole_result = nwchemc_session_calculate_dipole_result(
+      session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+      &dipole_result_size);
+  assert_int_equal(dipole_result.ok, 1);
+  assert_close(dipole_result.energy_h, -1.25, 1.0e-12);
+  assert_int_equal(dipole_result_size, expected_dipole_size);
+  assert_int_equal(g_dipole_calls, 1);
+  assert_int_equal(g_dipole_cell_calls, 1);
+  const double expected_dipole[3] = {0.25, 0.5, 0.75};
+  assert_potential_result_dipole(result_bytes, dipole_result_size,
+                                 expected_dipole, 1.0e-12);
+
+  size_t changed_dipole_size = 0;
+  NWChemCResult changed_dipole =
+      nwchemc_session_calculate_dipole_result(
+          session, step_changed_species, step_changed_species_size,
+          result_bytes, sizeof(result_bytes), &changed_dipole_size);
+  assert_int_equal(changed_dipole.ok, 0);
+  assert_non_null(strstr(changed_dipole.message, "topology"));
+  assert_int_equal(changed_dipole_size, expected_dipole_size);
+  assert_int_equal(g_dipole_calls, 1);
+
+  unsigned char short_result[63];
+  size_t required_size = 0;
+  NWChemCResult short_dipole = nwchemc_session_calculate_dipole_result(
+      session, step_a, step_a_size, short_result, sizeof(short_result),
+      &required_size);
+  assert_int_equal(short_dipole.ok, 0);
+  assert_int_equal(required_size, expected_dipole_size);
+  assert_int_equal(g_dipole_calls, 1);
+
+  size_t quadrupole_result_size = 0;
+  size_t expected_quadrupole_size =
+      nwchemc_quadrupole_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_quadrupole_size > 0);
+  NWChemCResult quadrupole_result =
+      nwchemc_session_calculate_quadrupole_result(
+          session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+          &quadrupole_result_size);
+  assert_int_equal(quadrupole_result.ok, 1);
+  assert_close(quadrupole_result.energy_h, -1.5, 1.0e-12);
+  assert_int_equal(quadrupole_result_size, expected_quadrupole_size);
+  assert_int_equal(g_quadrupole_calls, 1);
+  assert_int_equal(g_quadrupole_cell_calls, 1);
+  const double expected_quadrupole[6] = {0.125, 0.25, 0.375,
+                                         0.5,   0.625, 0.75};
+  assert_potential_result_quadrupole(result_bytes, quadrupole_result_size,
+                                     expected_quadrupole, 1.0e-12);
+
+  size_t changed_quadrupole_size = 0;
+  NWChemCResult changed_quadrupole =
+      nwchemc_session_calculate_quadrupole_result(
+          session, step_changed_species, step_changed_species_size,
+          result_bytes, sizeof(result_bytes), &changed_quadrupole_size);
+  assert_int_equal(changed_quadrupole.ok, 0);
+  assert_non_null(strstr(changed_quadrupole.message, "topology"));
+  assert_int_equal(changed_quadrupole_size, expected_quadrupole_size);
+  assert_int_equal(g_quadrupole_calls, 1);
+
+  required_size = 0;
+  NWChemCResult short_quadrupole =
+      nwchemc_session_calculate_quadrupole_result(
+          session, step_a, step_a_size, short_result, sizeof(short_result),
+          &required_size);
+  assert_int_equal(short_quadrupole.ok, 0);
+  assert_int_equal(required_size, expected_quadrupole_size);
+  assert_int_equal(g_quadrupole_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(step_changed_species);
+  free(step_a);
+  free(message);
+}
+
 static void test_calculate_result_one_shot_writes_potential_result(
     void **state) {
   (void)state;
@@ -2235,6 +2409,74 @@ static void test_calculate_hessian_result_one_shot_writes_potential_result(
   assert_int_equal(required_size, expected_size);
   assert_int_equal(g_set_config_calls, 0);
   assert_int_equal(g_hessian_calls, 0);
+
+  free(step_a);
+  free(message);
+}
+
+static void test_calculate_property_results_one_shot_write_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_calculate_dipole_result != NULL);
+  assert_true(nwchemc_calculate_quadrupole_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+
+  unsigned char result_bytes[256];
+  size_t result_size = 0;
+  size_t expected_dipole_size =
+      nwchemc_dipole_result_size_for_force_input(step_a, step_a_size);
+  NWChemCResult dipole_result = nwchemc_calculate_dipole_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(dipole_result.ok, 1);
+  assert_int_equal(result_size, expected_dipole_size);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_dipole_calls, 1);
+  const double expected_dipole[3] = {0.25, 0.5, 0.75};
+  assert_potential_result_dipole(result_bytes, result_size, expected_dipole,
+                                 1.0e-12);
+
+  reset_embed_captures();
+  unsigned char short_result[63];
+  size_t required_size = 0;
+  NWChemCResult short_dipole = nwchemc_calculate_dipole_result(
+      message, message_size, step_a, step_a_size, short_result,
+      sizeof(short_result), &required_size);
+  assert_int_equal(short_dipole.ok, 0);
+  assert_int_equal(required_size, expected_dipole_size);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_dipole_calls, 0);
+
+  reset_embed_captures();
+  size_t expected_quadrupole_size =
+      nwchemc_quadrupole_result_size_for_force_input(step_a, step_a_size);
+  NWChemCResult quadrupole_result = nwchemc_calculate_quadrupole_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(quadrupole_result.ok, 1);
+  assert_int_equal(result_size, expected_quadrupole_size);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_quadrupole_calls, 1);
+  const double expected_quadrupole[6] = {0.125, 0.25, 0.375,
+                                         0.5,   0.625, 0.75};
+  assert_potential_result_quadrupole(result_bytes, result_size,
+                                     expected_quadrupole, 1.0e-12);
+
+  reset_embed_captures();
+  required_size = 0;
+  NWChemCResult short_quadrupole = nwchemc_calculate_quadrupole_result(
+      message, message_size, step_a, step_a_size, short_result,
+      sizeof(short_result), &required_size);
+  assert_int_equal(short_quadrupole.ok, 0);
+  assert_int_equal(required_size, expected_quadrupole_size);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_quadrupole_calls, 0);
 
   free(step_a);
   free(message);
@@ -2444,9 +2686,13 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
       cmocka_unit_test(
           test_session_calculate_hessian_result_writes_potential_result),
+      cmocka_unit_test(
+          test_session_calculate_property_results_write_potential_result),
       cmocka_unit_test(test_calculate_result_one_shot_writes_potential_result),
       cmocka_unit_test(
           test_calculate_hessian_result_one_shot_writes_potential_result),
+      cmocka_unit_test(
+          test_calculate_property_results_one_shot_write_potential_result),
       cmocka_unit_test(
           test_calculate_hessian_and_dipole_one_shot_accept_force_input),
       cmocka_unit_test(test_calculate_frequencies_one_shot_accepts_force_input),

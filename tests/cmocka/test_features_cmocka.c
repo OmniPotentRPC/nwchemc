@@ -55,6 +55,8 @@ static void test_find_tce_schema_fields(void **state) {
       "field.NWChemTceStanza.quadrupole",
       "field.NWChemTceStanza.octupole",
       "field.PotentialResult.hessian",
+      "field.PotentialResult.dipole",
+      "field.PotentialResult.quadrupole",
   };
   size_t i;
   for (i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i) {
@@ -89,8 +91,8 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 283);
-  assert_int_equal((int)abis, 40);
+  assert_int_equal((int)schema_fields, 285);
+  assert_int_equal((int)abis, 46);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields + abis),
                    (int)nwchemc_feature_count());
 }
@@ -161,7 +163,13 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_calculate_hessian_result",
       "abi.nwchemc_calculate_hessian_result",
       "abi.nwchemc_calculate_dipole",
+      "abi.nwchemc_dipole_result_size_for_force_input",
+      "abi.nwchemc_session_calculate_dipole_result",
+      "abi.nwchemc_calculate_dipole_result",
       "abi.nwchemc_calculate_quadrupole",
+      "abi.nwchemc_quadrupole_result_size_for_force_input",
+      "abi.nwchemc_session_calculate_quadrupole_result",
+      "abi.nwchemc_calculate_quadrupole_result",
       "abi.nwchemc_calculate_optimize",
       "abi.nwchemc_calculate_frequencies",
       "abi.nwchemc_potential_result_size_for_force_input",

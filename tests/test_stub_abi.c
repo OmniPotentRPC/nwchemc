@@ -82,10 +82,38 @@ extern NWChemCResult nwchemc_calculate_dipole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_dipole_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_dipole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_dipole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *quadrupole_au, size_t quadrupole_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_quadrupole_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_quadrupole_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_quadrupole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_optimize(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -200,10 +228,35 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_step_dipole =
       nwchemc_session_calculate_dipole(NULL, NULL, 0, dipole_au, 3);
   assert_int_equal(session_step_dipole.ok, 0);
+  assert_true(nwchemc_dipole_result_size_for_force_input != NULL);
+  assert_int_equal(nwchemc_dipole_result_size_for_force_input(NULL, 0), 0);
+  assert_true(nwchemc_session_calculate_dipole_result != NULL);
+  NWChemCResult session_dipole_result =
+      nwchemc_session_calculate_dipole_result(NULL, NULL, 0, result_bytes,
+                                              sizeof(result_bytes),
+                                              &result_size);
+  assert_int_equal(session_dipole_result.ok, 0);
+  assert_true(nwchemc_calculate_dipole_result != NULL);
+  NWChemCResult one_shot_dipole_result = nwchemc_calculate_dipole_result(
+      NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot_dipole_result.ok, 0);
   assert_true(nwchemc_session_calculate_quadrupole != NULL);
   NWChemCResult session_step_quadrupole =
       nwchemc_session_calculate_quadrupole(NULL, NULL, 0, quadrupole_au, 6);
   assert_int_equal(session_step_quadrupole.ok, 0);
+  assert_true(nwchemc_quadrupole_result_size_for_force_input != NULL);
+  assert_int_equal(nwchemc_quadrupole_result_size_for_force_input(NULL, 0), 0);
+  assert_true(nwchemc_session_calculate_quadrupole_result != NULL);
+  NWChemCResult session_quadrupole_result =
+      nwchemc_session_calculate_quadrupole_result(NULL, NULL, 0, result_bytes,
+                                                  sizeof(result_bytes),
+                                                  &result_size);
+  assert_int_equal(session_quadrupole_result.ok, 0);
+  assert_true(nwchemc_calculate_quadrupole_result != NULL);
+  NWChemCResult one_shot_quadrupole_result =
+      nwchemc_calculate_quadrupole_result(NULL, 0, NULL, 0, result_bytes,
+                                          sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot_quadrupole_result.ok, 0);
   assert_true(nwchemc_session_calculate_optimize != NULL);
   NWChemCResult session_step_optimize = nwchemc_session_calculate_optimize(
       NULL, NULL, 0, optimized_positions_ang, 6);
