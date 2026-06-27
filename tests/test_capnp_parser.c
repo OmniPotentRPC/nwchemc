@@ -26,6 +26,7 @@ static const char *g_brillouin_tetrahedron_params_path = NULL;
 static const char *g_brillouin_dos_grid_params_path = NULL;
 static const char *g_nwpw_et_params_path = NULL;
 static const char *g_nwpw_temperature_params_path = NULL;
+static const char *g_nwpw_dos_default_params_path = NULL;
 static const char *g_nwpw_mapping_alias_params_path = NULL;
 static const char *g_nwpw_mapping_default_params_path = NULL;
 static const char *g_nwpw_virtual_alias_params_path = NULL;
@@ -1984,6 +1985,61 @@ static void test_parser_extracts_direct_nwpw_mapping_alias(void **state) {
   free(message);
 }
 
+static void test_parser_extracts_direct_nwpw_dos_default(void **state) {
+  (void)state;
+
+  size_t message_size = 0;
+  unsigned char *message =
+      read_file(g_nwpw_dos_default_params_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks, "  dos 0.00183745167502095\n"));
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_null(strstr(embed_blocks, "  dos 0.00183745167502095\n"));
+
+  int has_dos = 0;
+  int dos_alpha_set = 0;
+  double dos_alpha = 0.0;
+  int dos_npoints_set = 0;
+  int dos_npoints = 0;
+  int dos_emin_set = 0;
+  double dos_emin = 0.0;
+  int dos_emax_set = 0;
+  double dos_emax = 0.0;
+  capn_text dos_filename = {0};
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_dos(
+                       params_root, &has_dos, &dos_alpha_set, &dos_alpha,
+                       &dos_npoints_set, &dos_npoints, &dos_emin_set,
+                       &dos_emin, &dos_emax_set, &dos_emax, &dos_filename),
+                   0);
+  assert_int_equal(has_dos, 1);
+  assert_int_equal(dos_alpha_set, 1);
+  assert_true(dos_alpha > 0.0018374);
+  assert_true(dos_alpha < 0.0018375);
+  assert_int_equal(dos_npoints_set, 0);
+  assert_int_equal(dos_npoints, 0);
+  assert_int_equal(dos_emin_set, 0);
+  assert_true(dos_emin == 0.0);
+  assert_int_equal(dos_emax_set, 0);
+  assert_true(dos_emax == 0.0);
+  assert_int_equal(dos_filename.len, 0);
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_parser_extracts_direct_nwpw_mapping_default(void **state) {
   (void)state;
 
@@ -2527,7 +2583,7 @@ static void test_parser_walks_direct_pseudopotential_capnp_entries(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 28) {
+  if (argc != 29) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
             "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
@@ -2540,7 +2596,8 @@ int main(int argc, char **argv) {
             "NWPW_MC_STEPS_DEFAULT_PARAMS_BIN "
             "BRILLOUIN_TETRAHEDRON_PARAMS_BIN "
             "BRILLOUIN_DOS_GRID_PARAMS_BIN NWPW_ET_PARAMS_BIN "
-            "NWPW_TEMPERATURE_PARAMS_BIN NWPW_MAPPING_ALIAS_PARAMS_BIN "
+            "NWPW_TEMPERATURE_PARAMS_BIN NWPW_DOS_DEFAULT_PARAMS_BIN "
+            "NWPW_MAPPING_ALIAS_PARAMS_BIN "
             "NWPW_MAPPING_DEFAULT_PARAMS_BIN "
             "NWPW_VIRTUAL_ALIAS_PARAMS_BIN "
             "NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN "
@@ -2570,17 +2627,18 @@ int main(int argc, char **argv) {
   g_brillouin_dos_grid_params_path = argv[14];
   g_nwpw_et_params_path = argv[15];
   g_nwpw_temperature_params_path = argv[16];
-  g_nwpw_mapping_alias_params_path = argv[17];
-  g_nwpw_mapping_default_params_path = argv[18];
-  g_nwpw_virtual_alias_params_path = argv[19];
-  g_nwpw_one_electron_guess_defaults_params_path = argv[20];
-  g_nwpw_fractional_orbitals_default_params_path = argv[21];
-  g_nwpw_smear_orbitals_default_params_path = argv[22];
-  g_nwpw_virtual_orbitals_default_params_path = argv[23];
-  g_nwpw_translate_vector_default_params_path = argv[24];
-  g_nwpw_cell_expand_default_params_path = argv[25];
-  g_brillouin_monkhorst_default_params_path = argv[26];
-  g_brillouin_dos_grid_default_params_path = argv[27];
+  g_nwpw_dos_default_params_path = argv[17];
+  g_nwpw_mapping_alias_params_path = argv[18];
+  g_nwpw_mapping_default_params_path = argv[19];
+  g_nwpw_virtual_alias_params_path = argv[20];
+  g_nwpw_one_electron_guess_defaults_params_path = argv[21];
+  g_nwpw_fractional_orbitals_default_params_path = argv[22];
+  g_nwpw_smear_orbitals_default_params_path = argv[23];
+  g_nwpw_virtual_orbitals_default_params_path = argv[24];
+  g_nwpw_translate_vector_default_params_path = argv[25];
+  g_nwpw_cell_expand_default_params_path = argv[26];
+  g_brillouin_monkhorst_default_params_path = argv[27];
+  g_brillouin_dos_grid_default_params_path = argv[28];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_parser_renders_structured_input),
       cmocka_unit_test(test_parser_extracts_direct_dft_options),
@@ -2604,6 +2662,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_parser_renders_brillouin_dos_grid_default),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_et),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_temperature),
+      cmocka_unit_test(test_parser_extracts_direct_nwpw_dos_default),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_mapping_alias),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_mapping_default),
       cmocka_unit_test(test_parser_extracts_direct_nwpw_virtual_alias),
