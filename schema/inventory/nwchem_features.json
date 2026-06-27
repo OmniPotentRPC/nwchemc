@@ -2835,6 +2835,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.atomEfield",
+      "schema_path": "NWChemNwpwStanza.atomEfield",
+      "struct": "NWChemNwpwStanza",
+      "name": "atomEfield",
+      "field_id": 54,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.atomEfield Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.atomEfieldGradient",
+      "schema_path": "NWChemNwpwStanza.atomEfieldGradient",
+      "struct": "NWChemNwpwStanza",
+      "name": "atomEfieldGradient",
+      "field_id": 55,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.atomEfieldGradient Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

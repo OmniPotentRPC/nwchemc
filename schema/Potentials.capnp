@@ -413,6 +413,8 @@ struct NWChemNwpwStanza {
   noseIonTemperature          @51 :Float64 = 0.0;   # Nose-Hoover ion temperature Tr.
   noseElectronChainLength     @52 :Int32 = 0;       # Nose-Hoover Mchain value.
   noseIonChainLength          @53 :Int32 = 0;       # Nose-Hoover Nchain value.
+  atomEfield                  @54 :NWChemNwpwToggle = unspecified; # Emit/promote atom_efield.
+  atomEfieldGradient          @55 :NWChemNwpwToggle = unspecified; # Emit/promote atom_efield_grad.
 }
 
 # @struct NWChemScfStanza

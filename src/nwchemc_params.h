@@ -106,6 +106,10 @@ int nwchemc_params_extract_direct_nwpw_nose(
     double *ion_period, double *ion_temperature, int *electron_chain_length,
     int *ion_chain_length);
 
+int nwchemc_params_extract_direct_nwpw_electric_field(
+    NWChemParams_ptr params, int *has_options, int *atom_efield,
+    int *atom_efield_gradient);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,

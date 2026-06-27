@@ -1030,6 +1030,19 @@ static const char *nwchem_toggle_logical_keyword(enum NWChemToggle toggle) {
   }
 }
 
+static const char *
+nwpw_toggle_logical_keyword(enum NWChemNwpwToggle toggle) {
+  switch (toggle) {
+  case NWChemNwpwToggle_enabled:
+    return "true";
+  case NWChemNwpwToggle_disabled:
+    return "false";
+  case NWChemNwpwToggle_unspecified:
+  default:
+    return NULL;
+  }
+}
+
 static int render_set_logical_directive(const char *key,
                                         enum NWChemToggle toggle, char *dst,
                                         size_t dst_size) {
@@ -2083,11 +2096,36 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         return -1;
     }
   }
+  if (include_direct_promoted &&
+      nwpw.atomEfield == NWChemNwpwToggle_enabled &&
+      append_format(block, sizeof(block), "  atom_efield\n") != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.atomEfieldGradient == NWChemNwpwToggle_enabled &&
+      append_format(block, sizeof(block), "  atom_efield_grad\n") != 0)
+    return -1;
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
     return 0;
   if (append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  const char *atom_efield_logical =
+      nwpw_toggle_logical_keyword(nwpw.atomEfield);
+  const char *atom_efield_grad_logical =
+      nwpw_toggle_logical_keyword(nwpw.atomEfieldGradient);
+  if (include_direct_promoted &&
+      nwpw.atomEfield == NWChemNwpwToggle_disabled && atom_efield_logical &&
+      append_format(block, sizeof(block),
+                    "\nset nwpw:atom_efield logical %s",
+                    atom_efield_logical) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.atomEfieldGradient == NWChemNwpwToggle_disabled &&
+      atom_efield_grad_logical &&
+      append_format(block, sizeof(block),
+                    "\nset nwpw:atom_efield_grad logical %s",
+                    atom_efield_grad_logical) != 0)
     return -1;
   return append_block(dst, dst_size, block);
 }
@@ -3036,6 +3074,45 @@ int nwchemc_params_extract_direct_nwpw_nose(
         nwpw.noseElectronChainLength > 0 ? nwpw.noseElectronChainLength : 1;
     *ion_chain_length =
         nwpw.noseIonChainLength > 0 ? nwpw.noseIonChainLength : 1;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_electric_field(
+    NWChemParams_ptr params, int *has_options, int *atom_efield,
+    int *atom_efield_gradient) {
+  if (params.p.type == CAPN_NULL || !has_options || !atom_efield ||
+      !atom_efield_gradient)
+    return -1;
+
+  *has_options = 0;
+  *atom_efield = NWChemNwpwToggle_unspecified;
+  *atom_efield_gradient = NWChemNwpwToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.atomEfield != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *atom_efield = nwpw.atomEfield;
+    }
+    if (nwpw.atomEfieldGradient != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *atom_efield_gradient = nwpw.atomEfieldGradient;
+    }
   }
 
   return 0;
