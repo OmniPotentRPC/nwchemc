@@ -247,7 +247,9 @@
         rotation = disabled,
         lmaxMultipole = 4,
         fei = true,
-        feiFilename = "fei.dat"
+        feiFilename = "fei.dat",
+        initialVelocitiesTemperature = 298.15,
+        initialVelocitiesSeed = 12345
       )
     ),
     (

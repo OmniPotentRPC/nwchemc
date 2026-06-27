@@ -152,6 +152,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "rotation false"));
   assert_non_null(strstr(input_blocks, "integrate_mult_l 4"));
   assert_non_null(strstr(input_blocks, "Fei fei.dat"));
+  assert_non_null(strstr(input_blocks, "initial_velocities 298.15 12345"));
   assert_non_null(strstr(input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
   assert_non_null(strstr(input_blocks, "zone_name zoneA"));
   assert_non_null(strstr(input_blocks, "max_kpoints_print 12"));
@@ -403,6 +404,8 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   assert_null(strstr(input_blocks, "Fei fei.dat"));
   assert_null(strstr(input_blocks, "nwpw:fei"));
   assert_null(strstr(input_blocks, "cpmd:fei"));
+  assert_null(strstr(input_blocks, "initial_velocities 298.15"));
+  assert_null(strstr(input_blocks, "nwpw:init_velocities"));
   assert_null(strstr(input_blocks, "pspspin off"));
   assert_null(strstr(input_blocks, "nwpw:psp:semicore_small"));
   assert_non_null(strstr(input_blocks, "print debug"));
@@ -829,6 +832,19 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(has_fei, 1);
   assert_int_equal(fei, 1);
   assert_true(text_equals(fei_filename, "fei.dat"));
+
+  int has_initial_velocities = 0;
+  double initial_velocities_temperature = 0.0;
+  int initial_velocities_seed = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_initial_velocities(
+                       params_root, &has_initial_velocities,
+                       &initial_velocities_temperature,
+                       &initial_velocities_seed),
+                   0);
+  assert_int_equal(has_initial_velocities, 1);
+  assert_true(initial_velocities_temperature > 298.149);
+  assert_true(initial_velocities_temperature < 298.151);
+  assert_int_equal(initial_velocities_seed, 12345);
 
   int has_brillouin_zone = 0;
   capn_text brillouin_zone_name = {0};
