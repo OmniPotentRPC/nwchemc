@@ -184,6 +184,19 @@ if(NWCHEMC_WITH_NWCHEM)
   separate_arguments(GA_LDFLAGS UNIX_COMMAND "${GA_LDFLAGS_RAW}")
   separate_arguments(GA_LIBS UNIX_COMMAND "${GA_LIBS_RAW}")
 
+  execute_process(
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/nwchem_link_utility_libs.py"
+      "${NWCHEMC_NWCHEM_ROOT}"
+      "--target"
+      "${NWCHEMC_NWCHEM_TARGET}"
+    OUTPUT_VARIABLE NWCHEM_UTILITY_LIBS_RAW
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND_ERROR_IS_FATAL ANY
+  )
+  separate_arguments(NWCHEM_UTILITY_LIBS UNIX_COMMAND "${NWCHEM_UTILITY_LIBS_RAW}")
+
   set(MPI_LIBDIRS)
   foreach(_mpi_dir /usr/lib /usr/lib64 /usr/local/lib)
     file(GLOB _mpi_libs "${_mpi_dir}/libmpi.so*")
@@ -263,8 +276,7 @@ if(NWCHEMC_WITH_NWCHEM)
     "${NWCHEMC_NWCHEM_ROOT}/src/stubs.o"
     "-lnwctask"
     ${NWCHEM_MODULE_LIBS}
-    "-lperfm"
-    "-lpeigs_comm"
+    ${NWCHEM_UTILITY_LIBS}
     "-lcomex"
     ${GA_LIBS}
     "-Wl,--end-group"

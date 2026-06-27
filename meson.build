@@ -130,10 +130,17 @@ if has_nwchem
     '-DOPENBLAS',
     '-Wno-unused-parameter',
   ]
-  nwchem_utility_libs = [
-    '-lperfm',
-    '-lpeigs_comm',
-  ]
+  nwchem_utility_libs_raw = run_command(
+    python,
+    [
+      meson.current_source_dir() / 'tools/nwchem_link_utility_libs.py',
+      nwchem_root,
+      '--target',
+      nwchem_target,
+    ],
+    check: true,
+  ).stdout().strip()
+  nwchem_utility_libs = nwchem_utility_libs_raw == '' ? [] : nwchem_utility_libs_raw.split()
   nwchemc_legacy = static_library(
     'nwchemc_legacy',
     [
@@ -820,6 +827,14 @@ if get_option('with_tests')
     'nwchem-root-probe',
     python,
     args: [meson.current_source_dir() / 'tests/test_nwchem_root_probe.py'],
+    env: probe_test_env,
+  )
+  test(
+    'nwchem-link-utility-libs',
+    python,
+    args: [
+      meson.current_source_dir() / 'tests/test_nwchem_link_utility_libs.py',
+    ],
     env: probe_test_env,
   )
   test(
