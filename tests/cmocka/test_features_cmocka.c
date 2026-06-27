@@ -60,6 +60,7 @@ static void test_find_tce_schema_fields(void **state) {
       "field.PotentialResult.optimizedPos",
       "field.PotentialResult.frequencies",
       "field.PotentialResult.intensities",
+      "field.PotentialResult.stress",
       "field.ForceInput.hasCharge",
       "field.ForceInput.charge",
       "field.ForceInput.hasMultiplicity",
@@ -98,8 +99,8 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 292);
-  assert_int_equal((int)abis, 52);
+  assert_int_equal((int)schema_fields, 293);
+  assert_int_equal((int)abis, 59);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields + abis),
                    (int)nwchemc_feature_count());
 }
@@ -152,6 +153,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_quadrupole",
       "abi.nwchemc_optimize",
       "abi.nwchemc_frequencies",
+      "abi.nwchemc_stress",
       "abi.nwchemc_session_create",
       "abi.nwchemc_session_set_params",
       "abi.nwchemc_session_destroy",
@@ -162,6 +164,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_quadrupole",
       "abi.nwchemc_session_optimize",
       "abi.nwchemc_session_frequencies",
+      "abi.nwchemc_session_stress",
       "abi.nwchemc_session_calculate_forces",
       "abi.nwchemc_session_calculate_result",
       "abi.nwchemc_calculate_result",
@@ -185,12 +188,17 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_frequencies_result_size_for_force_input",
       "abi.nwchemc_session_calculate_frequencies_result",
       "abi.nwchemc_calculate_frequencies_result",
+      "abi.nwchemc_calculate_stress",
+      "abi.nwchemc_stress_result_size_for_force_input",
+      "abi.nwchemc_session_calculate_stress_result",
+      "abi.nwchemc_calculate_stress_result",
       "abi.nwchemc_potential_result_size_for_force_input",
       "abi.nwchemc_session_calculate_hessian",
       "abi.nwchemc_session_calculate_dipole",
       "abi.nwchemc_session_calculate_quadrupole",
       "abi.nwchemc_session_calculate_optimize",
       "abi.nwchemc_session_calculate_frequencies",
+      "abi.nwchemc_session_calculate_stress",
       "abi.nwchemc_session_hessian",
       "abi.nwchemc_available",
       "abi.nwchemc_version",
