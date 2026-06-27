@@ -2146,7 +2146,8 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                     nwpw.loopStart, nwpw.loopEnd) != 0)
     return -1;
   if (include_direct_promoted &&
-      (nwpw.toleranceEnergy > 0.0 || nwpw.toleranceDensity > 0.0 ||
+      (nwpw.tolerancesSet || nwpw.toleranceEnergy > 0.0 ||
+       nwpw.toleranceDensity > 0.0 ||
        nwpw.toleranceGradient > 0.0)) {
     double tol_energy =
         nwpw.toleranceEnergy > 0.0 ? nwpw.toleranceEnergy : 1.0e-7;
@@ -3448,7 +3449,8 @@ int nwchemc_params_extract_direct_nwpw_state(
       *loop_start = nwpw.loopStart;
       *loop_end = nwpw.loopEnd;
     }
-    if (nwpw.toleranceEnergy > 0.0 || nwpw.toleranceDensity > 0.0 ||
+    if (nwpw.tolerancesSet || nwpw.toleranceEnergy > 0.0 ||
+        nwpw.toleranceDensity > 0.0 ||
         nwpw.toleranceGradient > 0.0) {
       *has_options = 1;
       *has_tolerances = 1;

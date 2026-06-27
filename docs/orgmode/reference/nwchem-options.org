@@ -180,7 +180,7 @@ RTDB values directly:
 | ~fakeMass~ | ~fake_mass <value>~ | ~cgsd:fake_mass~, ~band:fake_mass~, ~cpsd:fake_mass~ |
 | ~timeStep~ | ~time_step <value>~ | ~cgsd:time_step~, ~band:time_step~, ~cpsd:time_step~ |
 | ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ | ~cgsd:loop~, ~band:loop~, ~cpsd:loop~ |
-| ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ | ~cgsd:tolerances~, ~band:tolerances~ |
+| ~tolerancesSet~, ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances [e] [d] [g]~; omitted ~e~ defaults to ~1e-7~, omitted ~d~ defaults to ~e~, and omitted ~g~ defaults to ~1e-4~ | ~cgsd:tolerances~, ~band:tolerances~ |
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ | ~cgsd:exchange_correlation~, ~band:exchange_correlation~, ~cpsd:exchange_correlation~, ~cpmd:exchange_correlation~ |
 | ~balanceMode~ | ~balance~ or ~nobalance~ | ~nwpw:balance~ |
 | ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~; omitted ~end~ defaults to ~100~ | ~nwpw:bo_steps~ |
@@ -412,7 +412,7 @@ controls:
 | ~fakeMass~ | ~fake_mass <value>~ |
 | ~timeStep~ | ~time_step <value>~ |
 | ~loopStart~, ~loopEnd~ | ~loop <start> <end>~ |
-| ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances <e> <d> <g>~ |
+| ~tolerancesSet~, ~toleranceEnergy~, ~toleranceDensity~, ~toleranceGradient~ | ~tolerances [e] [d] [g]~; omitted ~e~ defaults to ~1e-7~, omitted ~d~ defaults to ~e~, and omitted ~g~ defaults to ~1e-4~ |
 | ~exchangeCorrelation~ | ~exchange_correlation <name>~ |
 | ~balanceMode~ | ~balance~ or ~nobalance~ |
 | ~boStepStart~, ~boStepEnd~ | ~bo_steps <start> <end>~; omitted ~end~ defaults to ~100~ |

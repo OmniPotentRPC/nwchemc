@@ -599,6 +599,7 @@ struct NWChemNwpwStanza {
   boFakeMassSet               @164 :Bool = false;   # Emit/promote NWPW bo_fake_mass with the default value when boFakeMass is unset.
   scalingSet                  @165 :Bool = false;   # Emit/promote NWPW scaling with default values when scalingFirst is unset.
   npDimensionsSet             @166 :Bool = false;   # Emit/promote NWPW np_dimensions with default values when all dimensions are unset.
+  tolerancesSet               @167 :Bool = false;   # Emit/promote NWPW tolerances with default values when all tolerance fields are unset.
 }
 
 # @struct NWChemScfStanza

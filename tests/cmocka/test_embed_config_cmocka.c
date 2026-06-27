@@ -2345,11 +2345,13 @@ static void test_embed_config_promotes_nwpw_tolerances_default(void **state) {
   assert_int_equal(g_set_rtdb_values_calls, 1);
   assert_int_equal(g_typed_set_count, 2);
   assert_typed_set_triple("cgsd:tolerances",
-                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1e-07", "1e-07",
-                          "0.0001");
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "9.9999999999999995e-08",
+                          "9.9999999999999995e-08", "0.0001");
   assert_typed_set_triple("band:tolerances",
-                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1e-07", "1e-07",
-                          "0.0001");
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                          "9.9999999999999995e-08",
+                          "9.9999999999999995e-08", "0.0001");
 
   free(message);
 }
