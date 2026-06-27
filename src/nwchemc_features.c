@@ -375,6 +375,9 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.temperatureIonChainLength", "NWChemNwpwStanza.temperatureIonChainLength", "NWChemNwpwStanza.temperatureIonChainLength Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 157, 1, 1},
     {"field.NWChemNwpwStanza.temperatureElectronChainLength", "NWChemNwpwStanza.temperatureElectronChainLength", "NWChemNwpwStanza.temperatureElectronChainLength Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 158, 1, 1},
     {"field.NWChemNwpwStanza.mappingAlias", "NWChemNwpwStanza.mappingAlias", "NWChemNwpwStanza.mappingAlias Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 159, 1, 1},
+    {"field.NWChemNwpwStanza.virtualAliasSet", "NWChemNwpwStanza.virtualAliasSet", "NWChemNwpwStanza.virtualAliasSet Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 160, 1, 1},
+    {"field.NWChemNwpwStanza.virtualAliasStart", "NWChemNwpwStanza.virtualAliasStart", "NWChemNwpwStanza.virtualAliasStart Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 161, 1, 1},
+    {"field.NWChemNwpwStanza.virtualAliasEnd", "NWChemNwpwStanza.virtualAliasEnd", "NWChemNwpwStanza.virtualAliasEnd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 162, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -600,7 +603,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 595;
+static const size_t k_feature_count = 598;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

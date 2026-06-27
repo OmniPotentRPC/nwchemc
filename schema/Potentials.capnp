@@ -592,6 +592,9 @@ struct NWChemNwpwStanza {
   temperatureIonChainLength   @157 :Int32 = 0;      # First chain argument in NWPW temperature.
   temperatureElectronChainLength @158 :Int32 = 0;   # Second chain argument in NWPW temperature.
   mappingAlias                @159 :NWChemNwpwMappingAlias = unspecified; # Named NWPW mapping alias.
+  virtualAliasSet             @160 :Bool = false;   # Emit/promote NWPW virtual alias with defaults.
+  virtualAliasStart           @161 :Int32 = 0;      # First NWPW virtual alias value.
+  virtualAliasEnd             @162 :Int32 = 0;      # Second NWPW virtual alias value.
 }
 
 # @struct NWChemScfStanza

@@ -4299,6 +4299,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.virtualAliasSet",
+      "schema_path": "NWChemNwpwStanza.virtualAliasSet",
+      "struct": "NWChemNwpwStanza",
+      "name": "virtualAliasSet",
+      "field_id": 160,
+      "type": "Bool = false",
+      "role": "NWChemNwpwStanza.virtualAliasSet Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.virtualAliasStart",
+      "schema_path": "NWChemNwpwStanza.virtualAliasStart",
+      "struct": "NWChemNwpwStanza",
+      "name": "virtualAliasStart",
+      "field_id": 161,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.virtualAliasStart Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.virtualAliasEnd",
+      "schema_path": "NWChemNwpwStanza.virtualAliasEnd",
+      "struct": "NWChemNwpwStanza",
+      "name": "virtualAliasEnd",
+      "field_id": 162,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.virtualAliasEnd Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

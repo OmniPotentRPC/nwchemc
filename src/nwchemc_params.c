@@ -2313,6 +2313,18 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
     if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  const int has_virtual_alias =
+      nwpw.virtualAliasSet || nwpw.virtualAliasStart > 0 ||
+      nwpw.virtualAliasEnd > 0;
+  if (include_direct_promoted && has_virtual_alias) {
+    int virtual_start =
+        nwpw.virtualAliasStart > 0 ? nwpw.virtualAliasStart : 3;
+    int virtual_end =
+        nwpw.virtualAliasEnd > 0 ? nwpw.virtualAliasEnd : virtual_start;
+    if (append_format(block, sizeof(block), "  virtual %d %d\n",
+                      virtual_start, virtual_end) != 0)
+      return -1;
+  }
   if (include_direct_promoted && nwpw.virtualOrbitalsStart > 0 &&
       nwpw.virtualOrbitalsEnd > 0 &&
       append_format(block, sizeof(block), "  virtual_orbitals %d %d\n",
@@ -3726,6 +3738,15 @@ int nwchemc_params_extract_direct_nwpw_orbital_grid(
 
     struct NWChemNwpwStanza nwpw;
     read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    if (nwpw.virtualAliasSet || nwpw.virtualAliasStart > 0 ||
+        nwpw.virtualAliasEnd > 0) {
+      *has_options = 1;
+      *virtual_orbitals_start =
+          nwpw.virtualAliasStart > 0 ? nwpw.virtualAliasStart : 3;
+      *virtual_orbitals_end =
+          nwpw.virtualAliasEnd > 0 ? nwpw.virtualAliasEnd
+                                   : *virtual_orbitals_start;
+    }
     if (nwpw.virtualOrbitalsStart > 0 && nwpw.virtualOrbitalsEnd > 0) {
       *has_options = 1;
       *virtual_orbitals_start = nwpw.virtualOrbitalsStart;
