@@ -141,6 +141,20 @@ extern NWChemCResult nwchemc_calculate_hessian(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *hessian_h_bohr2, size_t hessian_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_hessian_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_hessian_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_hessian_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_dipole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -803,6 +817,29 @@ static void assert_potential_result(const unsigned char *message,
   for (size_t i = 0; i < expected_force_count; ++i) {
     double actual = capn_to_f64(capn_get64(result.forces, (int)i));
     assert_close(actual, expected_forces[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
+static void assert_potential_result_hessian(const unsigned char *message,
+                                            size_t message_size,
+                                            const double *expected_hessian,
+                                            size_t expected_hessian_count,
+                                            double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  capn_resolve(&result.hessian.p);
+  assert_int_equal(result.hessian.p.type, CAPN_LIST);
+  assert_int_equal(result.hessian.p.datasz, 8);
+  assert_int_equal(result.hessian.p.len, (int)expected_hessian_count);
+  for (size_t i = 0; i < expected_hessian_count; ++i) {
+    double actual = capn_to_f64(capn_get64(result.hessian, (int)i));
+    assert_close(actual, expected_hessian[i], tolerance);
   }
   capn_free(&arena);
 }
@@ -2042,6 +2079,71 @@ static void test_session_calculate_result_writes_potential_result(
   free(message);
 }
 
+static void test_session_calculate_hessian_result_writes_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_hessian_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_hessian_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_changed_species_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_changed_species);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  unsigned char result_bytes[512];
+  size_t result_size = 0;
+  size_t expected_size =
+      nwchemc_hessian_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_size > 0);
+  NWChemCResult result = nwchemc_session_calculate_hessian_result(
+      session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  assert_int_equal(result.ok, 1);
+  assert_int_equal(result_size, expected_size);
+  assert_int_equal(g_hessian_calls, 1);
+  assert_int_equal(g_hessian_cell_calls, 1);
+  double expected_hessian[36];
+  const double bohr_to_angstrom = 0.529177210903;
+  for (int i = 0; i < 36; ++i)
+    expected_hessian[i] =
+        (double)(i + 10) / (bohr_to_angstrom * bohr_to_angstrom);
+  assert_potential_result_hessian(result_bytes, result_size, expected_hessian,
+                                  36, 1.0e-10);
+
+  size_t changed_result_size = 0;
+  NWChemCResult changed_species = nwchemc_session_calculate_hessian_result(
+      session, step_changed_species, step_changed_species_size, result_bytes,
+      sizeof(result_bytes), &changed_result_size);
+  assert_int_equal(changed_species.ok, 0);
+  assert_non_null(strstr(changed_species.message, "topology"));
+  assert_int_equal(changed_result_size, expected_size);
+  assert_int_equal(g_hessian_calls, 1);
+
+  unsigned char short_result[127];
+  size_t required_size = 0;
+  NWChemCResult short_output = nwchemc_session_calculate_hessian_result(
+      session, step_a, step_a_size, short_result, sizeof(short_result),
+      &required_size);
+  assert_int_equal(short_output.ok, 0);
+  assert_int_equal(required_size, expected_size);
+  assert_int_equal(g_hessian_calls, 1);
+
+  nwchemc_session_destroy(session);
+  free(step_changed_species);
+  free(step_a);
+  free(message);
+}
+
 static void test_calculate_result_one_shot_writes_potential_result(
     void **state) {
   (void)state;
@@ -2085,6 +2187,54 @@ static void test_calculate_result_one_shot_writes_potential_result(
   assert_int_equal(required_size, expected_size);
   assert_int_equal(g_set_config_calls, 0);
   assert_int_equal(g_energy_grad_calls, 0);
+
+  free(step_a);
+  free(message);
+}
+
+static void test_calculate_hessian_result_one_shot_writes_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_calculate_hessian_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+
+  unsigned char result_bytes[512];
+  size_t result_size = 0;
+  size_t expected_size =
+      nwchemc_hessian_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_size > 0);
+  NWChemCResult result = nwchemc_calculate_hessian_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(result.ok, 1);
+  assert_int_equal(result_size, expected_size);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_hessian_calls, 1);
+  assert_int_equal(g_hessian_cell_calls, 1);
+  double expected_hessian[36];
+  const double bohr_to_angstrom = 0.529177210903;
+  for (int i = 0; i < 36; ++i)
+    expected_hessian[i] =
+        (double)(i + 10) / (bohr_to_angstrom * bohr_to_angstrom);
+  assert_potential_result_hessian(result_bytes, result_size, expected_hessian,
+                                  36, 1.0e-10);
+
+  reset_embed_captures();
+  unsigned char short_result[127];
+  size_t required_size = 0;
+  NWChemCResult short_output = nwchemc_calculate_hessian_result(
+      message, message_size, step_a, step_a_size, short_result,
+      sizeof(short_result), &required_size);
+  assert_int_equal(short_output.ok, 0);
+  assert_int_equal(required_size, expected_size);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_hessian_calls, 0);
 
   free(step_a);
   free(message);
@@ -2292,7 +2442,11 @@ int main(int argc, char **argv) {
       cmocka_unit_test(
           test_session_calculate_frequencies_accepts_force_input_step),
       cmocka_unit_test(test_session_calculate_result_writes_potential_result),
+      cmocka_unit_test(
+          test_session_calculate_hessian_result_writes_potential_result),
       cmocka_unit_test(test_calculate_result_one_shot_writes_potential_result),
+      cmocka_unit_test(
+          test_calculate_hessian_result_one_shot_writes_potential_result),
       cmocka_unit_test(
           test_calculate_hessian_and_dipole_one_shot_accept_force_input),
       cmocka_unit_test(test_calculate_frequencies_one_shot_accepts_force_input),

@@ -54,6 +54,7 @@ static void test_find_tce_schema_fields(void **state) {
       "field.NWChemTceStanza.dipole",
       "field.NWChemTceStanza.quadrupole",
       "field.NWChemTceStanza.octupole",
+      "field.PotentialResult.hessian",
   };
   size_t i;
   for (i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i) {
@@ -156,6 +157,9 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_calculate_result",
       "abi.nwchemc_calculate_result",
       "abi.nwchemc_calculate_hessian",
+      "abi.nwchemc_hessian_result_size_for_force_input",
+      "abi.nwchemc_session_calculate_hessian_result",
+      "abi.nwchemc_calculate_hessian_result",
       "abi.nwchemc_calculate_dipole",
       "abi.nwchemc_calculate_quadrupole",
       "abi.nwchemc_calculate_optimize",
