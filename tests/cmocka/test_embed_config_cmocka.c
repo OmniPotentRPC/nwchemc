@@ -285,6 +285,20 @@ extern NWChemCResult nwchemc_calculate_stress(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *stress_au, size_t stress_len) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_stress_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_stress_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_stress_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern size_t nwchemc_frequencies_result_size_for_force_input(
     const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
@@ -1122,6 +1136,30 @@ static void assert_potential_result_quadrupole(const unsigned char *message,
   assert_int_equal(result.quadrupole.p.len, 6);
   for (int i = 0; i < 6; ++i) {
     double actual = capn_to_f64(capn_get64(result.quadrupole, i));
+    assert_close(actual, expected[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
+static void assert_potential_result_stress(const unsigned char *message,
+                                           size_t message_size,
+                                           double expected_energy,
+                                           const double *expected,
+                                           double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, tolerance);
+  capn_resolve(&result.stress.p);
+  assert_int_equal(result.stress.p.type, CAPN_LIST);
+  assert_int_equal(result.stress.p.datasz, 8);
+  assert_int_equal(result.stress.p.len, 9);
+  for (int i = 0; i < 9; ++i) {
+    double actual = capn_to_f64(capn_get64(result.stress, i));
     assert_close(actual, expected[i], tolerance);
   }
   capn_free(&arena);
@@ -3773,6 +3811,96 @@ static void test_session_calculate_property_results_write_potential_result(
   free(message);
 }
 
+static void test_session_calculate_stress_result_writes_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_stress_result_size_for_force_input != NULL);
+  assert_true(nwchemc_session_calculate_stress_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_ev_size = 0;
+  size_t step_changed_species_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_ev = read_file(g_force_step_ev_path, &step_ev_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_ev);
+  assert_non_null(step_changed_species);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  const double bohr_to_angstrom = 0.529177210903;
+  const double hartree_to_ev = 27.211386245988;
+  double expected_stress[9];
+  double expected_stress_ev[9];
+  for (int i = 0; i < 9; ++i) {
+    double native_stress = 0.03125 * (double)(i + 1);
+    expected_stress[i] =
+        native_stress / (bohr_to_angstrom * bohr_to_angstrom *
+                         bohr_to_angstrom);
+    expected_stress_ev[i] = expected_stress[i] * hartree_to_ev;
+  }
+
+  unsigned char result_bytes[256];
+  size_t stress_result_size = 0;
+  size_t expected_stress_size =
+      nwchemc_stress_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_stress_size > 0);
+  NWChemCResult stress_result = nwchemc_session_calculate_stress_result(
+      session, step_a, step_a_size, result_bytes, sizeof(result_bytes),
+      &stress_result_size);
+  assert_int_equal(stress_result.ok, 1);
+  assert_close(stress_result.energy_h, -2.0, 1.0e-12);
+  assert_int_equal(stress_result_size, expected_stress_size);
+  assert_int_equal(g_stress_calls, 1);
+  assert_int_equal(g_stress_cell_calls, 1);
+  assert_potential_result_stress(result_bytes, stress_result_size, -2.0,
+                                 expected_stress, 1.0e-12);
+
+  stress_result_size = 0;
+  NWChemCResult stress_ev = nwchemc_session_calculate_stress_result(
+      session, step_ev, step_ev_size, result_bytes, sizeof(result_bytes),
+      &stress_result_size);
+  assert_int_equal(stress_ev.ok, 1);
+  assert_close(stress_ev.energy_h, -2.0, 1.0e-12);
+  assert_int_equal(stress_result_size, expected_stress_size);
+  assert_int_equal(g_stress_calls, 2);
+  assert_potential_result_stress(result_bytes, stress_result_size,
+                                 -2.0 * hartree_to_ev, expected_stress_ev,
+                                 1.0e-10);
+
+  size_t changed_stress_size = 0;
+  NWChemCResult changed_stress =
+      nwchemc_session_calculate_stress_result(
+          session, step_changed_species, step_changed_species_size,
+          result_bytes, sizeof(result_bytes), &changed_stress_size);
+  assert_int_equal(changed_stress.ok, 0);
+  assert_non_null(strstr(changed_stress.message, "topology"));
+  assert_int_equal(changed_stress_size, expected_stress_size);
+  assert_int_equal(g_stress_calls, 2);
+
+  unsigned char short_result[63];
+  size_t required_size = 0;
+  NWChemCResult short_stress = nwchemc_session_calculate_stress_result(
+      session, step_a, step_a_size, short_result, sizeof(short_result),
+      &required_size);
+  assert_int_equal(short_stress.ok, 0);
+  assert_int_equal(required_size, expected_stress_size);
+  assert_int_equal(g_stress_calls, 2);
+
+  nwchemc_session_destroy(session);
+  free(step_changed_species);
+  free(step_ev);
+  free(step_a);
+  free(message);
+}
+
 static void test_session_calculate_structural_results_write_potential_result(
     void **state) {
   (void)state;
@@ -4094,6 +4222,78 @@ static void test_calculate_property_results_one_shot_write_potential_result(
   assert_int_equal(required_size, expected_quadrupole_size);
   assert_int_equal(g_set_config_calls, 0);
   assert_int_equal(g_quadrupole_calls, 0);
+
+  free(step_a);
+  free(step_ev);
+  free(message);
+}
+
+static void test_calculate_stress_result_one_shot_writes_potential_result(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+  assert_true(nwchemc_calculate_stress_result != NULL);
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_ev_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_ev = read_file(g_force_step_ev_path, &step_ev_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_ev);
+
+  const double bohr_to_angstrom = 0.529177210903;
+  const double hartree_to_ev = 27.211386245988;
+  double expected_stress[9];
+  double expected_stress_ev[9];
+  for (int i = 0; i < 9; ++i) {
+    double native_stress = 0.03125 * (double)(i + 1);
+    expected_stress[i] =
+        native_stress / (bohr_to_angstrom * bohr_to_angstrom *
+                         bohr_to_angstrom);
+    expected_stress_ev[i] = expected_stress[i] * hartree_to_ev;
+  }
+
+  unsigned char result_bytes[256];
+  size_t result_size = 0;
+  size_t expected_stress_size =
+      nwchemc_stress_result_size_for_force_input(step_a, step_a_size);
+  assert_true(expected_stress_size > 0);
+  NWChemCResult stress_result = nwchemc_calculate_stress_result(
+      message, message_size, step_a, step_a_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(stress_result.ok, 1);
+  assert_close(stress_result.energy_h, -2.0, 1.0e-12);
+  assert_int_equal(result_size, expected_stress_size);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_stress_calls, 1);
+  assert_potential_result_stress(result_bytes, result_size, -2.0,
+                                 expected_stress, 1.0e-12);
+
+  reset_embed_captures();
+  result_size = 0;
+  NWChemCResult stress_ev = nwchemc_calculate_stress_result(
+      message, message_size, step_ev, step_ev_size, result_bytes,
+      sizeof(result_bytes), &result_size);
+  assert_int_equal(stress_ev.ok, 1);
+  assert_int_equal(result_size, expected_stress_size);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_int_equal(g_stress_calls, 1);
+  assert_potential_result_stress(result_bytes, result_size,
+                                 -2.0 * hartree_to_ev, expected_stress_ev,
+                                 1.0e-10);
+
+  reset_embed_captures();
+  unsigned char short_result[63];
+  size_t required_size = 0;
+  NWChemCResult short_stress = nwchemc_calculate_stress_result(
+      message, message_size, step_a, step_a_size, short_result,
+      sizeof(short_result), &required_size);
+  assert_int_equal(short_stress.ok, 0);
+  assert_int_equal(required_size, expected_stress_size);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_int_equal(g_stress_calls, 0);
 
   free(step_a);
   free(step_ev);
@@ -4535,12 +4735,16 @@ int main(int argc, char **argv) {
       cmocka_unit_test(
           test_session_calculate_property_results_write_potential_result),
       cmocka_unit_test(
+          test_session_calculate_stress_result_writes_potential_result),
+      cmocka_unit_test(
           test_session_calculate_structural_results_write_potential_result),
       cmocka_unit_test(test_calculate_result_one_shot_writes_potential_result),
       cmocka_unit_test(
           test_calculate_hessian_result_one_shot_writes_potential_result),
       cmocka_unit_test(
           test_calculate_property_results_one_shot_write_potential_result),
+      cmocka_unit_test(
+          test_calculate_stress_result_one_shot_writes_potential_result),
       cmocka_unit_test(
           test_calculate_structural_results_one_shot_write_potential_result),
       cmocka_unit_test(
