@@ -3411,8 +3411,8 @@ static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 0);
   assert_int_equal(g_hessian_n_atoms[0], 2);
-  assert_int_equal(g_hessian_charge[0], -1);
-  assert_int_equal(g_hessian_multiplicity[0], 3);
+  assert_int_equal(g_hessian_charge[0], 0);
+  assert_int_equal(g_hessian_multiplicity[0], 1);
   assert_int_equal(g_hessian_atomic_numbers[0][0], 1);
   assert_int_equal(g_hessian_atomic_numbers[0][1], 8);
   assert_close(g_hessian_positions_ang[0][5], 0.7414, 1.0e-12);
@@ -3431,8 +3431,8 @@ static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
   assert_int_equal(g_optimize_calls, 1);
   assert_int_equal(g_optimize_cell_calls, 0);
   assert_int_equal(g_optimize_n_atoms[0], 2);
-  assert_int_equal(g_optimize_charge[0], -1);
-  assert_int_equal(g_optimize_multiplicity[0], 3);
+  assert_int_equal(g_optimize_charge[0], 0);
+  assert_int_equal(g_optimize_multiplicity[0], 1);
   assert_int_equal(g_optimize_atomic_numbers[0][0], 1);
   assert_int_equal(g_optimize_atomic_numbers[0][1], 8);
   assert_close(g_optimize_positions_ang[0][5], 0.7414, 1.0e-12);
@@ -3451,8 +3451,8 @@ static void test_direct_coordinate_abi_calls_embed_wrappers(void **state) {
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 0);
   assert_int_equal(g_frequency_n_atoms[0], 2);
-  assert_int_equal(g_frequency_charge[0], -1);
-  assert_int_equal(g_frequency_multiplicity[0], 3);
+  assert_int_equal(g_frequency_charge[0], 0);
+  assert_int_equal(g_frequency_multiplicity[0], 1);
   assert_int_equal(g_frequency_atomic_numbers[0][0], 1);
   assert_int_equal(g_frequency_atomic_numbers[0][1], 8);
   assert_close(g_frequency_positions_ang[0][5], 0.7414, 1.0e-12);
@@ -3497,8 +3497,8 @@ static void test_session_coordinate_abi_calls_embed_wrappers(void **state) {
   assert_int_equal(g_hessian_calls, 1);
   assert_int_equal(g_hessian_cell_calls, 1);
   assert_int_equal(g_hessian_n_atoms[0], 2);
-  assert_int_equal(g_hessian_charge[0], -1);
-  assert_int_equal(g_hessian_multiplicity[0], 3);
+  assert_int_equal(g_hessian_charge[0], 0);
+  assert_int_equal(g_hessian_multiplicity[0], 1);
   assert_int_equal(g_hessian_atomic_numbers[0][0], 1);
   assert_int_equal(g_hessian_atomic_numbers[0][1], 8);
   assert_close(g_hessian_positions_ang[0][5], 0.7414, 1.0e-12);
@@ -3515,8 +3515,8 @@ static void test_session_coordinate_abi_calls_embed_wrappers(void **state) {
   assert_int_equal(g_optimize_calls, 1);
   assert_int_equal(g_optimize_cell_calls, 1);
   assert_int_equal(g_optimize_n_atoms[0], 2);
-  assert_int_equal(g_optimize_charge[0], -1);
-  assert_int_equal(g_optimize_multiplicity[0], 3);
+  assert_int_equal(g_optimize_charge[0], 0);
+  assert_int_equal(g_optimize_multiplicity[0], 1);
   assert_int_equal(g_optimize_atomic_numbers[0][0], 1);
   assert_int_equal(g_optimize_atomic_numbers[0][1], 8);
   assert_close(g_optimize_positions_ang[0][5], 0.7414, 1.0e-12);
@@ -3533,8 +3533,8 @@ static void test_session_coordinate_abi_calls_embed_wrappers(void **state) {
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 1);
   assert_int_equal(g_frequency_n_atoms[0], 2);
-  assert_int_equal(g_frequency_charge[0], -1);
-  assert_int_equal(g_frequency_multiplicity[0], 3);
+  assert_int_equal(g_frequency_charge[0], 0);
+  assert_int_equal(g_frequency_multiplicity[0], 1);
   assert_int_equal(g_frequency_atomic_numbers[0][0], 1);
   assert_int_equal(g_frequency_atomic_numbers[0][1], 8);
   assert_close(g_frequency_positions_ang[0][5], 0.7414, 1.0e-12);
