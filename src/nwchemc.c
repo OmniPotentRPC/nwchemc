@@ -1537,6 +1537,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           nwpw_efield_vector, &nwpw_efield_has_center, nwpw_efield_center,
           &nwpw_efield_type) != 0)
     return -1;
+  int nwpw_smooth_cutoff_has_options = 0;
+  int nwpw_smooth_cutoff = NWChemNwpwToggle_unspecified;
+  double nwpw_smooth_cutoff_values[2] = {0.0, 0.0};
+  if (nwchemc_params_extract_direct_nwpw_smooth_cutoff(
+          params_root, &nwpw_smooth_cutoff_has_options, &nwpw_smooth_cutoff,
+          nwpw_smooth_cutoff_values) != 0)
+    return -1;
   int brillouin_has_options = 0;
   capn_text brillouin_zone_name = {0};
   int brillouin_monkhorst_pack[3] = {0, 0, 0};
@@ -2513,6 +2520,23 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           return -1;
       }
     }
+  }
+  if (nwpw_smooth_cutoff_has_options &&
+      nwpw_smooth_cutoff == NWChemNwpwToggle_enabled) {
+    char afac_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char sigma_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *smooth_cutoff_values[2] = {afac_value, sigma_value};
+    snprintf(afac_value, sizeof(afac_value), "%.15g",
+             nwpw_smooth_cutoff_values[0]);
+    snprintf(sigma_value, sizeof(sigma_value), "%.15g",
+             nwpw_smooth_cutoff_values[1]);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:smooth_cutoff",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, smooth_cutoff_values, 2) != 0)
+      return -1;
   }
   memset(packed_set_keys, 0, sizeof(packed_set_keys));
   memset(packed_set_values, 0, sizeof(packed_set_values));

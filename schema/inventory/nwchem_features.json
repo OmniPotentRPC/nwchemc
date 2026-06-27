@@ -3003,6 +3003,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.smoothCutoff",
+      "schema_path": "NWChemNwpwStanza.smoothCutoff",
+      "struct": "NWChemNwpwStanza",
+      "name": "smoothCutoff",
+      "field_id": 68,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.smoothCutoff Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smoothCutoffAfac",
+      "schema_path": "NWChemNwpwStanza.smoothCutoffAfac",
+      "struct": "NWChemNwpwStanza",
+      "name": "smoothCutoffAfac",
+      "field_id": 69,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.smoothCutoffAfac Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smoothCutoffSigma",
+      "schema_path": "NWChemNwpwStanza.smoothCutoffSigma",
+      "struct": "NWChemNwpwStanza",
+      "name": "smoothCutoffSigma",
+      "field_id": 70,
+      "type": "Float64 = 0.0",
+      "role": "NWChemNwpwStanza.smoothCutoffSigma Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

@@ -105,9 +105,10 @@ analysis controls write the five ~*:mulliken~ logical keys and the
 ~nwpw:mulliken_kawai~ logical key. Periodic dipole mode writes
 ~nwpw:periodic_dipole~ directly. External electric-field controls write
 ~nwpw:efield~, ~nwpw:efield_vector~, optional ~nwpw:efield_center~, and
-~nwpw:efield_type~ directly. Structured simulation-cell controls write boundary
-conditions, 3x3 cell vectors, FFT grids, small grids, box delta, box
-orientation, and box-type state to the matching ~<cell>:*~ RTDB keys.
+~nwpw:efield_type~ directly. Smooth cutoff controls write the
+~nwpw:smooth_cutoff~ double pair directly. Structured simulation-cell controls
+write boundary conditions, 3x3 cell vectors, FFT grids, small grids, box delta,
+box orientation, and box-type state to the matching ~<cell>:*~ RTDB keys.
 
 * Structured Coverage
 The schema contains typed stanzas for:
@@ -309,6 +310,7 @@ module prefix:
 | ~electricFieldX~ / ~electricFieldY~ / ~electricFieldZ~ | ~efield_vector~ | ~nwpw~ |
 | ~electricFieldCenterSet~ + center coordinates | ~efield_center~ | ~nwpw~ |
 | ~electricFieldType~ | ~efield_type~ | ~nwpw~ |
+| ~smoothCutoff~ + values | ~smooth_cutoff~ | ~nwpw~ |
 | ~boundaryConditions~ | ~boundry~ | ~<cell>~ |
 | ~latticeVectorsBohr[9]~ | ~unita~ | ~<cell>~ |
 | ~ngridX~ / ~ngridY~ / ~ngridZ~ | ~ngrid~ | ~<cell>~ |

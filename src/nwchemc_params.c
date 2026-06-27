@@ -2169,6 +2169,24 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
         return -1;
     }
   }
+  const int has_smooth_cutoff =
+      nwpw.smoothCutoff != NWChemNwpwToggle_unspecified ||
+      nwpw.smoothCutoffAfac > 0.0 || nwpw.smoothCutoffSigma > 0.0;
+  if (include_direct_promoted && has_smooth_cutoff) {
+    if (nwpw.smoothCutoff == NWChemNwpwToggle_disabled) {
+      if (append_format(block, sizeof(block), "  smooth_cutoff false\n") != 0)
+        return -1;
+    } else {
+      double afac =
+          nwpw.smoothCutoffAfac > 0.0 ? nwpw.smoothCutoffAfac : 2.0;
+      double sigma =
+          nwpw.smoothCutoffSigma > 0.0 ? nwpw.smoothCutoffSigma : 4.0;
+      if (append_format(block, sizeof(block),
+                        "  smooth_cutoff true %.15g %.15g\n", afac,
+                        sigma) != 0)
+        return -1;
+    }
+  }
   if (render_directives(nwpw.directives, block, sizeof(block), "  ") != 0)
     return -1;
   if (!include_direct_promoted && strcmp(block, "nwpw\n") == 0)
@@ -3310,6 +3328,50 @@ int nwchemc_params_extract_direct_nwpw_efield(
       efield_center[2] = nwpw.electricFieldCenterZ;
     }
     *efield_type = nwpw.electricFieldType;
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_smooth_cutoff(
+    NWChemParams_ptr params, int *has_options, int *smooth_cutoff,
+    double values[2]) {
+  if (params.p.type == CAPN_NULL || !has_options || !smooth_cutoff || !values)
+    return -1;
+
+  *has_options = 0;
+  *smooth_cutoff = NWChemNwpwToggle_unspecified;
+  values[0] = 0.0;
+  values[1] = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    const int has_smooth_cutoff =
+        nwpw.smoothCutoff != NWChemNwpwToggle_unspecified ||
+        nwpw.smoothCutoffAfac > 0.0 || nwpw.smoothCutoffSigma > 0.0;
+    if (!has_smooth_cutoff)
+      continue;
+
+    *has_options = 1;
+    *smooth_cutoff = nwpw.smoothCutoff == NWChemNwpwToggle_unspecified
+                         ? NWChemNwpwToggle_enabled
+                         : nwpw.smoothCutoff;
+    values[0] = nwpw.smoothCutoffAfac > 0.0 ? nwpw.smoothCutoffAfac : 2.0;
+    values[1] =
+        nwpw.smoothCutoffSigma > 0.0 ? nwpw.smoothCutoffSigma : 4.0;
   }
 
   return 0;

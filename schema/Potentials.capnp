@@ -434,6 +434,9 @@ struct NWChemNwpwStanza {
   electricFieldCenterY        @65 :Float64 = 0.0;    # Second NWPW efield center value.
   electricFieldCenterZ        @66 :Float64 = 0.0;    # Third NWPW efield center value.
   electricFieldType           @67 :NWChemNwpwEfieldType = unspecified; # Emit/promote NWPW efield type.
+  smoothCutoff                @68 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW smooth_cutoff.
+  smoothCutoffAfac            @69 :Float64 = 0.0;    # First NWPW smooth_cutoff value.
+  smoothCutoffSigma           @70 :Float64 = 0.0;    # Second NWPW smooth_cutoff value.
 }
 
 # @struct NWChemScfStanza

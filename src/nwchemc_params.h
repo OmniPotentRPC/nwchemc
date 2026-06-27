@@ -122,6 +122,10 @@ int nwchemc_params_extract_direct_nwpw_efield(
     double efield_vector[3], int *has_center, double efield_center[3],
     int *efield_type);
 
+int nwchemc_params_extract_direct_nwpw_smooth_cutoff(
+    NWChemParams_ptr params, int *has_options, int *smooth_cutoff,
+    double values[2]);
+
 int nwchemc_params_extract_direct_brillouin_zone(
     NWChemParams_ptr params, int *has_options, capn_text *zone_name,
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
