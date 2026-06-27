@@ -215,7 +215,11 @@
         cpmdProperties = enabled,
         useGridComparison = disabled,
         director = enabled,
-        directorFilename = "director.dat"
+        directorFilename = "director.dat",
+        cellExpandX = 2,
+        cellExpandY = 3,
+        cellExpandZ = 4,
+        mapping = 3
       )
     ),
     (
