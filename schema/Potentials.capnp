@@ -883,4 +883,36 @@ interface Potential {
   # @param config Backend-tagged options (nwchem, future metatomic/xtb/...).
   # @return ok=false if the arm does not match the server backend or apply failed.
   configure @1 (config :PotentialConfig) -> (ok :Bool, message :Text);
+
+  # @brief Compute only the scalar potential energy for this geometry.
+  # @return PotentialResult.energy in ForceInput.energyUnit.
+  calculateEnergy @2 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Compute potential energy and force vector for this geometry.
+  # @return PotentialResult.energy and PotentialResult.forces.
+  calculateForces @3 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Compute a dense Cartesian Hessian for this geometry.
+  # @return PotentialResult.hessian in energyUnit / lengthUnit^2.
+  calculateHessian @4 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Compute the total electric dipole vector for this geometry.
+  # @return PotentialResult.dipole in atomic units.
+  calculateDipole @5 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Compute the total traceless electric quadrupole tensor.
+  # @return PotentialResult.quadrupole in atomic units as xx, xy, xz, yy, yz, zz.
+  calculateQuadrupole @6 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Compute the periodic stress tensor for this geometry.
+  # @return PotentialResult.stress in energyUnit / lengthUnit^3.
+  calculateStress @7 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Optimize this geometry and return final coordinates.
+  # @return PotentialResult.optimizedPos in ForceInput.lengthUnit.
+  calculateOptimize @8 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Compute harmonic vibrational frequencies and IR intensities.
+  # @return PotentialResult.frequencies in cm^-1 and intensities in atomic units.
+  calculateFrequencies @9 (fip :ForceInput) -> (result :PotentialResult);
 }

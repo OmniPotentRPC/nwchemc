@@ -97,6 +97,19 @@ EXPECTED_MODULE_ENUMS = {
     "zora",
 }
 
+EXPECTED_POTENTIAL_METHODS = {
+    "calculate": 0,
+    "configure": 1,
+    "calculateEnergy": 2,
+    "calculateForces": 3,
+    "calculateHessian": 4,
+    "calculateDipole": 5,
+    "calculateQuadrupole": 6,
+    "calculateStress": 7,
+    "calculateOptimize": 8,
+    "calculateFrequencies": 9,
+}
+
 
 class SchemaModuleCoverageTest(unittest.TestCase):
     def test_nwchem_module_enum_covers_curated_input_handlers(self):
@@ -108,6 +121,20 @@ class SchemaModuleCoverageTest(unittest.TestCase):
         missing = sorted(EXPECTED_MODULE_ENUMS - actual)
 
         self.assertEqual(missing, [])
+
+    def test_potential_service_exposes_c_abi_operations(self):
+        text = SCHEMA.read_text()
+        match = re.search(r"interface Potential \{(?P<body>.*?)\n\}", text, re.S)
+        self.assertIsNotNone(match)
+        body = match.group("body")
+        actual = {
+            name: int(ordinal)
+            for name, ordinal in re.findall(
+                r"^\s*([a-z][A-Za-z0-9]*)\s+@([0-9]+)\s*\(", body, re.M
+            )
+        }
+
+        self.assertEqual(actual, EXPECTED_POTENTIAL_METHODS)
 
 
 if __name__ == "__main__":
