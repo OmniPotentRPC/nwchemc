@@ -1575,12 +1575,15 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       logical lcfac(numfunc), nlcfac(numfunc)
       logical lxfac(numfunc), nlxfac(numfunc)
       logical xccomb(numfunc)
+      logical lval
       double precision cfac(numfunc), xfac(numfunc)
       character*64 xc_spec
       integer i
 
       ok = .true.
       if (.not. inp_compare(.false., scf_type, 'pbe0')) return
+      call xc_setcamparam(rtdb, .false., .false., 0.0d0, 0.0d0,
+     $   0.0d0)
       do i = 1, numfunc
          lcfac(i) = .false.
          nlcfac(i) = .false.
@@ -1618,6 +1621,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       status = rtdb_put(rtdb, 'dft:cfac', mt_dbl, numfunc, cfac)
       ok = ok .and. status
       status = rtdb_put(rtdb, 'dft:xfac', mt_dbl, numfunc, xfac)
+      ok = ok .and. status
+      lval = .false.
+      status = rtdb_put(rtdb, 'dft:libxcon', mt_log, 1, lval)
       ok = ok .and. status
       return
       end
