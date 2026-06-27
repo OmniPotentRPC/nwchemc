@@ -14,6 +14,7 @@ static const char *g_params_path = NULL;
 static const char *g_config_options_path = NULL;
 static const char *g_pspspin_path = NULL;
 static const char *g_pspspin_many_path = NULL;
+static const char *g_nwpw_spin_mode_path = NULL;
 static const char *g_compact_cells_path = NULL;
 static const char *g_force_step_a_path = NULL;
 static const char *g_force_step_b_path = NULL;
@@ -2070,6 +2071,40 @@ static void test_embed_config_promotes_large_pspspin_ion_list(void **state) {
   free(message);
 }
 
+static void test_embed_config_promotes_nwpw_spin_mode(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_nwpw_spin_mode_path, &message_size);
+  assert_non_null(message);
+
+  double pos[3] = {0.0, 0.0, 0.0};
+  int z[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult result =
+      nwchemc_energy_gradient(1, pos, z, message, message_size, grad);
+
+  assert_int_equal(result.ok, 1);
+  assert_null(strstr(g_input_blocks, "  dft\n"));
+  assert_null(strstr(g_input_blocks, "  odft\n"));
+  assert_int_equal(g_set_rtdb_values_calls, 1);
+  assert_int_equal(g_typed_set_count, 6);
+  assert_typed_set_scalar_entry("cgsd:ispin",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar_entry("band:ispin",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar_entry("cpsd:ispin",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar_entry("cgsd:ispin",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  assert_typed_set_scalar_entry("band:ispin",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  assert_typed_set_scalar_entry("cpsd:ispin",
+                                NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+
+  free(message);
+}
+
 static void test_session_reuses_config_across_geometry_steps(void **state) {
   (void)state;
   reset_embed_captures();
@@ -3514,11 +3549,12 @@ static void test_calculate_frequencies_one_shot_accepts_force_input(
 }
 
 int main(int argc, char **argv) {
-  if (argc != 12) {
+  if (argc != 13) {
     fprintf(stderr,
             "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
-            "PSPSPIN_MANY_PARAMS_BIN FORCE_STEP_A_BIN FORCE_STEP_B_BIN "
-            "FORCE_STEP_EV_BIN FORCE_STEP_CHANGED_SPECIES_BIN "
+            "PSPSPIN_MANY_PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
+            "FORCE_STEP_A_BIN FORCE_STEP_B_BIN FORCE_STEP_EV_BIN "
+            "FORCE_STEP_CHANGED_SPECIES_BIN "
             "FORCE_STEP_STATE_BIN TCE_METHODS_BIN COMPACT_CELLS_BIN\n",
             argv[0]);
     return 2;
@@ -3527,13 +3563,14 @@ int main(int argc, char **argv) {
   g_config_options_path = argv[2];
   g_pspspin_path = argv[3];
   g_pspspin_many_path = argv[4];
-  g_force_step_a_path = argv[5];
-  g_force_step_b_path = argv[6];
-  g_force_step_ev_path = argv[7];
-  g_force_step_changed_species_path = argv[8];
-  g_force_step_state_path = argv[9];
-  g_tce_methods_path = argv[10];
-  g_compact_cells_path = argv[11];
+  g_nwpw_spin_mode_path = argv[5];
+  g_force_step_a_path = argv[6];
+  g_force_step_b_path = argv[7];
+  g_force_step_ev_path = argv[8];
+  g_force_step_changed_species_path = argv[9];
+  g_force_step_state_path = argv[10];
+  g_tce_methods_path = argv[11];
+  g_compact_cells_path = argv[12];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
@@ -3541,6 +3578,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
       cmocka_unit_test(test_embed_config_promotes_pspspin_rules),
       cmocka_unit_test(test_embed_config_promotes_large_pspspin_ion_list),
+      cmocka_unit_test(test_embed_config_promotes_nwpw_spin_mode),
       cmocka_unit_test(test_session_reuses_config_across_geometry_steps),
       cmocka_unit_test(test_session_reapplies_after_one_shot_config),
       cmocka_unit_test(test_session_rejects_param_replacement_after_topology),

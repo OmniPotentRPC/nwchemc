@@ -1,0 +1,19 @@
+(
+  basis = "sto-3g",
+  theory = "pspw",
+  scfType = "pbe96",
+  inputStanzas = [
+    (
+      kind = nwpw,
+      nwpw = (
+        spinMode = restricted
+      )
+    ),
+    (
+      kind = nwpw,
+      nwpw = (
+        spinMode = unrestricted
+      )
+    )
+  ]
+)
