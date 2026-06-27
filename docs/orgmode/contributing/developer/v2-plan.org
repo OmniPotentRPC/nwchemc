@@ -521,6 +521,8 @@ rules are walked with ~nwchemc_params_for_each_direct_pseudopotential_spin_rule~
 as generated c-capnproto structs and promoted to typed RTDB values.
 ~semicoreSmall~ promotes to the ~nwpw:psp:semicore_small~ logical RTDB key
 read by NWPW semicore force and stress kernels. Extra directives stay in text.
+~uterm~ and ~utermRules~ promote to the direct indexed NWPW RTDB keys instead
+of relying on rendered pseudopotential text.
 
 The fixed-form bridge writes:
 
@@ -534,12 +536,17 @@ The fixed-form bridge writes:
 | ~pspSpin = disabled~ | ~nwpw:pspspin~ = false, ~nwpw:pspspin_count~ = 0 |
 | ~semicoreSmall~ | ~nwpw:psp:semicore_small~ logical |
 | ~spinRules[]~ | ~nwpw:pspspin~ = true, ~nwpw:pspspin_count~, ~nwpw:pspspin_iamup:_000001~, channel-specific ~scale~, ~l~, optional ~m~, and ~ions~ keys |
+| ~uterm = disabled~ | ~nwpw:uterm~ = false, ~nwpw:nuterms~ = 0 |
+| ~utermRules[]~ | ~nwpw:uterm~ = true, ~nwpw:nuterms~, ~nwpw:uterm_scale:_000001~, ~nwpw:jterm_scale:_000001~, ~nwpw:uterm_l:_000001~, and ~nwpw:uterm_ions:_000001~ |
 
 The ~nwchem-pseudopotential-rtdb~ integration test initializes a real NWChem
-RTDB, calls ~nwchemc_store_pseudopotentials~ directly, and reads back the exact
-~pspw_library~, ~paw_library~, ~pspw_library_type~, and ~psp_reset~ keys. The
-test covers ~library~, ~pspw_library~, ~paw_library~, ~cpi~, ~teter~, and
-~allElements~ entries without routing through NWChem text input.
+RTDB, calls ~nwchemc_store_pseudopotentials~ for library entries, applies the
+typed-set pseudopotential payload through ~nwchemc_apply_direct_typed_sets~, and
+reads back the exact ~pspw_library~, ~paw_library~, ~pspw_library_type~,
+~psp_reset~, ~pspspin~, ~semicore_small~, and ~uterm~ keys. The test covers
+~library~, ~pspw_library~, ~paw_library~, ~cpi~, ~teter~, ~allElements~,
+~pspspin~, ~semicoreSmall~, and ~utermRules~ entries without routing through
+NWChem text input.
 
 Top-level text-input parity for the same NWPW pseudopotential stanza requires
 an NWPW-enabled NWChem link. The current embedded test link resolves
