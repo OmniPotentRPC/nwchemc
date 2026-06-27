@@ -2103,6 +2103,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronGridX",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronGridX",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "tetrahedronGridX",
+      "field_id": 9,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.tetrahedronGridX Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronGridY",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronGridY",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "tetrahedronGridY",
+      "field_id": 10,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.tetrahedronGridY Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronGridZ",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronGridZ",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "tetrahedronGridZ",
+      "field_id": 11,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.tetrahedronGridZ Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronZoneName",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronZoneName",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "tetrahedronZoneName",
+      "field_id": 12,
+      "type": "Text = \"\"",
+      "role": "NWChemBrillouinZoneStanza.tetrahedronZoneName Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemSimulationCellStanza.cellName",
       "schema_path": "NWChemSimulationCellStanza.cellName",
       "struct": "NWChemSimulationCellStanza",

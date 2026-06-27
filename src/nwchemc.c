@@ -2006,6 +2006,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           brillouin_monkhorst_pack, &brillouin_max_kpoints_print, NULL, 0,
           &brillouin_kvector_count) != 0)
     return -1;
+  int brillouin_tetrahedron_has_options = 0;
+  int brillouin_tetrahedron_grid[3] = {0, 0, 0};
+  if (nwchemc_params_extract_direct_brillouin_tetrahedron(
+          params_root, &brillouin_tetrahedron_has_options,
+          brillouin_tetrahedron_grid) != 0)
+    return -1;
   int psp_types[NWCHEMC_DIRECT_PSP_MAX];
   size_t psp_count = 0;
   int psp_spin_has_options = 0;
@@ -2648,6 +2654,22 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:psp:semicore_small",
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (brillouin_tetrahedron_has_options) {
+    char x_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char y_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char z_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *value_list[3] = {x_value, y_value, z_value};
+    snprintf(x_value, sizeof(x_value), "%d", brillouin_tetrahedron_grid[0]);
+    snprintf(y_value, sizeof(y_value), "%d", brillouin_tetrahedron_grid[1]);
+    snprintf(z_value, sizeof(z_value), "%d", brillouin_tetrahedron_grid[2]);
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "band:tetrahedron-grid",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 3) != 0)
       return -1;
   }
   if (psp_uterm_has_options) {

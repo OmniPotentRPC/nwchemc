@@ -268,6 +268,10 @@ struct NWChemBrillouinZoneStanza {
   directives        @6 :List(NWChemDirective);
   zoneStructureName @7 :Text = ""; # Emit/promote band_structure:zone_name.
   zoneFftName       @8 :Text = ""; # Emit/promote band_fft:zone_name.
+  tetrahedronGridX  @9 :Int32 = 0; # First NWPW tetrahedron grid value.
+  tetrahedronGridY  @10 :Int32 = 0; # Second NWPW tetrahedron grid value.
+  tetrahedronGridZ  @11 :Int32 = 0; # Third NWPW tetrahedron grid value.
+  tetrahedronZoneName @12 :Text = ""; # Optional trailing NWPW tetrahedron zone token.
 }
 
 enum NWChemSimulationCellLatticeKind {

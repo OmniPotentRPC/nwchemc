@@ -192,6 +192,10 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemBrillouinZoneStanza.directives", "NWChemBrillouinZoneStanza.directives", "NWChemBrillouinZoneStanza.directives Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 1},
     {"field.NWChemBrillouinZoneStanza.zoneStructureName", "NWChemBrillouinZoneStanza.zoneStructureName", "NWChemBrillouinZoneStanza.zoneStructureName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 1},
     {"field.NWChemBrillouinZoneStanza.zoneFftName", "NWChemBrillouinZoneStanza.zoneFftName", "NWChemBrillouinZoneStanza.zoneFftName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 1},
+    {"field.NWChemBrillouinZoneStanza.tetrahedronGridX", "NWChemBrillouinZoneStanza.tetrahedronGridX", "NWChemBrillouinZoneStanza.tetrahedronGridX Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 9, 1, 1},
+    {"field.NWChemBrillouinZoneStanza.tetrahedronGridY", "NWChemBrillouinZoneStanza.tetrahedronGridY", "NWChemBrillouinZoneStanza.tetrahedronGridY Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 10, 1, 1},
+    {"field.NWChemBrillouinZoneStanza.tetrahedronGridZ", "NWChemBrillouinZoneStanza.tetrahedronGridZ", "NWChemBrillouinZoneStanza.tetrahedronGridZ Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 11, 1, 1},
+    {"field.NWChemBrillouinZoneStanza.tetrahedronZoneName", "NWChemBrillouinZoneStanza.tetrahedronZoneName", "NWChemBrillouinZoneStanza.tetrahedronZoneName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 12, 1, 1},
     {"field.NWChemSimulationCellStanza.cellName", "NWChemSimulationCellStanza.cellName", "NWChemSimulationCellStanza.cellName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemSimulationCellStanza.boundaryConditions", "NWChemSimulationCellStanza.boundaryConditions", "NWChemSimulationCellStanza.boundaryConditions Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemSimulationCellStanza.latticeVectorsBohr", "NWChemSimulationCellStanza.latticeVectorsBohr", "NWChemSimulationCellStanza.latticeVectorsBohr Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -580,7 +584,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 575;
+static const size_t k_feature_count = 579;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

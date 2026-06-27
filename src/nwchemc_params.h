@@ -255,6 +255,9 @@ int nwchemc_params_extract_direct_brillouin_zone(
     int monkhorst_pack[3], int *max_kpoints_print, double *kvectors,
     size_t kvector_capacity, size_t *kvector_count);
 
+int nwchemc_params_extract_direct_brillouin_tetrahedron(
+    NWChemParams_ptr params, int *has_options, int tetrahedron_grid[3]);
+
 typedef int (*nwchemc_params_direct_pseudopotential_fn)(
     void *user_data, capn_text target,
     const struct NWChemPseudopotentialEntry *entry);

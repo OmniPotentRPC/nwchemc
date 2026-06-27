@@ -248,9 +248,9 @@ One-electron guess controls expose `nwpw:H1_it_in`, `nwpw:H1_it_out`, and
 Pseudopotential U-term rules expose `nwpw:uterm`, `nwpw:nuterms`, and indexed
 U/J scale, angular-momentum, and ion-list RTDB entries directly.
 NWPW Brillouin-zone and
-simulation-cell stanzas cover k-point grids, explicit k-vectors, boundary
-conditions, zone aliases, 3x3 cell vectors, FFT grids, and related periodic-cell
-RTDB state.
+simulation-cell stanzas cover k-point grids, tetrahedron grids, explicit
+k-vectors, boundary conditions, zone aliases, 3x3 cell vectors, FFT grids, and
+related periodic-cell RTDB state.
 Classic CCSD scalar controls cover iteration, threshold, DIIS, frozen-orbital,
 disk-use, and SCS scaling settings through direct `ccsd:*` RTDB writes.
 
