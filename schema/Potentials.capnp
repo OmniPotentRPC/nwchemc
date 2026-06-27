@@ -272,6 +272,10 @@ struct NWChemBrillouinZoneStanza {
   tetrahedronGridY  @10 :Int32 = 0; # Second NWPW tetrahedron grid value.
   tetrahedronGridZ  @11 :Int32 = 0; # Third NWPW tetrahedron grid value.
   tetrahedronZoneName @12 :Text = ""; # Optional trailing NWPW tetrahedron zone token.
+  dosGridX          @13 :Int32 = 0; # First NWPW dos-grid value.
+  dosGridY          @14 :Int32 = 0; # Second NWPW dos-grid value.
+  dosGridZ          @15 :Int32 = 0; # Third NWPW dos-grid value.
+  dosGridZoneName   @16 :Text = ""; # Optional trailing NWPW dos-grid zone token.
 }
 
 enum NWChemSimulationCellLatticeKind {

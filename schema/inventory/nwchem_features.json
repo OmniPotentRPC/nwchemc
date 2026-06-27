@@ -2151,6 +2151,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridX",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridX",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosGridX",
+      "field_id": 13,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.dosGridX Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridY",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridY",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosGridY",
+      "field_id": 14,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.dosGridY Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridZ",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridZ",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosGridZ",
+      "field_id": 15,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.dosGridZ Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridZoneName",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridZoneName",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosGridZoneName",
+      "field_id": 16,
+      "type": "Text = \"\"",
+      "role": "NWChemBrillouinZoneStanza.dosGridZoneName Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemSimulationCellStanza.cellName",
       "schema_path": "NWChemSimulationCellStanza.cellName",
       "struct": "NWChemSimulationCellStanza",
