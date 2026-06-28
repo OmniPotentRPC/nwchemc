@@ -2173,42 +2173,28 @@ c        TDDFT SP forces: persist CI vectors + util paths + grad root.
 c        Post-SCF theories (ccsd/mp2/tce/...) need HF reference scftype too.
          status = rtdb_cput(rtdb, 'scf:scftype', 1, scf_type)
          ok = ok .and. status
-c        TCE RTDB fill-ins only when promotion/input left keys unset.
+c        TCE: promote/input should set keys; ensure non-fragment path.
          if (theory_name(1:3) .eq. 'tce') then
-            if (.not. rtdb_cget(rtdb, 'tce:model', 1, tddft_fn)) then
-               status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
-               ok = ok .and. status
-            endif
-            if (.not. rtdb_cget(rtdb, 'tce:model2e', 1, tddft_fn)) then
-               status = rtdb_cput(rtdb, 'tce:model2e', 1, 'default')
-               ok = ok .and. status
-            endif
-            if (.not. rtdb_get(rtdb, 'tce:fragment', mt_int, 1, ival)) then
-               ival = -1
-               call nwchemc_rtdb_put_int(rtdb, 'tce:fragment',
-     $            ival, status)
-               ok = ok .and. status
-            endif
-            if (.not. rtdb_get(rtdb, 'tce:reference', mt_int, 1, ival)) then
-               ival = 0
-               call nwchemc_rtdb_put_int(rtdb, 'tce:reference',
-     $            ival, status)
-               ok = ok .and. status
-            endif
-            if (.not. rtdb_get(rtdb, 'tce:densmat', mt_log, 1, lval)) then
-               lval = .false.
-               status = rtdb_put(rtdb, 'tce:densmat', mt_log, 1, lval)
-               ok = ok .and. status
-            endif
-            if (.not. rtdb_get(rtdb, 'tce:recompf', mt_log, 1, lval)) then
-               lval = .true.
-               status = rtdb_put(rtdb, 'tce:recompf', mt_log, 1, lval)
-               ok = ok .and. status
-            endif
-            if (.not. rtdb_cget(rtdb, 'tce:module', 1, tddft_fn)) then
-               status = rtdb_cput(rtdb, 'tce:module', 1, 'tce')
-               ok = ok .and. status
-            endif
+            status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'tce:model2e', 1, 'default')
+            ok = ok .and. status
+            ival = -1
+            call nwchemc_rtdb_put_int(rtdb, 'tce:fragment',
+     $         ival, status)
+            ok = ok .and. status
+            ival = 0
+            call nwchemc_rtdb_put_int(rtdb, 'tce:reference',
+     $         ival, status)
+            ok = ok .and. status
+            lval = .false.
+            status = rtdb_put(rtdb, 'tce:densmat', mt_log, 1, lval)
+            ok = ok .and. status
+            lval = .true.
+            status = rtdb_put(rtdb, 'tce:recompf', mt_log, 1, lval)
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'tce:module', 1, 'tce')
+            ok = ok .and. status
          endif
 c        MCSCF active space comes from inputBlocks / typed sets, not defaults.
          if (scf_has_options .ne. 0) then
