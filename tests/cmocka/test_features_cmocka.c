@@ -61,6 +61,7 @@ static void test_find_tce_schema_fields(void **state) {
       "field.PotentialResult.frequencies",
       "field.PotentialResult.intensities",
       "field.PotentialResult.stress",
+      "field.PotentialResult.polarizability",
       "field.ForceInput.hasCharge",
       "field.ForceInput.charge",
       "field.ForceInput.hasMultiplicity",
@@ -87,6 +88,7 @@ static void test_find_potential_schema_methods(void **state) {
       "method.Potential.calculateStress",
       "method.Potential.calculateOptimize",
       "method.Potential.calculateFrequencies",
+      "method.Potential.calculatePolarizability",
   };
   size_t i;
   for (i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i) {
@@ -124,9 +126,9 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 426);
-  assert_int_equal((int)schema_methods, 10);
-  assert_int_equal((int)abis, 97);
+  assert_int_equal((int)schema_fields, 427);
+  assert_int_equal((int)schema_methods, 11);
+  assert_int_equal((int)abis, 107);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +
                          schema_methods + abis),
                    (int)nwchemc_feature_count());
@@ -178,6 +180,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_energy_forces",
       "abi.nwchemc_hessian",
       "abi.nwchemc_dipole",
+      "abi.nwchemc_polarizability",
       "abi.nwchemc_quadrupole",
       "abi.nwchemc_optimize",
       "abi.nwchemc_frequencies",
@@ -187,6 +190,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_energy_forces_from_config",
       "abi.nwchemc_hessian_from_config",
       "abi.nwchemc_dipole_from_config",
+      "abi.nwchemc_polarizability_from_config",
       "abi.nwchemc_quadrupole_from_config",
       "abi.nwchemc_stress_from_config",
       "abi.nwchemc_optimize_from_config",
@@ -200,6 +204,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_energy",
       "abi.nwchemc_session_energy_forces",
       "abi.nwchemc_session_dipole",
+      "abi.nwchemc_session_polarizability",
       "abi.nwchemc_session_quadrupole",
       "abi.nwchemc_session_optimize",
       "abi.nwchemc_session_frequencies",
@@ -233,6 +238,12 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_calculate_dipole_result",
       "abi.nwchemc_calculate_dipole_result",
       "abi.nwchemc_calculate_dipole_result_from_config",
+      "abi.nwchemc_calculate_polarizability",
+      "abi.nwchemc_calculate_polarizability_from_config",
+      "abi.nwchemc_polarizability_result_size_for_force_input",
+      "abi.nwchemc_session_calculate_polarizability_result",
+      "abi.nwchemc_calculate_polarizability_result",
+      "abi.nwchemc_calculate_polarizability_result_from_config",
       "abi.nwchemc_calculate_quadrupole",
       "abi.nwchemc_calculate_quadrupole_from_config",
       "abi.nwchemc_quadrupole_result_size_for_force_input",
@@ -260,6 +271,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_potential_result_size_for_force_input",
       "abi.nwchemc_session_calculate_hessian",
       "abi.nwchemc_session_calculate_dipole",
+      "abi.nwchemc_session_calculate_polarizability",
       "abi.nwchemc_session_calculate_quadrupole",
       "abi.nwchemc_session_calculate_optimize",
       "abi.nwchemc_session_calculate_frequencies",
