@@ -1886,6 +1886,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "virtual 7 8"));
   assert_null(strstr(g_input_blocks, "virtual_orbitals 7 8"));
   assert_null(strstr(g_input_blocks, "lcao_skip"));
+  assert_null(strstr(g_input_blocks, "lcao_mask up 1 3 5"));
+  assert_null(strstr(g_input_blocks, "lcao_mask down 2 4"));
   assert_null(strstr(g_input_blocks, "ewald_ngrid 9 10 11"));
   assert_null(strstr(g_input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
   assert_null(strstr(g_input_blocks, "monkhorst-pack 3 4 -5 zoneA"));
@@ -2014,7 +2016,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_set_string("nwpw:vfield_filenames", "vf_a.ascii vf_b.ascii");
   assert_set_string("nwpw:dos:filename", "dos.dat");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 250);
+  assert_int_equal(g_typed_set_count, 253);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -2131,6 +2133,16 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                         "7", "8");
   assert_typed_set_scalar("nwpw:lcao_skip", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
                           "true");
+  assert_typed_set_scalar("nwpw:lcao_mask", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  const char *lcao_mask_up_orbitals[3] = {"1", "3", "5"};
+  assert_typed_set_values("nwpw:lcao_mask_uporbs",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, 3,
+                          lcao_mask_up_orbitals);
+  const char *lcao_mask_down_orbitals[2] = {"2", "4"};
+  assert_typed_set_values("nwpw:lcao_mask_downorbs",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, 2,
+                          lcao_mask_down_orbitals);
   assert_typed_set_triple("nwpw:ewald_ngrid",
                           NWCHEMC_DIRECT_SET_VALUE_INTEGER, "9", "10",
                           "11");

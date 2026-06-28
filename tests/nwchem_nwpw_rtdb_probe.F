@@ -609,6 +609,34 @@
          result = 91
          goto 900
       endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:lcao_mask', lval)) then
+         result = 92
+         goto 900
+      endif
+      if (.not. lval) then
+         result = 93
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:lcao_mask_uporbs', 3, ivals)) then
+         result = 94
+         goto 900
+      endif
+      if (ivals(1) .ne. 1 .or. ivals(2) .ne. 3 .or.
+     $     ivals(3) .ne. 5) then
+         result = 95
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:lcao_mask_downorbs', 2, ivals)) then
+         result = 96
+         goto 900
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 4) then
+         result = 97
+         goto 900
+      endif
 
  900  continue
       finish_ok = 0

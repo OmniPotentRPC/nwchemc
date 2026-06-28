@@ -41,6 +41,11 @@ static const char *g_brillouin_monkhorst_default_params_path = NULL;
 static const char *g_brillouin_dos_grid_default_params_path = NULL;
 static const char *g_compact_cells_params_path = NULL;
 
+extern int nwchemc_params_extract_direct_nwpw_lcao_mask(
+    NWChemParams_ptr params, int *has_options, int *lcao_mask,
+    int *up_orbitals, size_t up_capacity, size_t *up_count,
+    int *down_orbitals, size_t down_capacity, size_t *down_count);
+
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
   if (!fp) {
@@ -158,6 +163,8 @@ static void test_parser_renders_structured_input(void **state) {
                          "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
   assert_non_null(strstr(input_blocks, "virtual 7 8"));
   assert_non_null(strstr(input_blocks, "lcao_skip"));
+  assert_non_null(strstr(input_blocks, "lcao_mask up 1 3 5"));
+  assert_non_null(strstr(input_blocks, "lcao_mask down 2 4"));
   assert_non_null(strstr(input_blocks, "ewald_ngrid 9 10 11"));
   assert_non_null(strstr(input_blocks, "Nose-Hoover 12 300 34 400 start 2 3"));
   assert_non_null(strstr(input_blocks, "atom_efield"));
@@ -713,6 +720,27 @@ static void test_parser_extracts_direct_nwpw_options(void **state) {
   assert_int_equal(ewald_grid_x, 9);
   assert_int_equal(ewald_grid_y, 10);
   assert_int_equal(ewald_grid_z, 11);
+
+  int has_lcao_mask = 0;
+  int lcao_mask = 0;
+  int lcao_mask_up_orbitals[4] = {0, 0, 0, 0};
+  int lcao_mask_down_orbitals[4] = {0, 0, 0, 0};
+  size_t lcao_mask_up_count = 0;
+  size_t lcao_mask_down_count = 0;
+  assert_int_equal(nwchemc_params_extract_direct_nwpw_lcao_mask(
+                       params_root, &has_lcao_mask, &lcao_mask,
+                       lcao_mask_up_orbitals, 4, &lcao_mask_up_count,
+                       lcao_mask_down_orbitals, 4, &lcao_mask_down_count),
+                   0);
+  assert_int_equal(has_lcao_mask, 1);
+  assert_int_equal(lcao_mask, NWChemNwpwToggle_enabled);
+  assert_int_equal((int)lcao_mask_up_count, 3);
+  assert_int_equal(lcao_mask_up_orbitals[0], 1);
+  assert_int_equal(lcao_mask_up_orbitals[1], 3);
+  assert_int_equal(lcao_mask_up_orbitals[2], 5);
+  assert_int_equal((int)lcao_mask_down_count, 2);
+  assert_int_equal(lcao_mask_down_orbitals[0], 2);
+  assert_int_equal(lcao_mask_down_orbitals[1], 4);
 
   int has_nose = 0;
   int nose_hoover = 0;
