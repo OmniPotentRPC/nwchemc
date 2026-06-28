@@ -578,7 +578,8 @@ structured pseudopotential entry matches the Si atoms in ~ForceInput~ and
 verifies finite ~PotentialResult.energy~ and ~PotentialResult.forces~ values.
 The ~nwchem-nwpw-rtdb~ probe also installs a configured
 ~PotentialConfig.nwchem~ fixture and verifies the same NWPW control families
-against the embedded RTDB handle.
+against the embedded RTDB handle, including string-valued ~vfieldFilenames~
+and ~dosFilename~ controls.
 
 ** Atom And Geometry Limits
 Direct geometry and library-basis setup use ~n_atoms~-sized storage instead of

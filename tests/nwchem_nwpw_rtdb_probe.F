@@ -766,6 +766,26 @@
          result = 233
          return
       endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'nwpw:vfield_filenames',
+     $     1, text_value)) then
+         result = 308
+         return
+      endif
+      if (text_value(1:23) .ne. 'vf_a.ascii vf_b.ascii') then
+         result = 309
+         return
+      endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'nwpw:dos:filename',
+     $     1, text_value)) then
+         result = 310
+         return
+      endif
+      if (text_value(1:7) .ne. 'dos.dat') then
+         result = 311
+         return
+      endif
       if (.not. nwchemc_probe_get_log(rtdb,
      $     'nwpw:cpmd_properties', lval)) then
          result = 234
