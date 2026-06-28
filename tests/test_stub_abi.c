@@ -387,6 +387,8 @@ extern int nwchemc_session_configure(NWChemCSession *session,
                                      const void *config_capnp,
                                      size_t config_capnp_size_bytes)
     NWCHEMC_TEST_WEAK;
+extern int nwchemc_session_reset_topology(NWChemCSession *session)
+    NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_energy_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -553,6 +555,8 @@ static void test_stub_reports_unavailable(void **state) {
   assert_null(nwchemc_session_create_from_config(NULL, 0));
   assert_true(nwchemc_session_configure != NULL);
   assert_int_not_equal(nwchemc_session_configure(NULL, NULL, 0), 0);
+  assert_true(nwchemc_session_reset_topology != NULL);
+  assert_int_not_equal(nwchemc_session_reset_topology(NULL), 0);
   nwchemc_session_destroy(NULL);
   NWChemCResult session_energy =
       nwchemc_session_energy(NULL, 0, NULL, NULL);

@@ -460,6 +460,8 @@ extern int nwchemc_session_configure(NWChemCSession *session,
                                      const void *config_capnp,
                                      size_t config_capnp_size_bytes)
     NWCHEMC_TEST_WEAK;
+extern int nwchemc_session_reset_topology(NWChemCSession *session)
+    NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_energy_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -3809,6 +3811,52 @@ static void test_session_calculate_forces_accepts_force_input_steps(
   free(message);
 }
 
+static void test_session_reset_topology_allows_changed_species(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  size_t step_a_size = 0;
+  size_t step_changed_species_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  unsigned char *step_a = read_file(g_force_step_a_path, &step_a_size);
+  unsigned char *step_changed_species = read_file(
+      g_force_step_changed_species_path, &step_changed_species_size);
+  assert_non_null(message);
+  assert_non_null(step_a);
+  assert_non_null(step_changed_species);
+  assert_true(nwchemc_session_reset_topology != NULL);
+
+  NWChemCSession *session = nwchemc_session_create(message, message_size);
+  assert_non_null(session);
+  assert_int_equal(g_set_config_calls, 1);
+
+  double forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult first = nwchemc_session_calculate_forces(
+      session, step_a, step_a_size, forces, 6);
+  assert_int_equal(first.ok, 1);
+  assert_int_equal(g_energy_grad_calls, 1);
+
+  NWChemCResult rejected = nwchemc_session_calculate_forces(
+      session, step_changed_species, step_changed_species_size, forces, 6);
+  assert_int_equal(rejected.ok, 0);
+  assert_non_null(strstr(rejected.message, "topology"));
+  assert_int_equal(g_energy_grad_calls, 1);
+
+  assert_int_equal(nwchemc_session_reset_topology(session), 0);
+  NWChemCResult accepted = nwchemc_session_calculate_forces(
+      session, step_changed_species, step_changed_species_size, forces, 6);
+  assert_int_equal(accepted.ok, 1);
+  assert_int_equal(g_energy_grad_calls, 2);
+  assert_int_equal(g_call_n_atoms[1], 2);
+  assert_int_equal(g_call_atomic_numbers[1][0], 6);
+  assert_int_equal(g_call_atomic_numbers[1][1], 8);
+
+  nwchemc_session_destroy(session);
+  free(step_changed_species);
+  free(step_a);
+  free(message);
+}
+
 static void test_session_calculate_hessian_accepts_force_input_step(
     void **state) {
   (void)state;
@@ -6847,6 +6895,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_session_set_params_replaces_before_topology),
       cmocka_unit_test(test_session_rejects_param_replacement_after_topology),
       cmocka_unit_test(test_session_calculate_forces_accepts_force_input_steps),
+      cmocka_unit_test(test_session_reset_topology_allows_changed_species),
       cmocka_unit_test(test_session_calculate_hessian_accepts_force_input_step),
       cmocka_unit_test(test_session_calculate_dipole_accepts_force_input_step),
       cmocka_unit_test(
