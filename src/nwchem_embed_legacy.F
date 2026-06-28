@@ -2020,6 +2020,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer nopen, ival
       double precision chg
       character*16 vectors_in
+      character*255 tddft_fn
 
       ok = .true.
       chg = dble(charge)
@@ -2135,16 +2136,19 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
                ok = ok .and. status
             endif
          endif
-c        TDDFT SP forces: CI vector filenames + gradient root (no input).
+c        TDDFT SP forces: NWChem util paths for CI vectors + grad root.
          if (theory_name(1:5) .eq. 'tddft') then
-            status = rtdb_cput(rtdb, 'tddft:civecs', 1,
-     $         'nwchemc.civecs')
+            call util_file_name('civecs', .false., .false.,
+     $         tddft_fn)
+            status = rtdb_cput(rtdb, 'tddft:civecs', 1, tddft_fn)
             ok = ok .and. status
-            status = rtdb_cput(rtdb, 'tddft:trials', 1,
-     $         'nwchemc.trials')
+            call util_file_name('trials', .false., .false.,
+     $         tddft_fn)
+            status = rtdb_cput(rtdb, 'tddft:trials', 1, tddft_fn)
             ok = ok .and. status
-            status = rtdb_cput(rtdb, 'tddft:transden', 1,
-     $         'nwchemc.tdens')
+            call util_file_name('tdens', .false., .false.,
+     $         tddft_fn)
+            status = rtdb_cput(rtdb, 'tddft:transden', 1, tddft_fn)
             ok = ok .and. status
             ival = 1
             status = rtdb_put(rtdb, 'tddft_grad:isinglet_roots',

@@ -4509,18 +4509,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
       PROMO_DBL("tddft:ecut", tddft_ecut);
       PROMO_LOG("tddft:lecut", 1);
     }
-    /* TDDFT analytic gradient needs CI vector path + root indices (no input parser). */
+    /* TDDFT analytic gradient root indices (CI paths set in method_state). */
     {
       int grad_root = tddft_target > 0 ? tddft_target : 1;
       PROMO_INT("tddft_grad:isinglet_roots", grad_root);
       PROMO_INT("tddft_grad:itriplet_roots", grad_root);
       PROMO_INT("tddft_grad:iroots", grad_root);
-      PROMO_STR("tddft:civecs",
-                ((capn_text){.str = "nwchemc.civecs", .len = 13}));
-      PROMO_STR("tddft:trials",
-                ((capn_text){.str = "nwchemc.trials", .len = 13}));
-      PROMO_STR("tddft:transden",
-                ((capn_text){.str = "nwchemc.tdens", .len = 12}));
     }
 
 #undef PROMO_STR
