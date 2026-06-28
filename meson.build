@@ -1531,8 +1531,17 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-pseudopotential-text-rtdb',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, nwchem_pseudopotential_params_bin, nwchem_pseudopotential_reset_params_bin]
-        : [nwchem_pseudopotential_params_bin, nwchem_pseudopotential_reset_params_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, 'enabled', nwchem_pseudopotential_params_bin]
+        : ['enabled', nwchem_pseudopotential_params_bin],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
+    test(
+      'nwchem-pseudopotential-text-reset-rtdb',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, 'reset', nwchem_pseudopotential_reset_params_bin]
+        : ['reset', nwchem_pseudopotential_reset_params_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )

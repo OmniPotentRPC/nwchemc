@@ -12,7 +12,6 @@
 #include <cmocka.h>
 
 static const char *g_params_path = NULL;
-static const char *g_reset_params_path = NULL;
 
 extern void nwchemc_test_pseudopotential_text_rtdb(const char *input_blocks,
                                                   const int *input_len,
@@ -101,7 +100,7 @@ static void test_rendered_pseudopotential_reset_deck_reaches_rtdb(
   (void)state;
 
   size_t params_size = 0;
-  unsigned char *params_bytes = read_file(g_reset_params_path, &params_size);
+  unsigned char *params_bytes = read_file(g_params_path, &params_size);
   assert_non_null(params_bytes);
 
   struct capn arena;
@@ -135,15 +134,26 @@ static void test_rendered_pseudopotential_reset_deck_reaches_rtdb(
 
 int main(int argc, char **argv) {
   if (argc != 3) {
-    fprintf(stderr, "usage: %s nwchem-params.bin reset-params.bin\n", argv[0]);
+    fprintf(stderr, "usage: %s enabled|reset nwchem-params.bin\n", argv[0]);
     return 2;
   }
-  g_params_path = argv[1];
-  g_reset_params_path = argv[2];
+  const char *mode = argv[1];
+  g_params_path = argv[2];
 
-  const struct CMUnitTest tests[] = {
-      cmocka_unit_test(test_rendered_pseudopotential_deck_reaches_rtdb),
-      cmocka_unit_test(test_rendered_pseudopotential_reset_deck_reaches_rtdb),
-  };
-  return cmocka_run_group_tests(tests, NULL, NULL);
+  if (strcmp(mode, "enabled") == 0) {
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_rendered_pseudopotential_deck_reaches_rtdb),
+    };
+    return cmocka_run_group_tests(tests, NULL, NULL);
+  }
+
+  if (strcmp(mode, "reset") == 0) {
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_rendered_pseudopotential_reset_deck_reaches_rtdb),
+    };
+    return cmocka_run_group_tests(tests, NULL, NULL);
+  }
+
+  fprintf(stderr, "unknown pseudopotential text RTDB mode: %s\n", mode);
+  return 2;
 }
