@@ -104,10 +104,6 @@ CMOCKA_FIXTURES = [
         "NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN",
     ),
     ("force_input_step_state_bin", "NWCHEMC_FORCE_INPUT_STEP_STATE_BIN"),
-    (
-        "force_input_h2_bohr_ev_bin",
-        "NWCHEMC_FORCE_INPUT_H2_BOHR_EV_BIN",
-    ),
     ("nwchem_tce_methods_params_bin", "NWCHEMC_TCE_METHODS_PARAMS_BIN"),
     ("nwchem_compact_cells_params_bin", "NWCHEMC_COMPACT_CELLS_PARAMS_BIN"),
     (

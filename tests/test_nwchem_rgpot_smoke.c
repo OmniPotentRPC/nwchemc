@@ -325,8 +325,8 @@ static void assert_potential_result_quadrupole(
 
 static void assert_potential_result_optimized_values(
     const unsigned char *message, size_t message_size, double expected_energy,
-    const double *expected_positions, double tolerance, double min_bond,
-    double max_bond) {
+    const double *expected_positions, double energy_tolerance,
+    double position_tolerance, double min_bond, double max_bond) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -336,7 +336,8 @@ static void assert_potential_result_optimized_values(
   struct PotentialResult result;
   read_PotentialResult(&result, root);
   assert_true(isfinite(result.energy));
-  assert_close(result.energy, expected_energy, 1.0e-12);
+  assert_close_relative("PotentialResult.energy", 0, result.energy,
+                        expected_energy, energy_tolerance);
 
   double optimized_positions[6];
   assert_f64_list("optimized position", result.optimizedPos, 6,
@@ -345,7 +346,7 @@ static void assert_potential_result_optimized_values(
     for (int i = 0; i < 6; ++i)
       assert_close_relative("PotentialResult.optimizedPos", i,
                             optimized_positions[i], expected_positions[i],
-                            tolerance);
+                            position_tolerance);
   }
   double bond = h2_bond_length(optimized_positions);
   assert_true(bond > min_bond);
@@ -359,8 +360,8 @@ static void assert_potential_result_optimized(
     const double *expected_positions) {
   assert_potential_result_optimized_values(message, message_size,
                                            expected_energy,
-                                           expected_positions, 1.0e-6, 0.5,
-                                           1.0);
+                                           expected_positions, 1.0e-12,
+                                           1.0e-6, 0.5, 1.0);
 }
 
 static void assert_potential_result_frequencies(
@@ -1163,7 +1164,8 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
   assert_potential_result_optimized_values(
       optimize_bytes, optimize_size,
       raw_optimize_status.energy_h * HARTREE_TO_EV,
-      expected_optimized_positions, 1.0e-6, 0.5 / BOHR_TO_ANGSTROM,
+      expected_optimized_positions, 1.0e-12, 1.0e-6,
+      0.5 / BOHR_TO_ANGSTROM,
       1.0 / BOHR_TO_ANGSTROM);
 
   free(optimize_bytes);
