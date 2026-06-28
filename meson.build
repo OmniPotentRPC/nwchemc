@@ -1301,6 +1301,25 @@ nwchem_config_options_params_bin = custom_target(
         '@OUTPUT@',
       ],
     )
+    potential_config_hessian_text = configure_file(
+      input: 'tests/potential_config_hessian.capnp.txt.in',
+      output: 'potential_config_hessian.capnp.txt',
+      configuration: params_conf,
+    )
+    potential_config_hessian_bin = custom_target(
+      'potential_config_hessian_bin',
+      input: potential_config_hessian_text,
+      output: 'potential_config_hessian.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'PotentialConfig',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_energy_gradient_test = executable(
       'test_nwchem_energy_gradient',
       'tests/test_nwchem_energy_gradient.c',
@@ -1525,8 +1544,8 @@ nwchem_config_options_params_bin = custom_target(
     nwchem_hessian_test = executable(
       'test_nwchem_hessian',
       'tests/test_nwchem_hessian.c',
-      include_directories: inc,
-      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      include_directories: [inc] + nwchemc_params_includes,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
       c_args: common_c_args + [
         '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
         '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
@@ -1536,8 +1555,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-hessian',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_hessian_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_hessian_test, nwchem_hessian_params_bin]
-        : [nwchem_hessian_params_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_hessian_test, nwchem_hessian_params_bin, potential_config_hessian_bin, force_input_h2_eq_bin]
+        : [nwchem_hessian_params_bin, potential_config_hessian_bin, force_input_h2_eq_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
       timeout: 120,
