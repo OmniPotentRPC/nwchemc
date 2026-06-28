@@ -236,6 +236,12 @@ if get_option('with_tests')
     suite: ['inventory', 'docs'],
   )
   test(
+    'meson-install-contract',
+    python,
+    args: [meson.current_source_dir() / 'tests/test_meson_install_contract.py'],
+    suite: ['inventory', 'packaging'],
+  )
+  test(
     'features-cmocka',
     executable(
       'test_features_cmocka',
