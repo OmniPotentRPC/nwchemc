@@ -16,10 +16,12 @@
 
 static const char *g_config_path = NULL;
 static const char *g_force_input_path = NULL;
+static const char *g_unit_force_input_path = NULL;
 
 enum { MAX_FORCE_INPUT_ATOMS = 16 };
 
 static const double BOHR_TO_ANGSTROM = 0.529177210903;
+static const double HARTREE_TO_EV = 27.211386245988;
 
 typedef struct ParsedForceInput {
   int n_atoms;
@@ -84,12 +86,18 @@ static int teardown_nwchem(void **state) {
   return 0;
 }
 
-static void assert_close_relative(const char *label, int index, double actual,
-                                  double expected) {
+static void assert_close_relative_tol(const char *label, int index,
+                                      double actual, double expected,
+                                      double tolerance) {
   double scale = fmax(1.0, fmax(fabs(actual), fabs(expected)));
-  if (fabs(actual - expected) > 1.0e-5 * scale)
+  if (fabs(actual - expected) > tolerance * scale)
     fail_msg("%s[%d] mismatch: got %.17g expected %.17g", label, index,
              actual, expected);
+}
+
+static void assert_close_relative(const char *label, int index, double actual,
+                                  double expected) {
+  assert_close_relative_tol(label, index, actual, expected, 1.0e-5);
 }
 
 static void parse_force_input_geometry(const unsigned char *force_input,
@@ -127,8 +135,10 @@ static void parse_force_input_geometry(const unsigned char *force_input,
 
 static void assert_potential_result_stress(const unsigned char *message,
                                            size_t message_size,
-                                           double expected_energy_h,
-                                           const double *native_stress) {
+                                           double expected_energy,
+                                           const double *native_stress,
+                                           double stress_factor,
+                                           double stress_tolerance) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -139,7 +149,7 @@ static void assert_potential_result_stress(const unsigned char *message,
   read_PotentialResult(&result, root);
   assert_true(isfinite(result.energy));
   assert_close_relative("PotentialResult.energy", 0, result.energy,
-                        expected_energy_h);
+                        expected_energy);
 
   capn_resolve(&result.stress.p);
   assert_int_equal(result.stress.p.type, CAPN_LIST);
@@ -150,10 +160,9 @@ static void assert_potential_result_stress(const unsigned char *message,
     if (!isfinite(stress))
       fail_msg("non-finite PotentialResult.stress[%d]", i);
     if (native_stress) {
-      double expected =
-          native_stress[i] / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM *
-                              BOHR_TO_ANGSTROM);
-      assert_close_relative("PotentialResult.stress", i, stress, expected);
+      double expected = native_stress[i] * stress_factor;
+      assert_close_relative_tol("PotentialResult.stress", i, stress, expected,
+                                stress_tolerance);
     }
   }
 
@@ -166,13 +175,19 @@ static void test_pspw_stress_from_config(void **state) {
 
   size_t config_size = 0;
   size_t force_input_size = 0;
+  size_t unit_force_input_size = 0;
   unsigned char *config = read_file(g_config_path, &config_size);
   unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  unsigned char *unit_force_input =
+      read_file(g_unit_force_input_path, &unit_force_input_size);
   assert_non_null(config);
   assert_non_null(force_input);
+  assert_non_null(unit_force_input);
 
   ParsedForceInput geometry;
   parse_force_input_geometry(force_input, force_input_size, &geometry);
+  double stress_hartree_per_ang3_factor =
+      1.0 / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM);
 
   double stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult raw_status = nwchemc_calculate_stress_from_config(
@@ -217,7 +232,40 @@ static void test_pspw_stress_from_config(void **state) {
                         raw_status.energy_h);
   assert_int_equal(result_size, result_capacity);
   assert_potential_result_stress(result_bytes, result_size,
-                                 result_status.energy_h, stress);
+                                 result_status.energy_h, stress,
+                                 stress_hartree_per_ang3_factor, 1.0e-5);
+
+  double unit_stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult unit_raw_status = nwchemc_calculate_stress_from_config(
+      config, config_size, unit_force_input, unit_force_input_size,
+      unit_stress, 9);
+  if (!unit_raw_status.ok)
+    fail_msg("unit nwchemc_calculate_stress_from_config failed: %s",
+             unit_raw_status.message);
+  assert_true(isfinite(unit_raw_status.energy_h));
+
+  size_t unit_result_capacity = nwchemc_stress_result_size_for_force_input(
+      unit_force_input, unit_force_input_size);
+  assert_true(unit_result_capacity > 0);
+  unsigned char *unit_result_bytes =
+      (unsigned char *)malloc(unit_result_capacity);
+  assert_non_null(unit_result_bytes);
+  size_t unit_result_size = 0;
+  NWChemCResult unit_result_status =
+      nwchemc_calculate_stress_result_from_config(
+          config, config_size, unit_force_input, unit_force_input_size,
+          unit_result_bytes, unit_result_capacity, &unit_result_size);
+  if (!unit_result_status.ok)
+    fail_msg("unit nwchemc_calculate_stress_result_from_config failed: %s",
+             unit_result_status.message);
+  assert_true(isfinite(unit_result_status.energy_h));
+  assert_close_relative("unit stress result energy", 0,
+                        unit_result_status.energy_h,
+                        unit_raw_status.energy_h);
+  assert_int_equal(unit_result_size, unit_result_capacity);
+  assert_potential_result_stress(unit_result_bytes, unit_result_size,
+                                 unit_result_status.energy_h * HARTREE_TO_EV,
+                                 unit_stress, HARTREE_TO_EV, 5.0e-5);
 
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
@@ -266,22 +314,57 @@ static void test_pspw_stress_from_config(void **state) {
   assert_int_equal(result_size, result_capacity);
   assert_potential_result_stress(result_bytes, result_size,
                                  session_result_status.energy_h,
-                                 session_stress);
+                                 session_stress,
+                                 stress_hartree_per_ang3_factor, 1.0e-5);
+
+  double session_unit_stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                                   0.0, 0.0, 0.0, 0.0};
+  NWChemCResult session_unit_raw_status =
+      nwchemc_session_calculate_stress(session, unit_force_input,
+                                       unit_force_input_size,
+                                       session_unit_stress, 9);
+  if (!session_unit_raw_status.ok)
+    fail_msg("unit nwchemc_session_calculate_stress failed: %s",
+             session_unit_raw_status.message);
+  assert_true(isfinite(session_unit_raw_status.energy_h));
+
+  memset(unit_result_bytes, 0, unit_result_capacity);
+  unit_result_size = 0;
+  NWChemCResult session_unit_result_status =
+      nwchemc_session_calculate_stress_result(
+          session, unit_force_input, unit_force_input_size, unit_result_bytes,
+          unit_result_capacity, &unit_result_size);
+  if (!session_unit_result_status.ok)
+    fail_msg("unit nwchemc_session_calculate_stress_result failed: %s",
+             session_unit_result_status.message);
+  assert_true(isfinite(session_unit_result_status.energy_h));
+  assert_close_relative("session unit stress result energy", 0,
+                        session_unit_result_status.energy_h,
+                        session_unit_raw_status.energy_h);
+  assert_int_equal(unit_result_size, unit_result_capacity);
+  assert_potential_result_stress(
+      unit_result_bytes, unit_result_size,
+      session_unit_result_status.energy_h * HARTREE_TO_EV,
+      session_unit_stress, HARTREE_TO_EV, 5.0e-5);
 
   nwchemc_session_destroy(session);
+  free(unit_result_bytes);
   free(result_bytes);
+  free(unit_force_input);
   free(force_input);
   free(config);
 }
 
 int main(int argc, char **argv) {
-  if (argc != 3) {
-    fprintf(stderr, "usage: %s potential-config.bin force-input.bin\n",
+  if (argc != 4) {
+    fprintf(stderr,
+            "usage: %s potential-config.bin force-input.bin unit-force-input.bin\n",
             argv[0]);
     return 2;
   }
   g_config_path = argv[1];
   g_force_input_path = argv[2];
+  g_unit_force_input_path = argv[3];
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_pspw_stress_from_config),

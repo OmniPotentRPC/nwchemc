@@ -870,6 +870,13 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     force_input_si_box_ang.capnp.txt
     force_input_si_box_ang.bin
   )
+  nwchemc_add_encoded_fixture(
+    force_input_si_box_bohr_ev_bin
+    NWCHEMC_FORCE_INPUT_SI_BOX_BOHR_EV_BIN
+    ForceInput
+    force_input_si_box_bohr_ev.capnp.txt
+    force_input_si_box_bohr_ev.bin
+  )
 
   add_executable(test_capnp_parser tests/test_capnp_parser.c)
   target_link_libraries(test_capnp_parser PRIVATE
@@ -1341,12 +1348,14 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     add_dependencies(nwchem-stress
       potential_config_pspw_stress_bin
       force_input_si_box_ang_bin
+      force_input_si_box_bohr_ev_bin
     )
     nwchemc_add_real_nwchem_test(
       nwchem-stress
       nwchem-stress
       "${potential_config_pspw_stress_BIN}"
       "${NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN}"
+      "${NWCHEMC_FORCE_INPUT_SI_BOX_BOHR_EV_BIN}"
     )
 
     add_executable(nwchem-pspw-pseudopotential-forces

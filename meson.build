@@ -899,6 +899,20 @@ force_input_si_box_ang_bin = custom_target(
     '@OUTPUT@',
   ],
 )
+force_input_si_box_bohr_ev_bin = custom_target(
+  'force_input_si_box_bohr_ev_bin',
+  input: 'tests/force_input_si_box_bohr_ev.capnp.txt',
+  output: 'force_input_si_box_bohr_ev.bin',
+  command: [
+    python,
+    meson.current_source_dir() / 'tests/encode_capnp.py',
+    capnp,
+    meson.current_source_dir() / 'schema/Potentials.capnp',
+    'ForceInput',
+    '@INPUT@',
+    '@OUTPUT@',
+  ],
+)
 nwchem_config_options_params_bin = custom_target(
   'nwchem_config_options_params_bin',
   input: 'tests/nwchem_params_config_options.capnp.txt',
@@ -1528,8 +1542,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-stress',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_stress_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_stress_test, potential_config_pspw_stress_bin, force_input_si_box_ang_bin]
-        : [potential_config_pspw_stress_bin, force_input_si_box_ang_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_stress_test, potential_config_pspw_stress_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin]
+        : [potential_config_pspw_stress_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
