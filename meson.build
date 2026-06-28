@@ -105,7 +105,14 @@ if has_nwchem
   ).stdout().strip() == '1'
   ga_config = find_program(nwchem_root / 'src/tools/install/bin/ga-config')
   ga_ldflags = run_command(ga_config, '--ldflags', check: true).stdout().strip().split()
-  ga_libs = run_command(ga_config, '--libs', check: true).stdout().strip().split()
+  # Prefer NWChem libext ILP64 OpenBLAS; drop LP64 system -lopenblas from ga-config.
+  ga_libs = []
+  foreach _ga_lib : run_command(ga_config, '--libs', check: true).stdout().strip().split()
+    if _ga_lib != '-lopenblas'
+      ga_libs += [_ga_lib]
+    endif
+  endforeach
+  ga_libs += ['-lnwc_openblas']
   mpi_libdirs = run_command(
     python,
     [
@@ -167,8 +174,6 @@ if has_nwchem
     fortran_args: nwchem_legacy_args,
     install: false,
   )
-  # stubs.o must omit enabled modules (regenerate when enabling selci/etc.).
-  # Real module archives supply those symbols; stubs only fill remaining gaps.
   nwchem_link_args = [
     '-L' + nwchem_root + '/lib/' + nwchem_target,
     '-L' + nwchem_root + '/src/tools/install/lib',
