@@ -4671,6 +4671,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.scalingAtomIndices",
+      "schema_path": "NWChemNwpwStanza.scalingAtomIndices",
+      "struct": "NWChemNwpwStanza",
+      "name": "scalingAtomIndices",
+      "field_id": 176,
+      "type": "List(Int32)",
+      "role": "NWChemNwpwStanza.scalingAtomIndices Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",

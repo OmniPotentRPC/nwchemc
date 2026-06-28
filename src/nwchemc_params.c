@@ -2271,14 +2271,26 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       bo_fake_mass) != 0)
       return -1;
   }
+  capn_list32 scaling_atoms = nwpw.scalingAtomIndices;
+  capn_resolve(&scaling_atoms.p);
+  int n_scaling_atoms = list32_len(scaling_atoms);
+  if (n_scaling_atoms < 0)
+    return -1;
   if (include_direct_promoted &&
       (nwpw.scalingSet || nwpw.scalingFirst > 0.0 ||
-       nwpw.scalingSecond > 0.0)) {
+       nwpw.scalingSecond > 0.0 || n_scaling_atoms > 0)) {
     double scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;
     double scaling_second =
         nwpw.scalingSecond > 0.0 ? nwpw.scalingSecond : scaling_first;
-    if (append_format(block, sizeof(block), "  scaling %.15g %.15g\n",
+    if (append_format(block, sizeof(block), "  scaling %.15g %.15g",
                       scaling_first, scaling_second) != 0)
+      return -1;
+    for (int i = 0; i < n_scaling_atoms; ++i) {
+      int atom_index = (int)(int32_t)capn_get32(scaling_atoms, i);
+      if (append_format(block, sizeof(block), " %d", atom_index) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
   if (include_direct_promoted &&
@@ -3617,14 +3629,16 @@ int nwchemc_params_extract_direct_nwpw_xc(NWChemParams_ptr params,
   return 0;
 }
 
-int nwchemc_params_extract_direct_nwpw_bo(
+int nwchemc_params_extract_direct_nwpw_bo_with_scaling_atoms(
     NWChemParams_ptr params, int *has_options, int *balance_mode,
     int *bo_step_start, int *bo_step_end, double *bo_time_step,
     int *bo_algorithm, double *bo_fake_mass, int *has_scaling,
-    double *scaling_first, double *scaling_second) {
+    double *scaling_first, double *scaling_second, int *scaling_atoms,
+    size_t scaling_atoms_capacity, size_t *scaling_atom_count) {
   if (params.p.type == CAPN_NULL || !has_options || !balance_mode ||
       !bo_step_start || !bo_step_end || !bo_time_step || !bo_algorithm ||
-      !bo_fake_mass || !has_scaling || !scaling_first || !scaling_second)
+      !bo_fake_mass || !has_scaling || !scaling_first || !scaling_second ||
+      !scaling_atom_count)
     return -1;
 
   *has_options = 0;
@@ -3637,6 +3651,7 @@ int nwchemc_params_extract_direct_nwpw_bo(
   *has_scaling = 0;
   *scaling_first = 0.0;
   *scaling_second = 0.0;
+  *scaling_atom_count = 0;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -3679,17 +3694,44 @@ int nwchemc_params_extract_direct_nwpw_bo(
       *has_options = 1;
       *bo_fake_mass = nwpw.boFakeMass > 0.0 ? nwpw.boFakeMass : 500.0;
     }
+    capn_list32 scaling_atom_indices = nwpw.scalingAtomIndices;
+    capn_resolve(&scaling_atom_indices.p);
+    int n_scaling_atom_indices = list32_len(scaling_atom_indices);
+    if (n_scaling_atom_indices < 0)
+      return -1;
     if (nwpw.scalingSet || nwpw.scalingFirst > 0.0 ||
-        nwpw.scalingSecond > 0.0) {
+        nwpw.scalingSecond > 0.0 || n_scaling_atom_indices > 0) {
       *has_options = 1;
       *has_scaling = 1;
       *scaling_first = nwpw.scalingFirst > 0.0 ? nwpw.scalingFirst : 1.0;
       *scaling_second =
           nwpw.scalingSecond > 0.0 ? nwpw.scalingSecond : *scaling_first;
+      if (n_scaling_atom_indices > 0) {
+        *scaling_atom_count = (size_t)n_scaling_atom_indices;
+        if (scaling_atoms) {
+          if ((size_t)n_scaling_atom_indices > scaling_atoms_capacity)
+            return -1;
+          for (int j = 0; j < n_scaling_atom_indices; ++j)
+            scaling_atoms[j] =
+                (int)(int32_t)capn_get32(scaling_atom_indices, j);
+        }
+      }
     }
   }
 
   return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_bo(
+    NWChemParams_ptr params, int *has_options, int *balance_mode,
+    int *bo_step_start, int *bo_step_end, double *bo_time_step,
+    int *bo_algorithm, double *bo_fake_mass, int *has_scaling,
+    double *scaling_first, double *scaling_second) {
+  size_t scaling_atom_count = 0;
+  return nwchemc_params_extract_direct_nwpw_bo_with_scaling_atoms(
+      params, has_options, balance_mode, bo_step_start, bo_step_end,
+      bo_time_step, bo_algorithm, bo_fake_mass, has_scaling, scaling_first,
+      scaling_second, NULL, 0, &scaling_atom_count);
 }
 
 int nwchemc_params_extract_direct_nwpw_execution(

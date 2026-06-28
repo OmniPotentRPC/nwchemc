@@ -1751,11 +1751,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   int nwpw_has_scaling = 0;
   double nwpw_scaling_first = 0.0;
   double nwpw_scaling_second = 0.0;
-  if (nwchemc_params_extract_direct_nwpw_bo(
+  int nwpw_scaling_atoms[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0};
+  size_t nwpw_scaling_atom_count = 0;
+  if (nwchemc_params_extract_direct_nwpw_bo_with_scaling_atoms(
           params_root, &nwpw_bo_has_options, &nwpw_balance_mode,
           &nwpw_bo_step_start, &nwpw_bo_step_end, &nwpw_bo_time_step,
           &nwpw_bo_algorithm, &nwpw_bo_fake_mass, &nwpw_has_scaling,
-          &nwpw_scaling_first, &nwpw_scaling_second) != 0)
+          &nwpw_scaling_first, &nwpw_scaling_second, nwpw_scaling_atoms,
+          NWCHEMC_DIRECT_SET_VALUE_MAX, &nwpw_scaling_atom_count) != 0)
     return -1;
   int nwpw_execution_has_options = 0;
   int nwpw_np_fft = 0;
@@ -2707,6 +2710,34 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             nwpw_direct_values, "cpmd:scaling",
             NWCHEMC_DIRECT_SET_VALUE_DOUBLE, value_list, 2) != 0)
       return -1;
+    if (nwpw_scaling_atom_count > 0) {
+      char count_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      snprintf(count_value, sizeof(count_value), "%zu",
+               nwpw_scaling_atom_count);
+      if (append_direct_typed_value(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+              nwpw_direct_values, "nwpw:scaling_natms",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, count_value) != 0)
+        return -1;
+      char atom_storage[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                       [NWCHEMC_DIRECT_SET_VALUE_LEN];
+      const char *atom_values[NWCHEMC_DIRECT_SET_VALUE_MAX];
+      for (size_t i = 0; i < nwpw_scaling_atom_count; ++i) {
+        snprintf(atom_storage[i], sizeof(atom_storage[i]), "%d",
+                 nwpw_scaling_atoms[i]);
+        atom_values[i] = atom_storage[i];
+      }
+      if (append_direct_typed_values(
+              typed_set_keys, typed_set_types, typed_set_value_counts,
+              typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+              nwpw_direct_values, "nwpw:scaling_atoms",
+              NWCHEMC_DIRECT_SET_VALUE_INTEGER, atom_values,
+              (int)nwpw_scaling_atom_count) != 0)
+        return -1;
+    }
   }
   if (nwpw_np_fft != 0 || nwpw_np_orbital != 0 || nwpw_np_kspace != 0) {
     char fft_value[NWCHEMC_DIRECT_SET_VALUE_LEN];

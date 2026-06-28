@@ -628,6 +628,7 @@ struct NWChemNwpwStanza {
   occupations                 @173 :List(Float64); # Emit/promote NWPW occupations block occupation values.
   occupationStates            @174 :List(Int32);   # State indexes paired with occupations; unset values default to state 1.
   extraOrbitals               @175 :Int32 = 0;     # Emit/promote NWPW occupations extra_orbitals.
+  scalingAtomIndices          @176 :List(Int32);   # One-based atom indexes appended to NWPW scaling.
 }
 
 # @struct NWChemScfStanza
