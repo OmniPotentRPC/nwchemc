@@ -8,6 +8,6 @@
   title = "H2 SELCI energy",
   memoryMb = 512,
   inputBlocks = [
-    "set selci:nroot 1\nset \"selci:selection criterion\" 0.0\nset selci:diag tol 1.0e-6"
+    "set selci:nroot 1\nset selci:mode select\nset \"selci:selection thresholds\" 0.0\nset selci:moints:force logical .true.\nset selci:exci 2"
   ],
 )

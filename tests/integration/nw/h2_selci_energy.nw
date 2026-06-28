@@ -1,6 +1,7 @@
 echo
 start h2_selci
 geometry units angstrom
+ symmetry c1
   H 0 0 -0.3707
   H 0 0  0.3707
 end
@@ -13,5 +14,8 @@ scf
   thresh 1e-8
 end
 set selci:nroot 1
-set "selci:selection criterion" 0.0
+set selci:mode select
+set "selci:selection thresholds" 0.0
+set selci:moints:force logical .true.
+set selci:exci 2
 task selci energy

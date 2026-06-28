@@ -1,6 +1,7 @@
 echo
 start h2_tddft
 geometry units angstrom
+ symmetry c1
   H 0 0 -0.3707
   H 0 0  0.3707
 end
@@ -13,6 +14,7 @@ dft
 end
 tddft
   nroots 1
+  target 1
   singlet
   tda
 end
