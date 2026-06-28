@@ -118,7 +118,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "thresh 1e-6"));
   assert_non_null(strstr(input_blocks, "tol2e 1e-9"));
   assert_non_null(strstr(input_blocks, "acc_std"));
-  assert_non_null(strstr(input_blocks, "pseudopotentials"));
+  assert_non_null(strstr(input_blocks, "pseudopotential_libraries"));
   assert_non_null(strstr(input_blocks, "Si library sg15"));
   assert_non_null(strstr(input_blocks, "H pspw_library hgh_lda"));
   assert_non_null(strstr(input_blocks, "O paw_library paw_default"));
