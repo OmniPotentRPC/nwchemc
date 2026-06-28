@@ -348,18 +348,28 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
   if (has_directives < 0)
     return -1;
   /* Promoted on embed via RTDB: direct, smear, xc, iterations, convergence,
-   * odft, diis/nfock/levelshift, vectors. Grid has no stable multi-token key. */
+   * odft, diis/nfock/levelshift, vectors. Grid/gridSpec are typed but text on
+   * embed (no stable multi-token RTDB key). */
   int has_grid = dft.grid.len > 0;
+  int has_grid_spec = 0;
+  if (dft.gridSpec.p.type != CAPN_NULL) {
+    struct NWChemDftGridSpec gs;
+    read_NWChemDftGridSpec(&gs, dft.gridSpec);
+    has_grid_spec = gs.quality != NWChemDftGridSpec_Quality_unspecified ||
+                    gs.radial.len > 0 || gs.angular.len > 0;
+  }
+  int has_grid_text = has_grid || has_grid_spec;
   int has_promoted =
       dft.direct || dft.iterations > 0 || dft.xc.len > 0 || dft.odft ||
       dft.energyConv > 0.0 || dft.densityConv > 0.0 || dft.gradientConv > 0.0 ||
       dft.diis != NWChemToggle_unspecified || dft.nfock > 0 ||
       dft.levelShift > 0.0 || dft.vectorsInput.len > 0 ||
       dft.vectorsOutput.len > 0 || (dft.smearing.p.type != CAPN_NULL);
-  /* Embed: only grid + directives remain text. Full deck: emit promoted too. */
-  if (!include_direct_promoted && !has_directives && !has_grid)
+  /* Embed: grid/gridSpec + directives remain text. Full deck: emit promoted too. */
+  if (!include_direct_promoted && !has_directives && !has_grid_text)
     return 0;
-  if (include_direct_promoted && !has_promoted && !has_directives && !has_grid)
+  if (include_direct_promoted && !has_promoted && !has_directives &&
+      !has_grid_text)
     return 0;
   if (append_format(block, sizeof(block), "dft\n") != 0)
     return -1;
@@ -436,8 +446,52 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
-  /* grid: text on full and embed (no confirmed single-token RTDB key). */
-  if (has_grid) {
+  /* grid / gridSpec: typed text on full and embed (no multi-token RTDB key). */
+  if (has_grid_spec) {
+    struct NWChemDftGridSpec gs;
+    read_NWChemDftGridSpec(&gs, dft.gridSpec);
+    if (append_format(block, sizeof(block), "  grid") != 0)
+      return -1;
+    if (gs.quality != NWChemDftGridSpec_Quality_unspecified) {
+      const char *q = NULL;
+      switch (gs.quality) {
+      case NWChemDftGridSpec_Quality_xcoarse:
+        q = " xcoarse";
+        break;
+      case NWChemDftGridSpec_Quality_coarse:
+        q = " coarse";
+        break;
+      case NWChemDftGridSpec_Quality_medium:
+        q = " medium";
+        break;
+      case NWChemDftGridSpec_Quality_fine:
+        q = " fine";
+        break;
+      case NWChemDftGridSpec_Quality_xfine:
+        q = " xfine";
+        break;
+      case NWChemDftGridSpec_Quality_huge:
+        q = " huge";
+        break;
+      default:
+        break;
+      }
+      if (q && append_format(block, sizeof(block), "%s", q) != 0)
+        return -1;
+    }
+    if (gs.radial.len > 0) {
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), gs.radial) != 0)
+        return -1;
+    }
+    if (gs.angular.len > 0) {
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), gs.angular) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  } else if (has_grid) {
     if (append_format(block, sizeof(block), "  grid ") != 0 ||
         append_text(block, sizeof(block), dft.grid) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
@@ -1208,17 +1262,47 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
     return -1;
   int has_wf = scf.wavefunctionType.len > 0;
   int has_nopen = scf.nopen >= 0;
-  /* Promoted on embed: maxiter/thresh/tol2e/wf/nopen/vectors/diis/lock/adapt/noscf. */
+  int has_convergence = 0;
+  if (scf.convergence.p.type != CAPN_NULL) {
+    struct NWChemScfConvergence conv;
+    read_NWChemScfConvergence(&conv, scf.convergence);
+    has_convergence = conv.mode != NWChemScfConvergence_Mode_unspecified;
+  }
+  int has_semidirect = 0;
+  int semidirect_filesize = 0;
+  int semidirect_memsize = 0;
+  int semidirect_enabled = NWChemToggle_unspecified;
+  if (scf.semidirect.p.type != CAPN_NULL) {
+    struct NWChemScfSemidirect sd;
+    read_NWChemScfSemidirect(&sd, scf.semidirect);
+    semidirect_enabled = sd.enabled;
+    semidirect_filesize = sd.filesize;
+    semidirect_memsize = sd.memsize;
+    has_semidirect = sd.enabled != NWChemToggle_unspecified || sd.filesize > 0 ||
+                     sd.memsize > 0;
+  }
+  /* Promoted on embed: maxiter/thresh/tol2e/wf/nopen/vectors/diis/lock/adapt/noscf
+   * and semidirect int2e sizes. Convergence mode is typed text (no single RTDB). */
   int has_promoted =
       scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0 || has_wf ||
       has_nopen || scf.vectorsInput.len > 0 || scf.vectorsOutput.len > 0 ||
       scf.diis != NWChemToggle_unspecified || scf.diisBas > 0 ||
       scf.maxsub > 0 || scf.lock != NWChemToggle_unspecified ||
       scf.adapt != NWChemToggle_unspecified ||
-      scf.noscf != NWChemToggle_unspecified;
-  /* noprint is text-only (no stable RTDB key). */
-  int has_remaining = scf.noprint || has_directives ||
-                      (include_direct_promoted && has_promoted);
+      scf.noscf != NWChemToggle_unspecified || has_semidirect;
+  /* noprint + convergence mode are typed text on embed when no RTDB key. */
+  int has_remaining = scf.noprint || has_directives || has_convergence ||
+                      (include_direct_promoted && has_promoted) ||
+                      (!include_direct_promoted && has_semidirect &&
+                       (semidirect_filesize > 0 || semidirect_memsize > 0 ||
+                        semidirect_enabled != NWChemToggle_unspecified));
+  /* Embed: omit RTDB-promoted; keep noprint/convergence text; semidirect sizes
+   * promote to int2e:* so omit keyword lines on embed when only sizes set. */
+  if (!include_direct_promoted) {
+    has_remaining = scf.noprint || has_directives || has_convergence ||
+                    (has_semidirect && semidirect_enabled != NWChemToggle_unspecified &&
+                     semidirect_filesize <= 0 && semidirect_memsize <= 0);
+  }
   if (!has_remaining)
     return 0;
   if (append_format(block, sizeof(block), "scf\n") != 0)
@@ -1273,6 +1357,54 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
   if (include_direct_promoted && scf.noscf == NWChemToggle_enabled &&
       append_format(block, sizeof(block), "  noscf\n") != 0)
     return -1;
+  if (include_direct_promoted && has_semidirect) {
+    if (semidirect_enabled == NWChemToggle_enabled ||
+        semidirect_filesize > 0 || semidirect_memsize > 0) {
+      if (append_format(block, sizeof(block), "  semidirect") != 0)
+        return -1;
+      if (semidirect_filesize > 0 &&
+          append_format(block, sizeof(block), " filesize %d",
+                        semidirect_filesize) != 0)
+        return -1;
+      if (semidirect_memsize > 0 &&
+          append_format(block, sizeof(block), " memsize %d",
+                        semidirect_memsize) != 0)
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+  }
+  /* convergence: typed text on full and embed (no single RTDB mode key). */
+  if (has_convergence) {
+    struct NWChemScfConvergence conv;
+    read_NWChemScfConvergence(&conv, scf.convergence);
+    const char *mode = NULL;
+    switch (conv.mode) {
+    case NWChemScfConvergence_Mode_tight:
+      mode = "tight";
+      break;
+    case NWChemScfConvergence_Mode_loose:
+      mode = "loose";
+      break;
+    case NWChemScfConvergence_Mode_default:
+      mode = "default";
+      break;
+    case NWChemScfConvergence_Mode_energy:
+      mode = "energy";
+      break;
+    case NWChemScfConvergence_Mode_density:
+      mode = "density";
+      break;
+    case NWChemScfConvergence_Mode_gradient:
+      mode = "gradient";
+      break;
+    default:
+      break;
+    }
+    if (mode &&
+        append_format(block, sizeof(block), "  convergence %s\n", mode) != 0)
+      return -1;
+  }
   if (scf.noprint && append_format(block, sizeof(block), "  noprint\n") != 0)
     return -1;
   if (render_directives(scf.directives, block, sizeof(block), "  ") != 0 ||
@@ -6635,9 +6767,11 @@ int nwchemc_params_extract_direct_set_values(
 
 int nwchemc_params_extract_direct_scf_extended(
     NWChemParams_ptr params, capn_text *vectors_input, capn_text *vectors_output,
-    int *diis, int *diis_bas, int *maxsub, int *lock, int *adapt, int *noscf) {
+    int *diis, int *diis_bas, int *maxsub, int *lock, int *adapt, int *noscf,
+    int *semidirect_filesize, int *semidirect_memsize) {
   if (params.p.type == CAPN_NULL || !vectors_input || !vectors_output || !diis ||
-      !diis_bas || !maxsub || !lock || !adapt || !noscf)
+      !diis_bas || !maxsub || !lock || !adapt || !noscf || !semidirect_filesize ||
+      !semidirect_memsize)
     return -1;
   *vectors_input = empty_text;
   *vectors_output = empty_text;
@@ -6647,6 +6781,8 @@ int nwchemc_params_extract_direct_scf_extended(
   *lock = NWChemToggle_unspecified;
   *adapt = NWChemToggle_unspecified;
   *noscf = NWChemToggle_unspecified;
+  *semidirect_filesize = 0;
+  *semidirect_memsize = 0;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -6676,6 +6812,14 @@ int nwchemc_params_extract_direct_scf_extended(
       *adapt = scf.adapt;
     if (scf.noscf != NWChemToggle_unspecified)
       *noscf = scf.noscf;
+    if (scf.semidirect.p.type != CAPN_NULL) {
+      struct NWChemScfSemidirect sd;
+      read_NWChemScfSemidirect(&sd, scf.semidirect);
+      if (sd.filesize > 0)
+        *semidirect_filesize = sd.filesize;
+      if (sd.memsize > 0)
+        *semidirect_memsize = sd.memsize;
+    }
   }
   return 0;
 }

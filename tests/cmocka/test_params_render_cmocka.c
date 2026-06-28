@@ -340,6 +340,101 @@ static void test_render_scf_wf_and_dft_text_controls_full_and_embed(
   nwchemc_params_release(&arena);
 }
 
+/* Logical SCF convergence/semidirect + DFT gridSpec with empty directives. */
+static void test_render_logical_scf_convergence_semidirect_and_dft_gridspec(
+    void **state) {
+  (void)state;
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  assert_int_not_equal(root.type, CAPN_NULL);
+  NWChemParams_ptr params_root = new_NWChemParams(root.seg);
+
+  struct NWChemScfConvergence conv;
+  memset(&conv, 0, sizeof(conv));
+  conv.mode = NWChemScfConvergence_Mode_tight;
+  NWChemScfConvergence_ptr conv_ptr = new_NWChemScfConvergence(root.seg);
+  write_NWChemScfConvergence(&conv, conv_ptr);
+
+  struct NWChemScfSemidirect sd;
+  memset(&sd, 0, sizeof(sd));
+  sd.enabled = NWChemToggle_enabled;
+  sd.filesize = 100;
+  sd.memsize = 50;
+  NWChemScfSemidirect_ptr sd_ptr = new_NWChemScfSemidirect(root.seg);
+  write_NWChemScfSemidirect(&sd, sd_ptr);
+
+  struct NWChemScfStanza scf;
+  memset(&scf, 0, sizeof(scf));
+  scf.wavefunctionType = test_text_from_cstr("rhf");
+  scf.convergence = conv_ptr;
+  scf.semidirect = sd_ptr;
+
+  struct NWChemDftGridSpec gs;
+  memset(&gs, 0, sizeof(gs));
+  gs.quality = NWChemDftGridSpec_Quality_xfine;
+  NWChemDftGridSpec_ptr gs_ptr = new_NWChemDftGridSpec(root.seg);
+  write_NWChemDftGridSpec(&gs, gs_ptr);
+
+  struct NWChemDftStanza dft;
+  memset(&dft, 0, sizeof(dft));
+  dft.gridSpec = gs_ptr;
+  dft.iterations = 33;
+
+  struct NWChemInputStanza scf_stanza;
+  memset(&scf_stanza, 0, sizeof(scf_stanza));
+  scf_stanza.kind = NWChemInputStanza_Kind_scf;
+  scf_stanza.scf = new_NWChemScfStanza(root.seg);
+  write_NWChemScfStanza(&scf, scf_stanza.scf);
+
+  struct NWChemInputStanza dft_stanza;
+  memset(&dft_stanza, 0, sizeof(dft_stanza));
+  dft_stanza.kind = NWChemInputStanza_Kind_dft;
+  dft_stanza.dft = new_NWChemDftStanza(root.seg);
+  write_NWChemDftStanza(&dft, dft_stanza.dft);
+
+  struct NWChemParams view;
+  memset(&view, 0, sizeof(view));
+  view.basis = test_text_from_cstr("sto-3g");
+  view.theory = test_text_from_cstr("scf");
+  view.scfType = test_text_from_cstr("rhf");
+  view.task = test_text_from_cstr("energy");
+  view.multiplicity = 1;
+  view.inputStanzas = new_NWChemInputStanza_list(root.seg, 2);
+  set_NWChemInputStanza(&scf_stanza, view.inputStanzas, 0);
+  set_NWChemInputStanza(&dft_stanza, view.inputStanzas, 1);
+  write_NWChemParams(&view, params_root);
+  assert_int_equal(capn_setp(root, 0, params_root.p), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(params_root, full_blocks,
+                                                      sizeof(full_blocks)),
+                   0);
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+
+  /* Full deck: logical structures emit NWChem text without directives. */
+  assert_render_contains(full_blocks, "convergence tight");
+  assert_render_contains(full_blocks, "semidirect");
+  assert_render_contains(full_blocks, "filesize 100");
+  assert_render_contains(full_blocks, "memsize 50");
+  assert_render_contains(full_blocks, "grid xfine");
+  assert_render_contains(full_blocks, "iterations 33");
+
+  /* Embed: RTDB-promoted semidirect sizes + iterations omitted; convergence +
+   * gridSpec remain typed text (no multi-token RTDB for grid). */
+  assert_null(strstr(embed_blocks, "semidirect"));
+  assert_null(strstr(embed_blocks, "filesize 100"));
+  assert_null(strstr(embed_blocks, "iterations 33"));
+  assert_null(strstr(embed_blocks, "  rhf"));
+  assert_render_contains(embed_blocks, "convergence tight");
+  assert_render_contains(embed_blocks, "grid xfine");
+
+  nwchemc_params_release(&arena);
+}
+
 static void test_render_rejects_null_dst(void **state) {
   (void)state;
   assert_non_null(g_config_options_path);
@@ -381,6 +476,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_render_config_options_stanzas),
       cmocka_unit_test(test_render_structured_dft_full_and_embed),
       cmocka_unit_test(test_render_scf_wf_and_dft_text_controls_full_and_embed),
+      cmocka_unit_test(
+          test_render_logical_scf_convergence_semidirect_and_dft_gridspec),
       cmocka_unit_test(test_render_rejects_null_dst),
       cmocka_unit_test(test_params_root_rejects_empty),
   };

@@ -172,6 +172,9 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemSetDirective.values", "NWChemSetDirective.values", "NWChemSetDirective.values Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 1},
     {"field.NWChemDftSmearing.sigmaHartree", "NWChemDftSmearing.sigmaHartree", "NWChemDftSmearing.sigmaHartree Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemDftSmearing.mode", "NWChemDftSmearing.mode", "NWChemDftSmearing.mode Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
+    {"field.NWChemDftGridSpec.quality", "NWChemDftGridSpec.quality", "NWChemDftGridSpec.quality Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
+    {"field.NWChemDftGridSpec.radial", "NWChemDftGridSpec.radial", "NWChemDftGridSpec.radial Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
+    {"field.NWChemDftGridSpec.angular", "NWChemDftGridSpec.angular", "NWChemDftGridSpec.angular Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
     {"field.NWChemDftStanza.xc", "NWChemDftStanza.xc", "NWChemDftStanza.xc Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemDftStanza.direct", "NWChemDftStanza.direct", "NWChemDftStanza.direct Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemDftStanza.smearing", "NWChemDftStanza.smearing", "NWChemDftStanza.smearing Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -187,6 +190,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemDftStanza.levelShift", "NWChemDftStanza.levelShift", "NWChemDftStanza.levelShift Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 12, 1, 1},
     {"field.NWChemDftStanza.vectorsInput", "NWChemDftStanza.vectorsInput", "NWChemDftStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 13, 1, 1},
     {"field.NWChemDftStanza.vectorsOutput", "NWChemDftStanza.vectorsOutput", "NWChemDftStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 14, 1, 1},
+    {"field.NWChemDftStanza.gridSpec", "NWChemDftStanza.gridSpec", "NWChemDftStanza.gridSpec Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 15, 1, 1},
     {"field.NWChemModuleStanza.name", "NWChemModuleStanza.name", "NWChemModuleStanza.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemModuleStanza.customName", "NWChemModuleStanza.customName", "NWChemModuleStanza.customName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemModuleStanza.directives", "NWChemModuleStanza.directives", "NWChemModuleStanza.directives Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -429,6 +433,10 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemNwpwStanza.occupationStates", "NWChemNwpwStanza.occupationStates", "NWChemNwpwStanza.occupationStates Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 174, 1, 1},
     {"field.NWChemNwpwStanza.extraOrbitals", "NWChemNwpwStanza.extraOrbitals", "NWChemNwpwStanza.extraOrbitals Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 175, 1, 1},
     {"field.NWChemNwpwStanza.scalingAtomIndices", "NWChemNwpwStanza.scalingAtomIndices", "NWChemNwpwStanza.scalingAtomIndices Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 176, 1, 1},
+    {"field.NWChemScfConvergence.mode", "NWChemScfConvergence.mode", "NWChemScfConvergence.mode Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
+    {"field.NWChemScfSemidirect.enabled", "NWChemScfSemidirect.enabled", "NWChemScfSemidirect.enabled Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
+    {"field.NWChemScfSemidirect.filesize", "NWChemScfSemidirect.filesize", "NWChemScfSemidirect.filesize Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
+    {"field.NWChemScfSemidirect.memsize", "NWChemScfSemidirect.memsize", "NWChemScfSemidirect.memsize Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
     {"field.NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput", "NWChemScfStanza.vectorsInput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput", "NWChemScfStanza.vectorsOutput Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter", "NWChemScfStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -444,6 +452,8 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemScfStanza.lock", "NWChemScfStanza.lock", "NWChemScfStanza.lock Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 12, 1, 1},
     {"field.NWChemScfStanza.adapt", "NWChemScfStanza.adapt", "NWChemScfStanza.adapt Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 13, 1, 1},
     {"field.NWChemScfStanza.noscf", "NWChemScfStanza.noscf", "NWChemScfStanza.noscf Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 14, 1, 1},
+    {"field.NWChemScfStanza.convergence", "NWChemScfStanza.convergence", "NWChemScfStanza.convergence Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 15, 1, 1},
+    {"field.NWChemScfStanza.semidirect", "NWChemScfStanza.semidirect", "NWChemScfStanza.semidirect Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 16, 1, 1},
     {"field.NWChemCcsdStanza.maxiter", "NWChemCcsdStanza.maxiter", "NWChemCcsdStanza.maxiter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemCcsdStanza.thresh", "NWChemCcsdStanza.thresh", "NWChemCcsdStanza.thresh Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemCcsdStanza.tol2e", "NWChemCcsdStanza.tol2e", "NWChemCcsdStanza.tol2e Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -769,7 +779,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 764;
+static const size_t k_feature_count = 774;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

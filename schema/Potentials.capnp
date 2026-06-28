@@ -101,13 +101,32 @@ struct NWChemDftSmearing {
   }
 }
 
+# Logical DFT integration grid (replaces directive-only multi-token grid cards).
+# Prefer quality preset; optional radial/angular tokens for custom grids (text on embed).
+struct NWChemDftGridSpec {
+  quality @0 :Quality = unspecified;
+  radial  @1 :Text = ""; # Optional radial grid token (e.g. lebedev).
+  angular @2 :Text = ""; # Optional angular grid token.
+
+  enum Quality {
+    unspecified @0; # Do not emit grid from this struct.
+    xcoarse     @1;
+    coarse      @2;
+    medium      @3;
+    fine        @4;
+    xfine       @5;
+    huge        @6;
+  }
+}
+
 struct NWChemDftStanza {
   xc         @0 :Text = "";                  # Exchange-correlation keyword.
   direct     @1 :Bool = false;               # Emit "direct".
   smearing   @2 :NWChemDftSmearing;          # Emit "smear ...".
-  directives @3 :List(NWChemDirective);      # Extra structured DFT directives.
+  # Residual escape for unmodeled DFT cards only (not grid/convergence/odft/diis).
+  directives @3 :List(NWChemDirective);
   iterations @4 :Int32 = 0;                  # Emit/promote dft iterations when >0.
-  grid       @5 :Text = "";                  # Optional grid token; long-tail stays in directives.
+  grid       @5 :Text = "";                  # Legacy single-token grid; prefer gridSpec.
   # Convergence thresholds (convergence energy/density/gradient); promote dft:e_conv / d_conv / g_conv.
   energyConv    @6 :Float64 = 0.0;
   densityConv   @7 :Float64 = 0.0;
@@ -119,6 +138,7 @@ struct NWChemDftStanza {
   levelShift    @12 :Float64 = 0.0;          # Promote dft:rlshift + dft:levelshift=true when >0.
   vectorsInput  @13 :Text = "";              # Promote dft:input vectors on embed.
   vectorsOutput @14 :Text = "";              # Promote dft:output vectors on embed.
+  gridSpec      @15 :NWChemDftGridSpec;      # Logical multi-token/preset grid (typed; text on embed).
 }
 
 enum NWChemModuleName {
@@ -654,9 +674,32 @@ struct NWChemNwpwStanza {
   scalingAtomIndices          @176 :List(Int32);   # One-based atom indexes appended to NWPW scaling.
 }
 
+# Logical SCF convergence card (was directive-only "convergence tight|loose|...").
+struct NWChemScfConvergence {
+  mode @0 :Mode = unspecified;
+
+  enum Mode {
+    unspecified @0; # Do not emit convergence line from this struct.
+    tight       @1; # Emit "convergence tight".
+    loose       @2; # Emit "convergence loose".
+    default     @3; # Emit "convergence default" (NWChem spelling).
+    energy      @4; # Emit "convergence energy" (energy-only criterion).
+    density     @5; # Emit "convergence density".
+    gradient    @6; # Emit "convergence gradient".
+  }
+}
+
+# Logical SCF semidirect integral storage (was directive-only semidirect card).
+# filesize/memsize in megawords when >0; promote int2e:* on embed when set.
+struct NWChemScfSemidirect {
+  enabled  @0 :NWChemToggle = unspecified; # enabled emits semidirect; disabled emits direct-style off.
+  filesize @1 :Int32 = 0; # Promote int2e:filesize when >0.
+  memsize  @2 :Int32 = 0; # Promote int2e:memsize when >0.
+}
+
 # @struct NWChemScfStanza
 # @brief Typed SCF/HF block controls (vectors, convergence, thresh).
-# Extra directives cover the long tail of SCF options via NWChemDirective.
+# directives is residual escape for unmodeled SCF cards only.
 struct NWChemScfStanza {
   vectorsInput  @0 :Text = "";   # Emit "vectors input <path>"; embed promotes scf:input vectors.
   vectorsOutput @1 :Text = "";   # Emit "vectors output <path>"; embed promotes scf:output vectors.
@@ -664,7 +707,7 @@ struct NWChemScfStanza {
   thresh        @3 :Float64 = 0; # SCF convergence threshold; embed writes RTDB directly.
   tol2e         @4 :Float64 = 0; # Two-electron tolerance; embed writes RTDB directly.
   noprint       @5 :Bool = false;# Emit "noprint" (text-only; no single RTDB flag).
-  directives    @6 :List(NWChemDirective);
+  directives    @6 :List(NWChemDirective); # Residual unmodeled SCF cards only.
   # Wavefunction keyword (rhf/uhf/rohf/...). Emitted in the scf block and promoted
   # to RTDB key scf:scftype on embed so HF spin cases are C-ABI accessible without
   # relying only on NWChemParams.scfType / directives.
@@ -677,6 +720,8 @@ struct NWChemScfStanza {
   lock             @12 :NWChemToggle = unspecified; # Promote scf:lock.
   adapt            @13 :NWChemToggle = unspecified; # Promote scf:adapt.
   noscf            @14 :NWChemToggle = unspecified; # Promote scf:noscf when enabled.
+  convergence      @15 :NWChemScfConvergence; # Logical convergence card (not directives).
+  semidirect       @16 :NWChemScfSemidirect;  # Logical semidirect / int2e storage.
 }
 
 # @struct NWChemCcsdStanza

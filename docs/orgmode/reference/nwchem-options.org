@@ -319,7 +319,8 @@ The special ~exchange_correlation new ...~ grammar remains represented with
 | ~direct~ | ~direct~ | ~dft:direct~ (legacy RTDB setup); omitted from embed render |
 | ~smearing.sigmaHartree~ | ~smear <sigma> fixsz~ or ~nofixsz~ | ~dft:smear_sigma~ / ~dft:spinset~; omitted from embed render |
 | ~iterations~ | ~iterations <n>~ when ~>0~ | RTDB ~dft:iterations~; omitted from embed render |
-| ~grid~ | ~grid <token>~ | Text on full and embed (no stable multi-token RTDB key) |
+| ~grid~ | ~grid <token>~ (legacy Text) | Prefer ~gridSpec~; text on full and embed |
+| ~gridSpec.quality~ / ~radial~ / ~angular~ | ~grid <preset> [radial] [angular]~ | Typed logical grid (not directives); text on embed (no multi-token RTDB) |
 | ~energyConv~ / ~densityConv~ / ~gradientConv~ | ~convergence energy/density/gradient~ | RTDB ~dft:e_conv~ / ~d_conv~ / ~g_conv~; omitted from embed render |
 | ~odft~ | ~odft~ | ~dft:ipol=2~; omitted from embed render |
 | ~diis~ / ~nfock~ / ~levelShift~ | convergence DIIS / lshift lines | ~dft:diis~ / ~nfock~ / ~rlshift~; omitted from embed render |
@@ -358,7 +359,9 @@ handler names derived from the local NWChem source tree.
 | ~diis~ / ~diisBas~ / ~maxsub~ | ~diis~ / ~diis <n>~ / ~maxsub <n>~ | ~scf:diis~ / ~diisbas~ / ~maxsub~; omitted from embed render |
 | ~lock~ / ~adapt~ / ~noscf~ | toggle keywords | ~scf:lock~ / ~adapt~ / ~noscf~; omitted from embed render |
 | ~noprint~ | ~noprint~ | Text on full and embed (no single RTDB flag) |
-| ~directives~ | Extra SCF directives (convergence, semidirect, ...) | Text (long-tail escape hatch) |
+| ~convergence.mode~ | ~convergence tight\|loose\|default\|energy\|density\|gradient~ | Typed logical card; text on embed (no single RTDB mode key) |
+| ~semidirect.enabled~ / ~filesize~ / ~memsize~ | ~semidirect [filesize n] [memsize m]~ | RTDB ~int2e:filesize~ / ~int2e:memsize~ when set; omitted from embed render |
+| ~directives~ | Residual unmodeled SCF cards only | True escape hatch (not convergence/semidirect/primary knobs) |
 
 * CCSD Controls
 ~NWChemCcsdStanza~ covers classic molecular CCSD scalar controls from

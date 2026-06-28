@@ -337,7 +337,8 @@ int nwchemc_params_extract_direct_set_values(
 /* Extended typed knobs promoted on embed (omit from embed render text). */
 int nwchemc_params_extract_direct_scf_extended(
     NWChemParams_ptr params, capn_text *vectors_input, capn_text *vectors_output,
-    int *diis, int *diis_bas, int *maxsub, int *lock, int *adapt, int *noscf);
+    int *diis, int *diis_bas, int *maxsub, int *lock, int *adapt, int *noscf,
+    int *semidirect_filesize, int *semidirect_memsize);
 
 int nwchemc_params_extract_direct_dft_extended(
     NWChemParams_ptr params, double *energy_conv, double *density_conv,

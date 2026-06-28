@@ -2843,6 +2843,80 @@ static void test_embed_promotes_typed_scf_wf_nopen_and_dft_iterations(
   free(buffer);
 }
 
+/* Logical semidirect sizes promote int2e:* without directives list entries. */
+static void test_embed_promotes_typed_scf_semidirect_int2e(void **state) {
+  (void)state;
+  reset_embed_captures();
+
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  assert_int_not_equal(root.type, CAPN_NULL);
+  NWChemParams_ptr params = new_NWChemParams(root.seg);
+
+  struct NWChemScfSemidirect sd;
+  memset(&sd, 0, sizeof(sd));
+  sd.enabled = NWChemToggle_enabled;
+  sd.filesize = 200;
+  sd.memsize = 80;
+  NWChemScfSemidirect_ptr sd_ptr = new_NWChemScfSemidirect(root.seg);
+  write_NWChemScfSemidirect(&sd, sd_ptr);
+
+  struct NWChemScfStanza scf;
+  memset(&scf, 0, sizeof(scf));
+  scf.semidirect = sd_ptr;
+
+  struct NWChemInputStanza scf_stanza;
+  memset(&scf_stanza, 0, sizeof(scf_stanza));
+  scf_stanza.kind = NWChemInputStanza_Kind_scf;
+  scf_stanza.scf = new_NWChemScfStanza(root.seg);
+  write_NWChemScfStanza(&scf, scf_stanza.scf);
+
+  struct NWChemParams view;
+  memset(&view, 0, sizeof(view));
+  view.basis = test_text_from_cstr("sto-3g");
+  view.theory = test_text_from_cstr("scf");
+  view.scfType = test_text_from_cstr("rhf");
+  view.task = test_text_from_cstr("energy");
+  view.multiplicity = 1;
+  view.inputStanzas = new_NWChemInputStanza_list(root.seg, 1);
+  set_NWChemInputStanza(&scf_stanza, view.inputStanzas, 0);
+  write_NWChemParams(&view, params);
+  assert_int_equal(capn_setp(root, 0, params.p), 0);
+
+  size_t capacity = 4096u;
+  unsigned char *buffer = NULL;
+  int written = -1;
+  for (int attempt = 0; attempt < 6 && written < 0; ++attempt) {
+    unsigned char *next = (unsigned char *)realloc(buffer, capacity);
+    assert_non_null(next);
+    buffer = next;
+    written = capn_write_mem(&arena, buffer, capacity, 0);
+    capacity *= 2u;
+  }
+  assert_true(written > 0);
+  capn_free(&arena);
+
+  assert_int_equal(nwchemc_set_params(buffer, (size_t)written), 0);
+
+  int found_fs = 0, found_ms = 0;
+  for (int i = 0; i < g_typed_set_count; ++i) {
+    if (strcmp(g_typed_set_keys[i], "int2e:filesize") == 0) {
+      assert_string_equal(g_typed_set_values[i][0], "200");
+      found_fs = 1;
+    } else if (strcmp(g_typed_set_keys[i], "int2e:memsize") == 0) {
+      assert_string_equal(g_typed_set_values[i][0], "80");
+      found_ms = 1;
+    }
+  }
+  assert_int_equal(found_fs, 1);
+  assert_int_equal(found_ms, 1);
+  assert_null(strstr(g_input_blocks, "semidirect"));
+  assert_null(strstr(g_input_blocks, "filesize 200"));
+
+  free(buffer);
+}
+
 static void test_configure_accepts_potential_config_nwchem(void **state) {
   (void)state;
   reset_embed_captures();
@@ -7063,6 +7137,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(
           test_embed_promotes_typed_scf_wf_nopen_and_dft_iterations),
+      cmocka_unit_test(test_embed_promotes_typed_scf_semidirect_int2e),
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
       cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),

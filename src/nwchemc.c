@@ -1725,9 +1725,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   int scf_lock = NWChemToggle_unspecified;
   int scf_adapt = NWChemToggle_unspecified;
   int scf_noscf = NWChemToggle_unspecified;
+  int scf_semidirect_filesize = 0;
+  int scf_semidirect_memsize = 0;
   if (nwchemc_params_extract_direct_scf_extended(
           params_root, &scf_vectors_in, &scf_vectors_out, &scf_diis,
-          &scf_diis_bas, &scf_maxsub, &scf_lock, &scf_adapt, &scf_noscf) != 0)
+          &scf_diis_bas, &scf_maxsub, &scf_lock, &scf_adapt, &scf_noscf,
+          &scf_semidirect_filesize, &scf_semidirect_memsize) != 0)
     return -1;
   double dft_energy_conv = 0.0;
   double dft_density_conv = 0.0;
@@ -4405,6 +4408,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     PROMO_TOGGLE_LOG("scf:adapt", scf_adapt);
     if (scf_noscf == NWChemToggle_enabled)
       PROMO_LOG("scf:noscf", 1);
+    if (scf_semidirect_filesize > 0)
+      PROMO_INT("int2e:filesize", scf_semidirect_filesize);
+    if (scf_semidirect_memsize > 0)
+      PROMO_INT("int2e:memsize", scf_semidirect_memsize);
 
     if (dft_iterations > 0)
       PROMO_INT("dft:iterations", dft_iterations);

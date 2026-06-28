@@ -1855,6 +1855,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemDftGridSpec.quality",
+      "schema_path": "NWChemDftGridSpec.quality",
+      "struct": "NWChemDftGridSpec",
+      "name": "quality",
+      "field_id": 0,
+      "type": "Quality = unspecified",
+      "role": "NWChemDftGridSpec.quality Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemDftGridSpec.radial",
+      "schema_path": "NWChemDftGridSpec.radial",
+      "struct": "NWChemDftGridSpec",
+      "name": "radial",
+      "field_id": 1,
+      "type": "Text = \"\"",
+      "role": "NWChemDftGridSpec.radial Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemDftGridSpec.angular",
+      "schema_path": "NWChemDftGridSpec.angular",
+      "struct": "NWChemDftGridSpec",
+      "name": "angular",
+      "field_id": 2,
+      "type": "Text = \"\"",
+      "role": "NWChemDftGridSpec.angular Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDftStanza.xc",
       "schema_path": "NWChemDftStanza.xc",
       "struct": "NWChemDftStanza",
@@ -2030,6 +2066,18 @@
       "field_id": 14,
       "type": "Text = \"\"",
       "role": "NWChemDftStanza.vectorsOutput Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.gridSpec",
+      "schema_path": "NWChemDftStanza.gridSpec",
+      "struct": "NWChemDftStanza",
+      "name": "gridSpec",
+      "field_id": 15,
+      "type": "NWChemDftGridSpec",
+      "role": "NWChemDftStanza.gridSpec Cap'n Proto field",
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "schema_field"
@@ -4939,6 +4987,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemScfConvergence.mode",
+      "schema_path": "NWChemScfConvergence.mode",
+      "struct": "NWChemScfConvergence",
+      "name": "mode",
+      "field_id": 0,
+      "type": "Mode = unspecified",
+      "role": "NWChemScfConvergence.mode Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemScfSemidirect.enabled",
+      "schema_path": "NWChemScfSemidirect.enabled",
+      "struct": "NWChemScfSemidirect",
+      "name": "enabled",
+      "field_id": 0,
+      "type": "NWChemToggle = unspecified",
+      "role": "NWChemScfSemidirect.enabled Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemScfSemidirect.filesize",
+      "schema_path": "NWChemScfSemidirect.filesize",
+      "struct": "NWChemScfSemidirect",
+      "name": "filesize",
+      "field_id": 1,
+      "type": "Int32 = 0",
+      "role": "NWChemScfSemidirect.filesize Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemScfSemidirect.memsize",
+      "schema_path": "NWChemScfSemidirect.memsize",
+      "struct": "NWChemScfSemidirect",
+      "name": "memsize",
+      "field_id": 2,
+      "type": "Int32 = 0",
+      "role": "NWChemScfSemidirect.memsize Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",
@@ -5114,6 +5210,30 @@
       "field_id": 14,
       "type": "NWChemToggle = unspecified",
       "role": "NWChemScfStanza.noscf Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.convergence",
+      "schema_path": "NWChemScfStanza.convergence",
+      "struct": "NWChemScfStanza",
+      "name": "convergence",
+      "field_id": 15,
+      "type": "NWChemScfConvergence",
+      "role": "NWChemScfStanza.convergence Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.semidirect",
+      "schema_path": "NWChemScfStanza.semidirect",
+      "struct": "NWChemScfStanza",
+      "name": "semidirect",
+      "field_id": 16,
+      "type": "NWChemScfSemidirect",
+      "role": "NWChemScfStanza.semidirect Cap'n Proto field",
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "schema_field"
