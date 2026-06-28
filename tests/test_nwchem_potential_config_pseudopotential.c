@@ -17,7 +17,7 @@ static const char *g_reset_config_path = NULL;
 static const char *g_force_input_path = NULL;
 
 extern void nwchemc_test_configured_pseudopotential_rtdb(int *result);
-extern void nwchemc_test_configured_pseudopotential_reset_rtdb(int *result);
+extern void nwchemc_test_config_psp_reset_rtdb(int *result);
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -153,7 +153,7 @@ static void test_potential_config_pseudopotential_resets_reach_rtdb(
   assert_int_equal(result_size, result_capacity);
 
   int probe_result = -1;
-  nwchemc_test_configured_pseudopotential_reset_rtdb(&probe_result);
+  nwchemc_test_config_psp_reset_rtdb(&probe_result);
   assert_int_equal(probe_result, 0);
 
   free(result_bytes);

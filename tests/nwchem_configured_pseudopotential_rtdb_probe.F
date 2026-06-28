@@ -320,8 +320,8 @@
       return
       end
 
-      subroutine nwchemc_test_configured_pseudopotential_reset_rtdb(result)
-     $     bind(C, name='nwchemc_test_configured_pseudopotential_reset_rtdb')
+      subroutine nwchemc_test_config_psp_reset_rtdb(result) bind(C,
+     $     name='nwchemc_test_config_psp_reset_rtdb')
       use, intrinsic :: iso_c_binding, only: c_int, c_long_long
       implicit none
 #include "bafdecls.fh"

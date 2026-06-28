@@ -17,7 +17,7 @@ static const char *g_reset_params_path = NULL;
 extern void nwchemc_test_pseudopotential_text_rtdb(const char *input_blocks,
                                                   const int *input_len,
                                                   int *result);
-extern void nwchemc_test_pseudopotential_text_reset_rtdb(
+extern void nwchemc_test_psp_text_reset_rtdb(
     const char *input_blocks, const int *input_len, int *result);
 
 static unsigned char *read_file(const char *path, size_t *size) {
@@ -126,8 +126,7 @@ static void test_rendered_pseudopotential_reset_deck_reaches_rtdb(
   assert_true(input_len_size <= (size_t)INT_MAX);
   int input_len = (int)input_len_size;
   int probe_result = -1;
-  nwchemc_test_pseudopotential_text_reset_rtdb(input_blocks, &input_len,
-                                               &probe_result);
+  nwchemc_test_psp_text_reset_rtdb(input_blocks, &input_len, &probe_result);
   assert_int_equal(probe_result, 0);
 
   nwchemc_params_release(&arena);

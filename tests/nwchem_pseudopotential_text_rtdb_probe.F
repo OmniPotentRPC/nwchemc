@@ -338,9 +338,9 @@
       return
       end
 
-      subroutine nwchemc_test_pseudopotential_text_reset_rtdb(
-     $     input_blocks, input_len, result) bind(C,
-     $     name='nwchemc_test_pseudopotential_text_reset_rtdb')
+      subroutine nwchemc_test_psp_text_reset_rtdb(input_blocks,
+     $     input_len, result) bind(C,
+     $     name='nwchemc_test_psp_text_reset_rtdb')
       use, intrinsic :: iso_c_binding, only: c_char, c_int
       implicit none
 #include "bafdecls.fh"
