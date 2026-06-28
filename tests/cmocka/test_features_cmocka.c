@@ -128,9 +128,9 @@ static void test_class_partition_counts(void **state) {
       nwchemc_feature_count_class(NWCHEMC_FEATURE_SCHEMA_METHOD);
   size_t abis = nwchemc_feature_count_class(NWCHEMC_FEATURE_ABI);
   assert_int_equal((int)mods, 88);
-  assert_int_equal((int)stanzas, 18);
+  assert_int_equal((int)stanzas, 20);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 461);
+  assert_int_equal((int)schema_fields, 512);
   assert_int_equal((int)schema_methods, 12);
   assert_int_equal((int)abis, 118);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +

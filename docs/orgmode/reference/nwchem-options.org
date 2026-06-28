@@ -78,11 +78,20 @@ has a direct RTDB/API path.
 
 1. ~nwchemc_params_extract_direct_dft~ reads ~xc~, ~direct~, smearing, and ~iterations~
    (RTDB ~dft:iterations~ on embed; omitted from embed render text).
+   ~nwchemc_params_extract_direct_dft_extended~ promotes convergence
+   (~dft:e_conv~/~d_conv~/~g_conv~), ~odft~ (~dft:ipol=2~), DIIS (~dft:diis~/~nfock~),
+   level shift (~dft:rlshift~), and DFT vectors (~dft:input/output vectors~).
    ~NWChemDftStanza.grid~ is typed but remains text-emitted on full and embed
    (no stable multi-token RTDB key; complex grids stay in ~directives~).
 
 ~nwchemc_params_extract_direct_scf~ reads ~maxiter~, ~thresh~, ~tol2e~,
-   ~wavefunctionType~ (RTDB ~scf:scftype~), and ~nopen~ (RTDB ~scf:nopen~);
+   ~wavefunctionType~ (RTDB ~scf:scftype~), and ~nopen~ (RTDB ~scf:nopen~).
+   ~nwchemc_params_extract_direct_scf_extended~ promotes vectors
+   (~scf:input/output vectors~), ~diis~/~diisbas~/~maxsub~, ~lock~, ~adapt~, ~noscf~.
+   Typed ~NWChemPropertyStanza~ flags promote ~prop:*~ integers; ~NWChemMp2Stanza~
+   and ~NWChemTddftStanza~ promote classic ~mp2:*~ / ~tddft:*~ RTDB keys on embed.
+   ~noprint~ on SCF remains text-only (no single RTDB flag).
+   Legacy notes for ~maxiter~/~thresh~/~tol2e~ continue below;
    those promoted fields are omitted from embed-rendered ~scf~ text.
 2. ~nwchemc_params_render_embed_input_blocks~ renders stanzas with promoted DFT
    fields omitted (extra ~directives~ inside ~dft~ still render as text).

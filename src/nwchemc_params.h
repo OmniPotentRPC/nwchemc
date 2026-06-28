@@ -334,6 +334,34 @@ int nwchemc_params_extract_direct_set_values(
     int *value_counts, capn_text *values, size_t set_capacity,
     size_t value_capacity, size_t *count);
 
+/* Extended typed knobs promoted on embed (omit from embed render text). */
+int nwchemc_params_extract_direct_scf_extended(
+    NWChemParams_ptr params, capn_text *vectors_input, capn_text *vectors_output,
+    int *diis, int *diis_bas, int *maxsub, int *lock, int *adapt, int *noscf);
+
+int nwchemc_params_extract_direct_dft_extended(
+    NWChemParams_ptr params, double *energy_conv, double *density_conv,
+    double *gradient_conv, int *odft, int *diis, int *nfock,
+    double *level_shift, capn_text *vectors_input, capn_text *vectors_output);
+
+int nwchemc_params_extract_direct_property(
+    NWChemParams_ptr params, int *dipole, int *mulliken, int *quadrupole,
+    int *octupole, int *esp, int *efield, int *efield_grad,
+    int *electron_density, int *spin_density, int *spin_population,
+    int *shielding, int *hyperfine, int *polarizability);
+
+int nwchemc_params_extract_direct_mp2(
+    NWChemParams_ptr params, int *freeze_core, int *freeze_virtual, int *tight,
+    double *aotol2e, double *aotol2e_fock, double *backtol,
+    double *same_spin_scale, double *opposite_spin_scale, int *scs,
+    double *scratch_disk);
+
+int nwchemc_params_extract_direct_tddft(
+    NWChemParams_ptr params, int *nroots, int *tda, int *maxiter, double *thresh,
+    int *maxvecs, int *singlet, int *triplet, int *target,
+    capn_text *target_sym, int *symmetry, int *algorithm,
+    double *energy_cutoff);
+
 int nwchemc_force_input_root(const void *force_input_capnp,
                              size_t force_input_capnp_size_bytes,
                              struct capn *arena, ForceInput_ptr *force_input);

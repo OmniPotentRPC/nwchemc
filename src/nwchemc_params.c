@@ -10,7 +10,8 @@ static const double NWCHEMC_BOHR_TO_ANGSTROM = 0.529177210903;
 static const double NWCHEMC_HARTREE_TO_EV = 27.211386245988;
 static const double NWCHEMC_HARTREE_TO_J = 4.359744722206048e-18;
 static const double NWCHEMC_AVOGADRO = 6.02214076e23;
-static const size_t NWCHEMC_POTENTIAL_RESULT_BASE_SIZE = 168u;
+/* Includes append-only OpenCPMD fields @19–@27 (components/charge/MD flags). */
+static const size_t NWCHEMC_POTENTIAL_RESULT_BASE_SIZE = 208u;
 
 static const capn_text empty_text = {0, "", 0};
 
@@ -340,21 +341,33 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
     return 0;
 
   struct NWChemDftStanza dft;
-  char block[2048];
+  char block[4096];
   block[0] = '\0';
   read_NWChemDftStanza(&dft, ptr);
   int has_directives = directives_have_keywords(dft.directives);
   if (has_directives < 0)
     return -1;
-  /* iterations promotes dft:iterations (RTDB); grid has no stable single RTDB
-   * key for multi-token grids — always emit grid text on both paths. */
+  /* Promoted on embed via RTDB: direct, smear, xc, iterations, convergence,
+   * odft, diis/nfock/levelshift, vectors. Grid has no stable multi-token key. */
   int has_grid = dft.grid.len > 0;
+  int has_promoted =
+      dft.direct || dft.iterations > 0 || dft.xc.len > 0 || dft.odft ||
+      dft.energyConv > 0.0 || dft.densityConv > 0.0 || dft.gradientConv > 0.0 ||
+      dft.diis != NWChemToggle_unspecified || dft.nfock > 0 ||
+      dft.levelShift > 0.0 || dft.vectorsInput.len > 0 ||
+      dft.vectorsOutput.len > 0 || (dft.smearing.p.type != CAPN_NULL);
+  /* Embed: only grid + directives remain text. Full deck: emit promoted too. */
   if (!include_direct_promoted && !has_directives && !has_grid)
+    return 0;
+  if (include_direct_promoted && !has_promoted && !has_directives && !has_grid)
     return 0;
   if (append_format(block, sizeof(block), "dft\n") != 0)
     return -1;
   if (include_direct_promoted && dft.direct &&
       append_format(block, sizeof(block), "  direct\n") != 0)
+    return -1;
+  if (include_direct_promoted && dft.odft &&
+      append_format(block, sizeof(block), "  odft\n") != 0)
     return -1;
   if (include_direct_promoted && dft.smearing.p.type != CAPN_NULL) {
     struct NWChemDftSmearing smearing;
@@ -377,6 +390,52 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  iterations %d\n",
                     dft.iterations) != 0)
     return -1;
+  if (include_direct_promoted &&
+      (dft.energyConv > 0.0 || dft.densityConv > 0.0 ||
+       dft.gradientConv > 0.0)) {
+    if (append_format(block, sizeof(block), "  convergence") != 0)
+      return -1;
+    if (dft.energyConv > 0.0 &&
+        append_format(block, sizeof(block), " energy %.12g", dft.energyConv) !=
+            0)
+      return -1;
+    if (dft.densityConv > 0.0 &&
+        append_format(block, sizeof(block), " density %.12g",
+                      dft.densityConv) != 0)
+      return -1;
+    if (dft.gradientConv > 0.0 &&
+        append_format(block, sizeof(block), " gradient %.12g",
+                      dft.gradientConv) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && dft.diis == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  convergence diis\n") != 0)
+    return -1;
+  if (include_direct_promoted && dft.diis == NWChemToggle_disabled &&
+      append_format(block, sizeof(block), "  convergence nodiis\n") != 0)
+    return -1;
+  if (include_direct_promoted && dft.nfock > 0 &&
+      append_format(block, sizeof(block), "  convergence diis %d\n",
+                    dft.nfock) != 0)
+    return -1;
+  if (include_direct_promoted && dft.levelShift > 0.0 &&
+      append_format(block, sizeof(block), "  convergence lshift %.12g\n",
+                    dft.levelShift) != 0)
+    return -1;
+  if (include_direct_promoted && dft.vectorsInput.len > 0) {
+    if (append_format(block, sizeof(block), "  vectors input ") != 0 ||
+        append_text(block, sizeof(block), dft.vectorsInput) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && dft.vectorsOutput.len > 0) {
+    if (append_format(block, sizeof(block), "  vectors output ") != 0 ||
+        append_text(block, sizeof(block), dft.vectorsOutput) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   /* grid: text on full and embed (no confirmed single-token RTDB key). */
   if (has_grid) {
     if (append_format(block, sizeof(block), "  grid ") != 0 ||
@@ -1122,6 +1181,19 @@ static int render_simulation_cell_stanza(NWChemSimulationCellStanza_ptr ptr,
   return append_block(dst, dst_size, block);
 }
 
+static int render_toggle_keyword(char *block, size_t block_size,
+                                 enum NWChemToggle toggle, const char *on_kw,
+                                 const char *off_kw) {
+  if (toggle == NWChemToggle_enabled) {
+    if (append_format(block, block_size, "  %s\n", on_kw) != 0)
+      return -1;
+  } else if (toggle == NWChemToggle_disabled && off_kw && off_kw[0]) {
+    if (append_format(block, block_size, "  %s\n", off_kw) != 0)
+      return -1;
+  }
+  return 0;
+}
+
 static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
                              size_t dst_size, int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
@@ -1136,11 +1208,16 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
     return -1;
   int has_wf = scf.wavefunctionType.len > 0;
   int has_nopen = scf.nopen >= 0;
-  /* wavefunctionType -> scf:scftype, nopen -> scf:nopen (RTDB on embed). */
-  int has_promoted = scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0 ||
-                     has_wf || has_nopen;
-  int has_remaining = scf.vectorsInput.len > 0 || scf.vectorsOutput.len > 0 ||
-                      scf.noprint || has_directives ||
+  /* Promoted on embed: maxiter/thresh/tol2e/wf/nopen/vectors/diis/lock/adapt/noscf. */
+  int has_promoted =
+      scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0 || has_wf ||
+      has_nopen || scf.vectorsInput.len > 0 || scf.vectorsOutput.len > 0 ||
+      scf.diis != NWChemToggle_unspecified || scf.diisBas > 0 ||
+      scf.maxsub > 0 || scf.lock != NWChemToggle_unspecified ||
+      scf.adapt != NWChemToggle_unspecified ||
+      scf.noscf != NWChemToggle_unspecified;
+  /* noprint is text-only (no stable RTDB key). */
+  int has_remaining = scf.noprint || has_directives ||
                       (include_direct_promoted && has_promoted);
   if (!has_remaining)
     return 0;
@@ -1152,13 +1229,13 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
-  if (scf.vectorsInput.len > 0) {
+  if (include_direct_promoted && scf.vectorsInput.len > 0) {
     if (append_format(block, sizeof(block), "  vectors input ") != 0 ||
         append_text(block, sizeof(block), scf.vectorsInput) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
-  if (scf.vectorsOutput.len > 0) {
+  if (include_direct_promoted && scf.vectorsOutput.len > 0) {
     if (append_format(block, sizeof(block), "  vectors output ") != 0 ||
         append_text(block, sizeof(block), scf.vectorsOutput) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
@@ -1175,6 +1252,26 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
     return -1;
   if (include_direct_promoted && has_nopen &&
       append_format(block, sizeof(block), "  nopen %d\n", scf.nopen) != 0)
+    return -1;
+  if (include_direct_promoted && scf.diis == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  diis\n") != 0)
+    return -1;
+  if (include_direct_promoted && scf.diisBas > 0 &&
+      append_format(block, sizeof(block), "  diis %d\n", scf.diisBas) != 0)
+    return -1;
+  if (include_direct_promoted && scf.maxsub > 0 &&
+      append_format(block, sizeof(block), "  maxsub %d\n", scf.maxsub) != 0)
+    return -1;
+  if (include_direct_promoted &&
+      render_toggle_keyword(block, sizeof(block), scf.lock, "lock",
+                            "nolock") != 0)
+    return -1;
+  if (include_direct_promoted &&
+      render_toggle_keyword(block, sizeof(block), scf.adapt, "adapt",
+                            "noadapt") != 0)
+    return -1;
+  if (include_direct_promoted && scf.noscf == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  noscf\n") != 0)
     return -1;
   if (scf.noprint && append_format(block, sizeof(block), "  noprint\n") != 0)
     return -1;
@@ -2060,7 +2157,8 @@ static int render_driver_stanza(NWChemDriverStanza_ptr ptr, char *dst,
 }
 
 static int render_property_stanza(NWChemPropertyStanza_ptr ptr, char *dst,
-                                  size_t dst_size) {
+                                  size_t dst_size,
+                                  int include_direct_promoted) {
   if (ptr.p.type == CAPN_NULL)
     return 0;
 
@@ -2068,18 +2166,201 @@ static int render_property_stanza(NWChemPropertyStanza_ptr ptr, char *dst,
   char block[4096];
   block[0] = '\0';
   read_NWChemPropertyStanza(&property, ptr);
+  int has_directives = directives_have_keywords(property.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_flags =
+      property.dipole || property.mulliken || property.quadrupol ||
+      property.octupole || property.esp || property.efield ||
+      property.efieldGrad || property.electronDensity || property.spinDensity ||
+      property.spinPopulation || property.shielding || property.hyperfine ||
+      property.polarizability;
+  /* Typed flags promote to prop:* integers on embed; directives stay text. */
+  if (!include_direct_promoted && !has_directives)
+    return 0;
+  if (include_direct_promoted && !has_flags && !has_directives)
+    return 0;
   if (append_format(block, sizeof(block), "property\n") != 0)
     return -1;
-  if (property.dipole &&
+  if (include_direct_promoted && property.dipole &&
       append_format(block, sizeof(block), "  dipole\n") != 0)
     return -1;
-  if (property.mulliken &&
+  if (include_direct_promoted && property.mulliken &&
       append_format(block, sizeof(block), "  mulliken\n") != 0)
     return -1;
-  if (property.quadrupol &&
+  if (include_direct_promoted && property.quadrupol &&
       append_format(block, sizeof(block), "  quadrupole\n") != 0)
     return -1;
+  if (include_direct_promoted && property.octupole &&
+      append_format(block, sizeof(block), "  octupole\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.esp &&
+      append_format(block, sizeof(block), "  esp\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.efield &&
+      append_format(block, sizeof(block), "  efield\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.efieldGrad &&
+      append_format(block, sizeof(block), "  efieldgrad\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.electronDensity &&
+      append_format(block, sizeof(block), "  electrondensity\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.spinDensity &&
+      append_format(block, sizeof(block), "  spindensity\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.spinPopulation &&
+      append_format(block, sizeof(block), "  spinpopulation\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.shielding &&
+      append_format(block, sizeof(block), "  shielding\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.hyperfine &&
+      append_format(block, sizeof(block), "  hyperfine\n") != 0)
+    return -1;
+  if (include_direct_promoted && property.polarizability &&
+      append_format(block, sizeof(block), "  polarizability\n") != 0)
+    return -1;
   if (render_directives(property.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_mp2_stanza(NWChemMp2Stanza_ptr ptr, char *dst,
+                             size_t dst_size, int include_direct_promoted) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemMp2Stanza mp2;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemMp2Stanza(&mp2, ptr);
+  int has_directives = directives_have_keywords(mp2.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_promoted =
+      mp2.freezeCore > 0 || mp2.freezeVirtual > 0 || mp2.tight ||
+      mp2.aotol2e > 0.0 || mp2.aotol2eFock > 0.0 || mp2.backtol > 0.0 ||
+      mp2.sameSpinScale > 0.0 || mp2.oppositeSpinScale > 0.0 ||
+      mp2.scs != NWChemToggle_unspecified || mp2.scratchDisk > 0.0;
+  if (!include_direct_promoted && !has_directives)
+    return 0;
+  if (include_direct_promoted && !has_promoted && !has_directives)
+    return 0;
+  if (append_format(block, sizeof(block), "mp2\n") != 0)
+    return -1;
+  if (include_direct_promoted && mp2.freezeCore > 0 &&
+      append_format(block, sizeof(block), "  freeze core %d\n",
+                    mp2.freezeCore) != 0)
+    return -1;
+  if (include_direct_promoted && mp2.freezeVirtual > 0 &&
+      append_format(block, sizeof(block), "  freeze virtual %d\n",
+                    mp2.freezeVirtual) != 0)
+    return -1;
+  if (include_direct_promoted && mp2.tight &&
+      append_format(block, sizeof(block), "  tight\n") != 0)
+    return -1;
+  if (include_direct_promoted && mp2.aotol2e > 0.0 &&
+      append_format(block, sizeof(block), "  tol2e %.12g\n", mp2.aotol2e) != 0)
+    return -1;
+  if (include_direct_promoted && mp2.aotol2eFock > 0.0 &&
+      append_format(block, sizeof(block), "  focktol %.12g\n",
+                    mp2.aotol2eFock) != 0)
+    return -1;
+  if (include_direct_promoted && mp2.backtol > 0.0 &&
+      append_format(block, sizeof(block), "  backtol %.12g\n", mp2.backtol) !=
+          0)
+    return -1;
+  if (include_direct_promoted && mp2.sameSpinScale > 0.0 &&
+      append_format(block, sizeof(block), "  fss %.12g\n",
+                    mp2.sameSpinScale) != 0)
+    return -1;
+  if (include_direct_promoted && mp2.oppositeSpinScale > 0.0 &&
+      append_format(block, sizeof(block), "  fos %.12g\n",
+                    mp2.oppositeSpinScale) != 0)
+    return -1;
+  if (include_direct_promoted && mp2.scs == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  scs\n") != 0)
+    return -1;
+  if (include_direct_promoted && mp2.scratchDisk > 0.0 &&
+      append_format(block, sizeof(block), "  scratchdisk %.12g\n",
+                    mp2.scratchDisk) != 0)
+    return -1;
+  if (render_directives(mp2.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_tddft_stanza(NWChemTddftStanza_ptr ptr, char *dst,
+                               size_t dst_size, int include_direct_promoted) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+
+  struct NWChemTddftStanza tddft;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemTddftStanza(&tddft, ptr);
+  int has_directives = directives_have_keywords(tddft.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_promoted =
+      tddft.nroots > 0 || tddft.tda != NWChemToggle_unspecified ||
+      tddft.maxiter > 0 || tddft.thresh > 0.0 || tddft.maxvecs > 0 ||
+      tddft.singlet != NWChemToggle_unspecified ||
+      tddft.triplet != NWChemToggle_unspecified || tddft.target > 0 ||
+      tddft.targetSym.len > 0 || tddft.symmetry != NWChemToggle_unspecified ||
+      tddft.algorithm > 0 || tddft.energyCutoff > 0.0;
+  if (!include_direct_promoted && !has_directives)
+    return 0;
+  if (include_direct_promoted && !has_promoted && !has_directives)
+    return 0;
+  if (append_format(block, sizeof(block), "tddft\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.nroots > 0 &&
+      append_format(block, sizeof(block), "  nroots %d\n", tddft.nroots) != 0)
+    return -1;
+  if (include_direct_promoted && tddft.tda == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  tda\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", tddft.maxiter) != 0)
+    return -1;
+  if (include_direct_promoted && tddft.thresh > 0.0 &&
+      append_format(block, sizeof(block), "  thresh %.12g\n", tddft.thresh) !=
+          0)
+    return -1;
+  if (include_direct_promoted && tddft.maxvecs > 0 &&
+      append_format(block, sizeof(block), "  maxvecs %d\n", tddft.maxvecs) != 0)
+    return -1;
+  if (include_direct_promoted && tddft.singlet == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  singlet\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.triplet == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  triplet\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.target > 0 &&
+      append_format(block, sizeof(block), "  target %d\n", tddft.target) != 0)
+    return -1;
+  if (include_direct_promoted && tddft.targetSym.len > 0) {
+    if (append_format(block, sizeof(block), "  targetsym ") != 0 ||
+        append_text(block, sizeof(block), tddft.targetSym) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted && tddft.symmetry == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  symmetry\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.algorithm > 0 &&
+      append_format(block, sizeof(block), "  algorithm %d\n",
+                    tddft.algorithm) != 0)
+    return -1;
+  if (include_direct_promoted && tddft.energyCutoff > 0.0 &&
+      append_format(block, sizeof(block), "  ecut %.12g\n",
+                    tddft.energyCutoff) != 0)
+    return -1;
+  if (render_directives(tddft.directives, block, sizeof(block), "  ") != 0 ||
       append_format(block, sizeof(block), "end") != 0)
     return -1;
   return append_block(dst, dst_size, block);
@@ -3150,7 +3431,18 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
         return -1;
       break;
     case NWChemInputStanza_Kind_property:
-      if (render_property_stanza(stanza.property, dst, dst_size) != 0)
+      if (render_property_stanza(stanza.property, dst, dst_size,
+                                 include_direct_promoted_scf) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_mp2:
+      if (render_mp2_stanza(stanza.mp2, dst, dst_size,
+                            include_direct_promoted_scf) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_tddft:
+      if (render_tddft_stanza(stanza.tddft, dst, dst_size,
+                              include_direct_promoted_dft) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_basis:
@@ -6337,6 +6629,267 @@ int nwchemc_params_extract_direct_set_values(
       values[*count * value_capacity + (size_t)j] = value;
     }
     ++*count;
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_scf_extended(
+    NWChemParams_ptr params, capn_text *vectors_input, capn_text *vectors_output,
+    int *diis, int *diis_bas, int *maxsub, int *lock, int *adapt, int *noscf) {
+  if (params.p.type == CAPN_NULL || !vectors_input || !vectors_output || !diis ||
+      !diis_bas || !maxsub || !lock || !adapt || !noscf)
+    return -1;
+  *vectors_input = empty_text;
+  *vectors_output = empty_text;
+  *diis = NWChemToggle_unspecified;
+  *diis_bas = 0;
+  *maxsub = 0;
+  *lock = NWChemToggle_unspecified;
+  *adapt = NWChemToggle_unspecified;
+  *noscf = NWChemToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_scf || stanza.scf.p.type == CAPN_NULL)
+      continue;
+    struct NWChemScfStanza scf;
+    read_NWChemScfStanza(&scf, stanza.scf);
+    if (scf.vectorsInput.len > 0)
+      *vectors_input = scf.vectorsInput;
+    if (scf.vectorsOutput.len > 0)
+      *vectors_output = scf.vectorsOutput;
+    if (scf.diis != NWChemToggle_unspecified)
+      *diis = scf.diis;
+    if (scf.diisBas > 0)
+      *diis_bas = scf.diisBas;
+    if (scf.maxsub > 0)
+      *maxsub = scf.maxsub;
+    if (scf.lock != NWChemToggle_unspecified)
+      *lock = scf.lock;
+    if (scf.adapt != NWChemToggle_unspecified)
+      *adapt = scf.adapt;
+    if (scf.noscf != NWChemToggle_unspecified)
+      *noscf = scf.noscf;
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_dft_extended(
+    NWChemParams_ptr params, double *energy_conv, double *density_conv,
+    double *gradient_conv, int *odft, int *diis, int *nfock,
+    double *level_shift, capn_text *vectors_input, capn_text *vectors_output) {
+  if (params.p.type == CAPN_NULL || !energy_conv || !density_conv ||
+      !gradient_conv || !odft || !diis || !nfock || !level_shift ||
+      !vectors_input || !vectors_output)
+    return -1;
+  *energy_conv = 0.0;
+  *density_conv = 0.0;
+  *gradient_conv = 0.0;
+  *odft = 0;
+  *diis = NWChemToggle_unspecified;
+  *nfock = 0;
+  *level_shift = 0.0;
+  *vectors_input = empty_text;
+  *vectors_output = empty_text;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_dft || stanza.dft.p.type == CAPN_NULL)
+      continue;
+    struct NWChemDftStanza dft;
+    read_NWChemDftStanza(&dft, stanza.dft);
+    if (dft.energyConv > 0.0)
+      *energy_conv = dft.energyConv;
+    if (dft.densityConv > 0.0)
+      *density_conv = dft.densityConv;
+    if (dft.gradientConv > 0.0)
+      *gradient_conv = dft.gradientConv;
+    if (dft.odft)
+      *odft = 1;
+    if (dft.diis != NWChemToggle_unspecified)
+      *diis = dft.diis;
+    if (dft.nfock > 0)
+      *nfock = dft.nfock;
+    if (dft.levelShift > 0.0)
+      *level_shift = dft.levelShift;
+    if (dft.vectorsInput.len > 0)
+      *vectors_input = dft.vectorsInput;
+    if (dft.vectorsOutput.len > 0)
+      *vectors_output = dft.vectorsOutput;
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_property(
+    NWChemParams_ptr params, int *dipole, int *mulliken, int *quadrupole,
+    int *octupole, int *esp, int *efield, int *efield_grad,
+    int *electron_density, int *spin_density, int *spin_population,
+    int *shielding, int *hyperfine, int *polarizability) {
+  if (params.p.type == CAPN_NULL || !dipole || !mulliken || !quadrupole ||
+      !octupole || !esp || !efield || !efield_grad || !electron_density ||
+      !spin_density || !spin_population || !shielding || !hyperfine ||
+      !polarizability)
+    return -1;
+  *dipole = *mulliken = *quadrupole = *octupole = *esp = *efield = 0;
+  *efield_grad = *electron_density = *spin_density = *spin_population = 0;
+  *shielding = *hyperfine = *polarizability = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_property ||
+        stanza.property.p.type == CAPN_NULL)
+      continue;
+    struct NWChemPropertyStanza property;
+    read_NWChemPropertyStanza(&property, stanza.property);
+    if (property.dipole)
+      *dipole = 1;
+    if (property.mulliken)
+      *mulliken = 1;
+    if (property.quadrupol)
+      *quadrupole = 1;
+    if (property.octupole)
+      *octupole = 1;
+    if (property.esp)
+      *esp = 1;
+    if (property.efield)
+      *efield = 1;
+    if (property.efieldGrad)
+      *efield_grad = 1;
+    if (property.electronDensity)
+      *electron_density = 1;
+    if (property.spinDensity)
+      *spin_density = 1;
+    if (property.spinPopulation)
+      *spin_population = 1;
+    if (property.shielding)
+      *shielding = 1;
+    if (property.hyperfine)
+      *hyperfine = 1;
+    if (property.polarizability)
+      *polarizability = 1;
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_mp2(
+    NWChemParams_ptr params, int *freeze_core, int *freeze_virtual, int *tight,
+    double *aotol2e, double *aotol2e_fock, double *backtol,
+    double *same_spin_scale, double *opposite_spin_scale, int *scs,
+    double *scratch_disk) {
+  if (params.p.type == CAPN_NULL || !freeze_core || !freeze_virtual || !tight ||
+      !aotol2e || !aotol2e_fock || !backtol || !same_spin_scale ||
+      !opposite_spin_scale || !scs || !scratch_disk)
+    return -1;
+  *freeze_core = *freeze_virtual = *tight = 0;
+  *aotol2e = *aotol2e_fock = *backtol = 0.0;
+  *same_spin_scale = *opposite_spin_scale = *scratch_disk = 0.0;
+  *scs = NWChemToggle_unspecified;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_mp2 || stanza.mp2.p.type == CAPN_NULL)
+      continue;
+    struct NWChemMp2Stanza mp2;
+    read_NWChemMp2Stanza(&mp2, stanza.mp2);
+    if (mp2.freezeCore > 0)
+      *freeze_core = mp2.freezeCore;
+    if (mp2.freezeVirtual > 0)
+      *freeze_virtual = mp2.freezeVirtual;
+    if (mp2.tight)
+      *tight = 1;
+    if (mp2.aotol2e > 0.0)
+      *aotol2e = mp2.aotol2e;
+    if (mp2.aotol2eFock > 0.0)
+      *aotol2e_fock = mp2.aotol2eFock;
+    if (mp2.backtol > 0.0)
+      *backtol = mp2.backtol;
+    if (mp2.sameSpinScale > 0.0)
+      *same_spin_scale = mp2.sameSpinScale;
+    if (mp2.oppositeSpinScale > 0.0)
+      *opposite_spin_scale = mp2.oppositeSpinScale;
+    if (mp2.scs != NWChemToggle_unspecified)
+      *scs = mp2.scs;
+    if (mp2.scratchDisk > 0.0)
+      *scratch_disk = mp2.scratchDisk;
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_tddft(
+    NWChemParams_ptr params, int *nroots, int *tda, int *maxiter, double *thresh,
+    int *maxvecs, int *singlet, int *triplet, int *target,
+    capn_text *target_sym, int *symmetry, int *algorithm,
+    double *energy_cutoff) {
+  if (params.p.type == CAPN_NULL || !nroots || !tda || !maxiter || !thresh ||
+      !maxvecs || !singlet || !triplet || !target || !target_sym || !symmetry ||
+      !algorithm || !energy_cutoff)
+    return -1;
+  *nroots = *maxiter = *maxvecs = *target = *algorithm = 0;
+  *thresh = *energy_cutoff = 0.0;
+  *tda = *singlet = *triplet = *symmetry = NWChemToggle_unspecified;
+  *target_sym = empty_text;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_tddft ||
+        stanza.tddft.p.type == CAPN_NULL)
+      continue;
+    struct NWChemTddftStanza tddft;
+    read_NWChemTddftStanza(&tddft, stanza.tddft);
+    if (tddft.nroots > 0)
+      *nroots = tddft.nroots;
+    if (tddft.tda != NWChemToggle_unspecified)
+      *tda = tddft.tda;
+    if (tddft.maxiter > 0)
+      *maxiter = tddft.maxiter;
+    if (tddft.thresh > 0.0)
+      *thresh = tddft.thresh;
+    if (tddft.maxvecs > 0)
+      *maxvecs = tddft.maxvecs;
+    if (tddft.singlet != NWChemToggle_unspecified)
+      *singlet = tddft.singlet;
+    if (tddft.triplet != NWChemToggle_unspecified)
+      *triplet = tddft.triplet;
+    if (tddft.target > 0)
+      *target = tddft.target;
+    if (tddft.targetSym.len > 0)
+      *target_sym = tddft.targetSym;
+    if (tddft.symmetry != NWChemToggle_unspecified)
+      *symmetry = tddft.symmetry;
+    if (tddft.algorithm > 0)
+      *algorithm = tddft.algorithm;
+    if (tddft.energyCutoff > 0.0)
+      *energy_cutoff = tddft.energyCutoff;
   }
   return 0;
 }

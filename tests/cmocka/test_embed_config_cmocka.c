@@ -55,8 +55,8 @@ static char g_dft_xc[64];
 static char g_input_blocks[8192];
 static char g_psp_elements[8][17];
 static char g_psp_names[8][257];
-static char g_set_keys[8][129];
-static char g_set_values[8][257];
+static char g_set_keys[64][129];
+static char g_set_values[64][257];
 static char g_typed_set_keys[512][129];
 static char g_typed_set_values[512][64][257];
 static char g_brillouin_zone_name[64];
@@ -783,12 +783,13 @@ int nwchemc_embed_set_pseudopotentials(const char *elements,
 int nwchemc_embed_set_rtdb_strings(const char *keys, const char *values,
                                    int count) {
   ++g_set_rtdb_strings_calls;
-  g_set_string_count = count;
-  if (count > 8)
-    count = 8;
+  /* Accumulate across promo + explicit set stanza calls. */
   for (int i = 0; i < count; ++i) {
-    copy_span(g_set_keys[i], sizeof(g_set_keys[i]), keys + i * 128, 128);
-    copy_span(g_set_values[i], sizeof(g_set_values[i]), values + i * 256,
+    if (g_set_string_count >= 64)
+      break;
+    int dst = g_set_string_count++;
+    copy_span(g_set_keys[dst], sizeof(g_set_keys[dst]), keys + i * 128, 128);
+    copy_span(g_set_values[dst], sizeof(g_set_values[dst]), values + i * 256,
               256);
   }
   return 0;
@@ -798,17 +799,19 @@ int nwchemc_embed_set_rtdb_values(const char *keys, const int *value_types,
                                   const int *value_counts,
                                   const char *values, int count) {
   ++g_set_rtdb_values_calls;
-  g_typed_set_count = count;
-  if (count > 512)
-    count = 512;
+  /* Accumulate across promo + explicit set stanza calls. */
   for (int i = 0; i < count; ++i) {
-    copy_span(g_typed_set_keys[i], sizeof(g_typed_set_keys[i]),
+    if (g_typed_set_count >= 512)
+      break;
+    int dst = g_typed_set_count++;
+    copy_span(g_typed_set_keys[dst], sizeof(g_typed_set_keys[dst]),
               keys + i * 128, 128);
-    g_typed_set_types[i] = value_types[i];
-    g_typed_set_value_counts[i] = value_counts[i];
+    g_typed_set_types[dst] = value_types[i];
+    g_typed_set_value_counts[dst] = value_counts[i];
     int nvalues = value_counts[i] < 64 ? value_counts[i] : 64;
     for (int j = 0; j < nvalues; ++j) {
-      copy_span(g_typed_set_values[i][j], sizeof(g_typed_set_values[i][j]),
+      copy_span(g_typed_set_values[dst][j],
+                sizeof(g_typed_set_values[dst][j]),
                 values + (i * 64 + j) * 256, 256);
     }
   }
@@ -1367,9 +1370,11 @@ static void reset_embed_captures(void) {
   for (int i = 0; i < 8; ++i) {
     g_psp_elements[i][0] = '\0';
     g_psp_names[i][0] = '\0';
+    g_psp_types[i] = -1;
+  }
+  for (int i = 0; i < 64; ++i) {
     g_set_keys[i][0] = '\0';
     g_set_values[i][0] = '\0';
-    g_psp_types[i] = -1;
   }
   for (int i = 0; i < 512; ++i) {
     g_typed_set_keys[i][0] = '\0';
@@ -2665,24 +2670,40 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   assert_close(g_driver_grms_tol, 1.5e-5, 1.0e-12);
   assert_close(g_driver_xmax_tol, 7.5e-5, 1.0e-12);
   assert_close(g_driver_xrms_tol, 5.5e-5, 1.0e-12);
-  assert_int_equal(g_set_rtdb_strings_calls, 1);
-  assert_int_equal(g_set_string_count, 1);
-  assert_string_equal(g_set_keys[0], "dft:grid");
-  assert_string_equal(g_set_values[0], "xfine");
-  assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 3);
-  assert_string_equal(g_typed_set_keys[0], "dft:nopen");
-  assert_int_equal(g_typed_set_types[0], NWCHEMC_DIRECT_SET_VALUE_INTEGER);
-  assert_int_equal(g_typed_set_value_counts[0], 1);
-  assert_string_equal(g_typed_set_values[0][0], "2");
-  assert_string_equal(g_typed_set_keys[1], "dft:smear_sigma");
-  assert_int_equal(g_typed_set_types[1], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
-  assert_int_equal(g_typed_set_value_counts[1], 1);
-  assert_string_equal(g_typed_set_values[1][0], "0.0015");
-  assert_string_equal(g_typed_set_keys[2], "dft:spinset");
-  assert_int_equal(g_typed_set_types[2], NWCHEMC_DIRECT_SET_VALUE_LOGICAL);
-  assert_int_equal(g_typed_set_value_counts[2], 1);
-  assert_string_equal(g_typed_set_values[2][0], "false");
+  /* set strings may include typed-stanza RTDB promo plus explicit set stanzas. */
+  assert_true(g_set_rtdb_strings_calls >= 1);
+  int found_grid = 0;
+  for (int i = 0; i < g_set_string_count; ++i) {
+    if (strcmp(g_set_keys[i], "dft:grid") == 0) {
+      assert_string_equal(g_set_values[i], "xfine");
+      found_grid = 1;
+    }
+  }
+  assert_int_equal(found_grid, 1);
+  assert_true(g_set_rtdb_values_calls >= 1);
+  assert_true(g_typed_set_count >= 3);
+  int found_nopen = 0, found_smear = 0, found_spinset = 0;
+  for (int i = 0; i < g_typed_set_count; ++i) {
+    if (strcmp(g_typed_set_keys[i], "dft:nopen") == 0) {
+      assert_int_equal(g_typed_set_types[i], NWCHEMC_DIRECT_SET_VALUE_INTEGER);
+      assert_int_equal(g_typed_set_value_counts[i], 1);
+      assert_string_equal(g_typed_set_values[i][0], "2");
+      found_nopen = 1;
+    } else if (strcmp(g_typed_set_keys[i], "dft:smear_sigma") == 0) {
+      assert_int_equal(g_typed_set_types[i], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+      assert_int_equal(g_typed_set_value_counts[i], 1);
+      assert_string_equal(g_typed_set_values[i][0], "0.0015");
+      found_smear = 1;
+    } else if (strcmp(g_typed_set_keys[i], "dft:spinset") == 0) {
+      assert_int_equal(g_typed_set_types[i], NWCHEMC_DIRECT_SET_VALUE_LOGICAL);
+      assert_int_equal(g_typed_set_value_counts[i], 1);
+      assert_string_equal(g_typed_set_values[i][0], "false");
+      found_spinset = 1;
+    }
+  }
+  assert_int_equal(found_nopen, 1);
+  assert_int_equal(found_smear, 1);
+  assert_int_equal(found_spinset, 1);
   assert_null(strstr(g_input_blocks, "scf\n"));
   assert_null(strstr(g_input_blocks, "maxiter 50"));
   assert_null(strstr(g_input_blocks, "tol2e 1e-09"));
@@ -2725,9 +2746,9 @@ static void test_configure_accepts_potential_config_nwchem(void **state) {
   assert_int_equal(g_set_driver_direct_calls, 1);
   assert_int_equal(g_driver_has_options, 1);
   assert_int_equal(g_driver_maxiter, 40);
-  assert_int_equal(g_set_rtdb_strings_calls, 1);
-  assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 3);
+  assert_true(g_set_rtdb_strings_calls >= 1);
+  assert_true(g_set_rtdb_values_calls >= 1);
+  assert_true(g_typed_set_count >= 3);
   assert_null(strstr(g_input_blocks, "task scf energy"));
 
   free(config);
@@ -5248,7 +5269,7 @@ static void test_session_calculate_result_writes_potential_result(
   assert_non_null(session);
   assert_int_equal(g_set_config_calls, 1);
 
-  unsigned char result_bytes[256];
+  unsigned char result_bytes[512];
   size_t result_size = 0;
   size_t expected_step_a_size =
       nwchemc_potential_result_size_for_force_input(step_a, step_a_size);
@@ -5366,7 +5387,7 @@ static void test_session_calculate_energy_result_writes_potential_result(
   size_t expected_size =
       nwchemc_energy_result_size_for_force_input(step_a, step_a_size);
   assert_true(expected_size > 0);
-  unsigned char result_bytes[256];
+  unsigned char result_bytes[512];
   size_t result_size = 0;
   NWChemCSession *session = nwchemc_session_create(message, message_size);
   assert_non_null(session);
@@ -5503,7 +5524,7 @@ static void test_session_calculate_property_results_write_potential_result(
   assert_non_null(session);
   assert_int_equal(g_set_config_calls, 1);
 
-  unsigned char result_bytes[256];
+  unsigned char result_bytes[512];
   size_t dipole_result_size = 0;
   size_t expected_dipole_size =
       nwchemc_dipole_result_size_for_force_input(step_a, step_a_size);
@@ -5643,7 +5664,7 @@ static void test_session_calculate_stress_result_writes_potential_result(
     expected_stress_ev[i] = expected_stress[i] * hartree_to_ev;
   }
 
-  unsigned char result_bytes[256];
+  unsigned char result_bytes[512];
   size_t stress_result_size = 0;
   size_t expected_stress_size =
       nwchemc_stress_result_size_for_force_input(step_a, step_a_size);
@@ -5858,7 +5879,7 @@ static void test_calculate_result_one_shot_writes_potential_result(
   assert_true(nwchemc_forces_result_size_for_force_input != NULL);
   assert_true(nwchemc_calculate_forces_result != NULL);
 
-  unsigned char result_bytes[256];
+  unsigned char result_bytes[512];
   size_t result_size = 0;
   size_t expected_size =
       nwchemc_potential_result_size_for_force_input(step_a, step_a_size);
@@ -5975,7 +5996,7 @@ static void test_calculate_property_results_one_shot_write_potential_result(
   assert_non_null(step_a);
   assert_non_null(step_ev);
 
-  unsigned char result_bytes[256];
+  unsigned char result_bytes[512];
   size_t result_size = 0;
   size_t expected_dipole_size =
       nwchemc_dipole_result_size_for_force_input(step_a, step_a_size);
@@ -6085,7 +6106,7 @@ static void test_calculate_stress_result_one_shot_writes_potential_result(
     expected_stress_ev[i] = expected_stress[i] * hartree_to_ev;
   }
 
-  unsigned char result_bytes[256];
+  unsigned char result_bytes[512];
   size_t result_size = 0;
   size_t expected_stress_size =
       nwchemc_stress_result_size_for_force_input(step_a, step_a_size);

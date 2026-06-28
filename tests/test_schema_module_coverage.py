@@ -134,6 +134,15 @@ EXPECTED_POTENTIAL_RESULT_FIELDS = {
     "heatCapacityCv": 16,
     "projectedFrequencies": 17,
     "projectedIntensities": 18,
+    "energyComponents": 19,
+    "componentsValid": 20,
+    "chargeIntegrals": 21,
+    "chargeValid": 22,
+    "multiStateEnergies": 23,
+    "multiStateValid": 24,
+    "mdTrajectoryRow": 25,
+    "mdTrajectoryValid": 26,
+    "embedMdPropsSkipped": 27,
 }
 
 

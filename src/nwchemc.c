@@ -366,6 +366,47 @@ static int append_direct_integer_values(
                                     value_list, (int)nvalues);
 }
 
+static int append_direct_double_values(
+    capn_text *keys, int *value_types, int *value_counts, capn_text *values,
+    size_t key_capacity, size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    const char *key, const double *double_values, size_t nvalues) {
+  if (!double_values || nvalues == 0 || nvalues > NWCHEMC_DIRECT_SET_VALUE_MAX)
+    return -1;
+  char owned_values[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                   [NWCHEMC_DIRECT_SET_VALUE_LEN];
+  const char *value_list[NWCHEMC_DIRECT_SET_VALUE_MAX];
+  for (size_t i = 0; i < nvalues; ++i) {
+    int n = snprintf(owned_values[i], sizeof(owned_values[i]), "%.17g",
+                     double_values[i]);
+    if (n < 0 || (size_t)n >= sizeof(owned_values[i]))
+      return -1;
+    value_list[i] = owned_values[i];
+  }
+  return append_direct_typed_values(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, key,
+                                    NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
+                                    value_list, (int)nvalues);
+}
+
+static int append_direct_logical_value(
+    capn_text *keys, int *value_types, int *value_counts, capn_text *values,
+    size_t key_capacity, size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    const char *key, int enabled) {
+  const char *value_list[1] = {enabled ? "true" : "false"};
+  return append_direct_typed_values(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, key,
+                                    NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                                    value_list, 1);
+}
+
 static int append_direct_string_value(capn_text *keys, capn_text *values,
                                       size_t capacity, size_t *count,
                                       const char *key, capn_text value) {
@@ -1675,6 +1716,62 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                         &scf_maxiter, &scf_thresh, &scf_tol2e,
                                         &scf_wavefunction, &scf_nopen,
                                         &scf_has_nopen) != 0)
+    return -1;
+  capn_text scf_vectors_in = {0};
+  capn_text scf_vectors_out = {0};
+  int scf_diis = NWChemToggle_unspecified;
+  int scf_diis_bas = 0;
+  int scf_maxsub = 0;
+  int scf_lock = NWChemToggle_unspecified;
+  int scf_adapt = NWChemToggle_unspecified;
+  int scf_noscf = NWChemToggle_unspecified;
+  if (nwchemc_params_extract_direct_scf_extended(
+          params_root, &scf_vectors_in, &scf_vectors_out, &scf_diis,
+          &scf_diis_bas, &scf_maxsub, &scf_lock, &scf_adapt, &scf_noscf) != 0)
+    return -1;
+  double dft_energy_conv = 0.0;
+  double dft_density_conv = 0.0;
+  double dft_gradient_conv = 0.0;
+  int dft_odft = 0;
+  int dft_diis = NWChemToggle_unspecified;
+  int dft_nfock = 0;
+  double dft_level_shift = 0.0;
+  capn_text dft_vectors_in = {0};
+  capn_text dft_vectors_out = {0};
+  if (nwchemc_params_extract_direct_dft_extended(
+          params_root, &dft_energy_conv, &dft_density_conv, &dft_gradient_conv,
+          &dft_odft, &dft_diis, &dft_nfock, &dft_level_shift, &dft_vectors_in,
+          &dft_vectors_out) != 0)
+    return -1;
+  int prop_dipole = 0, prop_mulliken = 0, prop_quad = 0, prop_oct = 0;
+  int prop_esp = 0, prop_efield = 0, prop_efield_grad = 0, prop_edens = 0;
+  int prop_sdens = 0, prop_spop = 0, prop_shield = 0, prop_hyp = 0, prop_pol = 0;
+  if (nwchemc_params_extract_direct_property(
+          params_root, &prop_dipole, &prop_mulliken, &prop_quad, &prop_oct,
+          &prop_esp, &prop_efield, &prop_efield_grad, &prop_edens, &prop_sdens,
+          &prop_spop, &prop_shield, &prop_hyp, &prop_pol) != 0)
+    return -1;
+  int mp2_freeze_core = 0, mp2_freeze_virt = 0, mp2_tight = 0;
+  double mp2_aotol2e = 0.0, mp2_aotol2e_fock = 0.0, mp2_backtol = 0.0;
+  double mp2_fss = 0.0, mp2_fos = 0.0, mp2_scratch = 0.0;
+  int mp2_scs = NWChemToggle_unspecified;
+  if (nwchemc_params_extract_direct_mp2(
+          params_root, &mp2_freeze_core, &mp2_freeze_virt, &mp2_tight,
+          &mp2_aotol2e, &mp2_aotol2e_fock, &mp2_backtol, &mp2_fss, &mp2_fos,
+          &mp2_scs, &mp2_scratch) != 0)
+    return -1;
+  int tddft_nroots = 0, tddft_tda = NWChemToggle_unspecified, tddft_maxiter = 0;
+  double tddft_thresh = 0.0;
+  int tddft_maxvecs = 0, tddft_singlet = NWChemToggle_unspecified;
+  int tddft_triplet = NWChemToggle_unspecified, tddft_target = 0;
+  capn_text tddft_target_sym = {0};
+  int tddft_symmetry = NWChemToggle_unspecified, tddft_algorithm = 0;
+  double tddft_ecut = 0.0;
+  if (nwchemc_params_extract_direct_tddft(
+          params_root, &tddft_nroots, &tddft_tda, &tddft_maxiter, &tddft_thresh,
+          &tddft_maxvecs, &tddft_singlet, &tddft_triplet, &tddft_target,
+          &tddft_target_sym, &tddft_symmetry, &tddft_algorithm,
+          &tddft_ecut) != 0)
     return -1;
   int ccsd_has_options = 0;
   int ccsd_maxiter = 0;
@@ -4212,62 +4309,185 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_embed_set_scf_direct(scf_has_options, scf_maxiter, scf_thresh,
                                    scf_tol2e) != 0)
     return -1;
-  /* Promote SCF wavefunction/nopen and DFT iterations via RTDB (embed render
-   * omits those lines). Grid stays text-emitted on embed (no stable key). */
+  /* Promote maximally-typed stanza knobs via RTDB (embed render omits them).
+   * DFT grid and SCF noprint stay text-only where no stable RTDB key exists. */
   {
-    char promo_str_key_storage[4][NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_str_val_storage[4][NWCHEMC_DIRECT_SET_VALUE_LEN];
-    char promo_key_storage[4][NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_value_storage[4][NWCHEMC_DIRECT_SET_VALUE_MAX]
+    enum { PROMO_CAP = 48 };
+    char promo_str_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_str_val_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char promo_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_value_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_VALUE_MAX]
                             [NWCHEMC_DIRECT_SET_VALUE_LEN];
-    char promo_str_packed_keys[4 * NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_str_packed_values[4 * NWCHEMC_DIRECT_SET_VALUE_LEN];
-    char promo_typed_packed_keys[4 * NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_typed_packed_values[4 * NWCHEMC_DIRECT_SET_VALUE_MAX *
+    char promo_str_packed_keys[PROMO_CAP * NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_str_packed_values[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char promo_typed_packed_keys[PROMO_CAP * NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_typed_packed_values[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_MAX *
                                    NWCHEMC_DIRECT_SET_VALUE_LEN];
-    capn_text promo_str_keys[4];
-    capn_text promo_str_vals[4];
+    capn_text promo_str_keys[PROMO_CAP];
+    capn_text promo_str_vals[PROMO_CAP];
     size_t promo_str_count = 0;
-    capn_text promo_keys[4];
-    int promo_types[4];
-    int promo_counts[4];
-    capn_text promo_vals[4 * NWCHEMC_DIRECT_SET_VALUE_MAX];
+    capn_text promo_keys[PROMO_CAP];
+    int promo_types[PROMO_CAP];
+    int promo_counts[PROMO_CAP];
+    capn_text promo_vals[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_MAX];
     size_t promo_count = 0;
     memset(promo_str_packed_keys, 0, sizeof(promo_str_packed_keys));
     memset(promo_str_packed_values, 0, sizeof(promo_str_packed_values));
     memset(promo_typed_packed_keys, 0, sizeof(promo_typed_packed_keys));
     memset(promo_typed_packed_values, 0, sizeof(promo_typed_packed_values));
-    if (scf_wavefunction.len > 0) {
-      char wf_buf[NWCHEMC_DIRECT_SET_VALUE_LEN];
-      size_t n = (size_t)scf_wavefunction.len;
-      if (n >= sizeof(wf_buf))
-        n = sizeof(wf_buf) - 1;
-      if (!scf_wavefunction.str)
-        return -1;
-      memcpy(wf_buf, scf_wavefunction.str, n);
-      wf_buf[n] = '\0';
-      if (append_owned_direct_string_value(
-              promo_str_keys, promo_str_vals, 4, &promo_str_count,
-              promo_str_key_storage, promo_str_val_storage, "scf:scftype",
-              wf_buf) != 0)
-        return -1;
+#define PROMO_STR(key, text_val)                                               \
+  do {                                                                         \
+    if ((text_val).len > 0) {                                                  \
+      char _buf[NWCHEMC_DIRECT_SET_VALUE_LEN];                                 \
+      size_t _n = (size_t)(text_val).len;                                      \
+      if (_n >= sizeof(_buf))                                                  \
+        _n = sizeof(_buf) - 1;                                                 \
+      if (!(text_val).str)                                                     \
+        return -1;                                                             \
+      memcpy(_buf, (text_val).str, _n);                                        \
+      _buf[_n] = '\0';                                                         \
+      if (append_owned_direct_string_value(                                    \
+              promo_str_keys, promo_str_vals, PROMO_CAP, &promo_str_count,      \
+              promo_str_key_storage, promo_str_val_storage, (key), _buf) != 0)  \
+        return -1;                                                             \
+    }                                                                          \
+  } while (0)
+#define PROMO_INT(key, ival)                                                   \
+  do {                                                                         \
+    int _iv[1] = {(ival)};                                                     \
+    if (append_direct_integer_values(                                          \
+            promo_keys, promo_types, promo_counts, promo_vals, PROMO_CAP,       \
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,      \
+            promo_value_storage, (key), _iv, 1) != 0)                          \
+      return -1;                                                               \
+  } while (0)
+#define PROMO_DBL(key, dval)                                                   \
+  do {                                                                         \
+    double _dv[1] = {(dval)};                                                  \
+    if (append_direct_double_values(                                           \
+            promo_keys, promo_types, promo_counts, promo_vals, PROMO_CAP,       \
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,      \
+            promo_value_storage, (key), _dv, 1) != 0)                          \
+      return -1;                                                               \
+  } while (0)
+#define PROMO_LOG(key, enabled)                                                \
+  do {                                                                         \
+    if (append_direct_logical_value(                                           \
+            promo_keys, promo_types, promo_counts, promo_vals, PROMO_CAP,       \
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,      \
+            promo_value_storage, (key), (enabled)) != 0)                       \
+      return -1;                                                               \
+  } while (0)
+#define PROMO_TOGGLE_LOG(key, toggle)                                          \
+  do {                                                                         \
+    if ((toggle) == NWChemToggle_enabled)                                      \
+      PROMO_LOG((key), 1);                                                     \
+    else if ((toggle) == NWChemToggle_disabled)                                \
+      PROMO_LOG((key), 0);                                                     \
+  } while (0)
+#define PROMO_PROP(key, flag)                                                  \
+  do {                                                                         \
+    if (flag)                                                                  \
+      PROMO_INT((key), 1);                                                     \
+  } while (0)
+
+    PROMO_STR("scf:scftype", scf_wavefunction);
+    PROMO_STR("scf:input vectors", scf_vectors_in);
+    PROMO_STR("scf:output vectors", scf_vectors_out);
+    if (scf_has_nopen)
+      PROMO_INT("scf:nopen", scf_nopen);
+    PROMO_TOGGLE_LOG("scf:diis", scf_diis);
+    if (scf_diis_bas > 0)
+      PROMO_INT("scf:diisbas", scf_diis_bas);
+    if (scf_maxsub > 0)
+      PROMO_INT("scf:maxsub", scf_maxsub);
+    PROMO_TOGGLE_LOG("scf:lock", scf_lock);
+    PROMO_TOGGLE_LOG("scf:adapt", scf_adapt);
+    if (scf_noscf == NWChemToggle_enabled)
+      PROMO_LOG("scf:noscf", 1);
+
+    if (dft_iterations > 0)
+      PROMO_INT("dft:iterations", dft_iterations);
+    if (dft_energy_conv > 0.0)
+      PROMO_DBL("dft:e_conv", dft_energy_conv);
+    if (dft_density_conv > 0.0)
+      PROMO_DBL("dft:d_conv", dft_density_conv);
+    if (dft_gradient_conv > 0.0)
+      PROMO_DBL("dft:g_conv", dft_gradient_conv);
+    if (dft_odft)
+      PROMO_INT("dft:ipol", 2);
+    PROMO_TOGGLE_LOG("dft:diis", dft_diis);
+    if (dft_nfock > 0)
+      PROMO_INT("dft:nfock", dft_nfock);
+    if (dft_level_shift > 0.0) {
+      PROMO_DBL("dft:rlshift", dft_level_shift);
+      PROMO_LOG("dft:levelshift", 1);
     }
-    if (scf_has_nopen) {
-      int nopen_vals[1] = {scf_nopen};
-      if (append_direct_integer_values(
-              promo_keys, promo_types, promo_counts, promo_vals, 4,
-              NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
-              promo_value_storage, "scf:nopen", nopen_vals, 1) != 0)
-        return -1;
+    PROMO_STR("dft:input vectors", dft_vectors_in);
+    PROMO_STR("dft:output vectors", dft_vectors_out);
+
+    PROMO_PROP("prop:dipole", prop_dipole);
+    PROMO_PROP("prop:mulliken", prop_mulliken);
+    PROMO_PROP("prop:quadrupole", prop_quad);
+    PROMO_PROP("prop:octupole", prop_oct);
+    PROMO_PROP("prop:esp", prop_esp);
+    PROMO_PROP("prop:efield", prop_efield);
+    PROMO_PROP("prop:efieldgrad", prop_efield_grad);
+    PROMO_PROP("prop:electrondensity", prop_edens);
+    PROMO_PROP("prop:spindensity", prop_sdens);
+    PROMO_PROP("prop:spinpopulation", prop_spop);
+    PROMO_PROP("prop:shldopt", prop_shield);
+    PROMO_PROP("prop:hypopt", prop_hyp);
+    PROMO_PROP("prop:polfromsos", prop_pol);
+
+    if (mp2_freeze_core > 0)
+      PROMO_INT("mp2:number frozen core", mp2_freeze_core);
+    if (mp2_freeze_virt > 0)
+      PROMO_INT("mp2:number frozen virtual", mp2_freeze_virt);
+    if (mp2_aotol2e > 0.0)
+      PROMO_DBL("mp2:aotol2e", mp2_aotol2e);
+    if (mp2_aotol2e_fock > 0.0)
+      PROMO_DBL("mp2:aotol2e fock", mp2_aotol2e_fock);
+    if (mp2_backtol > 0.0)
+      PROMO_DBL("mp2:backtol", mp2_backtol);
+    if (mp2_fss > 0.0)
+      PROMO_DBL("mp2:fss", mp2_fss);
+    if (mp2_fos > 0.0)
+      PROMO_DBL("mp2:fos", mp2_fos);
+    if (mp2_scs == NWChemToggle_enabled)
+      PROMO_LOG("mp2:scs", 1);
+    if (mp2_scratch > 0.0)
+      PROMO_DBL("mp2:scratchdisk", mp2_scratch);
+
+    if (tddft_nroots > 0)
+      PROMO_INT("tddft:nroots", tddft_nroots);
+    PROMO_TOGGLE_LOG("tddft:tda", tddft_tda);
+    if (tddft_maxiter > 0)
+      PROMO_INT("tddft:maxiter", tddft_maxiter);
+    if (tddft_thresh > 0.0)
+      PROMO_DBL("tddft:thresh", tddft_thresh);
+    if (tddft_maxvecs > 0)
+      PROMO_INT("tddft:maxvecs", tddft_maxvecs);
+    PROMO_TOGGLE_LOG("tddft:singlet", tddft_singlet);
+    PROMO_TOGGLE_LOG("tddft:triplet", tddft_triplet);
+    if (tddft_target > 0)
+      PROMO_INT("tddft:target", tddft_target);
+    PROMO_STR("tddft:targetsym", tddft_target_sym);
+    PROMO_TOGGLE_LOG("tddft:symmetry", tddft_symmetry);
+    if (tddft_algorithm > 0)
+      PROMO_INT("tddft:algorithm", tddft_algorithm);
+    if (tddft_ecut > 0.0) {
+      PROMO_DBL("tddft:ecut", tddft_ecut);
+      PROMO_LOG("tddft:lecut", 1);
     }
-    if (dft_iterations > 0) {
-      int it_vals[1] = {dft_iterations};
-      if (append_direct_integer_values(
-              promo_keys, promo_types, promo_counts, promo_vals, 4,
-              NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
-              promo_value_storage, "dft:iterations", it_vals, 1) != 0)
-        return -1;
-    }
+
+#undef PROMO_STR
+#undef PROMO_INT
+#undef PROMO_DBL
+#undef PROMO_LOG
+#undef PROMO_TOGGLE_LOG
+#undef PROMO_PROP
+
     for (size_t i = 0; i < promo_str_count; ++i) {
       copy_text_record(promo_str_packed_keys + i * NWCHEMC_DIRECT_SET_KEY_LEN,
                        NWCHEMC_DIRECT_SET_KEY_LEN, promo_str_keys[i]);

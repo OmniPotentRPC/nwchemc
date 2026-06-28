@@ -108,6 +108,17 @@ struct NWChemDftStanza {
   directives @3 :List(NWChemDirective);      # Extra structured DFT directives.
   iterations @4 :Int32 = 0;                  # Emit/promote dft iterations when >0.
   grid       @5 :Text = "";                  # Optional grid token; long-tail stays in directives.
+  # Convergence thresholds (convergence energy/density/gradient); promote dft:e_conv / d_conv / g_conv.
+  energyConv    @6 :Float64 = 0.0;
+  densityConv   @7 :Float64 = 0.0;
+  gradientConv  @8 :Float64 = 0.0;
+  # Open-shell DFT (odft) -> dft:ipol=2 when true.
+  odft          @9 :Bool = false;
+  diis          @10 :NWChemToggle = unspecified; # Promote dft:diis; nodiis when disabled.
+  nfock         @11 :Int32 = 0;              # Promote dft:nfock (DIIS Fock history).
+  levelShift    @12 :Float64 = 0.0;          # Promote dft:rlshift + dft:levelshift=true when >0.
+  vectorsInput  @13 :Text = "";              # Promote dft:input vectors on embed.
+  vectorsOutput @14 :Text = "";              # Promote dft:output vectors on embed.
 }
 
 enum NWChemModuleName {
@@ -647,12 +658,12 @@ struct NWChemNwpwStanza {
 # @brief Typed SCF/HF block controls (vectors, convergence, thresh).
 # Extra directives cover the long tail of SCF options via NWChemDirective.
 struct NWChemScfStanza {
-  vectorsInput  @0 :Text = "";   # Emit "vectors input <path>" when non-empty.
-  vectorsOutput @1 :Text = "";   # Emit "vectors output <path>" when non-empty.
+  vectorsInput  @0 :Text = "";   # Emit "vectors input <path>"; embed promotes scf:input vectors.
+  vectorsOutput @1 :Text = "";   # Emit "vectors output <path>"; embed promotes scf:output vectors.
   maxiter       @2 :Int32 = 0;   # SCF max iterations; embed writes RTDB directly.
   thresh        @3 :Float64 = 0; # SCF convergence threshold; embed writes RTDB directly.
   tol2e         @4 :Float64 = 0; # Two-electron tolerance; embed writes RTDB directly.
-  noprint       @5 :Bool = false;# Emit "noprint".
+  noprint       @5 :Bool = false;# Emit "noprint" (text-only; no single RTDB flag).
   directives    @6 :List(NWChemDirective);
   # Wavefunction keyword (rhf/uhf/rohf/...). Emitted in the scf block and promoted
   # to RTDB key scf:scftype on embed so HF spin cases are C-ABI accessible without
@@ -660,6 +671,12 @@ struct NWChemScfStanza {
   wavefunctionType @7 :Text = "";
   # Open-shell count for UHF/ROHF; negative means unset. Promotes scf:nopen.
   nopen            @8 :Int32 = -1;
+  diis             @9 :NWChemToggle = unspecified; # Promote scf:diis (enabled/disabled).
+  diisBas          @10 :Int32 = 0; # Promote scf:diisbas when >0.
+  maxsub           @11 :Int32 = 0; # Promote scf:maxsub when >0.
+  lock             @12 :NWChemToggle = unspecified; # Promote scf:lock.
+  adapt            @13 :NWChemToggle = unspecified; # Promote scf:adapt.
+  noscf            @14 :NWChemToggle = unspecified; # Promote scf:noscf when enabled.
 }
 
 # @struct NWChemCcsdStanza
@@ -799,11 +816,56 @@ struct NWChemDriverStanza {
 
 # @struct NWChemPropertyStanza
 # @brief Property evaluation block (dipole, mulliken, ...).
+# Bool flags promote to prop:<name> integer 1 on embed (prop_input.F convention).
 struct NWChemPropertyStanza {
   dipole     @0 :Bool = false;
   mulliken   @1 :Bool = false;
   quadrupol  @2 :Bool = false; # NWChem keyword "quadrupole" (typo preserved in field name only).
   directives @3 :List(NWChemDirective);
+  octupole         @4 :Bool = false; # prop:octupole
+  esp              @5 :Bool = false; # prop:esp
+  efield           @6 :Bool = false; # prop:efield
+  efieldGrad       @7 :Bool = false; # prop:efieldgrad
+  electronDensity  @8 :Bool = false; # prop:electrondensity
+  spinDensity      @9 :Bool = false; # prop:spindensity
+  spinPopulation   @10 :Bool = false; # prop:spinpopulation
+  shielding        @11 :Bool = false; # prop:shldopt path via shielding keyword
+  hyperfine        @12 :Bool = false; # prop:hypopt
+  polarizability   @13 :Bool = false; # prop:polarizability when set in prop_input
+}
+
+# @struct NWChemMp2Stanza
+# @brief Classic MP2 block (mp2_input.F RTDB keys).
+struct NWChemMp2Stanza {
+  freezeCore       @0 :Int32 = 0;   # Promote mp2:number frozen core when >0 (also freeze atomic).
+  freezeVirtual    @1 :Int32 = 0;   # Promote mp2:number frozen virtual when >0.
+  tight            @2 :Bool = false; # Emit tight AO tolerances (aotol2e path).
+  aotol2e          @3 :Float64 = 0.0; # Promote mp2:aotol2e when >0.
+  aotol2eFock      @4 :Float64 = 0.0; # Promote mp2:aotol2e fock when >0.
+  backtol          @5 :Float64 = 0.0; # Promote mp2:backtol when >0.
+  sameSpinScale    @6 :Float64 = 0.0; # Promote mp2:fss (SCS-MP2).
+  oppositeSpinScale @7 :Float64 = 0.0; # Promote mp2:fos.
+  scs              @8 :NWChemToggle = unspecified; # Promote mp2:scs when enabled.
+  scratchDisk      @9 :Float64 = 0.0; # Promote mp2:scratchdisk (GB) when >0.
+  directives       @10 :List(NWChemDirective);
+}
+
+# @struct NWChemTddftStanza
+# @brief Linear-response TDDFT block (tddft_input.F RTDB keys).
+struct NWChemTddftStanza {
+  nroots       @0 :Int32 = 0;    # Promote tddft:nroots.
+  tda          @1 :NWChemToggle = unspecified; # Promote tddft:tda (Tamm-Dancoff).
+  maxiter      @2 :Int32 = 0;    # Promote tddft:maxiter.
+  thresh       @3 :Float64 = 0.0; # Promote tddft:thresh.
+  maxvecs      @4 :Int32 = 0;    # Promote tddft:maxvecs.
+  singlet      @5 :NWChemToggle = unspecified; # Promote tddft:singlet.
+  triplet      @6 :NWChemToggle = unspecified; # Promote tddft:triplet.
+  target       @7 :Int32 = 0;    # Promote tddft:target (1-based state index when >0).
+  targetSym    @8 :Text = "";    # Promote tddft:targetsym.
+  symmetry     @9 :NWChemToggle = unspecified; # Promote tddft:symmetry.
+  algorithm    @10 :Int32 = 0;   # Promote tddft:algorithm when >0.
+  energyCutoff @11 :Float64 = 0.0; # Promote tddft:ecut + tddft:lecut when >0.
+  directives   @12 :List(NWChemDirective);
 }
 
 # @struct NWChemBasisStanza
@@ -848,6 +910,8 @@ struct NWChemInputStanza {
   mrccData        @16 :NWChemMrccDataStanza;
   brillouinZone   @17 :NWChemBrillouinZoneStanza;
   simulationCell  @18 :NWChemSimulationCellStanza;
+  mp2             @19 :NWChemMp2Stanza;
+  tddft           @20 :NWChemTddftStanza;
 
   enum Kind {
     generic         @0;
@@ -868,6 +932,8 @@ struct NWChemInputStanza {
     mrccData        @15;
     brillouinZone   @16;
     simulationCell  @17;
+    mp2             @18;
+    tddft           @19;
   }
 }
 
