@@ -1125,6 +1125,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       potential_config_pspw_stress
       PotentialConfig
     )
+    nwchemc_configure_fixture(
+      potential_config_pspw_pseudopotential_forces.capnp.txt.in
+      potential_config_pspw_pseudopotential_forces
+      PotentialConfig
+    )
 
     function(nwchemc_add_gradient_test target_name params_bin_target params_bin)
       add_executable("${target_name}" tests/test_nwchem_energy_gradient.c)
@@ -1307,6 +1312,46 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       nwchem-stress
       nwchem-stress
       "${potential_config_pspw_stress_BIN}"
+      "${NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN}"
+    )
+
+    add_executable(nwchem-pspw-pseudopotential-forces
+      tests/test_nwchem_pspw_pseudopotential_forces.c
+    )
+    target_sources(nwchem-pspw-pseudopotential-forces
+      PRIVATE "${NWCHEMC_POTENTIALS_CAPNP_C}"
+    )
+    target_include_directories(nwchem-pspw-pseudopotential-forces PRIVATE
+      ${NWCHEMC_INCLUDE_DIRS}
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema"
+      "${NWCHEMC_SCHEMA_BUILD_DIR}"
+      ${CAPNP_C_INCLUDES}
+    )
+    target_link_libraries(nwchem-pspw-pseudopotential-forces PRIVATE
+      nwchemc
+      capnp_c_runtime
+      PkgConfig::CMOCKA
+    )
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-pspw-pseudopotential-forces
+        PRIVATE "${NWCHEMC_M_LIBRARY}"
+      )
+    endif()
+    target_compile_options(nwchem-pspw-pseudopotential-forces
+      PRIVATE ${NWCHEMC_COMMON_C_WARNINGS}
+    )
+    target_compile_definitions(nwchem-pspw-pseudopotential-forces PRIVATE
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-pspw-pseudopotential-forces
+      potential_config_pspw_pseudopotential_forces_bin
+      force_input_si_box_ang_bin
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-pspw-pseudopotential-forces
+      nwchem-pspw-pseudopotential-forces
+      "${potential_config_pspw_pseudopotential_forces_BIN}"
       "${NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN}"
     )
 
