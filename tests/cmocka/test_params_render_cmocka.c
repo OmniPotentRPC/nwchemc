@@ -424,13 +424,66 @@ static void test_render_logical_scf_convergence_semidirect_and_dft_gridspec(
   assert_render_contains(full_blocks, "iterations 33");
 
   /* Embed: RTDB-promoted semidirect sizes + iterations omitted; convergence +
-   * gridSpec remain typed text (no multi-token RTDB for grid). */
+   * gridSpec remain typed text (no multi-token RTDB for grid). Sizes present so
+   * entire semidirect line omitted on embed (int2e:* only). */
   assert_null(strstr(embed_blocks, "semidirect"));
   assert_null(strstr(embed_blocks, "filesize 100"));
   assert_null(strstr(embed_blocks, "iterations 33"));
   assert_null(strstr(embed_blocks, "  rhf"));
   assert_render_contains(embed_blocks, "convergence tight");
   assert_render_contains(embed_blocks, "grid xfine");
+
+  nwchemc_params_release(&arena);
+}
+
+/* enabled alone (no sizes): semidirect keyword is typed text on embed too. */
+static void test_render_semidirect_enabled_alone_full_and_embed(void **state) {
+  (void)state;
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  NWChemParams_ptr params_root = new_NWChemParams(root.seg);
+
+  struct NWChemScfSemidirect sd;
+  memset(&sd, 0, sizeof(sd));
+  sd.enabled = NWChemToggle_enabled;
+  NWChemScfSemidirect_ptr sd_ptr = new_NWChemScfSemidirect(root.seg);
+  write_NWChemScfSemidirect(&sd, sd_ptr);
+
+  struct NWChemScfStanza scf;
+  memset(&scf, 0, sizeof(scf));
+  scf.semidirect = sd_ptr;
+
+  struct NWChemInputStanza scf_stanza;
+  memset(&scf_stanza, 0, sizeof(scf_stanza));
+  scf_stanza.kind = NWChemInputStanza_Kind_scf;
+  scf_stanza.scf = new_NWChemScfStanza(root.seg);
+  write_NWChemScfStanza(&scf, scf_stanza.scf);
+
+  struct NWChemParams view;
+  memset(&view, 0, sizeof(view));
+  view.basis = test_text_from_cstr("sto-3g");
+  view.theory = test_text_from_cstr("scf");
+  view.scfType = test_text_from_cstr("rhf");
+  view.task = test_text_from_cstr("energy");
+  view.multiplicity = 1;
+  view.inputStanzas = new_NWChemInputStanza_list(root.seg, 1);
+  set_NWChemInputStanza(&scf_stanza, view.inputStanzas, 0);
+  write_NWChemParams(&view, params_root);
+  assert_int_equal(capn_setp(root, 0, params_root.p), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(params_root, full_blocks,
+                                                      sizeof(full_blocks)),
+                   0);
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_render_contains(full_blocks, "semidirect");
+  assert_render_contains(embed_blocks, "semidirect");
+  /* No empty scf/end-only: keyword must appear as a line in the scf block. */
+  assert_true(strstr(embed_blocks, "  semidirect\n") != NULL);
 
   nwchemc_params_release(&arena);
 }
@@ -478,6 +531,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_render_scf_wf_and_dft_text_controls_full_and_embed),
       cmocka_unit_test(
           test_render_logical_scf_convergence_semidirect_and_dft_gridspec),
+      cmocka_unit_test(test_render_semidirect_enabled_alone_full_and_embed),
       cmocka_unit_test(test_render_rejects_null_dst),
       cmocka_unit_test(test_params_root_rejects_empty),
   };

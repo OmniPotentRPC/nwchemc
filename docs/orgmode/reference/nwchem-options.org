@@ -82,7 +82,9 @@ has a direct RTDB/API path.
    (~dft:e_conv~/~d_conv~/~g_conv~), ~odft~ (~dft:ipol=2~), DIIS (~dft:diis~/~nfock~),
    level shift (~dft:rlshift~), and DFT vectors (~dft:input/output vectors~).
    ~NWChemDftStanza.grid~ is typed but remains text-emitted on full and embed
-   (no stable multi-token RTDB key; complex grids stay in ~directives~).
+   (no stable multi-token RTDB key). Prefer ~NWChemDftGridSpec~ (~gridSpec~) for
+   preset and multi-token grids; legacy ~grid~ Text remains. ~directives~ is only
+   for unmodeled DFT cards, not structured grids.
 
 ~nwchemc_params_extract_direct_scf~ reads ~maxiter~, ~thresh~, ~tol2e~,
    ~wavefunctionType~ (RTDB ~scf:scftype~), and ~nopen~ (RTDB ~scf:nopen~).
@@ -325,7 +327,7 @@ The special ~exchange_correlation new ...~ grammar remains represented with
 | ~odft~ | ~odft~ | ~dft:ipol=2~; omitted from embed render |
 | ~diis~ / ~nfock~ / ~levelShift~ | convergence DIIS / lshift lines | ~dft:diis~ / ~nfock~ / ~rlshift~; omitted from embed render |
 | ~vectorsInput~ / ~vectorsOutput~ | ~vectors input/output <path>~ | ~dft:input vectors~ / ~dft:output vectors~; omitted from embed render |
-| ~directives~ | Extra tokenized DFT directives | Text (long-tail escape hatch) |
+| ~directives~ | Residual unmodeled DFT cards only | True escape hatch (not gridSpec / convergence / odft / diis) |
 
 Fermi smearing and related occupancy controls can also be expressed with
 ~NWChemSetDirective~, for example RTDB keys under ~dft:*~, or with explicit DFT
@@ -360,7 +362,7 @@ handler names derived from the local NWChem source tree.
 | ~lock~ / ~adapt~ / ~noscf~ | toggle keywords | ~scf:lock~ / ~adapt~ / ~noscf~; omitted from embed render |
 | ~noprint~ | ~noprint~ | Text on full and embed (no single RTDB flag) |
 | ~convergence.mode~ | ~convergence tight\|loose\|default\|energy\|density\|gradient~ | Typed logical card; text on embed (no single RTDB mode key) |
-| ~semidirect.enabled~ / ~filesize~ / ~memsize~ | ~semidirect [filesize n] [memsize m]~ | RTDB ~int2e:filesize~ / ~int2e:memsize~ when set; omitted from embed render |
+| ~semidirect.enabled~ / ~filesize~ / ~memsize~ | ~semidirect [filesize n] [memsize m]~ | Sizes → RTDB ~int2e:filesize~ / ~memsize~ (omit size tokens on embed). ~enabled~ alone (no sizes) emits ~semidirect~ on full and embed (no RTDB for the keyword). ~disabled~ is a no-op. |
 | ~directives~ | Residual unmodeled SCF cards only | True escape hatch (not convergence/semidirect/primary knobs) |
 
 * CCSD Controls

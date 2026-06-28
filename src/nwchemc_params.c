@@ -1268,7 +1268,6 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
     read_NWChemScfConvergence(&conv, scf.convergence);
     has_convergence = conv.mode != NWChemScfConvergence_Mode_unspecified;
   }
-  int has_semidirect = 0;
   int semidirect_filesize = 0;
   int semidirect_memsize = 0;
   int semidirect_enabled = NWChemToggle_unspecified;
@@ -1278,30 +1277,32 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
     semidirect_enabled = sd.enabled;
     semidirect_filesize = sd.filesize;
     semidirect_memsize = sd.memsize;
-    has_semidirect = sd.enabled != NWChemToggle_unspecified || sd.filesize > 0 ||
-                     sd.memsize > 0;
   }
-  /* Promoted on embed: maxiter/thresh/tol2e/wf/nopen/vectors/diis/lock/adapt/noscf
-   * and semidirect int2e sizes. Convergence mode is typed text (no single RTDB). */
+  /* int2e sizes promote on embed; semidirect keyword itself has no RTDB key so
+   * enabled-without-sizes stays typed text on embed. disabled is a no-op (off). */
+  int semidirect_has_sizes = semidirect_filesize > 0 || semidirect_memsize > 0;
+  int semidirect_emit_keyword =
+      semidirect_enabled == NWChemToggle_enabled || semidirect_has_sizes;
+  /* On embed, omit size tokens (RTDB) but still emit "semidirect" when enabled
+   * alone (no RTDB for the keyword). Sizes-only: omit entire semidirect line. */
+  int semidirect_text_on_embed =
+      semidirect_enabled == NWChemToggle_enabled && !semidirect_has_sizes;
   int has_promoted =
       scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0 || has_wf ||
       has_nopen || scf.vectorsInput.len > 0 || scf.vectorsOutput.len > 0 ||
       scf.diis != NWChemToggle_unspecified || scf.diisBas > 0 ||
       scf.maxsub > 0 || scf.lock != NWChemToggle_unspecified ||
       scf.adapt != NWChemToggle_unspecified ||
-      scf.noscf != NWChemToggle_unspecified || has_semidirect;
-  /* noprint + convergence mode are typed text on embed when no RTDB key. */
-  int has_remaining = scf.noprint || has_directives || has_convergence ||
-                      (include_direct_promoted && has_promoted) ||
-                      (!include_direct_promoted && has_semidirect &&
-                       (semidirect_filesize > 0 || semidirect_memsize > 0 ||
-                        semidirect_enabled != NWChemToggle_unspecified));
-  /* Embed: omit RTDB-promoted; keep noprint/convergence text; semidirect sizes
-   * promote to int2e:* so omit keyword lines on embed when only sizes set. */
+      scf.noscf != NWChemToggle_unspecified || semidirect_has_sizes;
+  int has_remaining =
+      scf.noprint || has_directives || has_convergence ||
+      (include_direct_promoted && (has_promoted || semidirect_emit_keyword)) ||
+      (!include_direct_promoted &&
+       (scf.noprint || has_directives || has_convergence ||
+        semidirect_text_on_embed));
   if (!include_direct_promoted) {
     has_remaining = scf.noprint || has_directives || has_convergence ||
-                    (has_semidirect && semidirect_enabled != NWChemToggle_unspecified &&
-                     semidirect_filesize <= 0 && semidirect_memsize <= 0);
+                    semidirect_text_on_embed;
   }
   if (!has_remaining)
     return 0;
@@ -1357,22 +1358,24 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
   if (include_direct_promoted && scf.noscf == NWChemToggle_enabled &&
       append_format(block, sizeof(block), "  noscf\n") != 0)
     return -1;
-  if (include_direct_promoted && has_semidirect) {
-    if (semidirect_enabled == NWChemToggle_enabled ||
-        semidirect_filesize > 0 || semidirect_memsize > 0) {
-      if (append_format(block, sizeof(block), "  semidirect") != 0)
-        return -1;
-      if (semidirect_filesize > 0 &&
-          append_format(block, sizeof(block), " filesize %d",
-                        semidirect_filesize) != 0)
-        return -1;
-      if (semidirect_memsize > 0 &&
-          append_format(block, sizeof(block), " memsize %d",
-                        semidirect_memsize) != 0)
-        return -1;
-      if (append_format(block, sizeof(block), "\n") != 0)
-        return -1;
-    }
+  /* Full deck: semidirect [filesize] [memsize]. Embed: keyword alone when
+   * enabled without sizes (sizes go to int2e:* RTDB). disabled = no emission. */
+  if (include_direct_promoted && semidirect_emit_keyword) {
+    if (append_format(block, sizeof(block), "  semidirect") != 0)
+      return -1;
+    if (semidirect_filesize > 0 &&
+        append_format(block, sizeof(block), " filesize %d",
+                      semidirect_filesize) != 0)
+      return -1;
+    if (semidirect_memsize > 0 &&
+        append_format(block, sizeof(block), " memsize %d",
+                      semidirect_memsize) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  } else if (!include_direct_promoted && semidirect_text_on_embed) {
+    if (append_format(block, sizeof(block), "  semidirect\n") != 0)
+      return -1;
   }
   /* convergence: typed text on full and embed (no single RTDB mode key). */
   if (has_convergence) {

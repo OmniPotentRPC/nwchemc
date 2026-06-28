@@ -691,10 +691,12 @@ struct NWChemScfConvergence {
 
 # Logical SCF semidirect integral storage (was directive-only semidirect card).
 # filesize/memsize in megawords when >0; promote int2e:* on embed when set.
+# enabled alone (no sizes) emits "semidirect" on full and embed (no RTDB for the
+# keyword). disabled is a no-op (leave NWChem default; no explicit off keyword).
 struct NWChemScfSemidirect {
-  enabled  @0 :NWChemToggle = unspecified; # enabled emits semidirect; disabled emits direct-style off.
-  filesize @1 :Int32 = 0; # Promote int2e:filesize when >0.
-  memsize  @2 :Int32 = 0; # Promote int2e:memsize when >0.
+  enabled  @0 :NWChemToggle = unspecified; # enabled => emit semidirect; disabled => no-op.
+  filesize @1 :Int32 = 0; # Promote int2e:filesize when >0 (omit size tokens on embed).
+  memsize  @2 :Int32 = 0; # Promote int2e:memsize when >0 (omit size tokens on embed).
 }
 
 # @struct NWChemScfStanza
