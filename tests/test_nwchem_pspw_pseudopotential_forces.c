@@ -14,6 +14,7 @@
 #include <cmocka.h>
 
 static const char *g_config_path = NULL;
+static const char *g_params_path = NULL;
 static const char *g_force_input_path = NULL;
 
 static const double BOHR_TO_ANGSTROM = 0.529177210903;
@@ -165,12 +166,23 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   (void)state;
   assert_true(nwchemc_available());
 
+  size_t params_size = 0;
   size_t config_size = 0;
   size_t force_input_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
   unsigned char *config = read_file(g_config_path, &config_size);
   unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  assert_non_null(params);
   assert_non_null(config);
   assert_non_null(force_input);
+
+  NWChemCResult params_energy_status =
+      nwchemc_calculate_energy(params, params_size, force_input,
+                               force_input_size);
+  if (!params_energy_status.ok)
+    fail_msg("nwchemc_calculate_energy failed: %s",
+             params_energy_status.message);
+  assert_true(isfinite(params_energy_status.energy_h));
 
   NWChemCResult raw_energy_status = nwchemc_calculate_energy_from_config(
       config, config_size, force_input, force_input_size);
@@ -178,6 +190,18 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_calculate_energy_from_config failed: %s",
              raw_energy_status.message);
   assert_true(isfinite(raw_energy_status.energy_h));
+  assert_close_energy("params raw energy", params_energy_status.energy_h,
+                      raw_energy_status.energy_h);
+
+  double params_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult params_status = nwchemc_calculate_forces(
+      params, params_size, force_input, force_input_size, params_forces, 6);
+  if (!params_status.ok)
+    fail_msg("nwchemc_calculate_forces failed: %s", params_status.message);
+  assert_true(isfinite(params_status.energy_h));
+  assert_close_energy("params raw forces energy", params_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_force_buffer("params raw force", params_forces, 6);
 
   double raw_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult raw_status = nwchemc_calculate_forces_from_config(
@@ -189,6 +213,7 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   assert_close_energy("raw forces energy", raw_status.energy_h,
                       raw_energy_status.energy_h);
   assert_force_buffer("raw force", raw_forces, 6);
+  assert_matching_native_forces(params_forces, raw_forces, 6);
 
   size_t energy_capacity =
       nwchemc_energy_result_size_for_force_input(force_input,
@@ -197,6 +222,22 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   unsigned char *energy_bytes = (unsigned char *)malloc(energy_capacity);
   assert_non_null(energy_bytes);
   size_t energy_size = 0;
+  NWChemCResult params_energy_result_status = nwchemc_calculate_energy_result(
+      params, params_size, force_input, force_input_size, energy_bytes,
+      energy_capacity, &energy_size);
+  if (!params_energy_result_status.ok)
+    fail_msg("nwchemc_calculate_energy_result failed: %s",
+             params_energy_result_status.message);
+  assert_true(isfinite(params_energy_result_status.energy_h));
+  assert_close_energy("params energy result status",
+                      params_energy_result_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(energy_size, energy_capacity);
+  assert_potential_result_energy_only(energy_bytes, energy_size,
+                                      params_energy_result_status.energy_h);
+
+  memset(energy_bytes, 0, energy_capacity);
+  energy_size = 0;
   NWChemCResult energy_status = nwchemc_calculate_energy_result_from_config(
       config, config_size, force_input, force_input_size, energy_bytes,
       energy_capacity, &energy_size);
@@ -217,6 +258,23 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   unsigned char *result_bytes = (unsigned char *)malloc(result_capacity);
   assert_non_null(result_bytes);
   size_t result_size = 0;
+  NWChemCResult params_result_status = nwchemc_calculate_result(
+      params, params_size, force_input, force_input_size, result_bytes,
+      result_capacity, &result_size);
+  if (!params_result_status.ok)
+    fail_msg("nwchemc_calculate_result failed: %s",
+             params_result_status.message);
+  assert_true(isfinite(params_result_status.energy_h));
+  assert_close_energy("params compatibility result status",
+                      params_result_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(result_size, result_capacity);
+  assert_potential_result_forces(result_bytes, result_size,
+                                 params_result_status.energy_h,
+                                 params_forces);
+
+  memset(result_bytes, 0, result_capacity);
+  result_size = 0;
   NWChemCResult result_status = nwchemc_calculate_result_from_config(
       config, config_size, force_input, force_input_size, result_bytes,
       result_capacity, &result_size);
@@ -237,6 +295,23 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   unsigned char *forces_bytes = (unsigned char *)malloc(forces_capacity);
   assert_non_null(forces_bytes);
   size_t forces_size = 0;
+  NWChemCResult params_forces_status = nwchemc_calculate_forces_result(
+      params, params_size, force_input, force_input_size, forces_bytes,
+      forces_capacity, &forces_size);
+  if (!params_forces_status.ok)
+    fail_msg("nwchemc_calculate_forces_result failed: %s",
+             params_forces_status.message);
+  assert_true(isfinite(params_forces_status.energy_h));
+  assert_close_energy("params forces result status",
+                      params_forces_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(forces_size, forces_capacity);
+  assert_potential_result_forces(forces_bytes, forces_size,
+                                 params_forces_status.energy_h,
+                                 params_forces);
+
+  memset(forces_bytes, 0, forces_capacity);
+  forces_size = 0;
   NWChemCResult one_shot_forces_status =
       nwchemc_calculate_forces_result_from_config(
           config, config_size, force_input, force_input_size, forces_bytes,
@@ -336,16 +411,19 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   free(energy_bytes);
   free(force_input);
   free(config);
+  free(params);
 }
 
 int main(int argc, char **argv) {
-  if (argc != 3) {
-    fprintf(stderr, "usage: %s potential-config.bin force-input.bin\n",
+  if (argc != 4) {
+    fprintf(stderr,
+            "usage: %s nwchem-params.bin potential-config.bin force-input.bin\n",
             argv[0]);
     return 2;
   }
-  g_config_path = argv[1];
-  g_force_input_path = argv[2];
+  g_params_path = argv[1];
+  g_config_path = argv[2];
+  g_force_input_path = argv[3];
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_pspw_pseudopotential_forces_result),

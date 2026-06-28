@@ -307,6 +307,7 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
                 "force_input_si_box_ang.capnp.txt",
                 "nwchem-pspw-pseudopotential-forces",
                 "tests/test_nwchem_pspw_pseudopotential_forces.c",
+                "nwchem_params_pspw_pseudopotential_forces.capnp.txt.in",
                 "potential_config_pspw_pseudopotential_forces.capnp.txt.in",
             ],
         )

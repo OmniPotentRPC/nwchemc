@@ -1263,6 +1263,25 @@ nwchem_config_options_params_bin = custom_target(
         '@OUTPUT@',
       ],
     )
+    nwchem_pspw_pseudopotential_forces_params_text = configure_file(
+      input: 'tests/nwchem_params_pspw_pseudopotential_forces.capnp.txt.in',
+      output: 'nwchem_params_pspw_pseudopotential_forces.capnp.txt',
+      configuration: params_conf,
+    )
+    nwchem_pspw_pseudopotential_forces_params_bin = custom_target(
+      'nwchem_pspw_pseudopotential_forces_params_bin',
+      input: nwchem_pspw_pseudopotential_forces_params_text,
+      output: 'nwchem_params_pspw_pseudopotential_forces.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     potential_config_nwpw_controls_text = configure_file(
       input: 'tests/potential_config_nwpw_controls.capnp.txt.in',
       output: 'potential_config_nwpw_controls.capnp.txt',
@@ -1498,8 +1517,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-pspw-pseudopotential-forces',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pspw_pseudopotential_forces_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pspw_pseudopotential_forces_test, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin]
-        : [potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pspw_pseudopotential_forces_test, nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin]
+        : [nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
