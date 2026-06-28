@@ -503,7 +503,7 @@ pseudopotential selection:
 | ~entries[].libraryType~ | ~library~, ~pspw_library~, ~paw_library~, ~cpi~, or ~teter~. |
 | ~entries[].libraryName~ | Library or file token used by NWChem. |
 | ~entries[].allElements~ | NWChem ~*~ default entry for every element. |
-| ~pspSpin~ | ~pspspin on~ or ~pspspin off~. |
+| ~pspSpin~ | ~pspspin off~ for rendered text; enabled spin rules set ~nwpw:pspspin~ directly. |
 | ~semicoreSmall~ | ~set nwpw:psp:semicore_small logical <value>~. |
 | ~spinRules[].channel~ | ~up~ or ~down~ channel for indexed ~pspspin~ rules. |
 | ~spinRules[].angularMomentum~ | ~s~, ~p~, ~d~, or ~f~ angular-momentum selector. |

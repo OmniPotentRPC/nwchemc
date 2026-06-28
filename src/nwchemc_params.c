@@ -636,10 +636,9 @@ static int render_pseudopotential_entries(
 static const char *pseudopotential_spin_literal(
     enum NWChemPseudopotentialSpinMode spin_mode) {
   switch (spin_mode) {
-  case NWChemPseudopotentialSpinMode_enabled:
-    return "on";
   case NWChemPseudopotentialSpinMode_disabled:
     return "off";
+  case NWChemPseudopotentialSpinMode_enabled:
   case NWChemPseudopotentialSpinMode_unspecified:
   default:
     return NULL;
