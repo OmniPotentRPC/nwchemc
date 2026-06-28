@@ -1864,10 +1864,12 @@ static void test_parser_renders_brillouin_dos_grid(void **state) {
                        params_root, full_blocks, sizeof(full_blocks)),
                    0);
   assert_non_null(strstr(full_blocks, "  dos-grid 7 8 9 dosA\n"));
+  assert_non_null(strstr(full_blocks, "  dos-fft-grid 10 11 12 fftA\n"));
   assert_int_equal(nwchemc_params_render_embed_input_blocks(
                        params_root, embed_blocks, sizeof(embed_blocks)),
                    0);
   assert_null(strstr(embed_blocks, "  dos-grid 7 8 9 dosA\n"));
+  assert_null(strstr(embed_blocks, "  dos-fft-grid 10 11 12 fftA\n"));
 
   nwchemc_params_release(&arena);
   free(message);

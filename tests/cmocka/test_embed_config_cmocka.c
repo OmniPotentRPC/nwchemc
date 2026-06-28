@@ -60,13 +60,16 @@ static char g_set_values[8][257];
 static char g_typed_set_keys[256][129];
 static char g_typed_set_values[256][64][257];
 static char g_brillouin_zone_name[64];
+static char g_brillouin_dos_zone_names[256][65];
 static double g_brillouin_kvectors[8];
 static int g_psp_types[8];
 static int g_typed_set_types[256];
 static int g_typed_set_value_counts[256];
+static int g_brillouin_dos_zone_grids[256][3];
 static int g_psp_count = 0;
 static int g_set_string_count = 0;
 static int g_typed_set_count = 0;
+static int g_brillouin_dos_zone_count = 0;
 static int g_set_config_calls = 0;
 static int g_reset_rtdb_calls = 0;
 static int g_set_dft_direct_calls = 0;
@@ -74,6 +77,7 @@ static int g_set_scf_direct_calls = 0;
 static int g_set_driver_direct_calls = 0;
 static int g_set_nwpw_direct_calls = 0;
 static int g_set_brillouin_zone_calls = 0;
+static int g_set_brillouin_dos_zones_calls = 0;
 static int g_set_pseudopotential_calls = 0;
 static int g_set_rtdb_strings_calls = 0;
 static int g_set_rtdb_values_calls = 0;
@@ -742,6 +746,23 @@ int nwchemc_embed_set_brillouin_zone(int has_options, const char *zone_name,
   return 0;
 }
 
+int nwchemc_embed_set_brillouin_dos_zones(const char *zone_names,
+                                          const int *zone_grids, int count) {
+  ++g_set_brillouin_dos_zones_calls;
+  g_brillouin_dos_zone_count = count;
+  if (count > 256)
+    count = 256;
+  for (int i = 0; i < count; ++i) {
+    copy_span(g_brillouin_dos_zone_names[i],
+              sizeof(g_brillouin_dos_zone_names[i]),
+              zone_names + i * 64, 64);
+    g_brillouin_dos_zone_grids[i][0] = zone_grids[3 * i];
+    g_brillouin_dos_zone_grids[i][1] = zone_grids[3 * i + 1];
+    g_brillouin_dos_zone_grids[i][2] = zone_grids[3 * i + 2];
+  }
+  return 0;
+}
+
 int nwchemc_embed_set_pseudopotentials(const char *elements,
                                        const int *library_types,
                                        const char *library_names, int count) {
@@ -1367,6 +1388,7 @@ static void reset_embed_captures(void) {
   g_set_driver_direct_calls = 0;
   g_set_nwpw_direct_calls = 0;
   g_set_brillouin_zone_calls = 0;
+  g_set_brillouin_dos_zones_calls = 0;
   g_set_pseudopotential_calls = 0;
   g_set_rtdb_strings_calls = 0;
   g_set_rtdb_values_calls = 0;
@@ -1392,6 +1414,7 @@ static void reset_embed_captures(void) {
   g_nwpw_ewald_ncut = 0;
   g_brillouin_has_options = 0;
   g_brillouin_zone_name[0] = '\0';
+  g_brillouin_dos_zone_count = 0;
   g_brillouin_monkhorst_pack[0] = 0;
   g_brillouin_monkhorst_pack[1] = 0;
   g_brillouin_monkhorst_pack[2] = 0;
@@ -1814,6 +1837,16 @@ static void assert_typed_set_values(const char *key, int value_type,
   assert_int_equal(g_typed_set_value_counts[index], nvalues);
   for (int i = 0; i < nvalues; ++i)
     assert_string_equal(g_typed_set_values[index][i], expected[i]);
+}
+
+static void assert_brillouin_dos_zone(int index, const char *zone_name, int x,
+                                      int y, int z) {
+  assert_true(index >= 0);
+  assert_true(index < g_brillouin_dos_zone_count);
+  assert_string_equal(g_brillouin_dos_zone_names[index], zone_name);
+  assert_int_equal(g_brillouin_dos_zone_grids[index][0], x);
+  assert_int_equal(g_brillouin_dos_zone_grids[index][1], y);
+  assert_int_equal(g_brillouin_dos_zone_grids[index][2], z);
 }
 
 static void test_embed_config_uses_direct_dft_values(void **state) {
@@ -3214,6 +3247,9 @@ static void test_embed_config_promotes_brillouin_tetrahedron(void **state) {
   assert_int_equal(g_typed_set_count, 1);
   assert_typed_set_triple("band:tetrahedron-grid",
                           NWCHEMC_DIRECT_SET_VALUE_INTEGER, "4", "5", "6");
+  assert_int_equal(g_set_brillouin_dos_zones_calls, 1);
+  assert_int_equal(g_brillouin_dos_zone_count, 1);
+  assert_brillouin_dos_zone(0, "tetraA", 4, 5, 6);
 
   free(message);
 }
@@ -3234,10 +3270,15 @@ static void test_embed_config_promotes_brillouin_dos_grid(void **state) {
 
   assert_int_equal(result.ok, 1);
   assert_null(strstr(g_input_blocks, "  dos-grid 7 8 9 dosA\n"));
+  assert_null(strstr(g_input_blocks, "  dos-fft-grid 10 11 12 fftA\n"));
   assert_int_equal(g_set_rtdb_values_calls, 1);
   assert_int_equal(g_typed_set_count, 1);
   assert_typed_set_triple("band:dos-grid", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "7", "8", "9");
+  assert_int_equal(g_set_brillouin_dos_zones_calls, 1);
+  assert_int_equal(g_brillouin_dos_zone_count, 2);
+  assert_brillouin_dos_zone(0, "dosA", 7, 8, 9);
+  assert_brillouin_dos_zone(1, "fftA", 10, 11, 12);
 
   free(message);
 }
@@ -3263,6 +3304,9 @@ test_embed_config_promotes_brillouin_dos_grid_default(void **state) {
   assert_int_equal(g_typed_set_count, 1);
   assert_typed_set_triple("band:dos-grid", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "7", "2", "2");
+  assert_int_equal(g_set_brillouin_dos_zones_calls, 1);
+  assert_int_equal(g_brillouin_dos_zone_count, 1);
+  assert_brillouin_dos_zone(0, "structure_default", 7, 2, 2);
 
   free(message);
 }

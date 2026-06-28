@@ -9,7 +9,11 @@
         dosGridX = 7,
         dosGridY = 8,
         dosGridZ = 9,
-        dosGridZoneName = "dosA"
+        dosGridZoneName = "dosA",
+        dosFftGridX = 10,
+        dosFftGridY = 11,
+        dosFftGridZ = 12,
+        dosFftGridZoneName = "fftA"
       )
     )
   ]
