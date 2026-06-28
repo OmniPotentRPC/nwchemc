@@ -1131,6 +1131,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       PotentialConfig
     )
     nwchemc_configure_fixture(
+      nwchem_params_pspw_pseudopotential_forces.capnp.txt.in
+      nwchem_params_pspw_pseudopotential_forces
+      NWChemParams
+    )
+    nwchemc_configure_fixture(
       potential_config_nwpw_controls.capnp.txt.in
       potential_config_nwpw_controls
       PotentialConfig
@@ -1350,12 +1355,14 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
     )
     add_dependencies(nwchem-pspw-pseudopotential-forces
+      nwchem_params_pspw_pseudopotential_forces_bin
       potential_config_pspw_pseudopotential_forces_bin
       force_input_si_box_ang_bin
     )
     nwchemc_add_real_nwchem_test(
       nwchem-pspw-pseudopotential-forces
       nwchem-pspw-pseudopotential-forces
+      "${nwchem_params_pspw_pseudopotential_forces_BIN}"
       "${potential_config_pspw_pseudopotential_forces_BIN}"
       "${NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN}"
     )
