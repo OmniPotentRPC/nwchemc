@@ -19,6 +19,8 @@ static const char *g_force_input_path = NULL;
 
 enum { MAX_FORCE_INPUT_ATOMS = 16 };
 
+static const double BOHR_TO_ANGSTROM = 0.529177210903;
+
 typedef struct ParsedForceInput {
   int n_atoms;
   double positions_ang[MAX_FORCE_INPUT_ATOMS * 3];
@@ -82,6 +84,14 @@ static int teardown_nwchem(void **state) {
   return 0;
 }
 
+static void assert_close_relative(const char *label, int index, double actual,
+                                  double expected) {
+  double scale = fmax(1.0, fmax(fabs(actual), fabs(expected)));
+  if (fabs(actual - expected) > 1.0e-5 * scale)
+    fail_msg("%s[%d] mismatch: got %.17g expected %.17g", label, index,
+             actual, expected);
+}
+
 static void parse_force_input_geometry(const unsigned char *force_input,
                                        size_t force_input_size,
                                        ParsedForceInput *parsed) {
@@ -116,7 +126,9 @@ static void parse_force_input_geometry(const unsigned char *force_input,
 }
 
 static void assert_potential_result_stress(const unsigned char *message,
-                                           size_t message_size) {
+                                           size_t message_size,
+                                           double expected_energy_h,
+                                           const double *native_stress) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -126,6 +138,8 @@ static void assert_potential_result_stress(const unsigned char *message,
   struct PotentialResult result;
   read_PotentialResult(&result, root);
   assert_true(isfinite(result.energy));
+  assert_close_relative("PotentialResult.energy", 0, result.energy,
+                        expected_energy_h);
 
   capn_resolve(&result.stress.p);
   assert_int_equal(result.stress.p.type, CAPN_LIST);
@@ -135,6 +149,12 @@ static void assert_potential_result_stress(const unsigned char *message,
     double stress = capn_to_f64(capn_get64(result.stress, i));
     if (!isfinite(stress))
       fail_msg("non-finite PotentialResult.stress[%d]", i);
+    if (native_stress) {
+      double expected =
+          native_stress[i] / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM *
+                              BOHR_TO_ANGSTROM);
+      assert_close_relative("PotentialResult.stress", i, stress, expected);
+    }
   }
 
   capn_free(&arena);
@@ -193,8 +213,11 @@ static void test_pspw_stress_from_config(void **state) {
     fail_msg("nwchemc_calculate_stress_result_from_config failed: %s",
              result_status.message);
   assert_true(isfinite(result_status.energy_h));
+  assert_close_relative("stress result energy", 0, result_status.energy_h,
+                        raw_status.energy_h);
   assert_int_equal(result_size, result_capacity);
-  assert_potential_result_stress(result_bytes, result_size);
+  assert_potential_result_stress(result_bytes, result_size,
+                                 result_status.energy_h, stress);
 
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
@@ -237,8 +260,13 @@ static void test_pspw_stress_from_config(void **state) {
     fail_msg("nwchemc_session_calculate_stress_result failed: %s",
              session_result_status.message);
   assert_true(isfinite(session_result_status.energy_h));
+  assert_close_relative("session stress result energy", 0,
+                        session_result_status.energy_h,
+                        session_raw_status.energy_h);
   assert_int_equal(result_size, result_capacity);
-  assert_potential_result_stress(result_bytes, result_size);
+  assert_potential_result_stress(result_bytes, result_size,
+                                 session_result_status.energy_h,
+                                 session_stress);
 
   nwchemc_session_destroy(session);
   free(result_bytes);
