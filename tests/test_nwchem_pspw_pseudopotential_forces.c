@@ -96,6 +96,14 @@ static void assert_potential_result_forces(const unsigned char *message,
   capn_free(&arena);
 }
 
+static void assert_force_buffer(const char *label, const double *forces,
+                                int force_count) {
+  for (int i = 0; i < force_count; ++i) {
+    if (!isfinite(forces[i]))
+      fail_msg("non-finite %s[%d]", label, i);
+  }
+}
+
 static void test_pspw_pseudopotential_forces_result(void **state) {
   (void)state;
   assert_true(nwchemc_available());
@@ -106,6 +114,15 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
   assert_non_null(config);
   assert_non_null(force_input);
+
+  double raw_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_status = nwchemc_calculate_forces_from_config(
+      config, config_size, force_input, force_input_size, raw_forces, 6);
+  if (!raw_status.ok)
+    fail_msg("nwchemc_calculate_forces_from_config failed: %s",
+             raw_status.message);
+  assert_true(isfinite(raw_status.energy_h));
+  assert_force_buffer("raw force", raw_forces, 6);
 
   size_t result_capacity =
       nwchemc_potential_result_size_for_force_input(force_input,
@@ -127,6 +144,15 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
   assert_non_null(session);
+
+  double session_raw_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult session_raw_status = nwchemc_session_calculate_forces(
+      session, force_input, force_input_size, session_raw_forces, 6);
+  if (!session_raw_status.ok)
+    fail_msg("nwchemc_session_calculate_forces failed: %s",
+             session_raw_status.message);
+  assert_true(isfinite(session_raw_status.energy_h));
+  assert_force_buffer("session raw force", session_raw_forces, 6);
 
   memset(result_bytes, 0, result_capacity);
   result_size = 0;
