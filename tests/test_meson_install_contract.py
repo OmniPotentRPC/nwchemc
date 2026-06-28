@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import re
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -8,6 +10,24 @@ ROOT = Path(__file__).resolve().parents[1]
 MESON = ROOT / "meson.build"
 README = ROOT / "README.md"
 RGPOT_GUIDE = ROOT / "docs" / "rgpot-integration.md"
+RGPOT_RELEASE_GATE = ROOT / "scripts" / "rgpot_release_gate.py"
+
+RGPOT_RELEASE_TESTS = [
+    "readme-abi-surface",
+    "meson-install-contract",
+    "cmake-real-nwchem-contract",
+    "nwchem-rgpot-smoke",
+    "nwchem-session-result",
+    "nwchem-hessian",
+    "nwchem-stress",
+    "nwchem-pspw-pseudopotential-forces",
+    "nwchem-potential-config-pseudopotential",
+    "nwchem-pseudopotential-rtdb",
+    "nwchem-forceinput-cell-rtdb",
+    "nwchem-configured-nwpw-rtdb",
+    "nwchem-installed-cmake-consumer",
+    "nwchem-installed-pkgconfig-consumer",
+]
 
 
 class MesonInstallContractTest(unittest.TestCase):
@@ -289,6 +309,51 @@ class MesonInstallContractTest(unittest.TestCase):
         ]
         missing = [term for term in required_terms if term not in docs]
         self.assertEqual(missing, [])
+
+    def test_rgpot_release_gate_script_matches_real_suite(self):
+        registered = set(re.findall(r"test\(\s*'([^']+)'", self.text))
+        missing_registered = [
+            name for name in RGPOT_RELEASE_TESTS if name not in registered
+        ]
+        self.assertEqual(missing_registered, [])
+
+        script = RGPOT_RELEASE_GATE.read_text(encoding="utf-8")
+        missing_script = [name for name in RGPOT_RELEASE_TESTS if name not in script]
+        self.assertEqual(missing_script, [])
+
+        docs = README.read_text(encoding="utf-8") + "\n" + RGPOT_GUIDE.read_text(
+            encoding="utf-8"
+        )
+        required_docs = [
+            "scripts/rgpot_release_gate.py",
+            "python3 scripts/rgpot_release_gate.py --build-dir",
+            "nwchem-pspw-pseudopotential-forces",
+        ]
+        missing_docs = [term for term in required_docs if term not in docs]
+        self.assertEqual(missing_docs, [])
+
+    def test_rgpot_release_gate_dry_run_prints_meson_command(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(RGPOT_RELEASE_GATE),
+                "--build-dir",
+                "build-nwchem",
+                "--dry-run",
+            ],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("meson test", result.stdout)
+        self.assertIn("-C build-nwchem", result.stdout)
+        self.assertIn("--print-errorlogs", result.stdout)
+        self.assertIn("--num-processes 1", result.stdout)
+        for name in RGPOT_RELEASE_TESTS:
+            with self.subTest(name=name):
+                self.assertIn(name, result.stdout)
 
 
 if __name__ == "__main__":

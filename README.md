@@ -46,11 +46,18 @@ The merge/pr release gate is:
 - `nwchem-rgpot-smoke`, `nwchem-session-result`,
   `nwchem-potential-config-pseudopotential`, `nwchem-pseudopotential-rtdb`,
   `nwchem-forceinput-cell-rtdb`, `nwchem-stress`,
-  `nwchem-configured-nwpw-rtdb`, and the installed CMake/pkg-config consumers
-  pass against the NWChem build used for the release.
+  `nwchem-pspw-pseudopotential-forces`, `nwchem-configured-nwpw-rtdb`, and the
+  installed CMake/pkg-config consumers pass against the NWChem build used for
+  the release.
 - The installed CMake/pkg-config consumers compile, link, and run
   invalid-input ABI checks for the rgpot result-carrier, raw ForceInput,
   session, and coordinate entry points.
+
+Run the gate against the release NWChem build with:
+
+```sh
+python3 scripts/rgpot_release_gate.py --build-dir <real-nwchem-builddir>
+```
 
 For a local package-only check:
 

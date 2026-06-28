@@ -166,6 +166,30 @@ A rgpot-side merge/pr release is at the wiring stage when:
   and links the same `PotentialResult` ABI when rgpot uses pkg-config for
   discovery, then runs the same invalid-input ABI checks.
 
+Run the release gate against the real-NWChem Meson build:
+
+```sh
+python3 scripts/rgpot_release_gate.py --build-dir <real-nwchem-builddir>
+```
+
+The command runs the documentation/package contract checks and the rgpot
+real-NWChem probes:
+
+- `readme-abi-surface`
+- `meson-install-contract`
+- `cmake-real-nwchem-contract`
+- `nwchem-rgpot-smoke`
+- `nwchem-session-result`
+- `nwchem-hessian`
+- `nwchem-stress`
+- `nwchem-pspw-pseudopotential-forces`
+- `nwchem-potential-config-pseudopotential`
+- `nwchem-pseudopotential-rtdb`
+- `nwchem-forceinput-cell-rtdb`
+- `nwchem-configured-nwpw-rtdb`
+- `nwchem-installed-cmake-consumer`
+- `nwchem-installed-pkgconfig-consumer`
+
 Stress is on the same release surface when rgpot is paired with an NWPW-enabled
 NWChem build and `tests/test_nwchem_stress.c` passes in the real-NWChem suite.
 That probe covers coordinate one-shot/session stress, ForceInput one-shot and
