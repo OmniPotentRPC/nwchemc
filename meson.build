@@ -307,6 +307,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_ccsd_energy_params_bin = custom_target(
+    'nwchem_ccsd_energy_params_bin',
+    input: 'tests/nwchem_params_ccsd_energy.capnp.txt',
+    output: 'nwchem_params_ccsd_energy.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_compact_cells_params_bin = custom_target(
     'nwchem_compact_cells_params_bin',
     input: 'tests/nwchem_params_compact_cells.capnp.txt',
@@ -1111,6 +1125,7 @@ nwchem_config_options_params_bin = custom_target(
       nwchem_nwpw_translate_vector_default_params_bin,
       nwchem_brillouin_monkhorst_default_params_bin,
       nwchem_brillouin_dos_grid_default_params_bin,
+      nwchem_ccsd_energy_params_bin,
     ],
     suite: ['cmocka', 'parser'],
   )
