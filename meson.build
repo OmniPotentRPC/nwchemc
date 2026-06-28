@@ -1168,6 +1168,25 @@ nwchem_config_options_params_bin = custom_target(
         '@OUTPUT@',
       ],
     )
+    nwchem_pseudopotential_params_text = configure_file(
+      input: 'tests/nwchem_params_pseudopotential.capnp.txt.in',
+      output: 'nwchem_params_pseudopotential.capnp.txt',
+      configuration: params_conf,
+    )
+    nwchem_pseudopotential_params_bin = custom_target(
+      'nwchem_pseudopotential_params_bin',
+      input: nwchem_pseudopotential_params_text,
+      output: 'nwchem_params_pseudopotential.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     potential_config_pspw_stress_text = configure_file(
       input: 'tests/potential_config_pspw_stress.capnp.txt.in',
       output: 'potential_config_pspw_stress.capnp.txt',
@@ -1450,6 +1469,32 @@ nwchem_config_options_params_bin = custom_target(
       args: nwchem_test_mpi_ranks > 1
         ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_rtdb_test]
         : [],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
+    nwchem_pseudopotential_text_rtdb_test = executable(
+      'test_nwchem_pseudopotential_text_rtdb',
+      [
+        'tests/test_nwchem_pseudopotential_text_rtdb.c',
+        'tests/nwchem_pseudopotential_text_rtdb_probe.F',
+        'tests/nwchem_rtdb_probe_get_log.F',
+        'tests/nwchem_rtdb_probe_get_int.F',
+        'tests/nwchem_rtdb_probe_get_dbl_array.F',
+        'tests/nwchem_rtdb_probe_get_int_array.F',
+      ] + nwchemc_params_sources,
+      include_directories: [inc] + nwchemc_params_includes,
+      dependencies: [cmocka_dep] + nwchemc_params_deps,
+      link_with: nwchemc_legacy,
+      link_args: nwchem_link_args,
+      c_args: common_c_args,
+      fortran_args: nwchem_legacy_args,
+    )
+    test(
+      'nwchem-pseudopotential-text-rtdb',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, nwchem_pseudopotential_params_bin]
+        : [nwchem_pseudopotential_params_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )

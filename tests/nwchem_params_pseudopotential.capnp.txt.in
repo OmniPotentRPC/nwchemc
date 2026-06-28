@@ -1,0 +1,35 @@
+(
+  basis = "sto-3g",
+  theory = "dft",
+  scfType = "pbe0",
+  charge = 0,
+  multiplicity = 1,
+  nwchemRoot = "@NWCHEM_ROOT@",
+  task = "energy",
+  scratchDir = "@NWCHEMC_TEST_SCRATCH@-psp-text",
+  permanentDir = "@NWCHEMC_TEST_PERMANENT@-psp-text",
+  inputStanzas = [
+    (
+      kind = pseudopotential,
+      pseudopotential = (
+        entries = [
+          (element = "Si", libraryType = library, libraryName = "sg15"),
+          (element = "H", libraryType = pspwLibrary, libraryName = "hgh_lda"),
+          (element = "O", libraryType = pawLibrary, libraryName = "paw_default"),
+          (element = "C", libraryType = cpi, libraryName = "C.cpi"),
+          (element = "N", libraryType = teter, libraryName = "N.teter"),
+          (allElements = true, libraryType = pspwLibrary, libraryName = "pspw_default")
+        ],
+        pspSpin = enabled,
+        spinRules = [
+          (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [2, 3])
+        ],
+        semicoreSmall = enabled,
+        uterm = enabled,
+        utermRules = [
+          (angularMomentum = d, uScale = 1.4, jScale = 0.2, ionIndices = [4, 6])
+        ]
+      )
+    )
+  ]
+)
