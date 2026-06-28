@@ -675,9 +675,11 @@ pkg-config --static --libs nwchemc
 ```
 
 The real-NWChem Meson suite registers `nwchem-installed-cmake-consumer` when
-CMake is available. That test configures a CMake build of `nwchemc`, installs
-it to a scratch prefix, builds the separate `find_package(nwchemc CONFIG
-REQUIRED)` consumer above, and runs it with the configured MPI rank count.
+CMake is available and `nwchem-installed-pkgconfig-consumer` when Meson and
+pkg-config are available. Those tests configure package builds of `nwchemc`,
+install them to scratch prefixes, build separate consumers through
+`find_package(nwchemc CONFIG REQUIRED)` and `pkg-config --cflags --libs
+nwchemc`, and run them with the configured MPI rank count.
 
 The build reads `NW_MODULE_LIBS` from `nwchem_config.h`, GA linker flags from
 `ga-config`, and optional support archives from the NWChem library directory.

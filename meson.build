@@ -916,8 +916,9 @@ if get_option('with_tests')
     ],
   )
   cmake_prog = find_program('cmake', required: false)
-  if cmake_prog.found()
-    meson_prog = find_program('meson')
+  meson_prog = find_program('meson', required: false)
+  pkg_config_prog = find_program('pkg-config', required: false)
+  if cmake_prog.found() and meson_prog.found()
     test(
       'nwchem-build-root-probe',
       python,
@@ -1475,6 +1476,42 @@ if get_option('with_tests')
         'nwchem-installed-cmake-consumer',
         python,
         args: installed_consumer_args,
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+        timeout: 240,
+      )
+    endif
+    if meson_prog.found() and pkg_config_prog.found()
+      installed_pkgconfig_args = [
+        meson.current_source_dir() / 'tests/test_installed_pkgconfig_consumer.py',
+        '--source-dir',
+        meson.current_source_dir(),
+        '--build-root',
+        meson.current_build_dir() / 'installed-pkgconfig-consumer',
+        '--install-prefix',
+        meson.current_build_dir() / 'installed-pkgconfig-consumer-prefix',
+        '--meson',
+        meson_prog.full_path(),
+        '--cc',
+        cc.cmd_array()[0],
+        '--pkg-config',
+        pkg_config_prog.full_path(),
+        '--nwchem-root',
+        nwchem_root,
+        '--nwchem-target',
+        nwchem_target,
+        '--mpi-ranks',
+        nwchem_test_mpi_ranks.to_string(),
+        '--parallel',
+        '4',
+      ]
+      if nwchem_test_mpi_ranks > 1
+        installed_pkgconfig_args += ['--mpirun', nwchem_test_mpirun.full_path()]
+      endif
+      test(
+        'nwchem-installed-pkgconfig-consumer',
+        python,
+        args: installed_pkgconfig_args,
         env: nwchem_test_mpi_env,
         is_parallel: false,
         timeout: 240,
