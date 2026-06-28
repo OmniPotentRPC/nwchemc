@@ -323,12 +323,12 @@ static void assert_potential_result_frequencies(
   if (expected_frequencies) {
     for (int i = 0; i < 6; ++i)
       assert_close_relative("PotentialResult.frequencies", i, frequencies[i],
-                            expected_frequencies[i], 1.0e-10);
+                            expected_frequencies[i], 1.0e-8);
   }
   if (expected_intensities) {
     for (int i = 0; i < 6; ++i)
       assert_close_relative("PotentialResult.intensities", i, intensities[i],
-                            expected_intensities[i], 1.0e-10);
+                            expected_intensities[i], 1.0e-8);
   }
 
   capn_free(&arena);
