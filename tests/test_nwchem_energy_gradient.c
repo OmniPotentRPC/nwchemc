@@ -148,6 +148,39 @@ static void test_h2_dipole(void **state) {
   }
 }
 
+static void test_h2_polarizability(void **state) {
+  (void)state;
+  size_t params_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  assert_non_null(params);
+
+  assert_true(nwchemc_available());
+
+  const int n_atoms = 2;
+  const int atomic_numbers[2] = {1, 1};
+  const double positions_ang[6] = {0.0, 0.0, -0.3707, 0.0, 0.0, 0.3707};
+  double polarizability_au[12] = {0.0};
+
+  NWChemCResult result =
+      nwchemc_polarizability(n_atoms, positions_ang, atomic_numbers, params,
+                             params_size, polarizability_au);
+  free(params);
+
+  if (!result.ok)
+    fail_msg("nwchemc_polarizability failed: %s", result.message);
+  assert_true(isfinite(result.energy_h));
+  assert_true(result.energy_h < -0.5);
+  assert_true(result.energy_h > -2.0);
+  double max_abs = 0.0;
+  for (int i = 0; i < 12; ++i) {
+    if (!isfinite(polarizability_au[i]))
+      fail_msg("non-finite polarizability[%d]", i);
+    max_abs = fmax(max_abs, fabs(polarizability_au[i]));
+  }
+  assert_true(max_abs > 1.0e-6);
+  assert_true(polarizability_au[10] > 0.0);
+}
+
 static double h2_bond_length(const double *positions_ang) {
   double dx = positions_ang[3] - positions_ang[0];
   double dy = positions_ang[4] - positions_ang[1];
@@ -287,6 +320,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_h2_energy_gradient),
       cmocka_unit_test(test_h2_dipole),
+      cmocka_unit_test(test_h2_polarizability),
       cmocka_unit_test(test_h2_quadrupole),
       cmocka_unit_test(test_h2_optimize),
       cmocka_unit_test(test_h2_frequencies),

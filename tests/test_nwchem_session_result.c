@@ -774,6 +774,22 @@ static void test_session_coordinate_entry_points(void **state) {
     assert_true(fabs(dipole[i]) < 1.0e-7);
   }
 
+  double polarizability[12] = {0.0};
+  NWChemCResult polarizability_status = nwchemc_session_polarizability(
+      session, n_atoms, eq_positions, atomic_numbers, polarizability);
+  if (!polarizability_status.ok)
+    fail_msg("nwchemc_session_polarizability failed: %s",
+             polarizability_status.message);
+  double max_polarizability_abs = 0.0;
+  for (int i = 0; i < 12; ++i) {
+    if (!isfinite(polarizability[i]))
+      fail_msg("non-finite coordinate session polarizability[%d]", i);
+    max_polarizability_abs =
+        fmax(max_polarizability_abs, fabs(polarizability[i]));
+  }
+  assert_true(max_polarizability_abs > 1.0e-6);
+  assert_true(polarizability[10] > 0.0);
+
   double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult quadrupole_status = nwchemc_session_quadrupole(
       session, n_atoms, eq_positions, atomic_numbers, quadrupole);
