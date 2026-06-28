@@ -134,6 +134,25 @@ static void assert_potential_result_forces(const unsigned char *message,
   capn_free(&arena);
 }
 
+static void assert_potential_result_gradient(const unsigned char *message,
+                                             size_t message_size,
+                                             double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  assert_f64_list("gradient", result.gradient, 6, NULL);
+
+  capn_free(&arena);
+}
+
 static void assert_potential_result_energy_only(const unsigned char *message,
                                                 size_t message_size,
                                                 double expected_energy) {
@@ -209,6 +228,30 @@ static void assert_potential_result_forces_values(
   for (int i = 0; i < 6; ++i)
     assert_close_relative("PotentialResult.forces", i, forces[i],
                           expected_forces[i], tolerance);
+
+  capn_free(&arena);
+}
+
+static void assert_potential_result_gradient_values(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_gradient, double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+  assert_close_relative("PotentialResult.energy", 0, result.energy,
+                        expected_energy, tolerance);
+
+  double gradient[6];
+  assert_f64_list("gradient", result.gradient, 6, gradient);
+  for (int i = 0; i < 6; ++i)
+    assert_close_relative("PotentialResult.gradient", i, gradient[i],
+                          expected_gradient[i], tolerance);
 
   capn_free(&arena);
 }
@@ -501,6 +544,24 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   assert_potential_result_forces(forces_bytes, forces_size,
                                  forces_status.energy_h);
 
+  size_t gradient_capacity =
+      nwchemc_gradient_result_size_for_force_input(force_input,
+                                                   force_input_size);
+  assert_result_capacity("nwchemc_gradient_result_size_for_force_input",
+                         gradient_capacity);
+  unsigned char *gradient_bytes = (unsigned char *)malloc(gradient_capacity);
+  assert_non_null(gradient_bytes);
+  size_t gradient_size = 0;
+  NWChemCResult gradient_status =
+      nwchemc_calculate_gradient_result_from_config(
+          config, config_size, force_input, force_input_size, gradient_bytes,
+          gradient_capacity, &gradient_size);
+  assert_status_energy("nwchemc_calculate_gradient_result_from_config",
+                       gradient_status);
+  assert_int_equal(gradient_size, gradient_capacity);
+  assert_potential_result_gradient(gradient_bytes, gradient_size,
+                                   gradient_status.energy_h);
+
   size_t hessian_capacity =
       nwchemc_hessian_result_size_for_force_input(force_input,
                                                   force_input_size);
@@ -653,6 +714,7 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   free(polarizability_bytes);
   free(dipole_bytes);
   free(hessian_bytes);
+  free(gradient_bytes);
   free(forces_bytes);
   free(energy_bytes);
   free(force_input);
@@ -707,6 +769,23 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
   assert_int_equal(forces_size, forces_capacity);
   assert_potential_result_forces(forces_bytes, forces_size,
                                  forces_status.energy_h);
+
+  size_t gradient_capacity =
+      nwchemc_gradient_result_size_for_force_input(force_input,
+                                                   force_input_size);
+  assert_result_capacity("nwchemc_gradient_result_size_for_force_input",
+                         gradient_capacity);
+  unsigned char *gradient_bytes = (unsigned char *)malloc(gradient_capacity);
+  assert_non_null(gradient_bytes);
+  size_t gradient_size = 0;
+  NWChemCResult gradient_status = nwchemc_session_calculate_gradient_result(
+      session, force_input, force_input_size, gradient_bytes,
+      gradient_capacity, &gradient_size);
+  assert_status_energy("nwchemc_session_calculate_gradient_result",
+                       gradient_status);
+  assert_int_equal(gradient_size, gradient_capacity);
+  assert_potential_result_gradient(gradient_bytes, gradient_size,
+                                   gradient_status.energy_h);
 
   size_t hessian_capacity =
       nwchemc_hessian_result_size_for_force_input(force_input,
@@ -855,6 +934,7 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
   free(polarizability_bytes);
   free(dipole_bytes);
   free(hessian_bytes);
+  free(gradient_bytes);
   free(forces_bytes);
   free(energy_bytes);
   nwchemc_session_destroy(session);
@@ -938,6 +1018,18 @@ static void test_rgpot_config_raw_forceinput_operations(void **state) {
   for (int i = 0; i < 6; ++i) {
     if (!isfinite(forces[i]))
       fail_msg("non-finite raw force[%d]", i);
+  }
+
+  double gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult gradient_status = nwchemc_calculate_gradient_from_config(
+      config, config_size, force_input, force_input_size, gradient, 6);
+  assert_status_energy("nwchemc_calculate_gradient_from_config",
+                       gradient_status);
+  for (int i = 0; i < 6; ++i) {
+    if (!isfinite(gradient[i]))
+      fail_msg("non-finite raw gradient[%d]", i);
+    assert_close_relative("raw force/gradient sign", i, forces[i],
+                          -gradient[i], 1.0e-9);
   }
 
   double hessian[36] = {0.0};
@@ -1062,6 +1154,15 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
   assert_status_energy("nwchemc_calculate_forces_from_config",
                        raw_forces_status);
 
+  double raw_gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_gradient_status = nwchemc_calculate_gradient_from_config(
+      config, config_size, force_input, force_input_size, raw_gradient, 6);
+  assert_status_energy("nwchemc_calculate_gradient_from_config",
+                       raw_gradient_status);
+  for (int i = 0; i < 6; ++i)
+    assert_close_relative("raw force/gradient sign", i, raw_forces[i],
+                          -raw_gradient[i], 1.0e-9);
+
   double raw_hessian[36] = {0.0};
   NWChemCResult raw_hessian_status = nwchemc_calculate_hessian_from_config(
       config, config_size, force_input, force_input_size, raw_hessian, 36);
@@ -1105,6 +1206,28 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
   assert_potential_result_forces_values(
       forces_bytes, forces_size, raw_forces_status.energy_h * HARTREE_TO_EV,
       expected_forces, 1.0e-9);
+
+  double expected_gradient[6];
+  for (int i = 0; i < 6; ++i)
+    expected_gradient[i] = raw_gradient[i] * HARTREE_TO_EV / BOHR_TO_ANGSTROM;
+  size_t gradient_capacity =
+      nwchemc_gradient_result_size_for_force_input(force_input,
+                                                   force_input_size);
+  assert_result_capacity("nwchemc_gradient_result_size_for_force_input",
+                         gradient_capacity);
+  unsigned char *gradient_bytes = (unsigned char *)malloc(gradient_capacity);
+  assert_non_null(gradient_bytes);
+  size_t gradient_size = 0;
+  NWChemCResult gradient_result =
+      nwchemc_calculate_gradient_result_from_config(
+          config, config_size, force_input, force_input_size, gradient_bytes,
+          gradient_capacity, &gradient_size);
+  assert_status_energy("nwchemc_calculate_gradient_result_from_config",
+                       gradient_result);
+  assert_int_equal(gradient_size, gradient_capacity);
+  assert_potential_result_gradient_values(
+      gradient_bytes, gradient_size,
+      raw_gradient_status.energy_h * HARTREE_TO_EV, expected_gradient, 1.0e-9);
 
   double hessian_factor =
       HARTREE_TO_EV / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM);
@@ -1286,6 +1409,7 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
   free(polarizability_bytes);
   free(dipole_bytes);
   free(hessian_bytes);
+  free(gradient_bytes);
   free(forces_bytes);
   free(energy_bytes);
   free(force_input);

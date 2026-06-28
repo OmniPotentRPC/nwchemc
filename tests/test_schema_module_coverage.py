@@ -111,6 +111,21 @@ EXPECTED_POTENTIAL_METHODS = {
     "calculateOptimize": 8,
     "calculateFrequencies": 9,
     "calculatePolarizability": 10,
+    "calculateGradient": 11,
+}
+
+EXPECTED_POTENTIAL_RESULT_FIELDS = {
+    "energy": 0,
+    "forces": 1,
+    "hessian": 2,
+    "dipole": 3,
+    "quadrupole": 4,
+    "optimizedPos": 5,
+    "frequencies": 6,
+    "intensities": 7,
+    "stress": 8,
+    "polarizability": 9,
+    "gradient": 10,
 }
 
 
@@ -138,6 +153,20 @@ class SchemaModuleCoverageTest(unittest.TestCase):
         }
 
         self.assertEqual(actual, EXPECTED_POTENTIAL_METHODS)
+
+    def test_potential_result_exposes_nwchem_gradient(self):
+        text = SCHEMA.read_text()
+        match = re.search(r"struct PotentialResult \{(?P<body>.*?)\n\}", text, re.S)
+        self.assertIsNotNone(match)
+        body = match.group("body")
+        actual = {
+            name: int(ordinal)
+            for name, ordinal in re.findall(
+                r"^\s*([a-z][A-Za-z0-9]*)\s+@([0-9]+)\s*:", body, re.M
+            )
+        }
+
+        self.assertEqual(actual, EXPECTED_POTENTIAL_RESULT_FIELDS)
 
     def test_inventory_tracks_potential_operation_methods(self):
         inv = json.loads(INVENTORY.read_text(encoding="utf-8"))
