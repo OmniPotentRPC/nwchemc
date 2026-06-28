@@ -132,10 +132,12 @@ A rgpot-side merge/pr release is at the wiring stage when:
   above.
 - The local stub/cmocka suite and a real-NWChem suite both pass for the probes
   in the supported merge scope table.
-- The installed package smoke `nwchem-installed-cmake-consumer` passes against
-  the same NWChem build used for the real probe suite.
-- The installed package smoke `nwchem-installed-pkgconfig-consumer` passes
-  against the same NWChem build when rgpot uses pkg-config for discovery.
+- The installed package smoke `nwchem-installed-cmake-consumer` compiles and
+  links the `PotentialResult` sizing and calculation ABI against the same
+  NWChem build used for the real probe suite.
+- The installed package smoke `nwchem-installed-pkgconfig-consumer` compiles
+  and links the same `PotentialResult` ABI when rgpot uses pkg-config for
+  discovery.
 
 Stress is on the same release surface when rgpot is paired with an NWPW-enabled
 NWChem build and `tests/test_nwchem_stress.c` passes in the real-NWChem suite.

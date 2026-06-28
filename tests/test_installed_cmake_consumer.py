@@ -20,9 +20,58 @@ target_link_libraries(consumer PRIVATE nwchemc::nwchemc)
 CONSUMER_MAIN = """\
 #include "nwchemc.h"
 
+#include <stddef.h>
 #include <stdio.h>
 
+typedef size_t (*PotentialResultSizeFn)(const void *, size_t);
+typedef NWChemCResult (*PotentialResultConfigFn)(
+    const void *, size_t, const void *, size_t, void *, size_t, size_t *);
+
+static int exercise_rgpot_result_abi(void) {
+  PotentialResultSizeFn size_fns[] = {
+      nwchemc_potential_result_size_for_force_input,
+      nwchemc_energy_result_size_for_force_input,
+      nwchemc_forces_result_size_for_force_input,
+      nwchemc_hessian_result_size_for_force_input,
+      nwchemc_dipole_result_size_for_force_input,
+      nwchemc_polarizability_result_size_for_force_input,
+      nwchemc_quadrupole_result_size_for_force_input,
+      nwchemc_stress_result_size_for_force_input,
+      nwchemc_optimize_result_size_for_force_input,
+      nwchemc_frequencies_result_size_for_force_input,
+  };
+  PotentialResultConfigFn result_fns[] = {
+      nwchemc_calculate_result_from_config,
+      nwchemc_calculate_energy_result_from_config,
+      nwchemc_calculate_forces_result_from_config,
+      nwchemc_calculate_hessian_result_from_config,
+      nwchemc_calculate_dipole_result_from_config,
+      nwchemc_calculate_polarizability_result_from_config,
+      nwchemc_calculate_quadrupole_result_from_config,
+      nwchemc_calculate_stress_result_from_config,
+      nwchemc_calculate_optimize_result_from_config,
+      nwchemc_calculate_frequencies_result_from_config,
+  };
+  size_t index;
+
+  for (index = 0; index < sizeof(size_fns) / sizeof(size_fns[0]); ++index) {
+    if (size_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0; index < sizeof(result_fns) / sizeof(result_fns[0]); ++index) {
+    if (result_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  return 0;
+}
+
 int main(void) {
+  int abi_status = exercise_rgpot_result_abi();
+  if (abi_status != 0) {
+    return abi_status;
+  }
   const char *version = nwchemc_version();
   if (version == NULL || version[0] == '\\0') {
     return 2;

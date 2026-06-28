@@ -67,6 +67,39 @@ class MesonInstallContractTest(unittest.TestCase):
         missing = [term for term in required_terms if term not in self.text]
         self.assertEqual(missing, [])
 
+    def test_installed_consumers_compile_rgpot_result_abi(self):
+        required_terms = [
+            "nwchemc_potential_result_size_for_force_input",
+            "nwchemc_energy_result_size_for_force_input",
+            "nwchemc_forces_result_size_for_force_input",
+            "nwchemc_hessian_result_size_for_force_input",
+            "nwchemc_dipole_result_size_for_force_input",
+            "nwchemc_polarizability_result_size_for_force_input",
+            "nwchemc_quadrupole_result_size_for_force_input",
+            "nwchemc_stress_result_size_for_force_input",
+            "nwchemc_optimize_result_size_for_force_input",
+            "nwchemc_frequencies_result_size_for_force_input",
+            "nwchemc_calculate_result_from_config",
+            "nwchemc_calculate_energy_result_from_config",
+            "nwchemc_calculate_forces_result_from_config",
+            "nwchemc_calculate_hessian_result_from_config",
+            "nwchemc_calculate_dipole_result_from_config",
+            "nwchemc_calculate_polarizability_result_from_config",
+            "nwchemc_calculate_quadrupole_result_from_config",
+            "nwchemc_calculate_stress_result_from_config",
+            "nwchemc_calculate_optimize_result_from_config",
+            "nwchemc_calculate_frequencies_result_from_config",
+        ]
+        consumer_scripts = [
+            ROOT / "tests" / "test_installed_cmake_consumer.py",
+            ROOT / "tests" / "test_installed_pkgconfig_consumer.py",
+        ]
+        for script in consumer_scripts:
+            with self.subTest(script=script.name):
+                consumer = script.read_text(encoding="utf-8")
+                missing = [term for term in required_terms if term not in consumer]
+                self.assertEqual(missing, [])
+
     def test_docs_explain_installed_consumer_release_gate(self):
         docs = README.read_text(encoding="utf-8") + "\n" + RGPOT_GUIDE.read_text(
             encoding="utf-8"
