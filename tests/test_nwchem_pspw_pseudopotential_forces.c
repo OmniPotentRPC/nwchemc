@@ -125,6 +125,40 @@ static void assert_potential_result_forces(const unsigned char *message,
   capn_free(&arena);
 }
 
+static void assert_potential_result_gradient(const unsigned char *message,
+                                             size_t message_size,
+                                             double expected_energy,
+                                             const double *native_gradient,
+                                             double gradient_factor) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+  assert_close_energy("PotentialResult.energy", result.energy,
+                      expected_energy);
+
+  capn_resolve(&result.gradient.p);
+  assert_int_equal(result.gradient.p.type, CAPN_LIST);
+  assert_int_equal(result.gradient.p.datasz, 8);
+  assert_int_equal(result.gradient.p.len, 6);
+  for (int i = 0; i < result.gradient.p.len; ++i) {
+    double gradient = capn_to_f64(capn_get64(result.gradient, i));
+    if (!isfinite(gradient))
+      fail_msg("non-finite gradient[%d]", i);
+    if (native_gradient) {
+      double expected = native_gradient[i] * gradient_factor;
+      assert_close_force("PotentialResult.gradient", i, gradient, expected);
+    }
+  }
+
+  capn_free(&arena);
+}
+
 static void assert_potential_result_energy_only(const unsigned char *message,
                                                 size_t message_size,
                                                 double expected_energy) {
@@ -163,6 +197,14 @@ static void assert_matching_native_forces(const double *actual,
                                           int force_count) {
   for (int i = 0; i < force_count; ++i)
     assert_close_force("native force", i, actual[i], expected[i]);
+}
+
+static void assert_matching_force_gradient(const double *forces,
+                                           const double *gradient,
+                                           int gradient_count) {
+  for (int i = 0; i < gradient_count; ++i)
+    assert_close_force("native force/gradient sign", i, forces[i],
+                       -gradient[i]);
 }
 
 static void test_pspw_pseudopotential_forces_result(void **state) {
@@ -222,6 +264,32 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   assert_force_buffer("raw force", raw_forces, 6);
   assert_matching_native_forces(params_forces, raw_forces, 6);
 
+  double params_gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult params_gradient_status = nwchemc_calculate_gradient(
+      params, params_size, force_input, force_input_size, params_gradient, 6);
+  if (!params_gradient_status.ok)
+    fail_msg("nwchemc_calculate_gradient failed: %s",
+             params_gradient_status.message);
+  assert_true(isfinite(params_gradient_status.energy_h));
+  assert_close_energy("params raw gradient energy",
+                      params_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_force_buffer("params raw gradient", params_gradient, 6);
+  assert_matching_force_gradient(params_forces, params_gradient, 6);
+
+  double raw_gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_gradient_status = nwchemc_calculate_gradient_from_config(
+      config, config_size, force_input, force_input_size, raw_gradient, 6);
+  if (!raw_gradient_status.ok)
+    fail_msg("nwchemc_calculate_gradient_from_config failed: %s",
+             raw_gradient_status.message);
+  assert_true(isfinite(raw_gradient_status.energy_h));
+  assert_close_energy("raw gradient energy", raw_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_force_buffer("raw gradient", raw_gradient, 6);
+  assert_matching_force_gradient(raw_forces, raw_gradient, 6);
+  assert_matching_native_forces(params_gradient, raw_gradient, 6);
+
   NWChemCResult unit_raw_energy_status = nwchemc_calculate_energy_from_config(
       config, config_size, unit_force_input, unit_force_input_size);
   if (!unit_raw_energy_status.ok)
@@ -243,6 +311,22 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
                       raw_energy_status.energy_h);
   assert_force_buffer("unit raw force", unit_raw_forces, 6);
   assert_matching_native_forces(unit_raw_forces, raw_forces, 6);
+
+  double unit_raw_gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult unit_raw_gradient_status =
+      nwchemc_calculate_gradient_from_config(
+          config, config_size, unit_force_input, unit_force_input_size,
+          unit_raw_gradient, 6);
+  if (!unit_raw_gradient_status.ok)
+    fail_msg("unit nwchemc_calculate_gradient_from_config failed: %s",
+             unit_raw_gradient_status.message);
+  assert_true(isfinite(unit_raw_gradient_status.energy_h));
+  assert_close_energy("unit raw gradient energy",
+                      unit_raw_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_force_buffer("unit raw gradient", unit_raw_gradient, 6);
+  assert_matching_native_forces(unit_raw_gradient, raw_gradient, 6);
+  assert_matching_force_gradient(unit_raw_forces, unit_raw_gradient, 6);
 
   size_t energy_capacity =
       nwchemc_energy_result_size_for_force_input(force_input,
@@ -432,6 +516,72 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
                                  unit_forces_status.energy_h * HARTREE_TO_EV,
                                  unit_raw_forces, HARTREE_TO_EV);
 
+  size_t gradient_capacity =
+      nwchemc_gradient_result_size_for_force_input(force_input,
+                                                   force_input_size);
+  assert_true(gradient_capacity > 0);
+  unsigned char *gradient_bytes = (unsigned char *)malloc(gradient_capacity);
+  assert_non_null(gradient_bytes);
+  size_t gradient_size = 0;
+  NWChemCResult params_gradient_result_status =
+      nwchemc_calculate_gradient_result(params, params_size, force_input,
+                                        force_input_size, gradient_bytes,
+                                        gradient_capacity, &gradient_size);
+  if (!params_gradient_result_status.ok)
+    fail_msg("nwchemc_calculate_gradient_result failed: %s",
+             params_gradient_result_status.message);
+  assert_true(isfinite(params_gradient_result_status.energy_h));
+  assert_close_energy("params gradient result status",
+                      params_gradient_result_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(gradient_size, gradient_capacity);
+  assert_potential_result_gradient(
+      gradient_bytes, gradient_size, params_gradient_result_status.energy_h,
+      params_gradient, 1.0 / BOHR_TO_ANGSTROM);
+
+  memset(gradient_bytes, 0, gradient_capacity);
+  gradient_size = 0;
+  NWChemCResult one_shot_gradient_status =
+      nwchemc_calculate_gradient_result_from_config(
+          config, config_size, force_input, force_input_size, gradient_bytes,
+          gradient_capacity, &gradient_size);
+  if (!one_shot_gradient_status.ok)
+    fail_msg("nwchemc_calculate_gradient_result_from_config failed: %s",
+             one_shot_gradient_status.message);
+  assert_true(isfinite(one_shot_gradient_status.energy_h));
+  assert_close_energy("gradient result status",
+                      one_shot_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(gradient_size, gradient_capacity);
+  assert_potential_result_gradient(
+      gradient_bytes, gradient_size, one_shot_gradient_status.energy_h,
+      raw_gradient, 1.0 / BOHR_TO_ANGSTROM);
+
+  size_t unit_gradient_capacity =
+      nwchemc_gradient_result_size_for_force_input(unit_force_input,
+                                                   unit_force_input_size);
+  assert_true(unit_gradient_capacity > 0);
+  unsigned char *unit_gradient_bytes =
+      (unsigned char *)malloc(unit_gradient_capacity);
+  assert_non_null(unit_gradient_bytes);
+  size_t unit_gradient_size = 0;
+  NWChemCResult unit_gradient_status =
+      nwchemc_calculate_gradient_result_from_config(
+          config, config_size, unit_force_input, unit_force_input_size,
+          unit_gradient_bytes, unit_gradient_capacity, &unit_gradient_size);
+  if (!unit_gradient_status.ok)
+    fail_msg("unit nwchemc_calculate_gradient_result_from_config failed: %s",
+             unit_gradient_status.message);
+  assert_true(isfinite(unit_gradient_status.energy_h));
+  assert_close_energy("unit gradient result status",
+                      unit_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(unit_gradient_size, unit_gradient_capacity);
+  assert_potential_result_gradient(
+      unit_gradient_bytes, unit_gradient_size,
+      unit_gradient_status.energy_h * HARTREE_TO_EV, unit_raw_gradient,
+      HARTREE_TO_EV);
+
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
   assert_non_null(session);
@@ -456,6 +606,22 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
                       raw_energy_status.energy_h);
   assert_force_buffer("session raw force", session_raw_forces, 6);
   assert_matching_native_forces(session_raw_forces, raw_forces, 6);
+
+  double session_raw_gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult session_raw_gradient_status =
+      nwchemc_session_calculate_gradient(session, force_input,
+                                         force_input_size,
+                                         session_raw_gradient, 6);
+  if (!session_raw_gradient_status.ok)
+    fail_msg("nwchemc_session_calculate_gradient failed: %s",
+             session_raw_gradient_status.message);
+  assert_true(isfinite(session_raw_gradient_status.energy_h));
+  assert_close_energy("session raw gradient energy",
+                      session_raw_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_force_buffer("session raw gradient", session_raw_gradient, 6);
+  assert_matching_native_forces(session_raw_gradient, raw_gradient, 6);
+  assert_matching_force_gradient(session_raw_forces, session_raw_gradient, 6);
 
   memset(energy_bytes, 0, energy_capacity);
   energy_size = 0;
@@ -533,6 +699,24 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
                                  session_raw_forces,
                                  1.0 / BOHR_TO_ANGSTROM);
 
+  memset(gradient_bytes, 0, gradient_capacity);
+  gradient_size = 0;
+  NWChemCResult session_gradient_status =
+      nwchemc_session_calculate_gradient_result(
+          session, force_input, force_input_size, gradient_bytes,
+          gradient_capacity, &gradient_size);
+  if (!session_gradient_status.ok)
+    fail_msg("nwchemc_session_calculate_gradient_result failed: %s",
+             session_gradient_status.message);
+  assert_true(isfinite(session_gradient_status.energy_h));
+  assert_close_energy("session gradient result status",
+                      session_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(gradient_size, gradient_capacity);
+  assert_potential_result_gradient(
+      gradient_bytes, gradient_size, session_gradient_status.energy_h,
+      session_raw_gradient, 1.0 / BOHR_TO_ANGSTROM);
+
   double session_unit_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult session_unit_status = nwchemc_session_calculate_forces(
       session, unit_force_input, unit_force_input_size, session_unit_forces,
@@ -546,6 +730,22 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
                       raw_energy_status.energy_h);
   assert_force_buffer("session unit raw force", session_unit_forces, 6);
   assert_matching_native_forces(session_unit_forces, raw_forces, 6);
+
+  double session_unit_gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult session_unit_gradient_status =
+      nwchemc_session_calculate_gradient(
+          session, unit_force_input, unit_force_input_size,
+          session_unit_gradient, 6);
+  if (!session_unit_gradient_status.ok)
+    fail_msg("unit nwchemc_session_calculate_gradient failed: %s",
+             session_unit_gradient_status.message);
+  assert_true(isfinite(session_unit_gradient_status.energy_h));
+  assert_close_energy("session unit raw gradient energy",
+                      session_unit_gradient_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_force_buffer("session unit raw gradient", session_unit_gradient, 6);
+  assert_matching_native_forces(session_unit_gradient, raw_gradient, 6);
+  assert_matching_force_gradient(session_unit_forces, session_unit_gradient, 6);
 
   unsigned char *session_unit_forces_bytes =
       (unsigned char *)malloc(unit_forces_capacity);
@@ -569,9 +769,34 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
       session_unit_forces_status.energy_h * HARTREE_TO_EV,
       session_unit_forces, HARTREE_TO_EV);
 
+  unsigned char *session_unit_gradient_bytes =
+      (unsigned char *)malloc(unit_gradient_capacity);
+  assert_non_null(session_unit_gradient_bytes);
+  size_t session_unit_gradient_size = 0;
+  NWChemCResult session_unit_gradient_result_status =
+      nwchemc_session_calculate_gradient_result(
+          session, unit_force_input, unit_force_input_size,
+          session_unit_gradient_bytes, unit_gradient_capacity,
+          &session_unit_gradient_size);
+  if (!session_unit_gradient_result_status.ok)
+    fail_msg("unit nwchemc_session_calculate_gradient_result failed: %s",
+             session_unit_gradient_result_status.message);
+  assert_true(isfinite(session_unit_gradient_result_status.energy_h));
+  assert_close_energy("session unit gradient result status",
+                      session_unit_gradient_result_status.energy_h,
+                      raw_energy_status.energy_h);
+  assert_int_equal(session_unit_gradient_size, unit_gradient_capacity);
+  assert_potential_result_gradient(
+      session_unit_gradient_bytes, session_unit_gradient_size,
+      session_unit_gradient_result_status.energy_h * HARTREE_TO_EV,
+      session_unit_gradient, HARTREE_TO_EV);
+
   nwchemc_session_destroy(session);
+  free(session_unit_gradient_bytes);
   free(session_unit_forces_bytes);
   free(session_unit_result_bytes);
+  free(unit_gradient_bytes);
+  free(gradient_bytes);
   free(unit_forces_bytes);
   free(unit_result_bytes);
   free(unit_energy_bytes);
