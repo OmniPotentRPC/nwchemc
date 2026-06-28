@@ -597,6 +597,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_create_from_config", "include/nwchemc.h::nwchemc_session_create_from_config", "stub=returns NULL; embed=creates persistent PotentialConfig session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_set_params", "include/nwchemc.h::nwchemc_session_set_params", "stub=fails non-zero; embed=replaces params before topology", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_configure", "include/nwchemc.h::nwchemc_session_configure", "stub=fails non-zero; embed=configures PotentialConfig before topology", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_reset_topology", "include/nwchemc.h::nwchemc_session_reset_topology", "stub=fails non-zero; embed=clears accepted session topology", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_destroy", "include/nwchemc.h::nwchemc_session_destroy", "stub=no-op; embed=releases persistent session", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy_gradient", "include/nwchemc.h::nwchemc_session_energy_gradient", "stub=fails ok==0; embed=runs session energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy", "include/nwchemc.h::nwchemc_session_energy", "stub=fails ok==0; embed=runs session energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -690,7 +691,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 685;
+static const size_t k_feature_count = 686;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

@@ -334,6 +334,11 @@ int nwchemc_session_configure(NWChemCSession *session,
   return -1;
 }
 
+int nwchemc_session_reset_topology(NWChemCSession *session) {
+  (void)session;
+  return -1;
+}
+
 void nwchemc_session_destroy(NWChemCSession *session) { (void)session; }
 
 static NWChemCResult stub_fail(void) {

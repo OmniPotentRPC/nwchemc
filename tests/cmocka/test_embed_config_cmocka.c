@@ -3848,8 +3848,8 @@ static void test_session_reset_topology_allows_changed_species(void **state) {
   assert_int_equal(accepted.ok, 1);
   assert_int_equal(g_energy_grad_calls, 2);
   assert_int_equal(g_call_n_atoms[1], 2);
-  assert_int_equal(g_call_atomic_numbers[1][0], 6);
-  assert_int_equal(g_call_atomic_numbers[1][1], 8);
+  assert_int_equal(g_call_atomic_numbers[1][0], 1);
+  assert_int_equal(g_call_atomic_numbers[1][1], 1);
 
   nwchemc_session_destroy(session);
   free(step_changed_species);

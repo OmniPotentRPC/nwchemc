@@ -183,6 +183,7 @@ int nwchemc_session_set_params(NWChemCSession *session,
 int nwchemc_session_configure(NWChemCSession *session,
                               const void *config_capnp,
                               size_t config_capnp_size_bytes);
+int nwchemc_session_reset_topology(NWChemCSession *session);
 void nwchemc_session_destroy(NWChemCSession *session);
 NWChemCResult nwchemc_session_energy_gradient(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
@@ -608,6 +609,10 @@ calling
 `ForceInput.energyUnit / ForceInput.lengthUnit`. The named gradient carrier
 writes `PotentialResult.gradient` in the same energy/length unit without the
 force sign flip.
+Sessions reject atom-count or species-order changes after the first accepted
+step. `nwchemc_session_reset_topology()` clears that accepted topology while
+keeping the installed method parameters, so the next step establishes a new
+atom count and ordered species list explicitly.
 `ForceInput.hasCharge` / `ForceInput.charge` and
 `ForceInput.hasMultiplicity` / `ForceInput.multiplicity` can override the
 session charge or spin multiplicity for that serialized step; unset flags keep
@@ -664,8 +669,9 @@ explicit `calculateEnergy`, `calculateForces`, `calculateHessian`,
 `calculateStress`, `calculateOptimize`, `calculateFrequencies`, and
 `calculateGradient` methods.
 `Potential.configure` maps to `nwchemc_configure()` and
-`nwchemc_session_configure()` for C ABI callers. The original `calculate`
-method remains the compatibility energy/forces call.
+`nwchemc_session_configure()` for C ABI callers; session topology reset maps
+to `nwchemc_session_reset_topology()`. The original `calculate` method remains
+the compatibility energy/forces call.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,

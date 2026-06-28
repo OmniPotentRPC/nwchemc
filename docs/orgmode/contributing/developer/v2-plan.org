@@ -32,6 +32,7 @@ configuration. The public calculation entry points are:
 - ~nwchemc_session_create_from_config~
 - ~nwchemc_session_set_params~
 - ~nwchemc_session_configure~
+- ~nwchemc_session_reset_topology~
 - ~nwchemc_session_destroy~
 - ~nwchemc_session_energy_gradient~
 - ~nwchemc_session_energy~
@@ -311,9 +312,10 @@ coordinates, cell data, atom numbers, and requested units.
 ~nwchemc_calculate_frequencies~ are one-shot wrappers around the same session
 ForceInput validation and direct numeric geometry path.
 The session owns the topology invariant. A caller that changes atom count or
-species ordering is rejected before NWChem evaluation. Resetting or replacing
-that topology is explicit: create a separate session, or add a dedicated reset
-entry point with the same explicit semantics.
+species ordering is rejected before NWChem evaluation.
+~nwchemc_session_reset_topology~ clears the accepted topology while retaining
+the installed method parameters, so the next evaluation establishes a new atom
+count and ordered species list explicitly.
 ~nwchemc_session_set_params~ replaces the installed ~NWChemParams~ only before
 the first accepted topology. After a session has accepted a step, parameter
 replacement is rejected so stale direct RTDB keys cannot silently carry into a

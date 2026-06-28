@@ -393,6 +393,11 @@ def main() -> int:
                 "embed": "configures PotentialConfig before topology",
             },
             {
+                "name": "nwchemc_session_reset_topology",
+                "stub": "fails non-zero",
+                "embed": "clears accepted session topology",
+            },
+            {
                 "name": "nwchemc_session_destroy",
                 "stub": "no-op",
                 "embed": "releases persistent session",

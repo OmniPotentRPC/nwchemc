@@ -110,6 +110,7 @@ class ReadmeAbiSurfaceTest(unittest.TestCase):
             "PotentialResult.projectedIntensities",
             "PotentialResult.zeroPointEnergy",
             "nwchemc_session_create_from_config",
+            "nwchemc_session_reset_topology",
             "nwchemc_potential_result_size_for_force_input",
             "nwchemc_gradient_result_size_for_force_input",
             "nwchemc_session_calculate_result",

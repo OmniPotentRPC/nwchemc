@@ -81,6 +81,9 @@ instead of the energy-plus-forces compatibility result:
 
 The session variants use the same `ForceInput` and `PotentialResult` messages.
 They are the preferred path for repeated geometry steps with fixed topology.
+When rgpot changes atom count or ordered species but keeps the same NWChem
+method parameters, call `nwchemc_session_reset_topology()` before submitting
+the new step so the session accepts and records the new topology explicitly.
 `nwchemc_session_calculate_frequencies_detail()` is the raw-buffer session path
 for callers that want frequencies, intensities, normal modes, projected
 vibration lists, and thermochemistry without unpacking `PotentialResult`.

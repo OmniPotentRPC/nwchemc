@@ -194,6 +194,7 @@ class MesonInstallContractTest(unittest.TestCase):
             "nwchemc_session_create_from_config",
             "nwchemc_session_set_params",
             "nwchemc_session_configure",
+            "nwchemc_session_reset_topology",
             "nwchemc_session_destroy",
             "nwchemc_session_energy_gradient",
             "nwchemc_session_energy",

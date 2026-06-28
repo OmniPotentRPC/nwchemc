@@ -48,6 +48,7 @@ NWChem runtime state inside the session.
 ~nwchemc_session_calculate_dipole()~,
 ~nwchemc_session_calculate_polarizability()~,
 ~nwchemc_session_calculate_quadrupole()~,
+~nwchemc_session_reset_topology()~,
 ~nwchemc_session_calculate_stress()~,
 ~nwchemc_session_calculate_optimize()~, and
 ~nwchemc_session_calculate_frequencies()~ accept serialized ~ForceInput~

@@ -5164,6 +5164,14 @@ int nwchemc_session_configure(NWChemCSession *session,
   return rc;
 }
 
+int nwchemc_session_reset_topology(NWChemCSession *session) {
+  if (!session)
+    return -1;
+  session_clear_step_state(session);
+  session_clear_topology(session);
+  return 0;
+}
+
 void nwchemc_session_destroy(NWChemCSession *session) {
   if (!session)
     return;
@@ -9144,6 +9152,11 @@ int nwchemc_session_configure(NWChemCSession *session,
   (void)session;
   (void)config_capnp;
   (void)config_capnp_size_bytes;
+  return -1;
+}
+
+int nwchemc_session_reset_topology(NWChemCSession *session) {
+  (void)session;
   return -1;
 }
 

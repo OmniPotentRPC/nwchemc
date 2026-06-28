@@ -590,6 +590,7 @@ spin-scaling rules.
 | ~nwchemc_session_create_from_config~ | ~abi.nwchemc_session_create_from_config~ | returns NULL | creates persistent PotentialConfig session |
 | ~nwchemc_session_set_params~ | ~abi.nwchemc_session_set_params~ | fails non-zero | replaces params before topology |
 | ~nwchemc_session_configure~ | ~abi.nwchemc_session_configure~ | fails non-zero | configures PotentialConfig before topology |
+| ~nwchemc_session_reset_topology~ | ~abi.nwchemc_session_reset_topology~ | fails non-zero | clears accepted session topology |
 | ~nwchemc_session_destroy~ | ~abi.nwchemc_session_destroy~ | no-op | releases persistent session |
 | ~nwchemc_session_energy_gradient~ | ~abi.nwchemc_session_energy_gradient~ | fails ok==0 | runs session energy/gradient |
 | ~nwchemc_session_energy~ | ~abi.nwchemc_session_energy~ | fails ok==0 | runs session energy-only |

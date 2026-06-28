@@ -328,6 +328,14 @@ int nwchemc_session_configure(NWChemCSession *session,
                               size_t config_capnp_size_bytes);
 
 /**
+ * @brief Clear the accepted atom-count/species topology for a session.
+ *
+ * The installed `NWChemParams` remain in place. Evaluation with a new atom
+ * count or ordered species list establishes the replacement topology.
+ */
+int nwchemc_session_reset_topology(NWChemCSession *session);
+
+/**
  * @brief Release a persistent evaluation session.
  */
 void nwchemc_session_destroy(NWChemCSession *session);

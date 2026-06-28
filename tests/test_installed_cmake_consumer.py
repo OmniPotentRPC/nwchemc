@@ -45,6 +45,7 @@ typedef NWChemCResult (*SessionResultFn)(NWChemCSession *, const void *,
 typedef int (*ConfigFn)(const void *, size_t);
 typedef NWChemCSession *(*SessionCreateFn)(const void *, size_t);
 typedef int (*SessionConfigFn)(NWChemCSession *, const void *, size_t);
+typedef int (*SessionResetFn)(NWChemCSession *);
 typedef void (*SessionDestroyFn)(NWChemCSession *);
 typedef NWChemCResult (*CoordinateEnergyFn)(int, const double *, const int *,
                                             const void *, size_t);
@@ -414,6 +415,9 @@ static int exercise_coordinate_session_abi(void) {
       nwchemc_session_set_params,
       nwchemc_session_configure,
   };
+  SessionResetFn session_reset_fns[] = {
+      nwchemc_session_reset_topology,
+  };
   SessionDestroyFn session_destroy_fns[] = {
       nwchemc_session_destroy,
   };
@@ -508,6 +512,18 @@ static int exercise_coordinate_session_abi(void) {
     }
     int status = expect_status_failure(
         "session config function", session_config_fns[index](NULL, NULL, 0));
+    if (status != 0) {
+      return status;
+    }
+  }
+  for (index = 0;
+       index < sizeof(session_reset_fns) / sizeof(session_reset_fns[0]);
+       ++index) {
+    if (session_reset_fns[index] == NULL) {
+      return 4;
+    }
+    int status = expect_status_failure("session reset function",
+                                       session_reset_fns[index](NULL));
     if (status != 0) {
       return status;
     }

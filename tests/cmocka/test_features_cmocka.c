@@ -132,7 +132,7 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)fields, 14);
   assert_int_equal((int)schema_fields, 436);
   assert_int_equal((int)schema_methods, 12);
-  assert_int_equal((int)abis, 117);
+  assert_int_equal((int)abis, 118);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +
                          schema_methods + abis),
                    (int)nwchemc_feature_count());
@@ -203,6 +203,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_create_from_config",
       "abi.nwchemc_session_set_params",
       "abi.nwchemc_session_configure",
+      "abi.nwchemc_session_reset_topology",
       "abi.nwchemc_session_destroy",
       "abi.nwchemc_session_energy_gradient",
       "abi.nwchemc_session_energy",

@@ -190,10 +190,12 @@ the Angstrom values used by the C ABI boundary before the Fortran bridge stores
 them in NWChem geometry state. ~ForceInput.hasCharge~ / ~ForceInput.charge~ and
 ~ForceInput.hasMultiplicity~ / ~ForceInput.multiplicity~ override the session
 charge or spin multiplicity for that serialized step; unset flags keep the
-values from ~NWChemParams~, and non-positive multiplicities are rejected. The
-energy in ~NWChemCResult.energy_h~ is in Hartree. ~forces_h_bohr~ is filled in
-Hartree per Bohr for low-overhead native callers; ~gradient_h_bohr~ is filled
-with the corresponding nuclear gradient sign in the same unit.
+values from ~NWChemParams~, and non-positive multiplicities are rejected.
+~nwchemc_session_reset_topology()~ clears the accepted atom count and ordered
+species list while retaining the installed method parameters. The energy in
+~NWChemCResult.energy_h~ is in Hartree. ~forces_h_bohr~ is filled in Hartree
+per Bohr for low-overhead native callers; ~gradient_h_bohr~ is filled with the
+corresponding nuclear gradient sign in the same unit.
 ~nwchemc_session_calculate_result~ fills an unpacked flat
 ~PotentialResult~ Cap'n Proto message: ~energy~ uses ~ForceInput.energyUnit~,
 and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
