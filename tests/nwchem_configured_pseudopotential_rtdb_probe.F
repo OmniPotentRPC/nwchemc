@@ -168,7 +168,7 @@
          result = 83
          return
       endif
-      if (stored_type .ne. 1) then
+      if (stored_type .ne. 2) then
          result = 84
          return
       endif
@@ -206,6 +206,51 @@
       endif
       if (typed_ivals(1) .ne. 2 .or. typed_ivals(2) .ne. 3) then
          result = 94
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:pspspin_iamup:_000002', typed_log)) then
+         result = 109
+         return
+      endif
+      if (typed_log) then
+         result = 110
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:pspspin_downscale:_000002', 1, typed_dvals)) then
+         result = 111
+         return
+      endif
+      if (dabs(typed_dvals(1) - 0.75d0) .gt. 1.0d-12) then
+         result = 112
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:pspspin_downl:_000002', stored_type)) then
+         result = 113
+         return
+      endif
+      if (stored_type .ne. 2) then
+         result = 114
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:pspspin_downm:_000002', stored_type)) then
+         result = 115
+         return
+      endif
+      if (stored_type .ne. 0) then
+         result = 116
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:pspspin_downions:_000002', 1, typed_ivals)) then
+         result = 117
+         return
+      endif
+      if (typed_ivals(1) .ne. 2) then
+         result = 118
          return
       endif
       if (.not. nwchemc_probe_get_log(rtdb,

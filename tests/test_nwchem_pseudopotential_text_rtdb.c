@@ -75,6 +75,7 @@ static void test_rendered_pseudopotential_deck_reaches_rtdb(void **state) {
   assert_non_null(strstr(input_blocks, "* pspw_library pspw_default"));
   assert_null(strstr(input_blocks, "pspspin on"));
   assert_non_null(strstr(input_blocks, "pspspin up p 1.25 2 3"));
+  assert_non_null(strstr(input_blocks, "pspspin not_m 0 down d 0.75 2"));
   assert_non_null(strstr(input_blocks, "uterm d 1.4 0.2 4 6"));
   assert_non_null(
       strstr(input_blocks, "set nwpw:psp:semicore_small logical true"));

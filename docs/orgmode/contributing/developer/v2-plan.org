@@ -568,12 +568,11 @@ reads back the exact ~pspw_library~, ~paw_library~, ~pspw_library_type~,
 ~pspspin~, ~semicoreSmall~, and ~utermRules~ entries without routing through
 NWChem text input.
 
-Top-level text-input parity for the same NWPW pseudopotential stanza requires
-an NWPW-enabled NWChem link. The current embedded test link resolves
-~nwpw_input~ through NWChem's stub object, which aborts before the text input
-handler can populate RTDB. Use the direct RTDB regression above for this build
-and run a matching text/deck parity probe only against a build where
-~src/nwpw/nwpw_input.F~ is linked.
+The ~nwchem-pseudopotential-text-rtdb~ probe covers top-level text-input
+parity for the same NWPW pseudopotential stanza against an NWPW-enabled NWChem
+link. It renders the full ~nwpw / pseudopotentials~ block, parses it with
+~nw_inp_from_character~, and reads the same library, reset, ~pspspin~,
+~not_m~, semicore, and ~uterm~ RTDB keys that the direct path writes.
 
 ** Atom And Geometry Limits
 Direct geometry and library-basis setup use ~n_atoms~-sized storage instead of

@@ -22,7 +22,15 @@
         ],
         pspSpin = enabled,
         spinRules = [
-          (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [2, 3])
+          (channel = up, angularMomentum = p, scale = 1.25, ionIndices = [2, 3]),
+          (
+            channel = down,
+            angularMomentum = d,
+            scale = 0.75,
+            hasMagneticQuantumNumber = true,
+            magneticQuantumNumber = 0,
+            ionIndices = [2]
+          )
         ],
         semicoreSmall = enabled,
         uterm = enabled,

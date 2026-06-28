@@ -203,8 +203,8 @@ struct NWChemPseudopotentialEntry {
 
 enum NWChemPseudopotentialSpinMode {
   unspecified @0; # Do not emit pspspin.
-  enabled     @1; # Emit pspspin on.
-  disabled    @2; # Emit pspspin off.
+  enabled     @1; # Promote nwpw:pspspin=true directly; spinRules render text rules.
+  disabled    @2; # Render/promote pspspin off.
 }
 
 struct NWChemPseudopotentialSpinRule {
@@ -245,7 +245,7 @@ struct NWChemPseudopotentialUtermRule {
 struct NWChemPseudopotentialStanza {
   entries    @0 :List(NWChemPseudopotentialEntry);
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
-  pspSpin    @2 :NWChemPseudopotentialSpinMode = unspecified; # Emit pspspin on/off.
+  pspSpin    @2 :NWChemPseudopotentialSpinMode = unspecified; # Direct pspspin state, plus disabled text reset.
   spinRules  @3 :List(NWChemPseudopotentialSpinRule); # Emit/promote pspspin up/down scaling rules.
   semicoreSmall @4 :NWChemToggle = unspecified; # Promote nwpw:psp:semicore_small.
   uterm      @5 :NWChemToggle = unspecified; # Emit/promote NWPW uterm on/off.
