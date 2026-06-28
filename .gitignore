@@ -382,3 +382,16 @@ nwchemc.ccsdints.*
 nwchemc.f1
 nwchemc.v2
 nwchemc.t1
+# NWChem embed runtime scratch (not sources)
+/nwchemc.b
+/nwchemc.b^-1
+/nwchemc.c
+/nwchemc.drv.hess
+/nwchemc.fd_ddipole
+/nwchemc.hess
+/nwchemc.mp2nos
+/nwchemc.nmode
+/nwchemc.p
+/nwchemc.t2.*
+/nwchemc.movecs
+/nwchemc.temp*.nw
