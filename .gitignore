@@ -373,3 +373,12 @@ meson-private/
 # Keep project lint/coverage config tracked (global ignores may hide dot-toml).
 !.lychee.toml
 !prek.toml
+
+# NWChem embed scratch from local test runs
+nwchemc.movecs
+nwchemc.t2
+nwchemc.cfock
+nwchemc.ccsdints.*
+nwchemc.f1
+nwchemc.v2
+nwchemc.t1
