@@ -154,6 +154,28 @@ static double assert_f64_list(const char *label, capn_list64 list,
   return max_abs;
 }
 
+static double assert_potential_result_gradient(const unsigned char *message,
+                                               size_t message_size,
+                                               double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  double max_gradient_abs =
+      assert_f64_list("gradient", result.gradient, 6, NULL);
+  assert_true(max_gradient_abs > 1.0e-8);
+
+  double energy = result.energy;
+  capn_free(&arena);
+  return energy;
+}
+
 static void assert_potential_result_hessian(const unsigned char *message,
                                             size_t message_size,
                                             double expected_energy) {
@@ -365,14 +387,20 @@ static void test_session_named_energy_and_forces_results_reuse_config(
       nwchemc_energy_result_size_for_force_input(step_eq, step_eq_size);
   size_t force_size_expected =
       nwchemc_forces_result_size_for_force_input(step_eq, step_eq_size);
+  size_t gradient_size_expected =
+      nwchemc_gradient_result_size_for_force_input(step_eq, step_eq_size);
   assert_true(energy_size_expected > 0);
   assert_true(force_size_expected > energy_size_expected);
+  assert_true(gradient_size_expected > energy_size_expected);
   assert_int_equal(nwchemc_energy_result_size_for_force_input(
                        step_stretched, step_stretched_size),
                    energy_size_expected);
   assert_int_equal(nwchemc_forces_result_size_for_force_input(
                        step_stretched, step_stretched_size),
                    force_size_expected);
+  assert_int_equal(nwchemc_gradient_result_size_for_force_input(
+                       step_stretched, step_stretched_size),
+                   gradient_size_expected);
 
   NWChemCSession *session = nwchemc_session_create(params, params_size);
   assert_non_null(session);
@@ -402,6 +430,22 @@ static void test_session_named_energy_and_forces_results_reuse_config(
   double stretched_energy = assert_potential_result(
       result_bytes, result_size, stretched_forces_status.energy_h);
   assert_true(fabs(stretched_energy - eq_energy) > 1.0e-5);
+
+  memset(result_bytes, 0, sizeof(result_bytes));
+  result_size = 0;
+  NWChemCResult stretched_gradient_status =
+      nwchemc_session_calculate_gradient_result(
+          session, step_stretched, step_stretched_size, result_bytes,
+          sizeof(result_bytes), &result_size);
+  if (!stretched_gradient_status.ok)
+    fail_msg("nwchemc_session_calculate_gradient_result failed: %s",
+             stretched_gradient_status.message);
+  assert_int_equal(result_size, gradient_size_expected);
+  double stretched_gradient_energy = assert_potential_result_gradient(
+      result_bytes, result_size, stretched_gradient_status.energy_h);
+  assert_close(stretched_gradient_status.energy_h,
+               stretched_forces_status.energy_h, 1.0e-10);
+  assert_close(stretched_gradient_energy, stretched_energy, 1.0e-10);
 
   memset(result_bytes, 0, sizeof(result_bytes));
   result_size = 0;
@@ -584,6 +628,24 @@ static void test_calculate_named_result_carriers_one_shot(void **state) {
   assert_int_equal(forces_size, forces_capacity);
   assert_potential_result(forces_bytes, forces_size, forces_status.energy_h);
 
+  size_t gradient_capacity =
+      nwchemc_gradient_result_size_for_force_input(step_stretched,
+                                                   step_stretched_size);
+  assert_true(gradient_capacity > energy_capacity);
+  unsigned char *gradient_bytes = (unsigned char *)malloc(gradient_capacity);
+  assert_non_null(gradient_bytes);
+  size_t gradient_size = 0;
+  NWChemCResult gradient_status = nwchemc_calculate_gradient_result(
+      params, params_size, step_stretched, step_stretched_size, gradient_bytes,
+      gradient_capacity, &gradient_size);
+  if (!gradient_status.ok)
+    fail_msg("nwchemc_calculate_gradient_result failed: %s",
+             gradient_status.message);
+  assert_int_equal(gradient_size, gradient_capacity);
+  assert_potential_result_gradient(gradient_bytes, gradient_size,
+                                   gradient_status.energy_h);
+  assert_close(gradient_status.energy_h, forces_status.energy_h, 1.0e-10);
+
   size_t hessian_capacity =
       nwchemc_hessian_result_size_for_force_input(step_eq, step_eq_size);
   assert_true(hessian_capacity > forces_capacity);
@@ -685,6 +747,7 @@ static void test_calculate_named_result_carriers_one_shot(void **state) {
   free(quadrupole_bytes);
   free(dipole_bytes);
   free(hessian_bytes);
+  free(gradient_bytes);
   free(forces_bytes);
   free(energy_bytes);
   free(step_stretched);
