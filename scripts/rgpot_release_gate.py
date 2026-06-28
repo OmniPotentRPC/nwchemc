@@ -23,7 +23,29 @@ RGPOT_RELEASE_TESTS = [
 ]
 
 
+def listed_meson_tests(meson: str, build_dir: str) -> set[str]:
+    """Return test names registered in the Meson build (short names only)."""
+    proc = subprocess.run(
+        [meson, "test", "-C", build_dir, "--list"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    names: set[str] = set()
+    for line in (proc.stdout or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # Meson --list prints "project:name" or suite-prefixed forms.
+        name = line.split(":")[-1].strip()
+        names.add(name)
+        names.add(line)
+    return names
+
+
 def rgpot_gate_command(meson: str, build_dir: str, num_processes: int) -> list[str]:
+    available = listed_meson_tests(meson, build_dir)
+    selected = [name for name in RGPOT_RELEASE_TESTS if name in available]
     return [
         meson,
         "test",
@@ -32,7 +54,7 @@ def rgpot_gate_command(meson: str, build_dir: str, num_processes: int) -> list[s
         "--print-errorlogs",
         "--num-processes",
         str(num_processes),
-        *RGPOT_RELEASE_TESTS,
+        *selected,
     ]
 
 

@@ -93,6 +93,16 @@ if has_nwchem
     check: true,
   ).stdout().strip()
   nwchem_module_libs = nwchem_module_libs_raw.split()
+  # NWPW/PSPW tasks need an NWChem tree that linked those modules (not smallqm).
+  nwchem_has_nwpw = run_command(
+    python,
+    [
+      '-c',
+      'import pathlib,re,sys;t=pathlib.Path(sys.argv[1]).read_text();s=re.search(r"^NW_MODULE_SUBDIRS\\s*=\\s*(.*)$",t,re.M);e=re.search(r"^EXCLUDED_SUBDIRS\\s*=\\s*(.*)$",t,re.M);subs=(s.group(1) if s else "").lower().split();excl=(e.group(1) if e else "").lower().split();print("1" if ("nwpw" in subs and "nwpw" not in excl) else "0")',
+      nwchem_config_h,
+    ],
+    check: true,
+  ).stdout().strip() == '1'
   ga_config = find_program(nwchem_root / 'src/tools/install/bin/ga-config')
   ga_ldflags = run_command(ga_config, '--ldflags', check: true).stdout().strip().split()
   ga_libs = run_command(ga_config, '--libs', check: true).stdout().strip().split()
@@ -1542,44 +1552,46 @@ nwchem_config_options_params_bin = custom_target(
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
-    nwchem_stress_test = executable(
-      'test_nwchem_stress',
-      'tests/test_nwchem_stress.c',
-      include_directories: inc,
-      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
-      c_args: common_c_args + [
-        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-      ],
-    )
-    test(
-      'nwchem-stress',
-      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_stress_test,
-      args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_stress_test, potential_config_pspw_stress_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin]
-        : [potential_config_pspw_stress_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin],
-      env: nwchem_test_mpi_env,
-      is_parallel: false,
-    )
-    nwchem_pspw_pseudopotential_forces_test = executable(
-      'test_nwchem_pspw_pseudopotential_forces',
-      'tests/test_nwchem_pspw_pseudopotential_forces.c',
-      include_directories: [inc] + nwchemc_params_includes,
-      dependencies: [math_dep, cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
-      c_args: common_c_args + [
-        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
-        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
-      ],
-    )
-    test(
-      'nwchem-pspw-pseudopotential-forces',
-      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pspw_pseudopotential_forces_test,
-      args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pspw_pseudopotential_forces_test, nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin]
-        : [nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin],
-      env: nwchem_test_mpi_env,
-      is_parallel: false,
-    )
+    if nwchem_has_nwpw
+      nwchem_stress_test = executable(
+        'test_nwchem_stress',
+        'tests/test_nwchem_stress.c',
+        include_directories: inc,
+        dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      )
+      test(
+        'nwchem-stress',
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_stress_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_stress_test, potential_config_pspw_stress_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin]
+          : [potential_config_pspw_stress_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+      )
+      nwchem_pspw_pseudopotential_forces_test = executable(
+        'test_nwchem_pspw_pseudopotential_forces',
+        'tests/test_nwchem_pspw_pseudopotential_forces.c',
+        include_directories: [inc] + nwchemc_params_includes,
+        dependencies: [math_dep, cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
+        c_args: common_c_args + [
+          '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+          '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+        ],
+      )
+      test(
+        'nwchem-pspw-pseudopotential-forces',
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pspw_pseudopotential_forces_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pspw_pseudopotential_forces_test, nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin]
+          : [nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+      )
+    endif
     nwchem_energy_forces_test = executable(
       'test_nwchem_energy_forces',
       'tests/test_nwchem_energy_forces.c',
@@ -1681,24 +1693,26 @@ nwchem_config_options_params_bin = custom_target(
       c_args: common_c_args,
       fortran_args: nwchem_legacy_args,
     )
-    test(
-      'nwchem-pseudopotential-text-rtdb',
-      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
-      args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, 'enabled', nwchem_pseudopotential_params_bin]
-        : ['enabled', nwchem_pseudopotential_params_bin],
-      env: nwchem_test_mpi_env,
-      is_parallel: false,
-    )
-    test(
-      'nwchem-pseudopotential-text-reset-rtdb',
-      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
-      args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, 'reset', nwchem_pseudopotential_reset_params_bin]
-        : ['reset', nwchem_pseudopotential_reset_params_bin],
-      env: nwchem_test_mpi_env,
-      is_parallel: false,
-    )
+    if nwchem_has_nwpw
+      test(
+        'nwchem-pseudopotential-text-rtdb',
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, 'enabled', nwchem_pseudopotential_params_bin]
+          : ['enabled', nwchem_pseudopotential_params_bin],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+      )
+      test(
+        'nwchem-pseudopotential-text-reset-rtdb',
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, 'reset', nwchem_pseudopotential_reset_params_bin]
+          : ['reset', nwchem_pseudopotential_reset_params_bin],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+      )
+    endif
     nwchem_nwpw_rtdb_test = executable(
       'test_nwchem_nwpw_rtdb',
       [

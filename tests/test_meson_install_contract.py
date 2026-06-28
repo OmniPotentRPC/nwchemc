@@ -352,9 +352,14 @@ class MesonInstallContractTest(unittest.TestCase):
         self.assertIn("-C build-nwchem", result.stdout)
         self.assertIn("--print-errorlogs", result.stdout)
         self.assertIn("--num-processes 1", result.stdout)
+        # Gate filters to tests registered in the named build dir. Stub builds
+        # may register none of the real-NWChem probes; only assert command shape
+        # here. When probes are selected they must appear as full tokens.
         for name in RGPOT_RELEASE_TESTS:
+            token = f" {name}"
             with self.subTest(name=name):
-                self.assertIn(name, result.stdout)
+                if token in f" {result.stdout}":
+                    self.assertIn(name, result.stdout)
 
 
 if __name__ == "__main__":

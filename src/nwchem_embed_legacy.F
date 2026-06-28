@@ -2486,8 +2486,16 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*64 zone_names(*)
       character*(*) errmsg
       logical ok
-      integer i, l
+      integer i, l, nx, ny, nz, num_kvectors, i1, i2, i3, k, alloc_stat
+      integer grid3(3)
+      character*80 rtdb_name
+      logical status
+      double precision, allocatable :: kvs(:)
+      double precision xxx, yyy, zzz, xx, yy, zz
 
+c     Mirror NWChem dos_states_set RTDB keys without linking NWPW archives
+c     (SCF-only NWChem trees lack dos_states_set). Writes:
+c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
       ok = .false.
       if (zone_count .lt. 0) then
          errmsg = 'invalid Brillouin DOS zone count'
@@ -2499,14 +2507,67 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             errmsg = 'empty Brillouin DOS zone name'
             return
          endif
-         if (zone_grids(1,i) .le. 0 .or.
-     $       zone_grids(2,i) .le. 0 .or.
-     $       zone_grids(3,i) .le. 0) then
+         nx = zone_grids(1,i)
+         ny = zone_grids(2,i)
+         nz = zone_grids(3,i)
+         if (nx .le. 0 .or. ny .le. 0 .or. nz .le. 0) then
             errmsg = 'invalid Brillouin DOS grid'
             return
          endif
-         call dos_states_set(rtdb, zone_names(i), zone_grids(1,i),
-     $      zone_grids(2,i), zone_grids(3,i))
+         num_kvectors = nx * ny * nz
+         if (num_kvectors .le. 0) then
+            errmsg = 'invalid Brillouin DOS k-vector count'
+            return
+         endif
+         allocate(kvs(4 * num_kvectors), stat=alloc_stat)
+         if (alloc_stat .ne. 0) then
+            errmsg = 'brillouin DOS k-vector allocate failed'
+            return
+         endif
+         xxx = 1.0d0 / dble(nx)
+         yyy = 1.0d0 / dble(ny)
+         zzz = 1.0d0 / dble(nz)
+         k = 0
+         do i3 = 0, nz - 1
+            do i2 = 0, ny - 1
+               do i1 = 0, nx - 1
+                  xx = dble(i1)
+                  yy = dble(i2)
+                  zz = dble(i3)
+                  kvs(4 * k + 1) = xx * xxx
+                  kvs(4 * k + 2) = yy * yyy
+                  kvs(4 * k + 3) = zz * zzz
+                  kvs(4 * k + 4) = -1.0d0
+                  k = k + 1
+               enddo
+            enddo
+         enddo
+         rtdb_name = zone_names(i)(1:l)//':number_kvectors'
+         call nwchemc_rtdb_put_int(rtdb, rtdb_name, num_kvectors,
+     $        status)
+         if (.not. status) then
+            deallocate(kvs)
+            errmsg = 'brillouin DOS k-vector count write failed'
+            return
+         endif
+         rtdb_name = zone_names(i)(1:l)//':kvectors'
+         call nwchemc_rtdb_put_dbl_array(rtdb, rtdb_name,
+     $        4 * num_kvectors, kvs, status)
+         deallocate(kvs)
+         if (.not. status) then
+            errmsg = 'brillouin DOS k-vector write failed'
+            return
+         endif
+         grid3(1) = nx
+         grid3(2) = ny
+         grid3(3) = nz
+         rtdb_name = zone_names(i)(1:l)//':dos-grid'
+         call nwchemc_rtdb_put_int_array(rtdb, rtdb_name, 3, grid3,
+     $        status)
+         if (.not. status) then
+            errmsg = 'brillouin DOS grid write failed'
+            return
+         endif
       enddo
       ok = .true.
       return
