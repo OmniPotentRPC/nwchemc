@@ -9,10 +9,32 @@
     task = "stress",
     scratchDir = "@NWCHEMC_TEST_SCRATCH@-pspw-stress",
     permanentDir = "@NWCHEMC_TEST_PERMANENT@-pspw-stress",
-    inputBlocks = [
-      "nwpw\n  simulation_cell\n    ngrid 8 8 8\n  end\n  cutoff 3.0\n  ewald_ncut 4\n  lcao\nend\nset nwpw:cutoff_boot_psi .false.\nset nwpw:lcao_iterations 8"
-    ],
     inputStanzas = [
+      (
+        kind = simulationCell,
+        simulationCell = (
+          ngridX = 8,
+          ngridY = 8,
+          ngridZ = 8
+        )
+      ),
+      (
+        kind = nwpw,
+        nwpw = (
+          cutoffWavefunction = 3.0,
+          ewaldNcut = 4,
+          lcaoMode = lcao,
+          cutoffBootWavefunction = disabled
+        )
+      ),
+      (
+        kind = set,
+        set = (
+          key = "nwpw:lcao_iterations",
+          valueType = integer,
+          values = ["8"]
+        )
+      ),
       (
         kind = pseudopotential,
         pseudopotential = (
