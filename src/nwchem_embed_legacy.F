@@ -409,14 +409,15 @@ C     GCC16: no substring in INQUIRE FILE=; blank-pad after length.
          errmsg = 'ma_push_get grad failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'scf:gradient', mt_dbl, n3,
+C     Prefer task:gradient (socket/task_gradient path); scf:gradient fallback.
+      if (.not. rtdb_get(rtdb, 'task:gradient', mt_dbl, n3,
      $        dbl_mb(k_grad))) then
-         if (.not. rtdb_get(rtdb, 'task:gradient', mt_dbl, n3,
+         if (.not. rtdb_get(rtdb, 'scf:gradient', mt_dbl, n3,
      $           dbl_mb(k_grad))) then
             do i = 1, n3
                grad_h_bohr(i) = 0.0d0
             enddo
-            errmsg = 'rtdb_get scf/task:gradient failed; grad zeroed'
+            errmsg = 'rtdb_get task/scf:gradient failed; grad zeroed'
          else
             do i = 1, n3
                grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
@@ -2011,6 +2012,7 @@ C     GCC16: no substring in INQUIRE FILE=; blank-pad after length.
       implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
+#include "inp.fh"
       integer rtdb, charge, mult
       integer dft_direct, dft_smear_on, dft_smear_spinset
       integer scf_has_options, scf_maxiter
@@ -2024,8 +2026,8 @@ C     GCC16: no substring in INQUIRE FILE=; blank-pad after length.
       double precision scf_thresh, scf_tol2e
       double precision gmax_tol, grms_tol, xmax_tol, xrms_tol
       logical ok
-      logical status, lval
-      integer nopen, ival
+      logical status, lval, have_movecs
+      integer nopen, ival, i
       double precision chg
       character*255 vectors_in
       character*255 tddft_fn
@@ -2109,14 +2111,24 @@ C     Prefer permanent movecs so multi-call forces reuse MOs (not atomic guess).
          ok = ok .and. status
          call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
          ok = ok .and. status
-         status = rtdb_cput(rtdb, 'dft:input vectors', 1, vectors_in)
-         ok = ok .and. status
          status = rtdb_cput(rtdb, 'dft:output vectors', 1, vectors_in)
-         ok = ok .and. status
-         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
          ok = ok .and. status
+         i = inp_strlen(vectors_in)
+         vectors_in(i+1:) = ' '
+         inquire(file=vectors_in, exist=have_movecs)
+         if (have_movecs) then
+            status = rtdb_cput(rtdb, 'dft:input vectors', 1, vectors_in)
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+            ok = ok .and. status
+         else
+            status = rtdb_cput(rtdb, 'dft:input vectors', 1, 'atomic')
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
+            ok = ok .and. status
+         endif
          nopen = mult - 1
          call nwchemc_rtdb_put_int(rtdb, 'dft:nopen', nopen, status)
          ok = ok .and. status
