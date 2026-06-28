@@ -54,3 +54,4 @@ rewriting ~theory~ from stanza content or legacy string hacks.
 Link ~libselci~ into embed (~NW_MODULE_LIBS~). Prefer RTDB ~set selci:*~ in
 fixtures so embed and CLI agree without requiring ~selci_input~ in an old CLI
 binary; rebuild CLI when full stanza parse is required.
+- Enabling a module requires removing it from src/stubs.F and rebuilding stubs.o (selci was shadowed by stubs).
