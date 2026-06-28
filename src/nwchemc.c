@@ -4509,9 +4509,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
       PROMO_DBL("tddft:ecut", tddft_ecut);
       PROMO_LOG("tddft:lecut", 1);
     }
-    /* TDDFT analytic gradient root indices (CI paths set in method_state). */
+    /* Persist CI vectors for analysis/gradients; set gradient root indices. */
     {
       int grad_root = tddft_target > 0 ? tddft_target : 1;
+      PROMO_LOG("tddft:lcivecs", 1);
       PROMO_INT("tddft_grad:isinglet_roots", grad_root);
       PROMO_INT("tddft_grad:itriplet_roots", grad_root);
       PROMO_INT("tddft_grad:iroots", grad_root);

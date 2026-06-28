@@ -1755,6 +1755,7 @@ nwchem_config_options_params_bin = custom_target(
       ['rimp2', nwchem_params_h2_rimp2_bin],
       ['ccsd', nwchem_params_h2_ccsd_bin],
       ['tce', nwchem_params_h2_tce_bin],
+      ['tddft', nwchem_params_h2_tddft_bin],
     ]
       test(
         'nwchem-energy-forces-' + forces_case[0],

@@ -2136,8 +2136,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
                ok = ok .and. status
             endif
          endif
-c        TDDFT SP forces: NWChem util paths for CI vectors + grad root.
+c        TDDFT SP forces: persist CI vectors + util paths + grad root.
          if (theory_name(1:5) .eq. 'tddft') then
+            lval = .true.
+            status = rtdb_put(rtdb, 'tddft:lcivecs', mt_log, 1, lval)
+            ok = ok .and. status
             call util_file_name('civecs', .false., .false.,
      $         tddft_fn)
             status = rtdb_cput(rtdb, 'tddft:civecs', 1, tddft_fn)
