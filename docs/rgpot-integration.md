@@ -20,6 +20,15 @@ installed package and call the serialized-message ABI directly:
 - Structured pseudopotentials are promoted to NWChem RTDB state by the embed
   bridge; rgpot does not need to render NWChem pseudopotential text.
 
+Use this as the merge/pr decision point:
+
+1. rgpot links the installed package through CMake or pkg-config.
+2. rgpot sends the shared `PotentialConfig.nwchem` and `ForceInput` messages
+   without a schema adapter.
+3. rgpot reads only stable `PotentialResult` fields for the release surface.
+4. The release gate in this document passes against the same real-NWChem build
+   that produced the installed package.
+
 The merge/pr release gate is a green local stub/parser suite, a green
 real-NWChem suite for the probes listed below, and green installed-package
 CMake/pkg-config consumers against the same NWChem build. Periodic stress is
@@ -117,6 +126,18 @@ negative derivative.
 `ForceInput.hasMultiplicity` / `ForceInput.multiplicity` override the session
 configuration for a step. Unset flags keep the values from
 `PotentialConfig.nwchem`.
+
+## Result Carrier Boundary
+
+`PotentialResult` is limited to values the bridge can read from stable NWChem
+embed/RTDB state and serialize with explicit units. That includes energies,
+derivatives, response tensors, optimized coordinates, vibrational modes, and
+frequency thermochemistry.
+
+Mulliken and population-analysis controls remain available in
+`PotentialConfig.nwchem`. They are not part of `PotentialResult` because the
+corresponding NWChem paths produce print/ECCE output and store control flags,
+not a stable per-atom RTDB result vector for the embed bridge.
 
 ## Supported merge scope
 

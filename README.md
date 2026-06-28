@@ -16,6 +16,18 @@ The rgpot-facing ABI is the serialized
 the backend against an installed `nwchemc` package without depending on
 NWChem text decks, C++ objects, Rust objects, or files from this source tree.
 
+The practical merge/pr trigger is:
+
+- rgpot uses the installed package through CMake or pkg-config.
+- rgpot sends the shared `PotentialConfig.nwchem` and `ForceInput` messages
+  without a schema adapter.
+- rgpot consumes only stable `PotentialResult` fields for the release surface:
+  energy, forces, gradient, Hessian, stress, dipole, polarizability,
+  quadrupole, optimized coordinates, frequencies, normal modes, and frequency
+  thermochemistry.
+- The real-NWChem gate below passes against the same NWChem build that the
+  package was linked with.
+
 Use this path for the rgpot adapter:
 
 1. Link the installed package with CMake `find_package(nwchemc CONFIG
@@ -52,6 +64,10 @@ The merge/pr release gate is:
 - The installed CMake/pkg-config consumers compile, link, and run
   invalid-input ABI checks for the rgpot result-carrier, raw ForceInput,
   session, and coordinate entry points.
+
+Mulliken and population-analysis controls are schema inputs. They are not part
+of the rgpot release result carrier because the NWChem paths expose those
+values through print/ECCE output rather than a stable RTDB result vector.
 
 Run the gate against the release NWChem build with:
 
