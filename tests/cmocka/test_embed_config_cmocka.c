@@ -7066,6 +7066,39 @@ static void test_calculate_config_raw_one_shot_accepts_force_input(
 }
 
 /* Classic CCSD: promote ccsd:* RTDB keys; params.theory=ccsd is not rewritten to dft. */
+static void test_embed_promotes_classic_ccsd_controls(void **state) {
+  (void)state;
+  assert_non_null(g_params_path);
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_params_path, &message_size);
+  assert_non_null(message);
+  (void)nwchemc_energy_gradient(2, NULL, NULL, message, message_size, NULL);
+  assert_typed_set_scalar("ccsd:maxiter", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "20");
+  assert_typed_set_scalar("ccsd:thresh", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1e-07");
+  assert_typed_set_scalar("ccsd:tol2e", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1e-09");
+  assert_typed_set_scalar("ccsd:iprt", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  assert_typed_set_scalar("ccsd:maxdiis", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "6");
+  assert_typed_set_scalar("ccsd:frozen core", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  assert_typed_set_scalar("ccsd:frozen virtual", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
+  assert_typed_set_scalar("ccsd:usedisk", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "false");
+  assert_typed_set_scalar("ccsd:fss", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.2");
+  assert_typed_set_scalar("ccsd:fos", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.8");
+  assert_typed_set_scalar("ccsd:use_trpdrv_nb", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("ccsd:use_ccsd_omp", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("ccsd:use_trpdrv_omp", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "false");
+  assert_typed_set_scalar("ccsd:use_trpdrv_offload",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_null(strstr(g_input_blocks, "ccsd\n  maxiter 20"));
+  assert_null(strstr(g_input_blocks, "set ccsd:maxiter"));
+  free(message);
+}
+
+
 int main(int argc, char **argv) {
   if (argc != 38) {
     fprintf(stderr,
@@ -7137,6 +7170,7 @@ int main(int argc, char **argv) {
   g_brillouin_dos_grid_default_path = argv[37];
 
   const struct CMUnitTest tests[] = {
+      cmocka_unit_test(test_embed_promotes_classic_ccsd_controls),
       cmocka_unit_test(
           test_embed_promotes_typed_scf_wf_nopen_and_dft_iterations),
       cmocka_unit_test(test_embed_promotes_typed_scf_semidirect_int2e),
