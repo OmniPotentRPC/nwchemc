@@ -847,6 +847,13 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     force_input_h2_box_bohr.capnp.txt
     force_input_h2_box_bohr.bin
   )
+  nwchemc_add_encoded_fixture(
+    force_input_si_box_ang_bin
+    NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN
+    ForceInput
+    force_input_si_box_ang.capnp.txt
+    force_input_si_box_ang.bin
+  )
 
   add_executable(test_capnp_parser tests/test_capnp_parser.c)
   target_link_libraries(test_capnp_parser PRIVATE
@@ -1113,6 +1120,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       potential_config_pseudopotential
       PotentialConfig
     )
+    nwchemc_configure_fixture(
+      potential_config_pspw_stress.capnp.txt.in
+      potential_config_pspw_stress
+      PotentialConfig
+    )
 
     function(nwchemc_add_gradient_test target_name params_bin_target params_bin)
       add_executable("${target_name}" tests/test_nwchem_energy_gradient.c)
@@ -1275,6 +1287,27 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       nwchem-forceinput-cell-rtdb
       "${NWCHEMC_FORCE_INPUT_H2_BOX_ANG_BIN}"
       "${NWCHEMC_FORCE_INPUT_H2_BOX_BOHR_BIN}"
+    )
+
+    add_executable(nwchem-stress tests/test_nwchem_stress.c)
+    target_link_libraries(nwchem-stress PRIVATE nwchemc PkgConfig::CMOCKA)
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-stress PRIVATE "${NWCHEMC_M_LIBRARY}")
+    endif()
+    target_compile_options(nwchem-stress PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
+    target_compile_definitions(nwchem-stress PRIVATE
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-stress
+      potential_config_pspw_stress_bin
+      force_input_si_box_ang_bin
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-stress
+      nwchem-stress
+      "${potential_config_pspw_stress_BIN}"
+      "${NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN}"
     )
 
     add_executable(nwchem-energy-forces tests/test_nwchem_energy_forces.c)

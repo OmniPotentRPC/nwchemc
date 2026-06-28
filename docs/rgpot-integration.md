@@ -75,17 +75,19 @@ above and these probes are green:
 | `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy and forces | `tests/test_nwchem_rgpot_smoke.c` |
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
 | Hessian, dipole, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
+| Periodic PSPW stress raw buffer and result carrier | `tests/test_nwchem_stress.c` |
 | `ForceInput.box` cell-vector RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
 | Structured pseudopotential RTDB storage from `PotentialConfig.nwchem` | `tests/test_nwchem_potential_config_pseudopotential.c` |
 | Direct pseudopotential RTDB storage | `tests/test_nwchem_pseudopotential_rtdb.c` |
-| Stub/parser ABI and result-carrier shape, including stress | `tests/cmocka/test_embed_config_cmocka.c` |
+| Stub/parser ABI and result-carrier shape | `tests/cmocka/test_embed_config_cmocka.c` |
 
 Molecular energy, forces, Hessian, dipole, quadrupole, optimization, and
-frequencies are covered by real-NWChem smoke tests. Periodic energy and stress
-need an NWPW-enabled NWChem link; molecular NWChem modules reject periodic
-geometries, and NWPW/PSPW stubs cannot validate stress evaluation. The ABI,
-Cap'n Proto result shape, unit conversion path, and direct RTDB cell storage
-are still covered without a periodic-capable NWChem build.
+frequencies are covered by real-NWChem smoke tests. Periodic stress is covered
+by the PSPW stress smoke when rgpot is paired with an NWPW-enabled NWChem
+build. Molecular NWChem modules reject periodic geometries, so periodic
+coverage uses that NWPW-enabled path. The ABI, Cap'n Proto result shape, unit
+conversion path, and direct RTDB cell storage are still covered without a
+periodic-capable NWChem build.
 
 ## Release gate
 
@@ -112,6 +114,5 @@ A rgpot-side merge/pr release is at the wiring stage when:
 - The installed package smoke `nwchem-installed-pkgconfig-consumer` passes
   against the same NWChem build when rgpot uses pkg-config for discovery.
 
-Stress can join the same release surface when rgpot is paired with an
-NWPW-enabled NWChem build and the periodic stress case is added to the
-real-NWChem probe list.
+Stress is on the same release surface when rgpot is paired with an NWPW-enabled
+NWChem build and `tests/test_nwchem_stress.c` passes in the real-NWChem suite.

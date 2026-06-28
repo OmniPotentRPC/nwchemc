@@ -843,10 +843,10 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
-  force_input_h2_box_bohr_bin = custom_target(
-    'force_input_h2_box_bohr_bin',
-    input: 'tests/force_input_h2_box_bohr.capnp.txt',
-    output: 'force_input_h2_box_bohr.bin',
+force_input_h2_box_bohr_bin = custom_target(
+  'force_input_h2_box_bohr_bin',
+  input: 'tests/force_input_h2_box_bohr.capnp.txt',
+  output: 'force_input_h2_box_bohr.bin',
     command: [
       python,
       meson.current_source_dir() / 'tests/encode_capnp.py',
@@ -854,13 +854,27 @@ if get_option('with_tests')
       meson.current_source_dir() / 'schema/Potentials.capnp',
       'ForceInput',
       '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_config_options_params_bin = custom_target(
-    'nwchem_config_options_params_bin',
-    input: 'tests/nwchem_params_config_options.capnp.txt',
-    output: 'nwchem_params_config_options.bin',
+    '@OUTPUT@',
+  ],
+)
+force_input_si_box_ang_bin = custom_target(
+  'force_input_si_box_ang_bin',
+  input: 'tests/force_input_si_box_ang.capnp.txt',
+  output: 'force_input_si_box_ang.bin',
+  command: [
+    python,
+    meson.current_source_dir() / 'tests/encode_capnp.py',
+    capnp,
+    meson.current_source_dir() / 'schema/Potentials.capnp',
+    'ForceInput',
+    '@INPUT@',
+    '@OUTPUT@',
+  ],
+)
+nwchem_config_options_params_bin = custom_target(
+  'nwchem_config_options_params_bin',
+  input: 'tests/nwchem_params_config_options.capnp.txt',
+  output: 'nwchem_params_config_options.bin',
     command: [
       python,
       meson.current_source_dir() / 'tests/encode_capnp.py',
@@ -1154,6 +1168,25 @@ if get_option('with_tests')
         '@OUTPUT@',
       ],
     )
+    potential_config_pspw_stress_text = configure_file(
+      input: 'tests/potential_config_pspw_stress.capnp.txt.in',
+      output: 'potential_config_pspw_stress.capnp.txt',
+      configuration: params_conf,
+    )
+    potential_config_pspw_stress_bin = custom_target(
+      'potential_config_pspw_stress_bin',
+      input: potential_config_pspw_stress_text,
+      output: 'potential_config_pspw_stress.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'PotentialConfig',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_hessian_params_text = configure_file(
       input: 'tests/nwchem_params_hessian.capnp.txt.in',
       output: 'nwchem_params_hessian.capnp.txt',
@@ -1315,6 +1348,25 @@ if get_option('with_tests')
       args: nwchem_test_mpi_ranks > 1
         ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_forceinput_cell_rtdb_test, force_input_h2_box_ang_bin, force_input_h2_box_bohr_bin]
         : [force_input_h2_box_ang_bin, force_input_h2_box_bohr_bin],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
+    nwchem_stress_test = executable(
+      'test_nwchem_stress',
+      'tests/test_nwchem_stress.c',
+      include_directories: inc,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+    )
+    test(
+      'nwchem-stress',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_stress_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_stress_test, potential_config_pspw_stress_bin, force_input_si_box_ang_bin]
+        : [potential_config_pspw_stress_bin, force_input_si_box_ang_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
