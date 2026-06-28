@@ -415,6 +415,7 @@ module prefix:
 | ~smearType~ | ~fractional_smeartype~ | ~nwpw~ |
 | ~virtualOrbitalsStart~ / ~virtualOrbitalsEnd~ | ~excited_ne~ | ~nwpw~ |
 | ~lcaoMode~ | ~lcao_skip~ | ~nwpw~ |
+| ~lcaoMask~ / ~lcaoMaskUpOrbitals~ / ~lcaoMaskDownOrbitals~ | ~lcao_mask~ / ~lcao_mask_uporbs~ / ~lcao_mask_downorbs~ | ~nwpw~ |
 | ~ewaldGridX~ / ~ewaldGridY~ / ~ewaldGridZ~ | ~ewald_ngrid~ | ~nwpw~ |
 | ~noseHoover~ | ~nose~ | ~cpmd~, ~nwpw~ |
 | ~noseRestart~ | ~nose_restart~ | ~cpmd~, ~nwpw~ |

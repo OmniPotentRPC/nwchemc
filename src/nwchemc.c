@@ -335,6 +335,33 @@ static int append_direct_typed_value(
                                     value_type, value_list, 1);
 }
 
+static int append_direct_integer_values(
+    capn_text *keys, int *value_types, int *value_counts, capn_text *values,
+    size_t key_capacity, size_t value_capacity, size_t *count,
+    char key_storage[][NWCHEMC_DIRECT_SET_KEY_LEN],
+    char value_storage[][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN],
+    const char *key, const int *integer_values, size_t nvalues) {
+  if (!integer_values || nvalues == 0 ||
+      nvalues > NWCHEMC_DIRECT_SET_VALUE_MAX)
+    return -1;
+  char owned_values[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                   [NWCHEMC_DIRECT_SET_VALUE_LEN];
+  const char *value_list[NWCHEMC_DIRECT_SET_VALUE_MAX];
+  for (size_t i = 0; i < nvalues; ++i) {
+    int n = snprintf(owned_values[i], sizeof(owned_values[i]), "%d",
+                     integer_values[i]);
+    if (n < 0 || (size_t)n >= sizeof(owned_values[i]))
+      return -1;
+    value_list[i] = owned_values[i];
+  }
+  return append_direct_typed_values(keys, value_types, value_counts, values,
+                                    key_capacity, value_capacity, count,
+                                    key_storage, value_storage, key,
+                                    NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                                    value_list, (int)nvalues);
+}
+
 static int append_direct_string_value(capn_text *keys, capn_text *values,
                                       size_t capacity, size_t *count,
                                       const char *key, capn_text value) {
@@ -1776,6 +1803,18 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_lcao_mode, &nwpw_ewald_grid_x, &nwpw_ewald_grid_y,
           &nwpw_ewald_grid_z) != 0)
     return -1;
+  int nwpw_lcao_mask_has_options = 0;
+  int nwpw_lcao_mask = NWChemNwpwToggle_unspecified;
+  int nwpw_lcao_mask_up_orbitals[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0};
+  int nwpw_lcao_mask_down_orbitals[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0};
+  size_t nwpw_lcao_mask_up_count = 0;
+  size_t nwpw_lcao_mask_down_count = 0;
+  if (nwchemc_params_extract_direct_nwpw_lcao_mask(
+          params_root, &nwpw_lcao_mask_has_options, &nwpw_lcao_mask,
+          nwpw_lcao_mask_up_orbitals, NWCHEMC_DIRECT_SET_VALUE_MAX,
+          &nwpw_lcao_mask_up_count, nwpw_lcao_mask_down_orbitals,
+          NWCHEMC_DIRECT_SET_VALUE_MAX, &nwpw_lcao_mask_down_count) != 0)
+    return -1;
   int nwpw_nose_has_options = 0;
   int nwpw_nose_hoover = NWChemNwpwToggle_unspecified;
   int nwpw_nose_restart = NWChemNwpwToggle_unspecified;
@@ -2928,6 +2967,34 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
       return -1;
   }
+  if (nwpw_lcao_mask_has_options &&
+      nwpw_lcao_mask != NWChemNwpwToggle_unspecified) {
+    const char *value =
+        nwpw_lcao_mask == NWChemNwpwToggle_enabled ? "true" : "false";
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:lcao_mask",
+            NWCHEMC_DIRECT_SET_VALUE_LOGICAL, value) != 0)
+      return -1;
+  }
+  if (nwpw_lcao_mask_up_count > 0 &&
+      append_direct_integer_values(
+          typed_set_keys, typed_set_types, typed_set_value_counts,
+          typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+          NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+          nwpw_direct_values, "nwpw:lcao_mask_uporbs",
+          nwpw_lcao_mask_up_orbitals, nwpw_lcao_mask_up_count) != 0)
+    return -1;
+  if (nwpw_lcao_mask_down_count > 0 &&
+      append_direct_integer_values(
+          typed_set_keys, typed_set_types, typed_set_value_counts,
+          typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+          NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+          nwpw_direct_values, "nwpw:lcao_mask_downorbs",
+          nwpw_lcao_mask_down_orbitals, nwpw_lcao_mask_down_count) != 0)
+    return -1;
   if (nwpw_ewald_grid_x > 0) {
     char x_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
     char y_value[NWCHEMC_DIRECT_SET_VALUE_LEN];

@@ -217,6 +217,19 @@ static int append_text_args(capn_ptr args, char *dst, size_t dst_size) {
   return 0;
 }
 
+static int append_int32_args(capn_list32 values, char *dst, size_t dst_size) {
+  capn_resolve(&values.p);
+  int n = list32_len(values);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    int value = (int)(int32_t)capn_get32(values, i);
+    if (append_format(dst, dst_size, " %d", value) != 0)
+      return -1;
+  }
+  return 0;
+}
+
 static int render_directives(NWChemDirective_list directives, char *dst,
                              size_t dst_size, const char *indent) {
   int n = struct_list_len(&directives.p);
@@ -2380,6 +2393,33 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
       nwpw.lcaoMode == NWChemNwpwLcaoMode_lcao &&
       append_format(block, sizeof(block), "  lcao\n") != 0)
     return -1;
+  capn_list32 lcao_mask_up_orbitals = nwpw.lcaoMaskUpOrbitals;
+  capn_list32 lcao_mask_down_orbitals = nwpw.lcaoMaskDownOrbitals;
+  capn_resolve(&lcao_mask_up_orbitals.p);
+  capn_resolve(&lcao_mask_down_orbitals.p);
+  int n_lcao_mask_up = list32_len(lcao_mask_up_orbitals);
+  int n_lcao_mask_down = list32_len(lcao_mask_down_orbitals);
+  if (n_lcao_mask_up < 0 || n_lcao_mask_down < 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.lcaoMask == NWChemNwpwToggle_disabled &&
+      append_format(block, sizeof(block), "  lcao_mask off\n") != 0)
+    return -1;
+  if (include_direct_promoted &&
+      nwpw.lcaoMask != NWChemNwpwToggle_disabled && n_lcao_mask_up > 0) {
+    if (append_format(block, sizeof(block), "  lcao_mask up") != 0 ||
+        append_int32_args(lcao_mask_up_orbitals, block, sizeof(block)) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (include_direct_promoted &&
+      nwpw.lcaoMask != NWChemNwpwToggle_disabled && n_lcao_mask_down > 0) {
+    if (append_format(block, sizeof(block), "  lcao_mask down") != 0 ||
+        append_int32_args(lcao_mask_down_orbitals, block, sizeof(block)) !=
+            0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (include_direct_promoted && nwpw.ewaldGridX > 0 &&
       append_format(block, sizeof(block), "  ewald_ngrid %d %d %d\n",
                     nwpw.ewaldGridX,
@@ -3825,6 +3865,75 @@ int nwchemc_params_extract_direct_nwpw_orbital_grid(
       *ewald_grid_y = nwpw.ewaldGridY > 0 ? nwpw.ewaldGridY : nwpw.ewaldGridX;
       *ewald_grid_z =
           nwpw.ewaldGridZ > 0 ? nwpw.ewaldGridZ : *ewald_grid_y;
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_lcao_mask(
+    NWChemParams_ptr params, int *has_options, int *lcao_mask,
+    int *up_orbitals, size_t up_capacity, size_t *up_count,
+    int *down_orbitals, size_t down_capacity, size_t *down_count) {
+  if (params.p.type == CAPN_NULL || !has_options || !lcao_mask ||
+      !up_count || !down_count)
+    return -1;
+
+  *has_options = 0;
+  *lcao_mask = NWChemNwpwToggle_unspecified;
+  *up_count = 0;
+  *down_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    capn_list32 lcao_mask_up_orbitals = nwpw.lcaoMaskUpOrbitals;
+    capn_list32 lcao_mask_down_orbitals = nwpw.lcaoMaskDownOrbitals;
+    capn_resolve(&lcao_mask_up_orbitals.p);
+    capn_resolve(&lcao_mask_down_orbitals.p);
+    int nup = list32_len(lcao_mask_up_orbitals);
+    int ndown = list32_len(lcao_mask_down_orbitals);
+    if (nup < 0 || ndown < 0)
+      return -1;
+
+    if (nwpw.lcaoMask != NWChemNwpwToggle_unspecified) {
+      *has_options = 1;
+      *lcao_mask = nwpw.lcaoMask;
+    }
+
+    if (nup > 0) {
+      if (!up_orbitals || (size_t)nup > up_capacity)
+        return -1;
+      *has_options = 1;
+      *up_count = (size_t)nup;
+      if (*lcao_mask == NWChemNwpwToggle_unspecified)
+        *lcao_mask = NWChemNwpwToggle_enabled;
+      for (int j = 0; j < nup; ++j)
+        up_orbitals[j] = (int)(int32_t)capn_get32(lcao_mask_up_orbitals, j);
+    }
+
+    if (ndown > 0) {
+      if (!down_orbitals || (size_t)ndown > down_capacity)
+        return -1;
+      *has_options = 1;
+      *down_count = (size_t)ndown;
+      if (*lcao_mask == NWChemNwpwToggle_unspecified)
+        *lcao_mask = NWChemNwpwToggle_enabled;
+      for (int j = 0; j < ndown; ++j)
+        down_orbitals[j] =
+            (int)(int32_t)capn_get32(lcao_mask_down_orbitals, j);
     }
   }
 

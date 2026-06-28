@@ -612,6 +612,9 @@ struct NWChemNwpwStanza {
   tolerancesSet               @167 :Bool = false;   # Emit/promote NWPW tolerances with default values when all tolerance fields are unset.
   mappingSet                  @168 :Bool = false;   # Emit/promote NWPW mapping with the default value when mapping is unset.
   dosSet                      @169 :Bool = false;   # Emit/promote NWPW dos with the default alpha when DOS scalar fields are unset.
+  lcaoMask                    @170 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW lcao_mask.
+  lcaoMaskUpOrbitals          @171 :List(Int32); # NWPW lcao_mask up/alpha orbital indexes.
+  lcaoMaskDownOrbitals        @172 :List(Int32); # NWPW lcao_mask down/beta orbital indexes.
 }
 
 # @struct NWChemScfStanza

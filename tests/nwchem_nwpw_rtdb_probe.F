@@ -8,12 +8,12 @@
       integer rtdb, init_ok, finish_ok, owns_mpi
       integer i, j
       integer typed_count
-      integer typed_types(41)
-      integer typed_value_counts(41)
+      integer typed_types(44)
+      integer typed_value_counts(44)
       integer ivals(3)
       integer ival
-      character*128 typed_keys(41)
-      character*256 typed_values(64,41)
+      character*128 typed_keys(44)
+      character*256 typed_values(64,44)
       save typed_values
       character*256 text_value
       character*256 errmsg
@@ -34,7 +34,7 @@
          return
       endif
 
-      do i = 1, 41
+      do i = 1, 44
          typed_keys(i) = ' '
          typed_types(i) = 0
          typed_value_counts(i) = 0
@@ -42,7 +42,7 @@
             typed_values(j,i) = ' '
          enddo
       enddo
-      typed_count = 41
+      typed_count = 44
       typed_keys(1) = 'nwpw:balance'
       typed_types(1) = 4
       typed_value_counts(1) = 1
@@ -220,6 +220,21 @@
       typed_types(41) = 3
       typed_value_counts(41) = 1
       typed_values(1,41) = '6'
+      typed_keys(42) = 'nwpw:lcao_mask'
+      typed_types(42) = 4
+      typed_value_counts(42) = 1
+      typed_values(1,42) = 'true'
+      typed_keys(43) = 'nwpw:lcao_mask_uporbs'
+      typed_types(43) = 3
+      typed_value_counts(43) = 3
+      typed_values(1,43) = '1'
+      typed_values(2,43) = '3'
+      typed_values(3,43) = '5'
+      typed_keys(44) = 'nwpw:lcao_mask_downorbs'
+      typed_types(44) = 3
+      typed_value_counts(44) = 2
+      typed_values(1,44) = '2'
+      typed_values(2,44) = '4'
 
       call nwchemc_apply_direct_typed_sets(rtdb, typed_count,
      $     typed_keys, typed_types, typed_value_counts, typed_values,
@@ -1309,6 +1324,34 @@
       endif
       if (.not. lval) then
          result = 301
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:lcao_mask', lval)) then
+         result = 424
+         return
+      endif
+      if (.not. lval) then
+         result = 425
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:lcao_mask_uporbs', 3, ivals)) then
+         result = 426
+         return
+      endif
+      if (ivals(1) .ne. 1 .or. ivals(2) .ne. 3 .or.
+     $     ivals(3) .ne. 5) then
+         result = 427
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:lcao_mask_downorbs', 2, ivals)) then
+         result = 428
+         return
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 4) then
+         result = 429
          return
       endif
       if (.not. nwchemc_probe_get_log(rtdb,

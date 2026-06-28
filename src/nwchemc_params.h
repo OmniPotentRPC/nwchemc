@@ -113,6 +113,11 @@ int nwchemc_params_extract_direct_nwpw_orbital_grid(
     int *virtual_orbitals_end, int *lcao_mode, int *ewald_grid_x,
     int *ewald_grid_y, int *ewald_grid_z);
 
+int nwchemc_params_extract_direct_nwpw_lcao_mask(
+    NWChemParams_ptr params, int *has_options, int *lcao_mask,
+    int *up_orbitals, size_t up_capacity, size_t *up_count,
+    int *down_orbitals, size_t down_capacity, size_t *down_count);
+
 int nwchemc_params_extract_direct_nwpw_nose(
     NWChemParams_ptr params, int *has_options, int *nose_hoover,
     int *nose_restart, double *electron_period, double *electron_temperature,

@@ -205,6 +205,7 @@ RTDB values directly:
 | ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ | ~nwpw:fractional_smeartype~ |
 | ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~, ~virtualAliasSet~, ~virtualAliasStart~, ~virtualAliasEnd~ | ~virtual <start> <end>~; omitted ~end~ defaults to ~start~ | ~nwpw:excited_ne~ |
 | ~lcaoMode~ | ~lcao~ or ~lcao_skip~ | ~nwpw:lcao_skip~ |
+| ~lcaoMask~, ~lcaoMaskUpOrbitals~, ~lcaoMaskDownOrbitals~ | ~lcao_mask off~, ~lcao_mask up <orbital>...~, or ~lcao_mask down <orbital>...~ | ~nwpw:lcao_mask~, ~nwpw:lcao_mask_uporbs~, ~nwpw:lcao_mask_downorbs~ |
 | ~ewaldGridX~, ~ewaldGridY~, ~ewaldGridZ~ | ~ewald_ngrid <x> <y> <z>~ | ~nwpw:ewald_ngrid~ |
 | ~noseHoover~ | ~Nose-Hoover ...~ or ~energy~ | ~cpmd:nose~, ~nwpw:nose~ |
 | ~noseRestart~ | ~restart~ or ~start~ token in ~Nose-Hoover~ | ~cpmd:nose_restart~, ~nwpw:nose_restart~ |
@@ -437,6 +438,7 @@ controls:
 | ~smearType~ | ~smear fixed~, ~step~, ~fermi~, ~gaussian~, or ~marzari-vanderbilt~ |
 | ~virtualOrbitalsStart~, ~virtualOrbitalsEnd~, ~virtualAliasSet~, ~virtualAliasStart~, ~virtualAliasEnd~ | ~virtual <start> <end>~; omitted ~end~ defaults to ~start~ |
 | ~lcaoMode~ | ~lcao~ or ~lcao_skip~ |
+| ~lcaoMask~, ~lcaoMaskUpOrbitals~, ~lcaoMaskDownOrbitals~ | ~lcao_mask off~, ~lcao_mask up <orbital>...~, or ~lcao_mask down <orbital>...~ |
 | ~ewaldGridX~, ~ewaldGridY~, ~ewaldGridZ~ | ~ewald_ngrid <x> <y> <z>~ |
 | ~noseHoover~ | ~Nose-Hoover ...~ or ~energy~ |
 | ~noseRestart~ | ~restart~ or ~start~ token in ~Nose-Hoover~ |

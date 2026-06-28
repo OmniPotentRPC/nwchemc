@@ -4539,6 +4539,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.lcaoMask",
+      "schema_path": "NWChemNwpwStanza.lcaoMask",
+      "struct": "NWChemNwpwStanza",
+      "name": "lcaoMask",
+      "field_id": 170,
+      "type": "NWChemNwpwToggle = unspecified",
+      "role": "NWChemNwpwStanza.lcaoMask Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lcaoMaskUpOrbitals",
+      "schema_path": "NWChemNwpwStanza.lcaoMaskUpOrbitals",
+      "struct": "NWChemNwpwStanza",
+      "name": "lcaoMaskUpOrbitals",
+      "field_id": 171,
+      "type": "List(Int32)",
+      "role": "NWChemNwpwStanza.lcaoMaskUpOrbitals Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lcaoMaskDownOrbitals",
+      "schema_path": "NWChemNwpwStanza.lcaoMaskDownOrbitals",
+      "struct": "NWChemNwpwStanza",
+      "name": "lcaoMaskDownOrbitals",
+      "field_id": 172,
+      "type": "List(Int32)",
+      "role": "NWChemNwpwStanza.lcaoMaskDownOrbitals Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",
