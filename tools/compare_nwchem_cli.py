@@ -192,12 +192,17 @@ def run_embed_compare(
     build_dir: Path, work: Path, embed_command: list[str] | None
 ) -> tuple[str, dict | None, str]:
     """Run embed test binary; return (status, payload_or_none, detail)."""
+    build_dir = Path(build_dir).expanduser().resolve()
     bin_path = find_embed_binary(build_dir)
     if not bin_path:
         return "unavailable", None, f"no test_nwchem_energy_gradient under {build_dir}"
+    bin_path = bin_path.resolve()
     params = find_params_bin(build_dir)
     if not params:
         return "unavailable", None, "nwchem_parser_params.bin not found"
+    params = params.resolve()
+    work = Path(work).expanduser().resolve()
+    work.mkdir(parents=True, exist_ok=True)
     json_path = work / "embed_compare.json"
     env = os.environ.copy()
     env["NWCHEMC_COMPARE_JSON"] = str(json_path)
