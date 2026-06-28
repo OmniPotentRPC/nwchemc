@@ -330,12 +330,13 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision energy_h
       double precision grad_h_bohr(*)
       character*(*) errmsg
+      character*255 vectors_in
       integer n3, i
       integer l_grad, k_grad
       logical status
       external task_energy, task_gradient
       logical task_energy, task_gradient
-      external nw_inp_from_character
+      external nw_inp_from_character, util_file_name, util_file_name_resolve
       logical nw_inp_from_character
 
       ok = -1
@@ -368,12 +369,22 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
          endif
       endif
       n3 = 3 * n_atoms
+C     Prefer previous SCF output as next input (written by scf_vec_guess).
+      vectors_in = ' '
+      if (rtdb_cget(rtdb, 'scf:output vectors', 1, vectors_in)) then
+         if (inp_strlen(vectors_in) .gt. 0 .and.
+     $        .not. inp_compare(.false., vectors_in, 'atomic')) then
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+            status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
+         endif
+      endif
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
       status = rtdb_cput(rtdb, 'task:operation', 1, 'gradient')
       if (.not. task_gradient(rtdb)) then
          errmsg = 'task_gradient failed'
          return
       endif
+
       call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
      $     status)
       if (.not. status) then
@@ -385,12 +396,20 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
          errmsg = 'ma_push_get grad failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'task:gradient', mt_dbl, n3,
+      if (.not. rtdb_get(rtdb, 'scf:gradient', mt_dbl, n3,
      $        dbl_mb(k_grad))) then
-         do i = 1, n3
-            grad_h_bohr(i) = 0.0d0
-         enddo
-         errmsg = 'rtdb_get task:gradient failed; grad zeroed'
+         if (.not. rtdb_get(rtdb, 'task:gradient', mt_dbl, n3,
+     $           dbl_mb(k_grad))) then
+            do i = 1, n3
+               grad_h_bohr(i) = 0.0d0
+            enddo
+            errmsg = 'rtdb_get scf/task:gradient failed; grad zeroed'
+         else
+            do i = 1, n3
+               grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
+            enddo
+            errmsg = 'ok'
+         endif
       else
          do i = 1, n3
             grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
@@ -1995,10 +2014,13 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
       logical status, lval
       integer nopen, ival
       double precision chg
-      character*16 vectors_in
+      character*255 vectors_in
       character*255 tddft_fn
+      external util_file_name, util_file_name_resolve
 
       ok = .true.
+C     New method/config: drop cached geometry handle.
+      call nwchemc_reset_geom_hold()
       chg = dble(charge)
       call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
       ok = ok .and. status
@@ -2062,7 +2084,9 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
             ok = ok .and. status
          endif
       endif
-      vectors_in = 'atomic'
+C     Prefer permanent movecs so multi-call forces reuse MOs (not atomic guess).
+      call util_file_name('movecs', .false., .false., vectors_in)
+      call util_file_name_resolve(vectors_in, .false.)
       if (theory_name(1:3) .eq. 'dft' .or.
      $    theory_name(1:5) .eq. 'tddft' .or.
      $    theory_name(1:5) .eq. 'sodft') then
@@ -2071,6 +2095,14 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
          call nwchemc_apply_named_dft_xc(rtdb, scf_type, status)
          ok = ok .and. status
          call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
+         ok = ok .and. status
+         status = rtdb_cput(rtdb, 'dft:input vectors', 1, vectors_in)
+         ok = ok .and. status
+         status = rtdb_cput(rtdb, 'dft:output vectors', 1, vectors_in)
+         ok = ok .and. status
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+         ok = ok .and. status
+         status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
          ok = ok .and. status
          nopen = mult - 1
          call nwchemc_rtdb_put_int(rtdb, 'dft:nopen', nopen, status)
@@ -2143,6 +2175,8 @@ c        TDDFT SP forces: persist CI vectors + util paths + grad root.
          endif
       else
          status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+         ok = ok .and. status
+         status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
          ok = ok .and. status
@@ -2663,6 +2697,8 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
       character*16 tags(maxat)
       double precision scale
       logical status
+      integer geom_hold
+      common /nwchemc_geom_hold_c/ geom_hold
       external geom_create, geom_destroy, geom_rtdb_load
       external geom_cart_get, geom_cart_set, geom_rtdb_store
       external geom_get_user_scale
@@ -2675,22 +2711,28 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
          errmsg = 'invalid geometry atom count'
          return
       endif
-      if (.not. geom_create(geom, 'geometry')) then
-         errmsg = 'geom_create failed'
-         return
+C     Keep one live geometry handle across forces (SocketNWChem style) so
+C     MO vectors stay valid for the same basis; RTDB reload each force
+C     was forcing atomic guesses.
+      if (geom_hold .lt. 0) then
+         if (.not. geom_create(geom_hold, 'geometry')) then
+            errmsg = 'geom_create failed'
+            geom_hold = -1
+            return
+         endif
+         if (.not. geom_rtdb_load(rtdb, geom_hold, 'geometry')) then
+            status = geom_destroy(geom_hold)
+            geom_hold = -1
+            errmsg = 'geom_rtdb_load failed'
+            return
+         endif
       endif
-      if (.not. geom_rtdb_load(rtdb, geom, 'geometry')) then
-         status = geom_destroy(geom)
-         errmsg = 'geom_rtdb_load failed'
-         return
-      endif
+      geom = geom_hold
       if (.not. geom_cart_get(geom, n_atoms, tags, coords, charge)) then
-         status = geom_destroy(geom)
          errmsg = 'geom_cart_get failed'
          return
       endif
       if (.not. geom_get_user_scale(geom, scale)) then
-         status = geom_destroy(geom)
          errmsg = 'geom_get_user_scale failed'
          return
       endif
@@ -2700,18 +2742,36 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
          enddo
       enddo
       if (.not. geom_cart_set(geom, n_atoms, tags, coords, charge)) then
-         status = geom_destroy(geom)
          errmsg = 'geom_cart_set failed'
          return
       endif
       if (.not. geom_rtdb_store(rtdb, geom, 'geometry')) then
-         status = geom_destroy(geom)
          errmsg = 'geom_rtdb_store failed'
          return
       endif
-      status = geom_destroy(geom)
       errmsg = 'ok'
       ok = .true.
+      return
+      end
+
+      block data nwchemc_geom_hold_bd
+      integer geom_hold
+      common /nwchemc_geom_hold_c/ geom_hold
+      data geom_hold / -1 /
+      end
+
+      subroutine nwchemc_reset_geom_hold()
+      implicit none
+      integer geom_hold
+      save geom_hold
+      logical status
+      external geom_destroy
+      logical geom_destroy
+      common /nwchemc_geom_hold_c/ geom_hold
+      if (geom_hold .ge. 0) then
+         status = geom_destroy(geom_hold)
+      endif
+      geom_hold = -1
       return
       end
 
