@@ -2142,9 +2142,28 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 c        Post-SCF theories (ccsd/mp2/tce/...) need HF reference scftype too.
          status = rtdb_cput(rtdb, 'scf:scftype', 1, scf_type)
          ok = ok .and. status
-c        TCE needs a model when theory is tce and typed stanza omitted it.
+c        TCE RTDB minima so task_energy -> tce_energy_fragment succeeds.
          if (theory_name(1:3) .eq. 'tce') then
             status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'tce:model2e', 1, 'default')
+            ok = ok .and. status
+c           fragment=-1 selects non-fragment tce_energy path
+            ival = -1
+            call nwchemc_rtdb_put_int(rtdb, 'tce:fragment',
+     $         ival, status)
+            ok = ok .and. status
+            ival = 0
+            call nwchemc_rtdb_put_int(rtdb, 'tce:reference',
+     $         ival, status)
+            ok = ok .and. status
+            lval = .false.
+            status = rtdb_put(rtdb, 'tce:densmat', mt_log, 1, lval)
+            ok = ok .and. status
+            lval = .true.
+            status = rtdb_put(rtdb, 'tce:recompf', mt_log, 1, lval)
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'tce:module', 1, 'tce')
             ok = ok .and. status
          endif
          if (scf_has_options .ne. 0) then
