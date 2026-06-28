@@ -1499,6 +1499,12 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     nwchemc_add_real_nwchem_test(
       nwchem-nwpw-rtdb
       nwchem-nwpw-rtdb
+      direct
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-configured-nwpw-rtdb
+      nwchem-nwpw-rtdb
+      configured
       "${potential_config_nwpw_controls_BIN}"
     )
 

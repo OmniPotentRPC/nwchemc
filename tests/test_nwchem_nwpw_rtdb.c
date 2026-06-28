@@ -96,15 +96,20 @@ static void test_configured_nwpw_controls_reach_rtdb(void **state) {
 }
 
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    fprintf(stderr, "usage: %s potential-config.bin\n", argv[0]);
-    return 2;
+  if (argc >= 2 && strcmp(argv[1], "direct") == 0) {
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_nwpw_controls_reach_rtdb),
+    };
+    return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
   }
-  g_config_path = argv[1];
-
-  const struct CMUnitTest tests[] = {
-      cmocka_unit_test(test_nwpw_controls_reach_rtdb),
-      cmocka_unit_test(test_configured_nwpw_controls_reach_rtdb),
-  };
-  return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
+  if (argc == 3 && strcmp(argv[1], "configured") == 0) {
+    g_config_path = argv[2];
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_configured_nwpw_controls_reach_rtdb),
+    };
+    return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
+  }
+  fprintf(stderr, "usage: %s direct | configured potential-config.bin\n",
+          argv[0]);
+  return 2;
 }

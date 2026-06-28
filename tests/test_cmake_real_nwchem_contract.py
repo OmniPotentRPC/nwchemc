@@ -297,6 +297,7 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
                 "tests/test_nwchem_pseudopotential_rtdb.c",
                 "tests/nwchem_pseudopotential_rtdb_probe.F",
                 "nwchem-nwpw-rtdb",
+                "nwchem-configured-nwpw-rtdb",
                 "tests/test_nwchem_nwpw_rtdb.c",
                 "tests/nwchem_nwpw_rtdb_probe.F",
                 "potential_config_nwpw_controls.capnp.txt.in",

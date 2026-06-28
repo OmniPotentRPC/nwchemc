@@ -1624,8 +1624,17 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-nwpw-rtdb',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_nwpw_rtdb_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_nwpw_rtdb_test, potential_config_nwpw_controls_bin]
-        : [potential_config_nwpw_controls_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_nwpw_rtdb_test, 'direct']
+        : ['direct'],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
+    test(
+      'nwchem-configured-nwpw-rtdb',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_nwpw_rtdb_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_nwpw_rtdb_test, 'configured', potential_config_nwpw_controls_bin]
+        : ['configured', potential_config_nwpw_controls_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
