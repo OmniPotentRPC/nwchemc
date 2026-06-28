@@ -2142,6 +2142,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 c        Post-SCF theories (ccsd/mp2/tce/...) need HF reference scftype too.
          status = rtdb_cput(rtdb, 'scf:scftype', 1, scf_type)
          ok = ok .and. status
+c        TCE needs a model when theory is tce and typed stanza omitted it.
+         if (theory_name(1:3) .eq. 'tce') then
+            status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
+            ok = ok .and. status
+         endif
          if (scf_has_options .ne. 0) then
             if (scf_maxiter .gt. 0) then
                call nwchemc_rtdb_put_int(rtdb, 'scf:maxiter',
