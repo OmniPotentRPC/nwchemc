@@ -4635,6 +4635,42 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemNwpwStanza.occupations",
+      "schema_path": "NWChemNwpwStanza.occupations",
+      "struct": "NWChemNwpwStanza",
+      "name": "occupations",
+      "field_id": 173,
+      "type": "List(Float64)",
+      "role": "NWChemNwpwStanza.occupations Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.occupationStates",
+      "schema_path": "NWChemNwpwStanza.occupationStates",
+      "struct": "NWChemNwpwStanza",
+      "name": "occupationStates",
+      "field_id": 174,
+      "type": "List(Int32)",
+      "role": "NWChemNwpwStanza.occupationStates Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.extraOrbitals",
+      "schema_path": "NWChemNwpwStanza.extraOrbitals",
+      "struct": "NWChemNwpwStanza",
+      "name": "extraOrbitals",
+      "field_id": 175,
+      "type": "Int32 = 0",
+      "role": "NWChemNwpwStanza.extraOrbitals Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemScfStanza.vectorsInput",
       "schema_path": "NWChemScfStanza.vectorsInput",
       "struct": "NWChemScfStanza",
