@@ -829,6 +829,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  force_input_h2_bohr_ev_bin = custom_target(
+    'force_input_h2_bohr_ev_bin',
+    input: 'tests/force_input_h2_bohr_ev.capnp.txt',
+    output: 'force_input_h2_bohr_ev.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'ForceInput',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_h2_stretched_bin = custom_target(
     'force_input_h2_stretched_bin',
     input: 'tests/force_input_h2_stretched.capnp.txt',
@@ -1443,8 +1457,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-rgpot-smoke',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_rgpot_smoke_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_rgpot_smoke_test, potential_config_structured_bin, force_input_h2_eq_bin, force_input_h2_ev_bin]
-        : [potential_config_structured_bin, force_input_h2_eq_bin, force_input_h2_ev_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_rgpot_smoke_test, potential_config_structured_bin, force_input_h2_eq_bin, force_input_h2_ev_bin, force_input_h2_bohr_ev_bin]
+        : [potential_config_structured_bin, force_input_h2_eq_bin, force_input_h2_ev_bin, force_input_h2_bohr_ev_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )

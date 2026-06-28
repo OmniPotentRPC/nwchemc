@@ -16,6 +16,7 @@
 static const char *g_config_path = NULL;
 static const char *g_force_input_path = NULL;
 static const char *g_unit_force_input_path = NULL;
+static const char *g_bohr_unit_force_input_path = NULL;
 
 static const double BOHR_TO_ANGSTROM = 0.529177210903;
 static const double HARTREE_TO_EV = 27.211386245988;
@@ -322,9 +323,10 @@ static void assert_potential_result_quadrupole(
   capn_free(&arena);
 }
 
-static void assert_potential_result_optimized(
+static void assert_potential_result_optimized_values(
     const unsigned char *message, size_t message_size, double expected_energy,
-    const double *expected_positions) {
+    const double *expected_positions, double tolerance, double min_bond,
+    double max_bond) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -343,13 +345,22 @@ static void assert_potential_result_optimized(
     for (int i = 0; i < 6; ++i)
       assert_close_relative("PotentialResult.optimizedPos", i,
                             optimized_positions[i], expected_positions[i],
-                            1.0e-6);
+                            tolerance);
   }
   double bond = h2_bond_length(optimized_positions);
-  assert_true(bond > 0.5);
-  assert_true(bond < 1.0);
+  assert_true(bond > min_bond);
+  assert_true(bond < max_bond);
 
   capn_free(&arena);
+}
+
+static void assert_potential_result_optimized(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_positions) {
+  assert_potential_result_optimized_values(message, message_size,
+                                           expected_energy,
+                                           expected_positions, 1.0e-6, 0.5,
+                                           1.0);
 }
 
 static void assert_potential_result_frequencies(
@@ -1117,6 +1128,46 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
       hessian_bytes, hessian_size,
       raw_hessian_status.energy_h * HARTREE_TO_EV, expected_hessian, 1.0e-8);
 
+  size_t bohr_force_input_size = 0;
+  unsigned char *bohr_force_input =
+      read_file(g_bohr_unit_force_input_path, &bohr_force_input_size);
+  assert_non_null(bohr_force_input);
+
+  double raw_optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_optimize_status =
+      nwchemc_calculate_optimize_from_config(
+          config, config_size, bohr_force_input, bohr_force_input_size,
+          raw_optimized_positions, 6);
+  assert_status_energy("nwchemc_calculate_optimize_from_config",
+                       raw_optimize_status);
+
+  double expected_optimized_positions[6];
+  for (int i = 0; i < 6; ++i)
+    expected_optimized_positions[i] =
+        raw_optimized_positions[i] / BOHR_TO_ANGSTROM;
+  size_t optimize_capacity =
+      nwchemc_optimize_result_size_for_force_input(bohr_force_input,
+                                                   bohr_force_input_size);
+  assert_result_capacity("nwchemc_optimize_result_size_for_force_input",
+                         optimize_capacity);
+  unsigned char *optimize_bytes = (unsigned char *)malloc(optimize_capacity);
+  assert_non_null(optimize_bytes);
+  size_t optimize_size = 0;
+  NWChemCResult optimize_result =
+      nwchemc_calculate_optimize_result_from_config(
+          config, config_size, bohr_force_input, bohr_force_input_size,
+          optimize_bytes, optimize_capacity, &optimize_size);
+  assert_status_energy("nwchemc_calculate_optimize_result_from_config",
+                       optimize_result);
+  assert_int_equal(optimize_size, optimize_capacity);
+  assert_potential_result_optimized_values(
+      optimize_bytes, optimize_size,
+      raw_optimize_status.energy_h * HARTREE_TO_EV,
+      expected_optimized_positions, 1.0e-6, 0.5 / BOHR_TO_ANGSTROM,
+      1.0 / BOHR_TO_ANGSTROM);
+
+  free(optimize_bytes);
+  free(bohr_force_input);
   free(hessian_bytes);
   free(forces_bytes);
   free(energy_bytes);
@@ -1125,15 +1176,16 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
 }
 
 int main(int argc, char **argv) {
-  if (argc != 4) {
+  if (argc != 5) {
     fprintf(stderr,
-            "usage: %s POTENTIAL_CONFIG_BIN FORCE_INPUT_BIN UNIT_FORCE_INPUT_BIN\n",
+            "usage: %s POTENTIAL_CONFIG_BIN FORCE_INPUT_BIN UNIT_FORCE_INPUT_BIN BOHR_UNIT_FORCE_INPUT_BIN\n",
             argv[0]);
     return 2;
   }
   g_config_path = argv[1];
   g_force_input_path = argv[2];
   g_unit_force_input_path = argv[3];
+  g_bohr_unit_force_input_path = argv[4];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_rgpot_config_forceinput_result_carrier),
       cmocka_unit_test(test_rgpot_config_named_result_carriers),
