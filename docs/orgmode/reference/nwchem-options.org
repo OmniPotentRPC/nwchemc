@@ -18,6 +18,7 @@ stanzas for NWChem input blocks.
 | ~task~ | User task label, normally ~gradient~ for the current ABI call. |
 | ~title~ | Optional NWChem title/start prefix. |
 | ~memoryMb~ | Memory request in MiB; zero keeps the NWChem/runtime default. |
+| ~enginePath~ | Reserved dynamic engine path; linked embed builds reject non-empty values. |
 | ~nwchemRoot~ | Optional runtime root hint exported as ~NWCHEM_TOP~. |
 | ~scratchDir~ | Optional scratch directory exported as ~NWCHEM_SCRATCH_DIR~. |
 | ~permanentDir~ | Optional permanent directory exported as ~NWCHEM_PERMANENT_DIR~. |

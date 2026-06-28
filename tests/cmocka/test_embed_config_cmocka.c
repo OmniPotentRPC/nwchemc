@@ -561,6 +561,51 @@ static unsigned char *wrap_params_in_config(const unsigned char *params_bytes,
   return buffer;
 }
 
+static capn_text test_text_from_cstr(const char *s) {
+  capn_text text;
+  text.len = s ? (int)strlen(s) : 0;
+  text.str = s ? s : "";
+  text.seg = NULL;
+  return text;
+}
+
+static unsigned char *make_params_with_engine_path(const char *engine_path,
+                                                   size_t *params_size) {
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  assert_int_not_equal(root.type, CAPN_NULL);
+  NWChemParams_ptr params = new_NWChemParams(root.seg);
+  assert_int_not_equal(params.p.type, CAPN_NULL);
+
+  struct NWChemParams view;
+  memset(&view, 0, sizeof(view));
+  view.basis = test_text_from_cstr("sto-3g");
+  view.theory = test_text_from_cstr("scf");
+  view.scfType = test_text_from_cstr("rhf");
+  view.multiplicity = 1;
+  view.enginePath = test_text_from_cstr(engine_path);
+  view.task = test_text_from_cstr("gradient");
+  write_NWChemParams(&view, params);
+  assert_int_equal(capn_setp(root, 0, params.p), 0);
+
+  size_t capacity = 4096u;
+  unsigned char *buffer = NULL;
+  int written = -1;
+  for (int attempt = 0; attempt < 6 && written < 0; ++attempt) {
+    unsigned char *next = (unsigned char *)realloc(buffer, capacity);
+    assert_non_null(next);
+    buffer = next;
+    written = capn_write_mem(&arena, buffer, capacity, 0);
+    capacity *= 2u;
+  }
+  assert_true(written > 0);
+  *params_size = (size_t)written;
+
+  capn_free(&arena);
+  return buffer;
+}
+
 void nwchemc_embed_init(void) {}
 
 int nwchemc_embed_available(void) { return 1; }
@@ -2386,6 +2431,38 @@ static void test_configure_accepts_potential_config_nwchem(void **state) {
   assert_int_equal(g_set_rtdb_values_calls, 1);
   assert_int_equal(g_typed_set_count, 3);
   assert_null(strstr(g_input_blocks, "task scf energy"));
+
+  free(config);
+  free(message);
+}
+
+static void test_engine_path_is_rejected_before_embed_config(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message =
+      make_params_with_engine_path("/tmp/libnwchem_engine.so", &message_size);
+  assert_non_null(message);
+
+  assert_int_equal(nwchemc_set_params(message, message_size), -1);
+  assert_int_equal(g_set_config_calls, 0);
+
+  const double positions_ang[3] = {0.0, 0.0, 0.0};
+  const int atomic_numbers[1] = {1};
+  double grad[3] = {0.0, 0.0, 0.0};
+  NWChemCResult status = nwchemc_energy_gradient(
+      1, positions_ang, atomic_numbers, message, message_size, grad);
+  assert_int_equal(status.ok, 0);
+  assert_int_equal(g_set_config_calls, 0);
+
+  size_t config_size = 0;
+  unsigned char *config = wrap_params_in_config(message, message_size,
+                                                &config_size);
+  assert_non_null(config);
+  assert_int_equal(nwchemc_configure(config, config_size), -1);
+  assert_int_equal(g_set_config_calls, 0);
+  assert_null(nwchemc_session_create_from_config(config, config_size));
+  assert_int_equal(g_set_config_calls, 0);
 
   free(config);
   free(message);
@@ -6372,6 +6449,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
       cmocka_unit_test(test_configure_accepts_potential_config_nwchem),
+      cmocka_unit_test(test_engine_path_is_rejected_before_embed_config),
       cmocka_unit_test(test_session_create_from_config_applies_nwchem),
       cmocka_unit_test(test_session_configure_replaces_before_topology),
       cmocka_unit_test(test_session_configure_rejects_after_topology),

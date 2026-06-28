@@ -1580,6 +1580,9 @@ static void apply_env_hints(const struct NWChemParams *params) {
 
 static int apply_config_to_embed(NWChemParams_ptr params_root,
                                  const struct NWChemParams *params) {
+  if (params && params->enginePath.len > 0)
+    return -1;
+
   char input_blocks[NWCHEMC_BLOCKS];
   const char *scf_type = NULL;
   int theory_len = 0;

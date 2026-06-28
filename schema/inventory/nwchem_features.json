@@ -1179,7 +1179,7 @@
       "field_id": 5,
       "name": "enginePath",
       "type": "Text = \"\"",
-      "role": "dlopen path for engine; empty probes env",
+      "role": "reserved dynamic engine path; linked embed rejects non-empty values",
       "stub_applicable": true,
       "embed_applicable": false,
       "driver_class": "params_field"

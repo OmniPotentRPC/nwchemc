@@ -114,7 +114,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"params.scfType", "NWChemParams.scfType", "SCF type or DFT XC keyword", NWCHEMC_FEATURE_PARAMS_FIELD, 2, 1, 1},
     {"params.charge", "NWChemParams.charge", "Molecular charge", NWCHEMC_FEATURE_PARAMS_FIELD, 3, 1, 1},
     {"params.multiplicity", "NWChemParams.multiplicity", "Spin multiplicity 2S+1", NWCHEMC_FEATURE_PARAMS_FIELD, 4, 1, 1},
-    {"params.enginePath", "NWChemParams.enginePath", "dlopen path for engine; empty probes env", NWCHEMC_FEATURE_PARAMS_FIELD, 5, 1, 0},
+    {"params.enginePath", "NWChemParams.enginePath", "reserved dynamic engine path; linked embed rejects non-empty values", NWCHEMC_FEATURE_PARAMS_FIELD, 5, 1, 0},
     {"params.nwchemRoot", "NWChemParams.nwchemRoot", "NWCHEM_TOP embed root hint", NWCHEMC_FEATURE_PARAMS_FIELD, 6, 1, 1},
     {"params.task", "NWChemParams.task", "Task label energy|gradient|hessian|property", NWCHEMC_FEATURE_PARAMS_FIELD, 7, 1, 1},
     {"params.title", "NWChemParams.title", "Optional title/start prefix", NWCHEMC_FEATURE_PARAMS_FIELD, 8, 1, 1},
@@ -699,4 +699,3 @@ const char *nwchemc_module_nwchem_name(int module_enum_id) {
   }
   return NULL;
 }
-

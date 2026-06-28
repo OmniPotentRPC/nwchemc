@@ -10,6 +10,10 @@ Use `PotentialConfig.nwchem` for backend configuration and `ForceInput` for
 each geometry step. Allocate the output buffer from the step message, then ask
 nwchemc to write an unpacked flat `PotentialResult`.
 
+Leave `NWChemParams.enginePath` empty for this ABI. The current build links the
+NWChem embed bridge in-process and rejects non-empty dynamic engine paths
+before any NWChem configuration is applied.
+
 ```c
 NWChemCSession *session =
     nwchemc_session_create_from_config(config_capnp, config_capnp_size);

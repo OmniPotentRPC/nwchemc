@@ -832,7 +832,7 @@ struct NWChemParams {
   scfType      @2 :Text = "rhf";     # HF: rhf/uhf; DFT: xc (blyp, b3lyp, ...).
   charge       @3 :Int32 = 0;
   multiplicity @4 :Int32 = 1;        # 2S+1.
-  enginePath   @5 :Text = "";        # libnwchem_engine.so (dlopen); empty => probe/env.
+  enginePath   @5 :Text = "";        # Reserved dynamic engine path; linked embed builds reject non-empty values.
   nwchemRoot   @6 :Text = "";        # NWCHEM_TOP for embed; empty => env.
   task         @7 :Text = "gradient"; # energy | gradient | property; frontend usually calls gradient.
   title        @8 :Text = "";         # Optional NWChem title/start prefix.
