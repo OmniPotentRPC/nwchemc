@@ -9,6 +9,32 @@ messages.
 entry points required for RTDB, geometry, basis, energy, gradient, Hessian,
 dipole, polarizability, quadrupole, stress, optimization, and frequency calls.
 
+## rgpot release status
+
+The rgpot-facing ABI is the serialized
+`PotentialConfig.nwchem + ForceInput -> PotentialResult` path. rgpot can wire
+the backend against an installed `nwchemc` package without depending on
+NWChem text decks, C++ objects, Rust objects, or files from this source tree.
+
+The merge/pr release gate is:
+
+- rgpot creates `PotentialConfig.nwchem` and per-step `ForceInput` messages
+  using the shared Cap'n Proto schema.
+- rgpot allocates each result buffer with
+  `nwchemc_potential_result_size_for_force_input()` or the matching
+  operation-specific sizing helper.
+- repeated steps use `nwchemc_session_calculate_result()` or a named session
+  result-carrier function.
+- one-shot calls use `nwchemc_calculate_result_from_config()` or a named
+  result-carrier function.
+- `nwchem-rgpot-smoke`, `nwchem-session-result`,
+  `nwchem-potential-config-pseudopotential`, `nwchem-pseudopotential-rtdb`,
+  `nwchem-stress`, and the installed CMake/pkg-config consumers pass against
+  the NWChem build used for the release.
+
+See [docs/rgpot-integration.md](docs/rgpot-integration.md) for the exact data
+flow, units, operation matrix, and NWPW stress expectations.
+
 The public ABI does not expose C++ or Rust types:
 
 ```c

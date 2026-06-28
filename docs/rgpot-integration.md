@@ -4,6 +4,25 @@ This is the C ABI contract rgpot should wire against for the NWChem backend.
 The stable boundary is serialized Cap'n Proto data, not NWChem input text and
 not C++ or Rust objects.
 
+## Wiring stage
+
+The backend is at the rgpot wiring stage when rgpot can treat `nwchemc` as an
+installed package and call the serialized-message ABI directly:
+
+- `PotentialConfig.nwchem` carries NWChem configuration.
+- `ForceInput` carries each geometry, cell, unit, charge, and multiplicity
+  step.
+- `PotentialResult` carries energy, forces, Hessian, stress, dipole,
+  polarizability, quadrupole, optimized geometry, frequencies, and
+  intensities.
+- Structured pseudopotentials are promoted to NWChem RTDB state by the embed
+  bridge; rgpot does not need to render NWChem pseudopotential text.
+
+The merge/pr release gate is a green local stub/parser suite, a green
+real-NWChem suite for the probes listed below, and green installed-package
+CMake/pkg-config consumers against the same NWChem build. Periodic stress is
+part of that gate only when the release build links an NWPW-enabled NWChem.
+
 ## Data flow
 
 Use `PotentialConfig.nwchem` for backend configuration and `ForceInput` for
