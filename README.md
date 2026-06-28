@@ -59,8 +59,8 @@ The merge/pr release gate is:
   `nwchem-potential-config-pseudopotential`, `nwchem-pseudopotential-rtdb`,
   `nwchem-forceinput-cell-rtdb`, `nwchem-stress`,
   `nwchem-pspw-pseudopotential-forces`, `nwchem-configured-nwpw-rtdb`, and the
-  installed CMake/pkg-config consumers pass against the NWChem build used for
-  the release.
+  `nwchem-brillouin-dos-zones-rtdb`, and the installed CMake/pkg-config
+  consumers pass against the NWChem build used for the release.
 - The installed CMake/pkg-config consumers compile, link, and run
   invalid-input ABI checks for the rgpot result-carrier, raw ForceInput,
   session, and coordinate entry points.

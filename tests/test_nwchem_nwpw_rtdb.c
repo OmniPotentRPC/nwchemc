@@ -12,9 +12,11 @@
 #include <cmocka.h>
 
 static const char *g_config_path = NULL;
+static const char *g_brillouin_dos_grid_path = NULL;
 
 extern void nwchemc_test_nwpw_rtdb(int *result);
 extern void nwchemc_test_configured_nwpw_rtdb(int *result);
+extern void nwchemc_test_brillouin_dos_zones_rtdb(int *result);
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -95,6 +97,23 @@ static void test_configured_nwpw_controls_reach_rtdb(void **state) {
   free(config);
 }
 
+static void test_brillouin_dos_zones_reach_rtdb(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  unsigned char *params = read_file(g_brillouin_dos_grid_path, &params_size);
+  assert_non_null(params);
+
+  assert_int_equal(nwchemc_set_params(params, params_size), 0);
+
+  int result = -1;
+  nwchemc_test_brillouin_dos_zones_rtdb(&result);
+  assert_int_equal(result, 0);
+
+  free(params);
+}
+
 int main(int argc, char **argv) {
   if (argc >= 2 && strcmp(argv[1], "direct") == 0) {
     const struct CMUnitTest tests[] = {
@@ -106,6 +125,13 @@ int main(int argc, char **argv) {
     g_config_path = argv[2];
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_configured_nwpw_controls_reach_rtdb),
+    };
+    return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
+  }
+  if (argc == 3 && strcmp(argv[1], "brillouin-dos-zones") == 0) {
+    g_brillouin_dos_grid_path = argv[2];
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_brillouin_dos_zones_reach_rtdb),
     };
     return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
   }

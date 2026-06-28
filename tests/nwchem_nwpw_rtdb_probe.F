@@ -660,6 +660,89 @@
       return
       end
 
+      subroutine nwchemc_test_brillouin_dos_zones_rtdb(result)
+     $     bind(C, name='nwchemc_test_brillouin_dos_zones_rtdb')
+      use, intrinsic :: iso_c_binding, only: c_int, c_long_long
+      implicit none
+#include "bafdecls.fh"
+#include "btdb.fh"
+      integer(c_int), intent(out) :: result
+      integer rtdb
+      integer ival
+      integer ivals(3)
+      integer(c_long_long) current_rtdb
+      logical nwchemc_probe_get_int, nwchemc_probe_get_int_array
+      external nwchemc_probe_get_int, nwchemc_probe_get_int_array
+
+      interface
+         function nwchemc_embed_current_rtdb() result(handle) bind(C,
+     $        name='nwchemc_embed_current_rtdb')
+            use, intrinsic :: iso_c_binding, only: c_long_long
+            integer(c_long_long) handle
+         end function nwchemc_embed_current_rtdb
+      end interface
+
+      result = 0
+      current_rtdb = nwchemc_embed_current_rtdb()
+      if (current_rtdb .lt. 0_c_long_long) then
+         result = 301
+         return
+      endif
+      rtdb = int(current_rtdb, kind(rtdb))
+
+      if (.not. nwchemc_probe_get_int_array(rtdb, 'band:dos-grid',
+     $     3, ivals)) then
+         result = 302
+         return
+      endif
+      if (ivals(1) .ne. 7 .or. ivals(2) .ne. 8 .or.
+     $     ivals(3) .ne. 9) then
+         result = 303
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb, 'dosA:dos-grid',
+     $     3, ivals)) then
+         result = 304
+         return
+      endif
+      if (ivals(1) .ne. 7 .or. ivals(2) .ne. 8 .or.
+     $     ivals(3) .ne. 9) then
+         result = 305
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'dosA:number_kvectors',
+     $     ival)) then
+         result = 306
+         return
+      endif
+      if (ival .ne. 504) then
+         result = 307
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb, 'fftA:dos-grid',
+     $     3, ivals)) then
+         result = 308
+         return
+      endif
+      if (ivals(1) .ne. 10 .or. ivals(2) .ne. 11 .or.
+     $     ivals(3) .ne. 12) then
+         result = 309
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'fftA:number_kvectors',
+     $     ival)) then
+         result = 310
+         return
+      endif
+      if (ival .ne. 1320) then
+         result = 311
+         return
+      endif
+
+      result = 0
+      return
+      end
+
       subroutine nwchemc_test_configured_nwpw_rtdb(result) bind(C,
      $     name='nwchemc_test_configured_nwpw_rtdb')
       use, intrinsic :: iso_c_binding, only: c_int, c_long_long

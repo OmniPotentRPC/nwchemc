@@ -1735,6 +1735,15 @@ nwchem_config_options_params_bin = custom_target(
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
+    test(
+      'nwchem-brillouin-dos-zones-rtdb',
+      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_nwpw_rtdb_test,
+      args: nwchem_test_mpi_ranks > 1
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_nwpw_rtdb_test, 'brillouin-dos-zones', nwchem_brillouin_dos_grid_params_bin]
+        : ['brillouin-dos-zones', nwchem_brillouin_dos_grid_params_bin],
+      env: nwchem_test_mpi_env,
+      is_parallel: false,
+    )
     nwchem_geometry_basis_rtdb_test = executable(
       'test_nwchem_geometry_basis_rtdb',
       [

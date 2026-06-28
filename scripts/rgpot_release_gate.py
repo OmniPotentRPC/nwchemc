@@ -17,6 +17,7 @@ RGPOT_RELEASE_TESTS = [
     "nwchem-pseudopotential-rtdb",
     "nwchem-forceinput-cell-rtdb",
     "nwchem-configured-nwpw-rtdb",
+    "nwchem-brillouin-dos-zones-rtdb",
     "nwchem-installed-cmake-consumer",
     "nwchem-installed-pkgconfig-consumer",
 ]
