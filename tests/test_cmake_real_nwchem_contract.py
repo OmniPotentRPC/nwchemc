@@ -299,6 +299,10 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
                 "nwchem-nwpw-rtdb",
                 "tests/test_nwchem_nwpw_rtdb.c",
                 "tests/nwchem_nwpw_rtdb_probe.F",
+                "nwchem-stress",
+                "tests/test_nwchem_stress.c",
+                "potential_config_pspw_stress.capnp.txt.in",
+                "force_input_si_box_ang.capnp.txt",
             ],
         )
 
