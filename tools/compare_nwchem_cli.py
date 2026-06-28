@@ -423,7 +423,8 @@ def main() -> int:
         if grad is not None:
             lines.append(f"{tid}: CLI gradient n={len(grad)} parsed")
 
-        if want_embed and embed_status == "ok" and embed_payload:
+        task_wants_embed = bool(task.get("embed_compare", True))
+        if want_embed and task_wants_embed and embed_status == "ok" and embed_payload:
             entry["embed_energy_ha"] = embed_payload.get("energy_ha")
             entry["embed_gradient_ha_bohr"] = embed_payload.get("gradient_ha_bohr")
             cmp_ok, notes = compare_task(
@@ -436,11 +437,19 @@ def main() -> int:
             for n in notes:
                 lines.append(f"{tid}: {n}")
             lines.append(f"{tid}: {'PASS' if cmp_ok else 'FAIL'} embed-vs-CLI")
-        elif want_embed:
+        elif want_embed and task_wants_embed:
             entry["pass"] = False
             entry["compare_notes"] = [f"embed leg incomplete: {embed_status}"]
             lines.append(f"{tid}: incomplete-compare (embed {embed_status})")
             incomplete_embed = True
+        elif want_embed and not task_wants_embed:
+            # CLI proves the .nw path; embed proof is Meson-only for this op.
+            entry["pass"] = True
+            entry["embed_status"] = "skipped-task"
+            entry["compare_notes"] = [
+                "cli-only task (embed_compare=false; Meson covers embed)"
+            ]
+            lines.append(f"{tid}: PASS cli-only (embed_compare=false)")
         else:
             # CLI-only mode: task passes if CLI energy ok
             entry["pass"] = True

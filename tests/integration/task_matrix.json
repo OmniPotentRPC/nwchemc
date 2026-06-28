@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Integration / CLI compare task matrix for nwchemc vs pixi nwchem",
+  "description": "Integration / CLI compare task matrix for nwchemc vs NWChem CLI",
   "tolerances": {
     "energy_ha_abs": 1.0e-5,
     "gradient_ha_bohr_abs": 1.0e-4
@@ -10,15 +10,33 @@
       "id": "h2_scf_energy",
       "nw_input": "tests/integration/nw/h2_scf_energy.nw",
       "quantities": ["energy"],
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-gradient",
-      "notes": "CLI energy from task scf energy; embed uses energy/gradient ABI when SDK available"
+      "notes": "CLI task scf energy; embed NWChemParams energy/gradient ABI"
     },
     {
       "id": "h2_scf_gradient",
       "nw_input": "tests/integration/nw/h2_scf_gradient.nw",
       "quantities": ["energy", "gradient"],
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-gradient",
-      "notes": "CLI gradient task; compare energy; gradient norms when both available"
+      "notes": "CLI task scf gradient; embed energy+gradient within tol"
+    },
+    {
+      "id": "h2_scf_optimize",
+      "nw_input": "tests/integration/nw/h2_scf_optimize.nw",
+      "quantities": ["energy"],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-rgpot-smoke",
+      "notes": "CLI task scf optimize finite energy; embed optimize via Meson/rgpot smoke not this JSON leg"
+    },
+    {
+      "id": "h2_scf_frequencies",
+      "nw_input": "tests/integration/nw/h2_scf_frequencies.nw",
+      "quantities": ["energy"],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-rgpot-smoke",
+      "notes": "CLI task scf freq finite energy; frequencies spectrum Meson-tested, not CLI-embed JSON"
     }
   ]
 }
