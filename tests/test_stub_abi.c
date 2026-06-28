@@ -17,6 +17,10 @@ extern NWChemCResult nwchemc_dipole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_polarizability(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *polarizability_au) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_quadrupole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -53,6 +57,10 @@ extern NWChemCResult nwchemc_dipole_from_config(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *config_capnp, size_t config_capnp_size_bytes,
     double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_polarizability_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *polarizability_au) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_quadrupole_from_config(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *config_capnp, size_t config_capnp_size_bytes,
@@ -72,6 +80,9 @@ extern NWChemCResult nwchemc_frequencies_from_config(
 extern NWChemCResult nwchemc_session_dipole(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *dipole_au) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_polarizability(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *polarizability_au) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_session_quadrupole(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *quadrupole_au) NWCHEMC_TEST_WEAK;
@@ -90,6 +101,10 @@ extern NWChemCResult nwchemc_session_calculate_dipole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *dipole_au,
     size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_polarizability(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *polarizability_au,
+    size_t polarizability_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_session_calculate_quadrupole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *quadrupole_au,
@@ -184,6 +199,14 @@ extern NWChemCResult nwchemc_calculate_dipole_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_polarizability(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_polarizability_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) NWCHEMC_TEST_WEAK;
 extern size_t nwchemc_dipole_result_size_for_force_input(
     const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
@@ -193,6 +216,20 @@ extern NWChemCResult nwchemc_session_calculate_dipole_result(
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_dipole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_polarizability_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_polarizability_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_polarizability_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -330,6 +367,12 @@ extern NWChemCResult nwchemc_calculate_dipole_result_from_config(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_polarizability_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_quadrupole_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -380,6 +423,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult dipole_result =
       nwchemc_dipole(0, NULL, NULL, NULL, 0, dipole_au);
   assert_int_equal(dipole_result.ok, 0);
+  assert_true(nwchemc_polarizability != NULL);
+  double polarizability_au[12] = {0.0};
+  NWChemCResult polarizability_result =
+      nwchemc_polarizability(0, NULL, NULL, NULL, 0, polarizability_au);
+  assert_int_equal(polarizability_result.ok, 0);
   assert_true(nwchemc_quadrupole != NULL);
   double quadrupole_au[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult quadrupole_result =
@@ -422,6 +470,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult config_coord_dipole =
       nwchemc_dipole_from_config(0, NULL, NULL, NULL, 0, dipole_au);
   assert_int_equal(config_coord_dipole.ok, 0);
+  assert_true(nwchemc_polarizability_from_config != NULL);
+  NWChemCResult config_coord_polarizability =
+      nwchemc_polarizability_from_config(0, NULL, NULL, NULL, 0,
+                                         polarizability_au);
+  assert_int_equal(config_coord_polarizability.ok, 0);
   assert_true(nwchemc_quadrupole_from_config != NULL);
   NWChemCResult config_coord_quadrupole =
       nwchemc_quadrupole_from_config(0, NULL, NULL, NULL, 0, quadrupole_au);
@@ -458,6 +511,10 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_dipole =
       nwchemc_session_dipole(NULL, 0, NULL, NULL, dipole_au);
   assert_int_equal(session_dipole.ok, 0);
+  assert_true(nwchemc_session_polarizability != NULL);
+  NWChemCResult session_polarizability =
+      nwchemc_session_polarizability(NULL, 0, NULL, NULL, polarizability_au);
+  assert_int_equal(session_polarizability.ok, 0);
   assert_true(nwchemc_session_quadrupole != NULL);
   NWChemCResult session_quadrupole =
       nwchemc_session_quadrupole(NULL, 0, NULL, NULL, quadrupole_au);
@@ -578,6 +635,11 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult session_step_dipole =
       nwchemc_session_calculate_dipole(NULL, NULL, 0, dipole_au, 3);
   assert_int_equal(session_step_dipole.ok, 0);
+  assert_true(nwchemc_session_calculate_polarizability != NULL);
+  NWChemCResult session_step_polarizability =
+      nwchemc_session_calculate_polarizability(NULL, NULL, 0,
+                                               polarizability_au, 12);
+  assert_int_equal(session_step_polarizability.ok, 0);
   assert_true(nwchemc_dipole_result_size_for_force_input != NULL);
   assert_int_equal(nwchemc_dipole_result_size_for_force_input(NULL, 0), 0);
   assert_true(nwchemc_session_calculate_dipole_result != NULL);
@@ -595,6 +657,24 @@ static void test_stub_reports_unavailable(void **state) {
       nwchemc_calculate_dipole_result_from_config(
           NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(config_dipole_result.ok, 0);
+  assert_true(nwchemc_polarizability_result_size_for_force_input != NULL);
+  assert_int_equal(nwchemc_polarizability_result_size_for_force_input(NULL, 0),
+                   0);
+  assert_true(nwchemc_session_calculate_polarizability_result != NULL);
+  NWChemCResult session_polarizability_result =
+      nwchemc_session_calculate_polarizability_result(
+          NULL, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(session_polarizability_result.ok, 0);
+  assert_true(nwchemc_calculate_polarizability_result != NULL);
+  NWChemCResult one_shot_polarizability_result =
+      nwchemc_calculate_polarizability_result(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot_polarizability_result.ok, 0);
+  assert_true(nwchemc_calculate_polarizability_result_from_config != NULL);
+  NWChemCResult config_polarizability_result =
+      nwchemc_calculate_polarizability_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_polarizability_result.ok, 0);
   assert_true(nwchemc_session_calculate_quadrupole != NULL);
   NWChemCResult session_step_quadrupole =
       nwchemc_session_calculate_quadrupole(NULL, NULL, 0, quadrupole_au, 6);
@@ -692,6 +772,15 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult config_dipole =
       nwchemc_calculate_dipole_from_config(NULL, 0, NULL, 0, dipole_au, 3);
   assert_int_equal(config_dipole.ok, 0);
+  assert_true(nwchemc_calculate_polarizability != NULL);
+  NWChemCResult one_shot_polarizability = nwchemc_calculate_polarizability(
+      NULL, 0, NULL, 0, polarizability_au, 12);
+  assert_int_equal(one_shot_polarizability.ok, 0);
+  assert_true(nwchemc_calculate_polarizability_from_config != NULL);
+  NWChemCResult config_polarizability =
+      nwchemc_calculate_polarizability_from_config(
+          NULL, 0, NULL, 0, polarizability_au, 12);
+  assert_int_equal(config_polarizability.ok, 0);
   assert_true(nwchemc_calculate_quadrupole != NULL);
   NWChemCResult one_shot_quadrupole =
       nwchemc_calculate_quadrupole(NULL, 0, NULL, 0, quadrupole_au, 6);
