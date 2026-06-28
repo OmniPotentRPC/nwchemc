@@ -167,16 +167,17 @@ if has_nwchem
     fortran_args: nwchem_legacy_args,
     install: false,
   )
-  # Module libs before stubs.o so real selci/mcscf/... win over optional stubs.
+  # stubs.o must omit enabled modules (regenerate when enabling selci/etc.).
+  # Real module archives supply those symbols; stubs only fill remaining gaps.
   nwchem_link_args = [
     '-L' + nwchem_root + '/lib/' + nwchem_target,
     '-L' + nwchem_root + '/src/tools/install/lib',
     '-L' + nwchem_root + '/src/libext/lib',
   ] + ga_ldflags + mpi_libdirs + [
     '-Wl,--start-group',
+    nwchem_root + '/src/stubs.o',
     '-lnwctask',
   ] + nwchem_module_libs + nwchem_utility_libs + [
-    nwchem_root + '/src/stubs.o',
     '-lcomex',
   ] + ga_libs + [
     '-Wl,--end-group',
