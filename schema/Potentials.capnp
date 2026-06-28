@@ -39,6 +39,7 @@ struct PotentialResult {
   frequencies @6 :List(Float64); # @brief Harmonic vibrational frequencies [natoms * 3] in cm^-1.
   intensities @7 :List(Float64); # @brief Harmonic IR intensities [natoms * 3] in atomic units.
   stress @8 :List(Float64); # @brief Stress tensor [9] in energy/length^3 units.
+  polarizability @9 :List(Float64); # @brief NWChem aoresponse:alpha vector [12] in atomic units.
 }
 
 # @struct NWChemParams
@@ -915,4 +916,8 @@ interface Potential {
   # @brief Compute harmonic vibrational frequencies and IR intensities.
   # @return PotentialResult.frequencies in cm^-1 and intensities in atomic units.
   calculateFrequencies @9 (fip :ForceInput) -> (result :PotentialResult);
+
+  # @brief Compute the electric polarizability response vector.
+  # @return PotentialResult.polarizability stores NWChem aoresponse:alpha.
+  calculatePolarizability @10 (fip :ForceInput) -> (result :PotentialResult);
 }

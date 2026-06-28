@@ -352,6 +352,8 @@ size_t nwchemc_quadrupole_result_flat_size(void);
 
 size_t nwchemc_stress_result_flat_size(void);
 
+size_t nwchemc_polarizability_result_flat_size(void);
+
 size_t nwchemc_optimize_result_flat_size(size_t position_count);
 
 size_t nwchemc_frequencies_result_flat_size(size_t frequency_count);
@@ -370,6 +372,11 @@ int nwchemc_potential_result_write_hessian(
 int nwchemc_potential_result_write_dipole(
     double energy, const double *dipole, void *potential_result_capnp,
     size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes);
+
+int nwchemc_potential_result_write_polarizability(
+    double energy, const double *polarizability,
+    void *potential_result_capnp, size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes);
 
 int nwchemc_potential_result_write_quadrupole(

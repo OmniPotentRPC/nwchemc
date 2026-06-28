@@ -114,7 +114,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"params.scfType", "NWChemParams.scfType", "SCF type or DFT XC keyword", NWCHEMC_FEATURE_PARAMS_FIELD, 2, 1, 1},
     {"params.charge", "NWChemParams.charge", "Molecular charge", NWCHEMC_FEATURE_PARAMS_FIELD, 3, 1, 1},
     {"params.multiplicity", "NWChemParams.multiplicity", "Spin multiplicity 2S+1", NWCHEMC_FEATURE_PARAMS_FIELD, 4, 1, 1},
-    {"params.enginePath", "NWChemParams.enginePath", "reserved dynamic engine path; linked embed rejects non-empty values", NWCHEMC_FEATURE_PARAMS_FIELD, 5, 1, 0},
+    {"params.enginePath", "NWChemParams.enginePath", "dlopen path for engine; empty probes env", NWCHEMC_FEATURE_PARAMS_FIELD, 5, 1, 0},
     {"params.nwchemRoot", "NWChemParams.nwchemRoot", "NWCHEM_TOP embed root hint", NWCHEMC_FEATURE_PARAMS_FIELD, 6, 1, 1},
     {"params.task", "NWChemParams.task", "Task label energy|gradient|hessian|property", NWCHEMC_FEATURE_PARAMS_FIELD, 7, 1, 1},
     {"params.title", "NWChemParams.title", "Optional title/start prefix", NWCHEMC_FEATURE_PARAMS_FIELD, 8, 1, 1},
@@ -141,6 +141,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.PotentialResult.frequencies", "PotentialResult.frequencies", "PotentialResult.frequencies Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 1},
     {"field.PotentialResult.intensities", "PotentialResult.intensities", "PotentialResult.intensities Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 1},
     {"field.PotentialResult.stress", "PotentialResult.stress", "PotentialResult.stress Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 1},
+    {"field.PotentialResult.polarizability", "PotentialResult.polarizability", "PotentialResult.polarizability Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 9, 1, 1},
     {"field.NWChemDirective.keyword", "NWChemDirective.keyword", "NWChemDirective.keyword Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemDirective.args", "NWChemDirective.args", "NWChemDirective.args Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemGenericStanza.name", "NWChemGenericStanza.name", "NWChemGenericStanza.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
@@ -559,6 +560,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"method.Potential.calculateStress", "Potential.calculateStress", "Potential.calculateStress Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 7, 1, 1},
     {"method.Potential.calculateOptimize", "Potential.calculateOptimize", "Potential.calculateOptimize Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 8, 1, 1},
     {"method.Potential.calculateFrequencies", "Potential.calculateFrequencies", "Potential.calculateFrequencies Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 9, 1, 1},
+    {"method.Potential.calculatePolarizability", "Potential.calculatePolarizability", "Potential.calculatePolarizability Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 10, 1, 1},
     {"abi.nwchemc_set_params", "include/nwchemc.h::nwchemc_set_params", "stub=fails non-zero; embed=applies Cap'n Proto params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_configure", "include/nwchemc.h::nwchemc_configure", "stub=fails non-zero; embed=applies PotentialConfig.nwchem params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy_gradient", "include/nwchemc.h::nwchemc_energy_gradient", "stub=fails ok==0; embed=runs energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -566,6 +568,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_energy_forces", "include/nwchemc.h::nwchemc_energy_forces", "stub=fails ok==0; embed=runs energy/forces (negated gradient)", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_hessian", "include/nwchemc.h::nwchemc_hessian", "stub=fails ok==0; embed=runs Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_dipole", "include/nwchemc.h::nwchemc_dipole", "stub=fails ok==0; embed=runs total dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_polarizability", "include/nwchemc.h::nwchemc_polarizability", "stub=fails ok==0; embed=runs electric polarizability response", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_quadrupole", "include/nwchemc.h::nwchemc_quadrupole", "stub=fails ok==0; embed=runs total traceless quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_stress", "include/nwchemc.h::nwchemc_stress", "stub=fails ok==0; embed=runs stress tensor", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_optimize", "include/nwchemc.h::nwchemc_optimize", "stub=fails ok==0; embed=runs geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -575,6 +578,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_energy_forces_from_config", "include/nwchemc.h::nwchemc_energy_forces_from_config", "stub=fails ok==0; embed=runs PotentialConfig energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_hessian_from_config", "include/nwchemc.h::nwchemc_hessian_from_config", "stub=fails ok==0; embed=runs PotentialConfig Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_dipole_from_config", "include/nwchemc.h::nwchemc_dipole_from_config", "stub=fails ok==0; embed=runs PotentialConfig total dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_polarizability_from_config", "include/nwchemc.h::nwchemc_polarizability_from_config", "stub=fails ok==0; embed=runs PotentialConfig electric polarizability response", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_quadrupole_from_config", "include/nwchemc.h::nwchemc_quadrupole_from_config", "stub=fails ok==0; embed=runs PotentialConfig total traceless quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_stress_from_config", "include/nwchemc.h::nwchemc_stress_from_config", "stub=fails ok==0; embed=runs PotentialConfig stress tensor", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_optimize_from_config", "include/nwchemc.h::nwchemc_optimize_from_config", "stub=fails ok==0; embed=runs PotentialConfig geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -588,6 +592,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_energy", "include/nwchemc.h::nwchemc_session_energy", "stub=fails ok==0; embed=runs session energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_energy_forces", "include/nwchemc.h::nwchemc_session_energy_forces", "stub=fails ok==0; embed=runs session energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_dipole", "include/nwchemc.h::nwchemc_session_dipole", "stub=fails ok==0; embed=runs session total dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_polarizability", "include/nwchemc.h::nwchemc_session_polarizability", "stub=fails ok==0; embed=runs session electric polarizability response", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_quadrupole", "include/nwchemc.h::nwchemc_session_quadrupole", "stub=fails ok==0; embed=runs session total traceless quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_stress", "include/nwchemc.h::nwchemc_session_stress", "stub=fails ok==0; embed=runs session stress tensor", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_optimize", "include/nwchemc.h::nwchemc_session_optimize", "stub=fails ok==0; embed=runs session geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -621,6 +626,12 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_calculate_dipole_result", "include/nwchemc.h::nwchemc_session_calculate_dipole_result", "stub=fails ok==0; embed=runs session ForceInput dipole into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_dipole_result", "include/nwchemc.h::nwchemc_calculate_dipole_result", "stub=fails ok==0; embed=runs one-shot ForceInput dipole into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_dipole_result_from_config", "include/nwchemc.h::nwchemc_calculate_dipole_result_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig dipole into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_polarizability", "include/nwchemc.h::nwchemc_calculate_polarizability", "stub=fails ok==0; embed=runs one-shot ForceInput polarizability", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_polarizability_from_config", "include/nwchemc.h::nwchemc_calculate_polarizability_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig polarizability", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_polarizability_result_size_for_force_input", "include/nwchemc.h::nwchemc_polarizability_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput polarizability PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_polarizability_result", "include/nwchemc.h::nwchemc_session_calculate_polarizability_result", "stub=fails ok==0; embed=runs session ForceInput polarizability into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_polarizability_result", "include/nwchemc.h::nwchemc_calculate_polarizability_result", "stub=fails ok==0; embed=runs one-shot ForceInput polarizability into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_polarizability_result_from_config", "include/nwchemc.h::nwchemc_calculate_polarizability_result_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig polarizability into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_quadrupole", "include/nwchemc.h::nwchemc_calculate_quadrupole", "stub=fails ok==0; embed=runs one-shot ForceInput quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_quadrupole_from_config", "include/nwchemc.h::nwchemc_calculate_quadrupole_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_quadrupole_result_size_for_force_input", "include/nwchemc.h::nwchemc_quadrupole_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput quadrupole PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -648,6 +659,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_potential_result_size_for_force_input", "include/nwchemc.h::nwchemc_potential_result_size_for_force_input", "stub=returns 0; embed=sizes session PotentialResult output from ForceInput", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_hessian", "include/nwchemc.h::nwchemc_session_calculate_hessian", "stub=fails ok==0; embed=runs session ForceInput Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_dipole", "include/nwchemc.h::nwchemc_session_calculate_dipole", "stub=fails ok==0; embed=runs session ForceInput dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_polarizability", "include/nwchemc.h::nwchemc_session_calculate_polarizability", "stub=fails ok==0; embed=runs session ForceInput polarizability", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_quadrupole", "include/nwchemc.h::nwchemc_session_calculate_quadrupole", "stub=fails ok==0; embed=runs session ForceInput quadrupole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_stress", "include/nwchemc.h::nwchemc_session_calculate_stress", "stub=fails ok==0; embed=runs session ForceInput stress", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_optimize", "include/nwchemc.h::nwchemc_session_calculate_optimize", "stub=fails ok==0; embed=runs session ForceInput geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -658,7 +670,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 653;
+static const size_t k_feature_count = 665;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
@@ -673,7 +685,6 @@ const NWChemCFeatureEntry *nwchemc_feature_find(const char *feature_id) {
   }
   return NULL;
 }
-
 size_t nwchemc_feature_count_class(NWChemCFeatureClass klass) {
   size_t n = 0;
   for (size_t i = 0; i < k_feature_count; ++i) {

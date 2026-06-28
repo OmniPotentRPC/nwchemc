@@ -298,6 +298,11 @@ def main() -> int:
                 "embed": "runs total dipole",
             },
             {
+                "name": "nwchemc_polarizability",
+                "stub": "fails ok==0",
+                "embed": "runs electric polarizability response",
+            },
+            {
                 "name": "nwchemc_quadrupole",
                 "stub": "fails ok==0",
                 "embed": "runs total traceless quadrupole",
@@ -341,6 +346,11 @@ def main() -> int:
                 "name": "nwchemc_dipole_from_config",
                 "stub": "fails ok==0",
                 "embed": "runs PotentialConfig total dipole",
+            },
+            {
+                "name": "nwchemc_polarizability_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs PotentialConfig electric polarizability response",
             },
             {
                 "name": "nwchemc_quadrupole_from_config",
@@ -406,6 +416,11 @@ def main() -> int:
                 "name": "nwchemc_session_dipole",
                 "stub": "fails ok==0",
                 "embed": "runs session total dipole",
+            },
+            {
+                "name": "nwchemc_session_polarizability",
+                "stub": "fails ok==0",
+                "embed": "runs session electric polarizability response",
             },
             {
                 "name": "nwchemc_session_quadrupole",
@@ -573,6 +588,36 @@ def main() -> int:
                 "embed": "runs one-shot PotentialConfig dipole into PotentialResult",
             },
             {
+                "name": "nwchemc_calculate_polarizability",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput polarizability",
+            },
+            {
+                "name": "nwchemc_calculate_polarizability_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig polarizability",
+            },
+            {
+                "name": "nwchemc_polarizability_result_size_for_force_input",
+                "stub": "returns 0",
+                "embed": "sizes ForceInput polarizability PotentialResult",
+            },
+            {
+                "name": "nwchemc_session_calculate_polarizability_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput polarizability into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_polarizability_result",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput polarizability into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_polarizability_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig polarizability into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_quadrupole",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot ForceInput quadrupole",
@@ -706,6 +751,11 @@ def main() -> int:
                 "name": "nwchemc_session_calculate_dipole",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput dipole",
+            },
+            {
+                "name": "nwchemc_session_calculate_polarizability",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput polarizability",
             },
             {
                 "name": "nwchemc_session_calculate_quadrupole",

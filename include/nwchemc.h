@@ -128,6 +128,18 @@ NWChemCResult nwchemc_dipole(
     double *dipole_au);
 
 /**
+ * @brief Compute the NWChem polarizability response vector.
+ *
+ * @param polarizability_au Output `aoresponse:alpha` vector in atomic units,
+ *        length 12: frequency, xx, xy, xz, yy, yz, zz, eigenvalues 1-3,
+ *        isotropic, anisotropic.
+ */
+NWChemCResult nwchemc_polarizability(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *polarizability_au);
+
+/**
  * @brief Compute total traceless electric quadrupole for an atomic configuration.
  *
  * @param n_atoms Number of atoms.
@@ -235,6 +247,12 @@ NWChemCResult nwchemc_dipole_from_config(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *config_capnp, size_t config_capnp_size_bytes,
     double *dipole_au);
+
+/** @brief Compute the NWChem polarizability response from a `PotentialConfig`. */
+NWChemCResult nwchemc_polarizability_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *polarizability_au);
 
 /**
  * @brief Compute total traceless electric quadrupole from a `PotentialConfig`.
@@ -346,6 +364,13 @@ NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
                                      const double *positions_ang,
                                      const int *atomic_numbers,
                                      double *dipole_au);
+
+/**
+ * @brief Compute the NWChem polarizability response using a persistent session.
+ */
+NWChemCResult nwchemc_session_polarizability(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *polarizability_au);
 
 /**
  * @brief Compute total traceless electric quadrupole using a persistent session.
@@ -685,6 +710,57 @@ NWChemCResult nwchemc_calculate_dipole_result_from_config(
     size_t *potential_result_capnp_size_bytes);
 
 /**
+ * @brief Compute one `ForceInput` step and write NWChem `aoresponse:alpha`.
+ *
+ * The 12 values are returned in atomic units: frequency, xx, xy, xz, yy, yz,
+ * zz, eigenvalues 1-3, isotropic, anisotropic.
+ */
+NWChemCResult nwchemc_calculate_polarizability(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len);
+
+/** @brief One-shot `PotentialConfig + ForceInput -> raw polarizability`. */
+NWChemCResult nwchemc_calculate_polarizability_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len);
+
+/** @brief Return the byte count needed for a polarizability `PotentialResult`. */
+size_t nwchemc_polarizability_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
+ * @brief Compute one `ForceInput` polarizability and write
+ * `PotentialResult.polarizability`.
+ */
+NWChemCResult nwchemc_session_calculate_polarizability_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `NWChemParams + ForceInput -> PotentialResult.polarizability`.
+ */
+NWChemCResult nwchemc_calculate_polarizability_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `PotentialConfig + ForceInput -> PotentialResult.polarizability`.
+ */
+NWChemCResult nwchemc_calculate_polarizability_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief Compute one `ForceInput` step and write a quadrupole tensor.
  *
  * This is the one-shot Cap'n Proto quadrupole entry point for callers that do
@@ -943,6 +1019,16 @@ NWChemCResult nwchemc_session_calculate_hessian(
 NWChemCResult nwchemc_session_calculate_dipole(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *dipole_au, size_t dipole_len);
+
+/**
+ * @brief Compute polarizability for one Cap'n Proto `ForceInput` step.
+ *
+ * The output stores NWChem `aoresponse:alpha` in atomic units.
+ */
+NWChemCResult nwchemc_session_calculate_polarizability(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *polarizability_au,
+    size_t polarizability_len);
 
 /**
  * @brief Compute quadrupole for one Cap'n Proto `ForceInput` step.

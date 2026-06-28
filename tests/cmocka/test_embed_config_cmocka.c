@@ -108,6 +108,8 @@ static int g_hessian_calls = 0;
 static int g_hessian_cell_calls = 0;
 static int g_dipole_calls = 0;
 static int g_dipole_cell_calls = 0;
+static int g_polarizability_calls = 0;
+static int g_polarizability_cell_calls = 0;
 static int g_quadrupole_calls = 0;
 static int g_quadrupole_cell_calls = 0;
 static int g_optimize_calls = 0;
@@ -138,6 +140,13 @@ static int g_dipole_multiplicity[8];
 static int g_dipole_atomic_numbers[8][8];
 static double g_dipole_positions_ang[8][24];
 static double g_dipole_cell_ang[8][9];
+static int g_polarizability_n_atoms[8];
+static int g_polarizability_has_cell[8];
+static int g_polarizability_charge[8];
+static int g_polarizability_multiplicity[8];
+static int g_polarizability_atomic_numbers[8][8];
+static double g_polarizability_positions_ang[8][24];
+static double g_polarizability_cell_ang[8][9];
 static int g_quadrupole_n_atoms[8];
 static int g_quadrupole_has_cell[8];
 static int g_quadrupole_charge[8];
@@ -969,6 +978,57 @@ int nwchemc_embed_dipole_cell(
                              dipole_au, errmsg, errmsg_len);
 }
 
+static int capture_polarizability_call(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *energy_h,
+    double *polarizability_au, char *errmsg, int errmsg_len) {
+  int call = g_polarizability_calls;
+  if (call < 8) {
+    int ncopy = *n_atoms < 8 ? *n_atoms : 8;
+    int ncoord = (*n_atoms) * 3 < 24 ? (*n_atoms) * 3 : 24;
+    g_polarizability_n_atoms[call] = *n_atoms;
+    g_polarizability_has_cell[call] = has_cell ? *has_cell : 0;
+    g_polarizability_charge[call] = charge ? *charge : 0;
+    g_polarizability_multiplicity[call] =
+        multiplicity ? *multiplicity : 0;
+    for (int i = 0; i < ncopy; ++i)
+      g_polarizability_atomic_numbers[call][i] = atomic_numbers[i];
+    for (int i = 0; i < ncoord; ++i)
+      g_polarizability_positions_ang[call][i] = positions_ang[i];
+    for (int i = 0; i < 9; ++i)
+      g_polarizability_cell_ang[call][i] =
+          cell_ang && g_polarizability_has_cell[call] ? cell_ang[i] : 0.0;
+  }
+  ++g_polarizability_calls;
+  *energy_h = -1.375;
+  for (int i = 0; i < 12; ++i)
+    polarizability_au[i] = 0.0625 * (double)(i + 1);
+  snprintf(errmsg, (size_t)errmsg_len, "ok");
+  return 0;
+}
+
+int nwchemc_embed_polarizability(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const int *charge, const int *multiplicity,
+    double *energy_h, double *polarizability_au, char *errmsg,
+    int errmsg_len) {
+  return capture_polarizability_call(
+      n_atoms, positions_ang, atomic_numbers, NULL, NULL, charge,
+      multiplicity, energy_h, polarizability_au, errmsg, errmsg_len);
+}
+
+int nwchemc_embed_polarizability_cell(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *energy_h,
+    double *polarizability_au, char *errmsg, int errmsg_len) {
+  ++g_polarizability_cell_calls;
+  return capture_polarizability_call(
+      n_atoms, positions_ang, atomic_numbers, cell_ang, has_cell, charge,
+      multiplicity, energy_h, polarizability_au, errmsg, errmsg_len);
+}
+
 static int capture_quadrupole_call(
     const int *n_atoms, const double *positions_ang,
     const int *atomic_numbers, const double *cell_ang, const int *has_cell,
@@ -1246,6 +1306,8 @@ static void reset_embed_captures(void) {
   g_hessian_cell_calls = 0;
   g_dipole_calls = 0;
   g_dipole_cell_calls = 0;
+  g_polarizability_calls = 0;
+  g_polarizability_cell_calls = 0;
   g_quadrupole_calls = 0;
   g_quadrupole_cell_calls = 0;
   g_optimize_calls = 0;
@@ -1276,6 +1338,16 @@ static void reset_embed_captures(void) {
   memset(g_dipole_atomic_numbers, 0, sizeof(g_dipole_atomic_numbers));
   memset(g_dipole_positions_ang, 0, sizeof(g_dipole_positions_ang));
   memset(g_dipole_cell_ang, 0, sizeof(g_dipole_cell_ang));
+  memset(g_polarizability_n_atoms, 0, sizeof(g_polarizability_n_atoms));
+  memset(g_polarizability_has_cell, 0, sizeof(g_polarizability_has_cell));
+  memset(g_polarizability_charge, 0, sizeof(g_polarizability_charge));
+  memset(g_polarizability_multiplicity, 0,
+         sizeof(g_polarizability_multiplicity));
+  memset(g_polarizability_atomic_numbers, 0,
+         sizeof(g_polarizability_atomic_numbers));
+  memset(g_polarizability_positions_ang, 0,
+         sizeof(g_polarizability_positions_ang));
+  memset(g_polarizability_cell_ang, 0, sizeof(g_polarizability_cell_ang));
   memset(g_quadrupole_n_atoms, 0, sizeof(g_quadrupole_n_atoms));
   memset(g_quadrupole_has_cell, 0, sizeof(g_quadrupole_has_cell));
   memset(g_quadrupole_charge, 0, sizeof(g_quadrupole_charge));

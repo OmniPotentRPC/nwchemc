@@ -100,6 +100,19 @@ NWChemCResult nwchemc_dipole(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_polarizability(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *polarizability_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)polarizability_au;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_quadrupole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -213,6 +226,19 @@ NWChemCResult nwchemc_dipole_from_config(
   (void)config_capnp;
   (void)config_capnp_size_bytes;
   (void)dipole_au;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_polarizability_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *polarizability_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)polarizability_au;
   return stub_fail();
 }
 
@@ -364,6 +390,17 @@ NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
   (void)positions_ang;
   (void)atomic_numbers;
   (void)dipole_au;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_polarizability(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *polarizability_au) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)polarizability_au;
   return stub_fail();
 }
 
@@ -607,6 +644,22 @@ NWChemCResult nwchemc_calculate_dipole_result_from_config(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_polarizability_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_calculate_quadrupole_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -820,7 +873,40 @@ NWChemCResult nwchemc_calculate_dipole_from_config(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_polarizability(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)polarizability_au;
+  (void)polarizability_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_polarizability_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)polarizability_au;
+  (void)polarizability_len;
+  return stub_fail();
+}
+
 size_t nwchemc_dipole_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return 0;
+}
+
+size_t nwchemc_polarizability_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;
@@ -841,7 +927,37 @@ NWChemCResult nwchemc_session_calculate_dipole_result(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_polarizability_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_calculate_dipole_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_polarizability_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -1143,6 +1259,18 @@ NWChemCResult nwchemc_session_calculate_dipole(
   (void)force_input_capnp_size_bytes;
   (void)dipole_au;
   (void)dipole_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_polarizability(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *polarizability_au,
+    size_t polarizability_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)polarizability_au;
+  (void)polarizability_len;
   return stub_fail();
 }
 

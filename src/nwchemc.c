@@ -97,6 +97,16 @@ extern int nwchemc_embed_dipole_cell(
     const double *cell_ang, const int *has_cell, const int *charge,
     const int *multiplicity, double *energy_h, double *dipole_au, char *errmsg,
     int errmsg_len);
+extern int nwchemc_embed_polarizability(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const int *charge, const int *multiplicity,
+    double *energy_h, double *polarizability_au, char *errmsg,
+    int errmsg_len);
+extern int nwchemc_embed_polarizability_cell(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *energy_h,
+    double *polarizability_au, char *errmsg, int errmsg_len);
 extern int nwchemc_embed_quadrupole(
     const int *n_atoms, const double *positions_ang,
     const int *atomic_numbers, const int *charge, const int *multiplicity,
@@ -4243,6 +4253,59 @@ NWChemCResult nwchemc_dipole(
   return r;
 }
 
+NWChemCResult nwchemc_polarizability(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *polarizability_au) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+
+  if (n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !polarizability_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                          &params_root) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
+    return r;
+  }
+
+  struct NWChemParams params;
+  read_NWChemParams(&params, params_root);
+  if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  g_active_session = NULL;
+
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = params.charge;
+  int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  double eh = 0.0;
+  int rc = nwchemc_embed_polarizability(
+      &n, positions_ang, atomic_numbers, &ch, &mult, &eh,
+      polarizability_au, errmsg, (int)sizeof(errmsg) - 1);
+  nwchemc_params_release(&arena);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed polarizability failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
 NWChemCResult nwchemc_quadrupole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -4556,6 +4619,26 @@ NWChemCResult nwchemc_dipole_from_config(
     return coordinate_config_fail("embed config failed");
   NWChemCResult r = nwchemc_session_dipole(
       session, n_atoms, positions_ang, atomic_numbers, dipole_au);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_polarizability_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *polarizability_au) {
+  if (coordinate_config_args_invalid(n_atoms, positions_ang, atomic_numbers,
+                                     config_capnp,
+                                     config_capnp_size_bytes) ||
+      !polarizability_au)
+    return coordinate_config_fail("invalid arguments");
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session)
+    return coordinate_config_fail("embed config failed");
+  NWChemCResult r = nwchemc_session_polarizability(
+      session, n_atoms, positions_ang, atomic_numbers, polarizability_au);
   nwchemc_session_destroy(session);
   return r;
 }
@@ -5274,6 +5357,67 @@ NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
                                      double *dipole_au) {
   return session_dipole_cell(session, n_atoms, positions_ang, atomic_numbers,
                              NULL, 0, dipole_au);
+}
+
+static NWChemCResult session_polarizability_cell(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, int has_cell,
+    double *polarizability_au) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || n_atoms <= 0 || !positions_ang || !atomic_numbers ||
+      !polarizability_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  int topology_status =
+      session_check_topology(session, (size_t)n_atoms, atomic_numbers);
+  if (topology_status < 0) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  if (topology_status > 0) {
+    snprintf(r.message, sizeof(r.message), "session topology mismatch");
+    return r;
+  }
+  if (session_apply_config(session) != 0) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  ensure_init();
+  char errmsg[512];
+  memset(errmsg, 0, sizeof(errmsg));
+  int n = n_atoms;
+  int ch = 0;
+  int mult = 1;
+  session_charge_multiplicity(session, &ch, &mult);
+  double eh = 0.0;
+  int cell_flag = has_cell ? 1 : 0;
+  double empty_cell[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0};
+  const double *cell_arg = cell_flag ? cell_ang : empty_cell;
+  int rc = nwchemc_embed_polarizability_cell(
+      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult, &eh,
+      polarizability_au, errmsg, (int)sizeof(errmsg) - 1);
+  if (rc != 0) {
+    snprintf(r.message, sizeof(r.message), "%s",
+             errmsg[0] ? errmsg : "nwchem embed polarizability failed");
+    return r;
+  }
+  r.ok = 1;
+  r.energy_h = eh;
+  snprintf(r.message, sizeof(r.message), "ok");
+  return r;
+}
+
+NWChemCResult nwchemc_session_polarizability(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *polarizability_au) {
+  return session_polarizability_cell(session, n_atoms, positions_ang,
+                                     atomic_numbers, NULL, 0,
+                                     polarizability_au);
 }
 
 static NWChemCResult session_quadrupole_cell(
@@ -6280,6 +6424,13 @@ size_t nwchemc_dipole_result_size_for_force_input(
       nwchemc_dipole_result_flat_size());
 }
 
+size_t nwchemc_polarizability_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  return fixed_property_result_size_for_force_input(
+      force_input_capnp, force_input_capnp_size_bytes,
+      nwchemc_polarizability_result_flat_size());
+}
+
 size_t nwchemc_quadrupole_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   return fixed_property_result_size_for_force_input(
@@ -6700,6 +6851,118 @@ NWChemCResult nwchemc_session_calculate_dipole_result(
   if (r.ok &&
       nwchemc_potential_result_write_dipole(
           r.energy_h * energy_factor, dipole, potential_result_capnp,
+          potential_result_capnp_capacity_bytes,
+          potential_result_capnp_size_bytes) != 0) {
+    r.ok = 0;
+    snprintf(r.message, sizeof(r.message), "PotentialResult write failed");
+  }
+  return r;
+}
+
+NWChemCResult nwchemc_session_calculate_polarizability(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *polarizability_au,
+    size_t polarizability_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !polarizability_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || polarizability_len < 12u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_polarizability_cell(
+      session, (int)n_atoms, session->step_positions_ang,
+      session->step_atomic_numbers, cell_ang, has_cell, polarizability_au);
+  session_clear_step_state(session);
+  return r;
+}
+
+NWChemCResult nwchemc_session_calculate_polarizability_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes =
+      nwchemc_polarizability_result_size_for_force_input(
+          force_input_capnp, force_input_capnp_size_bytes);
+  if (*potential_result_capnp_size_bytes == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  double energy_factor = 1.0;
+  if (force_input_result_energy_factor(force_input_capnp,
+                                       force_input_capnp_size_bytes,
+                                       &energy_factor) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput result units");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes <
+          *potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  double polarizability[12] = {0.0};
+  r = nwchemc_session_calculate_polarizability(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      polarizability, 12);
+  if (r.ok &&
+      nwchemc_potential_result_write_polarizability(
+          r.energy_h * energy_factor, polarizability, potential_result_capnp,
           potential_result_capnp_capacity_bytes,
           potential_result_capnp_size_bytes) != 0) {
     r.ok = 0;
@@ -7497,6 +7760,135 @@ NWChemCResult nwchemc_calculate_dipole_result_from_config(
       nwchemc_session_calculate_dipole_result);
 }
 
+NWChemCResult nwchemc_calculate_polarizability(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !polarizability_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      polarizability_len < 12u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  (void)n_atoms;
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_polarizability(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      polarizability_au, polarizability_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_polarizability_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!config_capnp || config_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !polarizability_au) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      polarizability_len < 12u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  (void)n_atoms;
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_polarizability(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      polarizability_au, polarizability_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_polarizability_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes =
+      nwchemc_polarizability_result_size_for_force_input(
+          force_input_capnp, force_input_capnp_size_bytes);
+  if (*potential_result_capnp_size_bytes == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes <
+          *potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_polarizability_result(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      potential_result_capnp, potential_result_capnp_capacity_bytes,
+      potential_result_capnp_size_bytes);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_polarizability_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_polarizability_result_size_for_force_input,
+      nwchemc_session_calculate_polarizability_result);
+}
+
 NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -8179,6 +8571,23 @@ NWChemCResult nwchemc_dipole(
   return r;
 }
 
+NWChemCResult nwchemc_polarizability(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *polarizability_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)polarizability_au;
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  snprintf(r.message, sizeof(r.message), "compiled without NWCHEMC_HAS_NWCHEM");
+  return r;
+}
+
 NWChemCResult nwchemc_stress(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -8308,6 +8717,19 @@ NWChemCResult nwchemc_dipole_from_config(
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_polarizability_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *polarizability_au) {
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)polarizability_au;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_quadrupole_from_config(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *config_capnp, size_t config_capnp_size_bytes,
@@ -8406,6 +8828,17 @@ NWChemCResult nwchemc_session_dipole(NWChemCSession *session, int n_atoms,
   (void)positions_ang;
   (void)atomic_numbers;
   (void)dipole_au;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_polarizability(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *polarizability_au) {
+  (void)session;
+  (void)n_atoms;
+  (void)positions_ang;
+  (void)atomic_numbers;
+  (void)polarizability_au;
   return no_nwchem_fail();
 }
 
@@ -8649,6 +9082,22 @@ NWChemCResult nwchemc_calculate_dipole_result_from_config(
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_calculate_polarizability_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_calculate_quadrupole_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -8811,6 +9260,32 @@ NWChemCResult nwchemc_calculate_dipole_from_config(
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_calculate_polarizability(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)polarizability_au;
+  (void)polarizability_len;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_polarizability_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)polarizability_au;
+  (void)polarizability_len;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -8949,6 +9424,43 @@ size_t nwchemc_stress_result_size_for_force_input(
   return 0;
 }
 
+size_t nwchemc_polarizability_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return 0;
+}
+
+NWChemCResult nwchemc_session_calculate_polarizability_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_polarizability_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_stress_result(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, void *potential_result_capnp,
@@ -9000,6 +9512,18 @@ NWChemCResult nwchemc_session_calculate_dipole(
   (void)force_input_capnp_size_bytes;
   (void)dipole_au;
   (void)dipole_len;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_polarizability(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *polarizability_au,
+    size_t polarizability_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)polarizability_au;
+  (void)polarizability_len;
   return no_nwchem_fail();
 }
 

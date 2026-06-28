@@ -1179,7 +1179,7 @@
       "field_id": 5,
       "name": "enginePath",
       "type": "Text = \"\"",
-      "role": "reserved dynamic engine path; linked embed rejects non-empty values",
+      "role": "dlopen path for engine; empty probes env",
       "stub_applicable": true,
       "embed_applicable": false,
       "driver_class": "params_field"
@@ -1486,6 +1486,18 @@
       "field_id": 8,
       "type": "List(Float64)",
       "role": "PotentialResult.stress Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.polarizability",
+      "schema_path": "PotentialResult.polarizability",
+      "struct": "PotentialResult",
+      "name": "polarizability",
+      "field_id": 9,
+      "type": "List(Float64)",
+      "role": "PotentialResult.polarizability Cap'n Proto field",
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "schema_field"
@@ -6517,6 +6529,19 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculatePolarizability",
+      "schema_path": "Potential.calculatePolarizability",
+      "interface": "Potential",
+      "name": "calculatePolarizability",
+      "method_id": 10,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculatePolarizability Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
     }
   ],
   "abi_entrypoints": [
@@ -6554,6 +6579,11 @@
       "name": "nwchemc_dipole",
       "stub": "fails ok==0",
       "embed": "runs total dipole"
+    },
+    {
+      "name": "nwchemc_polarizability",
+      "stub": "fails ok==0",
+      "embed": "runs electric polarizability response"
     },
     {
       "name": "nwchemc_quadrupole",
@@ -6599,6 +6629,11 @@
       "name": "nwchemc_dipole_from_config",
       "stub": "fails ok==0",
       "embed": "runs PotentialConfig total dipole"
+    },
+    {
+      "name": "nwchemc_polarizability_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs PotentialConfig electric polarizability response"
     },
     {
       "name": "nwchemc_quadrupole_from_config",
@@ -6664,6 +6699,11 @@
       "name": "nwchemc_session_dipole",
       "stub": "fails ok==0",
       "embed": "runs session total dipole"
+    },
+    {
+      "name": "nwchemc_session_polarizability",
+      "stub": "fails ok==0",
+      "embed": "runs session electric polarizability response"
     },
     {
       "name": "nwchemc_session_quadrupole",
@@ -6831,6 +6871,36 @@
       "embed": "runs one-shot PotentialConfig dipole into PotentialResult"
     },
     {
+      "name": "nwchemc_calculate_polarizability",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput polarizability"
+    },
+    {
+      "name": "nwchemc_calculate_polarizability_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot PotentialConfig polarizability"
+    },
+    {
+      "name": "nwchemc_polarizability_result_size_for_force_input",
+      "stub": "returns 0",
+      "embed": "sizes ForceInput polarizability PotentialResult"
+    },
+    {
+      "name": "nwchemc_session_calculate_polarizability_result",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput polarizability into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_polarizability_result",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput polarizability into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_polarizability_result_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot PotentialConfig polarizability into PotentialResult"
+    },
+    {
       "name": "nwchemc_calculate_quadrupole",
       "stub": "fails ok==0",
       "embed": "runs one-shot ForceInput quadrupole"
@@ -6964,6 +7034,11 @@
       "name": "nwchemc_session_calculate_dipole",
       "stub": "fails ok==0",
       "embed": "runs session ForceInput dipole"
+    },
+    {
+      "name": "nwchemc_session_calculate_polarizability",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput polarizability"
     },
     {
       "name": "nwchemc_session_calculate_quadrupole",
