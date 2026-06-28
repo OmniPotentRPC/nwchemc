@@ -1431,6 +1431,31 @@ static void assert_potential_result_energy_only(const unsigned char *message,
   capn_free(&arena);
 }
 
+static void assert_potential_result_gradient(const unsigned char *message,
+                                             size_t message_size,
+                                             double expected_energy,
+                                             const double *expected_gradient,
+                                             size_t expected_gradient_count,
+                                             double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_close(result.energy, expected_energy, tolerance);
+  capn_resolve(&result.gradient.p);
+  assert_int_equal(result.gradient.p.type, CAPN_LIST);
+  assert_int_equal(result.gradient.p.datasz, 8);
+  assert_int_equal(result.gradient.p.len, (int)expected_gradient_count);
+  for (size_t i = 0; i < expected_gradient_count; ++i) {
+    double actual = capn_to_f64(capn_get64(result.gradient, (int)i));
+    assert_close(actual, expected_gradient[i], tolerance);
+  }
+  capn_free(&arena);
+}
+
 static void assert_potential_result_hessian(const unsigned char *message,
                                             size_t message_size,
                                             double expected_energy,
@@ -4741,12 +4766,40 @@ static void test_session_force_input_state_overrides_params(void **state) {
 
   unsigned char result_bytes[512];
   size_t result_size = 0;
+  double gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult override_gradient = nwchemc_session_calculate_gradient(
+      session, step_state, step_state_size, gradient, 6);
+  assert_int_equal(override_gradient.ok, 1);
+  assert_int_equal(g_energy_grad_calls, 3);
+  assert_int_equal(g_call_charge[2], -2);
+  assert_int_equal(g_call_multiplicity[2], 5);
+  for (int i = 0; i < 6; ++i)
+    assert_close(gradient[i], (double)(i + 1), 1.0e-12);
+
+  const double bohr_to_angstrom = 0.529177210903;
+  double hartree_angstrom_gradient[6];
+  for (int i = 0; i < 6; ++i)
+    hartree_angstrom_gradient[i] = gradient[i] / bohr_to_angstrom;
+
+  result_size = 0;
+  NWChemCResult gradient_carrier =
+      nwchemc_session_calculate_gradient_result(
+          session, step_state, step_state_size, result_bytes,
+          sizeof(result_bytes), &result_size);
+  assert_int_equal(gradient_carrier.ok, 1);
+  assert_int_equal(g_energy_grad_calls, 4);
+  assert_int_equal(g_call_charge[3], -2);
+  assert_int_equal(g_call_multiplicity[3], 5);
+  assert_potential_result_gradient(result_bytes, result_size, -1.0,
+                                   hartree_angstrom_gradient, 6, 1.0e-12);
+
+  result_size = 0;
   NWChemCResult force_result = nwchemc_session_calculate_result(
       session, step_state, step_state_size, result_bytes, sizeof(result_bytes),
       &result_size);
   assert_int_equal(force_result.ok, 1);
-  assert_int_equal(g_call_charge[2], -2);
-  assert_int_equal(g_call_multiplicity[2], 5);
+  assert_int_equal(g_call_charge[4], -2);
+  assert_int_equal(g_call_multiplicity[4], 5);
 
   double hessian[36] = {0.0};
   NWChemCResult hessian_result = nwchemc_session_calculate_hessian(
