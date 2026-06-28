@@ -302,6 +302,23 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
             ],
         )
 
+    def test_static_install_export_includes_internal_link_closure(self):
+        install_match = re.search(
+            r"install\(\s*TARGETS\s+(?P<targets>.*?)\s+EXPORT\s+nwchemcTargets",
+            self.text,
+            re.S,
+        )
+        self.assertIsNotNone(install_match)
+        self.assert_contains_all(
+            install_match.group("targets"),
+            [
+                "nwchemc",
+                "nwchemc_legacy",
+                "nwchemc_params",
+                "capnp_c_runtime",
+            ],
+        )
+
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())
