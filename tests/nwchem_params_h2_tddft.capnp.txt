@@ -1,30 +1,14 @@
 (
   basis = "sto-3g",
   theory = "tddft",
-  scfType = "b3lyp",
+  scfType = "rhf",
   charge = 0,
   multiplicity = 1,
   task = "energy",
   title = "H2 TDDFT energy (singlet target root 1)",
   memoryMb = 512,
-  inputStanzas = [
-    (
-      kind = dft,
-      dft = (
-        xc = "b3lyp",
-        direct = true,
-        iterations = 50,
-      )
-    ),
-    (
-      kind = tddft,
-      tddft = (
-        nroots = 1,
-        target = 1,
-        singlet = enabled,
-        triplet = disabled,
-        tda = enabled,
-      )
-    )
+  inputBlocks = [
+    "dft\n  xc b3lyp\n  direct\n  iterations 50\nend",
+    "tddft\n  nroots 1\n  target 1\n  singlet\n  tda\nend"
   ],
 )

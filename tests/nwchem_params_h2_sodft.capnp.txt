@@ -1,21 +1,13 @@
 (
   basis = "sto-3g",
   theory = "sodft",
-  scfType = "b3lyp",
+  scfType = "rhf",
   charge = 0,
   multiplicity = 3,
   task = "energy",
   title = "H2 triplet SODFT energy",
   memoryMb = 512,
-  inputStanzas = [
-    (
-      kind = dft,
-      dft = (
-        xc = "b3lyp",
-        direct = true,
-        odft = true,
-        iterations = 50,
-      )
-    )
+  inputBlocks = [
+    "dft\n  xc b3lyp\n  odft\n  mult 3\n  direct\nend"
   ],
 )
