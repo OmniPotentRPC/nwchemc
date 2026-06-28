@@ -142,6 +142,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.PotentialResult.intensities", "PotentialResult.intensities", "PotentialResult.intensities Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 1},
     {"field.PotentialResult.stress", "PotentialResult.stress", "PotentialResult.stress Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 1},
     {"field.PotentialResult.polarizability", "PotentialResult.polarizability", "PotentialResult.polarizability Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 9, 1, 1},
+    {"field.PotentialResult.gradient", "PotentialResult.gradient", "PotentialResult.gradient Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 10, 1, 1},
     {"field.NWChemDirective.keyword", "NWChemDirective.keyword", "NWChemDirective.keyword Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemDirective.args", "NWChemDirective.args", "NWChemDirective.args Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemGenericStanza.name", "NWChemGenericStanza.name", "NWChemGenericStanza.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
@@ -561,6 +562,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"method.Potential.calculateOptimize", "Potential.calculateOptimize", "Potential.calculateOptimize Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 8, 1, 1},
     {"method.Potential.calculateFrequencies", "Potential.calculateFrequencies", "Potential.calculateFrequencies Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 9, 1, 1},
     {"method.Potential.calculatePolarizability", "Potential.calculatePolarizability", "Potential.calculatePolarizability Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 10, 1, 1},
+    {"method.Potential.calculateGradient", "Potential.calculateGradient", "Potential.calculateGradient Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 11, 1, 1},
     {"abi.nwchemc_set_params", "include/nwchemc.h::nwchemc_set_params", "stub=fails non-zero; embed=applies Cap'n Proto params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_configure", "include/nwchemc.h::nwchemc_configure", "stub=fails non-zero; embed=applies PotentialConfig.nwchem params", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy_gradient", "include/nwchemc.h::nwchemc_energy_gradient", "stub=fails ok==0; embed=runs energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -598,9 +600,12 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_optimize", "include/nwchemc.h::nwchemc_session_optimize", "stub=fails ok==0; embed=runs session geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_frequencies", "include/nwchemc.h::nwchemc_session_frequencies", "stub=fails ok==0; embed=runs session harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_forces", "include/nwchemc.h::nwchemc_session_calculate_forces", "stub=fails ok==0; embed=runs session ForceInput energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_gradient", "include/nwchemc.h::nwchemc_session_calculate_gradient", "stub=fails ok==0; embed=runs session ForceInput energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_energy", "include/nwchemc.h::nwchemc_session_calculate_energy", "stub=fails ok==0; embed=runs session ForceInput energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_forces", "include/nwchemc.h::nwchemc_calculate_forces", "stub=fails ok==0; embed=runs one-shot ForceInput energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_gradient", "include/nwchemc.h::nwchemc_calculate_gradient", "stub=fails ok==0; embed=runs one-shot ForceInput energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_forces_from_config", "include/nwchemc.h::nwchemc_calculate_forces_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig energy/forces", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_gradient_from_config", "include/nwchemc.h::nwchemc_calculate_gradient_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig energy/gradient", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_energy", "include/nwchemc.h::nwchemc_calculate_energy", "stub=fails ok==0; embed=runs one-shot ForceInput energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_energy_from_config", "include/nwchemc.h::nwchemc_calculate_energy_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig energy-only", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_energy_result_size_for_force_input", "include/nwchemc.h::nwchemc_energy_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput energy-only PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -611,9 +616,13 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_calculate_result", "include/nwchemc.h::nwchemc_calculate_result", "stub=fails ok==0; embed=runs one-shot ForceInput energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_result_from_config", "include/nwchemc.h::nwchemc_calculate_result_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig energy/forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_forces_result_size_for_force_input", "include/nwchemc.h::nwchemc_forces_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput forces PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_gradient_result_size_for_force_input", "include/nwchemc.h::nwchemc_gradient_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput gradient PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_forces_result", "include/nwchemc.h::nwchemc_session_calculate_forces_result", "stub=fails ok==0; embed=runs session ForceInput forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_gradient_result", "include/nwchemc.h::nwchemc_session_calculate_gradient_result", "stub=fails ok==0; embed=runs session ForceInput gradient into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_forces_result", "include/nwchemc.h::nwchemc_calculate_forces_result", "stub=fails ok==0; embed=runs one-shot ForceInput forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_gradient_result", "include/nwchemc.h::nwchemc_calculate_gradient_result", "stub=fails ok==0; embed=runs one-shot ForceInput gradient into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_forces_result_from_config", "include/nwchemc.h::nwchemc_calculate_forces_result_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig forces into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_gradient_result_from_config", "include/nwchemc.h::nwchemc_calculate_gradient_result_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig gradient into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_hessian", "include/nwchemc.h::nwchemc_calculate_hessian", "stub=fails ok==0; embed=runs one-shot ForceInput Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_hessian_from_config", "include/nwchemc.h::nwchemc_calculate_hessian_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_hessian_result_size_for_force_input", "include/nwchemc.h::nwchemc_hessian_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput Hessian PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -670,7 +679,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 665;
+static const size_t k_feature_count = 674;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
@@ -685,6 +694,7 @@ const NWChemCFeatureEntry *nwchemc_feature_find(const char *feature_id) {
   }
   return NULL;
 }
+
 size_t nwchemc_feature_count_class(NWChemCFeatureClass klass) {
   size_t n = 0;
   for (size_t i = 0; i < k_feature_count; ++i) {

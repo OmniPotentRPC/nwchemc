@@ -88,6 +88,7 @@ static int exercise_rgpot_result_abi(void) {
       nwchemc_potential_result_size_for_force_input,
       nwchemc_energy_result_size_for_force_input,
       nwchemc_forces_result_size_for_force_input,
+      nwchemc_gradient_result_size_for_force_input,
       nwchemc_hessian_result_size_for_force_input,
       nwchemc_dipole_result_size_for_force_input,
       nwchemc_polarizability_result_size_for_force_input,
@@ -100,6 +101,7 @@ static int exercise_rgpot_result_abi(void) {
       nwchemc_calculate_result_from_config,
       nwchemc_calculate_energy_result_from_config,
       nwchemc_calculate_forces_result_from_config,
+      nwchemc_calculate_gradient_result_from_config,
       nwchemc_calculate_hessian_result_from_config,
       nwchemc_calculate_dipole_result_from_config,
       nwchemc_calculate_polarizability_result_from_config,
@@ -143,6 +145,7 @@ static int exercise_rgpot_raw_and_session_abi(void) {
   };
   PotentialConfigBufferFn params_buffer_fns[] = {
       nwchemc_calculate_forces,
+      nwchemc_calculate_gradient,
       nwchemc_calculate_hessian,
       nwchemc_calculate_dipole,
       nwchemc_calculate_polarizability,
@@ -157,6 +160,7 @@ static int exercise_rgpot_raw_and_session_abi(void) {
       nwchemc_calculate_result,
       nwchemc_calculate_energy_result,
       nwchemc_calculate_forces_result,
+      nwchemc_calculate_gradient_result,
       nwchemc_calculate_hessian_result,
       nwchemc_calculate_dipole_result,
       nwchemc_calculate_polarizability_result,
@@ -170,6 +174,7 @@ static int exercise_rgpot_raw_and_session_abi(void) {
   };
   PotentialConfigBufferFn config_buffer_fns[] = {
       nwchemc_calculate_forces_from_config,
+      nwchemc_calculate_gradient_from_config,
       nwchemc_calculate_hessian_from_config,
       nwchemc_calculate_dipole_from_config,
       nwchemc_calculate_polarizability_from_config,
@@ -185,6 +190,7 @@ static int exercise_rgpot_raw_and_session_abi(void) {
   };
   SessionBufferFn session_buffer_fns[] = {
       nwchemc_session_calculate_forces,
+      nwchemc_session_calculate_gradient,
       nwchemc_session_calculate_hessian,
       nwchemc_session_calculate_dipole,
       nwchemc_session_calculate_polarizability,
@@ -198,6 +204,7 @@ static int exercise_rgpot_raw_and_session_abi(void) {
   SessionResultFn session_result_fns[] = {
       nwchemc_session_calculate_energy_result,
       nwchemc_session_calculate_forces_result,
+      nwchemc_session_calculate_gradient_result,
       nwchemc_session_calculate_result,
       nwchemc_session_calculate_hessian_result,
       nwchemc_session_calculate_dipole_result,

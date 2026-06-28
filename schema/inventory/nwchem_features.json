@@ -1503,6 +1503,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.PotentialResult.gradient",
+      "schema_path": "PotentialResult.gradient",
+      "struct": "PotentialResult",
+      "name": "gradient",
+      "field_id": 10,
+      "type": "List(Float64)",
+      "role": "PotentialResult.gradient Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDirective.keyword",
       "schema_path": "NWChemDirective.keyword",
       "struct": "NWChemDirective",
@@ -6542,6 +6554,19 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "schema_method"
+    },
+    {
+      "feature_id": "method.Potential.calculateGradient",
+      "schema_path": "Potential.calculateGradient",
+      "interface": "Potential",
+      "name": "calculateGradient",
+      "method_id": 11,
+      "params": "fip :ForceInput",
+      "results": "result :PotentialResult",
+      "role": "Potential.calculateGradient Cap'n Proto interface method",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_method"
     }
   ],
   "abi_entrypoints": [
@@ -6731,6 +6756,11 @@
       "embed": "runs session ForceInput energy/forces"
     },
     {
+      "name": "nwchemc_session_calculate_gradient",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput energy/gradient"
+    },
+    {
       "name": "nwchemc_session_calculate_energy",
       "stub": "fails ok==0",
       "embed": "runs session ForceInput energy-only"
@@ -6741,9 +6771,19 @@
       "embed": "runs one-shot ForceInput energy/forces"
     },
     {
+      "name": "nwchemc_calculate_gradient",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput energy/gradient"
+    },
+    {
       "name": "nwchemc_calculate_forces_from_config",
       "stub": "fails ok==0",
       "embed": "runs one-shot PotentialConfig energy/forces"
+    },
+    {
+      "name": "nwchemc_calculate_gradient_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot PotentialConfig energy/gradient"
     },
     {
       "name": "nwchemc_calculate_energy",
@@ -6796,9 +6836,19 @@
       "embed": "sizes ForceInput forces PotentialResult"
     },
     {
+      "name": "nwchemc_gradient_result_size_for_force_input",
+      "stub": "returns 0",
+      "embed": "sizes ForceInput gradient PotentialResult"
+    },
+    {
       "name": "nwchemc_session_calculate_forces_result",
       "stub": "fails ok==0",
       "embed": "runs session ForceInput forces into PotentialResult"
+    },
+    {
+      "name": "nwchemc_session_calculate_gradient_result",
+      "stub": "fails ok==0",
+      "embed": "runs session ForceInput gradient into PotentialResult"
     },
     {
       "name": "nwchemc_calculate_forces_result",
@@ -6806,9 +6856,19 @@
       "embed": "runs one-shot ForceInput forces into PotentialResult"
     },
     {
+      "name": "nwchemc_calculate_gradient_result",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot ForceInput gradient into PotentialResult"
+    },
+    {
       "name": "nwchemc_calculate_forces_result_from_config",
       "stub": "fails ok==0",
       "embed": "runs one-shot PotentialConfig forces into PotentialResult"
+    },
+    {
+      "name": "nwchemc_calculate_gradient_result_from_config",
+      "stub": "fails ok==0",
+      "embed": "runs one-shot PotentialConfig gradient into PotentialResult"
     },
     {
       "name": "nwchemc_calculate_hessian",

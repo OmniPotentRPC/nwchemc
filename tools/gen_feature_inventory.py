@@ -448,6 +448,11 @@ def main() -> int:
                 "embed": "runs session ForceInput energy/forces",
             },
             {
+                "name": "nwchemc_session_calculate_gradient",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput energy/gradient",
+            },
+            {
                 "name": "nwchemc_session_calculate_energy",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput energy-only",
@@ -458,9 +463,19 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput energy/forces",
             },
             {
+                "name": "nwchemc_calculate_gradient",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput energy/gradient",
+            },
+            {
                 "name": "nwchemc_calculate_forces_from_config",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot PotentialConfig energy/forces",
+            },
+            {
+                "name": "nwchemc_calculate_gradient_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig energy/gradient",
             },
             {
                 "name": "nwchemc_calculate_energy",
@@ -513,9 +528,19 @@ def main() -> int:
                 "embed": "sizes ForceInput forces PotentialResult",
             },
             {
+                "name": "nwchemc_gradient_result_size_for_force_input",
+                "stub": "returns 0",
+                "embed": "sizes ForceInput gradient PotentialResult",
+            },
+            {
                 "name": "nwchemc_session_calculate_forces_result",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput forces into PotentialResult",
+            },
+            {
+                "name": "nwchemc_session_calculate_gradient_result",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput gradient into PotentialResult",
             },
             {
                 "name": "nwchemc_calculate_forces_result",
@@ -523,9 +548,19 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput forces into PotentialResult",
             },
             {
+                "name": "nwchemc_calculate_gradient_result",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput gradient into PotentialResult",
+            },
+            {
                 "name": "nwchemc_calculate_forces_result_from_config",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot PotentialConfig forces into PotentialResult",
+            },
+            {
+                "name": "nwchemc_calculate_gradient_result_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig gradient into PotentialResult",
             },
             {
                 "name": "nwchemc_calculate_hessian",
@@ -1022,7 +1057,6 @@ size_t nwchemc_module_feature_count(void);
             "  }",
             "  return NULL;",
             "}",
-            "",
         ]
     )
 

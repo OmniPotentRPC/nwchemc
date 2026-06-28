@@ -12,7 +12,7 @@ installed package and call the serialized-message ABI directly:
 - `PotentialConfig.nwchem` carries NWChem configuration.
 - `ForceInput` carries each geometry, cell, unit, charge, and multiplicity
   step.
-- `PotentialResult` carries energy, forces, Hessian, stress, dipole,
+- `PotentialResult` carries energy, forces, gradient, Hessian, stress, dipole,
   polarizability, quadrupole, optimized geometry, frequencies, and
   intensities.
 - Structured pseudopotentials are promoted to NWChem RTDB state by the embed
@@ -58,6 +58,7 @@ entry points are available when rgpot wants one operation instead of the
 energy-plus-forces compatibility result:
 
 - `nwchemc_calculate_hessian_result_from_config()`
+- `nwchemc_calculate_gradient_result_from_config()`
 - `nwchemc_calculate_dipole_result_from_config()`
 - `nwchemc_calculate_polarizability_result_from_config()`
 - `nwchemc_calculate_quadrupole_result_from_config()`
@@ -71,8 +72,8 @@ They are the preferred path for repeated geometry steps with fixed topology.
 ## Periodic cells
 
 For rgpot periodic calculations, put the 3x3 cell vectors in `ForceInput.box`
-for every periodic step. That is the path used by the energy, forces, stress,
-Hessian, dipole, polarizability, quadrupole, optimization, and frequency
+for every periodic step. That is the path used by the energy, forces, gradient,
+stress, Hessian, dipole, polarizability, quadrupole, optimization, and frequency
 result-carrier calls.
 
 `PotentialConfig.nwchem.inputStanzas[].simulationCell` remains useful for
@@ -89,6 +90,7 @@ fields in `ForceInput`:
 | --- | --- |
 | `PotentialResult.energy` | `ForceInput.energyUnit` |
 | `PotentialResult.forces` | `ForceInput.energyUnit / ForceInput.lengthUnit` |
+| `PotentialResult.gradient` | `ForceInput.energyUnit / ForceInput.lengthUnit` |
 | `PotentialResult.hessian` | `ForceInput.energyUnit / ForceInput.lengthUnit^2` |
 | `PotentialResult.stress` | `ForceInput.energyUnit / ForceInput.lengthUnit^3` |
 | `PotentialResult.optimizedPos` | `ForceInput.lengthUnit` |
@@ -97,6 +99,10 @@ fields in `ForceInput`:
 | `PotentialResult.quadrupole` | atomic units |
 | `PotentialResult.frequencies` | cm^-1 |
 | `PotentialResult.intensities` | atomic units |
+
+Raw gradient calls and `PotentialResult.gradient` return the NWChem nuclear
+derivative sign. Raw force calls and `PotentialResult.forces` return the
+negative derivative.
 
 `ForceInput.hasCharge` / `ForceInput.charge` and
 `ForceInput.hasMultiplicity` / `ForceInput.multiplicity` override the session
@@ -110,8 +116,8 @@ above and these probes are green:
 
 | Surface | Probe |
 | --- | --- |
-| `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy and forces | `tests/test_nwchem_rgpot_smoke.c` |
-| `ForceInput.energyUnit` / `ForceInput.lengthUnit` conversion for result-carrier energy, forces, Hessian, and optimized coordinates | `tests/test_nwchem_rgpot_smoke.c`, `tests/test_nwchem_hessian.c` |
+| `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy, forces, and gradient | `tests/test_nwchem_rgpot_smoke.c` |
+| `ForceInput.energyUnit` / `ForceInput.lengthUnit` conversion for result-carrier energy, forces, gradient, Hessian, and optimized coordinates | `tests/test_nwchem_rgpot_smoke.c`, `tests/test_nwchem_hessian.c` |
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
 | Hessian, dipole, polarizability, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
 | Periodic PSPW stress coordinate/session, ForceInput raw calls, result carriers, and unit conversion | `tests/test_nwchem_stress.c` |
@@ -122,7 +128,7 @@ above and these probes are green:
 | Direct pseudopotential RTDB storage | `tests/test_nwchem_pseudopotential_rtdb.c` |
 | Stub/parser ABI and result-carrier shape | `tests/cmocka/test_embed_config_cmocka.c` |
 
-Molecular energy, forces, Hessian, dipole, polarizability, quadrupole,
+Molecular energy, forces, gradient, Hessian, dipole, polarizability, quadrupole,
 optimization, and frequencies are covered by real-NWChem smoke tests. Periodic
 stress is covered by the PSPW stress smoke when rgpot is paired with an
 NWPW-enabled NWChem build. Molecular NWChem modules reject periodic

@@ -5749,6 +5749,69 @@ NWChemCResult nwchemc_session_calculate_forces(
   return r;
 }
 
+NWChemCResult nwchemc_session_calculate_gradient(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *gradient_h_bohr,
+    size_t gradient_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !gradient_h_bohr) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || gradient_len < n_atoms * 3u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_energy_gradient_cell(session, (int)n_atoms,
+                                   session->step_positions_ang,
+                                   session->step_atomic_numbers, cell_ang,
+                                   has_cell, gradient_h_bohr);
+  session_clear_step_state(session);
+  return r;
+}
+
 static int force_input_step_atom_count(const void *force_input_capnp,
                                        size_t force_input_capnp_size_bytes,
                                        size_t *n_atoms);
@@ -6266,6 +6329,76 @@ NWChemCResult nwchemc_calculate_forces_from_config(
   return r;
 }
 
+NWChemCResult nwchemc_calculate_gradient(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !gradient_h_bohr) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      n_atoms > SIZE_MAX / 3u || gradient_len < n_atoms * 3u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_gradient(
+      session, force_input_capnp, force_input_capnp_size_bytes, gradient_h_bohr,
+      gradient_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_gradient_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!config_capnp || config_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !gradient_h_bohr) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  size_t n_atoms = 0;
+  if (force_input_step_atom_count(force_input_capnp,
+                                  force_input_capnp_size_bytes,
+                                  &n_atoms) != 0 ||
+      n_atoms > SIZE_MAX / 3u || gradient_len < n_atoms * 3u) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config_capnp, config_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_gradient(
+      session, force_input_capnp, force_input_capnp_size_bytes, gradient_h_bohr,
+      gradient_len);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
 NWChemCResult nwchemc_calculate_energy(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
@@ -6362,6 +6495,195 @@ size_t nwchemc_forces_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   return nwchemc_potential_result_size_for_force_input(
       force_input_capnp, force_input_capnp_size_bytes);
+}
+
+size_t nwchemc_gradient_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0)
+    return 0;
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || n_atoms > SIZE_MAX / 3u) {
+    nwchemc_params_release(&arena);
+    return 0;
+  }
+  (void)has_cell;
+  size_t gradient_count = n_atoms * 3u;
+  if (gradient_count > (size_t)INT_MAX) {
+    nwchemc_params_release(&arena);
+    return 0;
+  }
+  size_t result_size = nwchemc_gradient_result_flat_size(gradient_count);
+  nwchemc_params_release(&arena);
+  return result_size;
+}
+
+NWChemCResult nwchemc_session_calculate_gradient_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!session || !force_input_capnp || force_input_capnp_size_bytes == 0 ||
+      !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes = 0;
+
+  struct capn arena;
+  ForceInput_ptr force_input;
+  if (nwchemc_force_input_root(force_input_capnp, force_input_capnp_size_bytes,
+                               &arena, &force_input) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput message");
+    return r;
+  }
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
+      n_atoms > (size_t)INT_MAX || n_atoms > SIZE_MAX / 3u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  size_t gradient_count = n_atoms * 3u;
+  size_t required_size = nwchemc_gradient_result_flat_size(gradient_count);
+  *potential_result_capnp_size_bytes = required_size;
+  if (required_size == 0 || gradient_count > (size_t)INT_MAX) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+
+  double energy_factor = 1.0;
+  double gradient_factor = 1.0;
+  if (nwchemc_force_input_result_factors(force_input, &energy_factor,
+                                         &gradient_factor) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput result units");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes < required_size) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+  if (session_reserve_step_atoms(session, n_atoms) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  int step_charge = 0;
+  int step_multiplicity = 1;
+  if (force_input_electronic_state(session, force_input, &step_charge,
+                                   &step_multiplicity) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput state");
+    return r;
+  }
+
+  double cell_ang[9];
+  if (nwchemc_force_input_copy_geometry(
+          force_input, session->step_positions_ang, session->step_atomic_numbers,
+          session->step_atom_capacity, cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  nwchemc_params_release(&arena);
+
+  double *gradient = (double *)malloc(gradient_count * sizeof(*gradient));
+  if (!gradient) {
+    snprintf(r.message, sizeof(r.message), "out of memory");
+    return r;
+  }
+  session_set_step_state(session, step_charge, step_multiplicity);
+  r = session_energy_gradient_cell(session, (int)n_atoms,
+                                   session->step_positions_ang,
+                                   session->step_atomic_numbers, cell_ang,
+                                   has_cell, gradient);
+  session_clear_step_state(session);
+  if (r.ok) {
+    for (size_t i = 0; i < gradient_count; ++i)
+      gradient[i] *= gradient_factor;
+    if (nwchemc_potential_result_write_gradient(
+            r.energy_h * energy_factor, gradient, gradient_count,
+            potential_result_capnp, potential_result_capnp_capacity_bytes,
+            potential_result_capnp_size_bytes) != 0) {
+      r.ok = 0;
+      snprintf(r.message, sizeof(r.message), "PotentialResult write failed");
+    }
+  }
+  free(gradient);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_gradient_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  NWChemCResult r;
+  r.ok = 0;
+  r.energy_h = 0.0;
+  r.message[0] = '\0';
+  if (!params_capnp || params_capnp_size_bytes == 0 || !force_input_capnp ||
+      force_input_capnp_size_bytes == 0 || !potential_result_capnp_size_bytes) {
+    snprintf(r.message, sizeof(r.message), "invalid arguments");
+    return r;
+  }
+  *potential_result_capnp_size_bytes = 0;
+
+  size_t required_size = nwchemc_gradient_result_size_for_force_input(
+      force_input_capnp, force_input_capnp_size_bytes);
+  *potential_result_capnp_size_bytes = required_size;
+  if (required_size == 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  if (!potential_result_capnp ||
+      potential_result_capnp_capacity_bytes < required_size) {
+    snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
+    return r;
+  }
+
+  NWChemCSession *session =
+      nwchemc_session_create(params_capnp, params_capnp_size_bytes);
+  if (!session) {
+    snprintf(r.message, sizeof(r.message), "embed config failed");
+    return r;
+  }
+  r = nwchemc_session_calculate_gradient_result(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      potential_result_capnp, potential_result_capnp_capacity_bytes,
+      potential_result_capnp_size_bytes);
+  nwchemc_session_destroy(session);
+  return r;
+}
+
+NWChemCResult nwchemc_calculate_gradient_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  return calculate_config_result(
+      config_capnp, config_capnp_size_bytes, force_input_capnp,
+      force_input_capnp_size_bytes, potential_result_capnp,
+      potential_result_capnp_capacity_bytes, potential_result_capnp_size_bytes,
+      nwchemc_gradient_result_size_for_force_input,
+      nwchemc_session_calculate_gradient_result);
 }
 
 size_t nwchemc_hessian_result_size_for_force_input(
@@ -8910,6 +9232,18 @@ NWChemCResult nwchemc_session_calculate_forces(
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_gradient(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *gradient_h_bohr,
+    size_t gradient_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)gradient_h_bohr;
+  (void)gradient_len;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_energy(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) {
@@ -8961,6 +9295,20 @@ NWChemCResult nwchemc_session_calculate_forces_result(
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_gradient_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_calculate_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -8978,6 +9326,22 @@ NWChemCResult nwchemc_calculate_result(
 }
 
 NWChemCResult nwchemc_calculate_forces_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_gradient_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -9026,6 +9390,22 @@ NWChemCResult nwchemc_calculate_energy_result_from_config(
 }
 
 NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_gradient_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -9182,6 +9562,19 @@ NWChemCResult nwchemc_calculate_forces(
   return no_nwchem_fail();
 }
 
+NWChemCResult nwchemc_calculate_gradient(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)gradient_h_bohr;
+  (void)gradient_len;
+  return no_nwchem_fail();
+}
+
 NWChemCResult nwchemc_calculate_forces_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -9192,6 +9585,19 @@ NWChemCResult nwchemc_calculate_forces_from_config(
   (void)force_input_capnp_size_bytes;
   (void)forces_h_bohr;
   (void)forces_len;
+  return no_nwchem_fail();
+}
+
+NWChemCResult nwchemc_calculate_gradient_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)gradient_h_bohr;
+  (void)gradient_len;
   return no_nwchem_fail();
 }
 
@@ -9411,6 +9817,13 @@ size_t nwchemc_energy_result_size_for_force_input(
 }
 
 size_t nwchemc_forces_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return 0;
+}
+
+size_t nwchemc_gradient_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;

@@ -465,6 +465,18 @@ NWChemCResult nwchemc_session_calculate_forces(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_gradient(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *gradient_h_bohr,
+    size_t gradient_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)gradient_h_bohr;
+  (void)gradient_len;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_session_calculate_energy(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) {
@@ -516,6 +528,20 @@ NWChemCResult nwchemc_session_calculate_forces_result(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_session_calculate_gradient_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_calculate_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -533,6 +559,22 @@ NWChemCResult nwchemc_calculate_result(
 }
 
 NWChemCResult nwchemc_calculate_forces_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_gradient_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -581,6 +623,22 @@ NWChemCResult nwchemc_calculate_energy_result_from_config(
 }
 
 NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)potential_result_capnp;
+  (void)potential_result_capnp_capacity_bytes;
+  (void)potential_result_capnp_size_bytes;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_gradient_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -737,6 +795,19 @@ NWChemCResult nwchemc_calculate_forces(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_gradient(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)gradient_h_bohr;
+  (void)gradient_len;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_calculate_forces_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -747,6 +818,19 @@ NWChemCResult nwchemc_calculate_forces_from_config(
   (void)force_input_capnp_size_bytes;
   (void)forces_h_bohr;
   (void)forces_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_gradient_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)gradient_h_bohr;
+  (void)gradient_len;
   return stub_fail();
 }
 
@@ -804,6 +888,13 @@ size_t nwchemc_energy_result_size_for_force_input(
 }
 
 size_t nwchemc_forces_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  return 0;
+}
+
+size_t nwchemc_gradient_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes) {
   (void)force_input_capnp;
   (void)force_input_capnp_size_bytes;

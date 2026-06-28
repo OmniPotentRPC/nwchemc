@@ -62,6 +62,7 @@ static void test_find_tce_schema_fields(void **state) {
       "field.PotentialResult.intensities",
       "field.PotentialResult.stress",
       "field.PotentialResult.polarizability",
+      "field.PotentialResult.gradient",
       "field.ForceInput.hasCharge",
       "field.ForceInput.charge",
       "field.ForceInput.hasMultiplicity",
@@ -89,6 +90,7 @@ static void test_find_potential_schema_methods(void **state) {
       "method.Potential.calculateOptimize",
       "method.Potential.calculateFrequencies",
       "method.Potential.calculatePolarizability",
+      "method.Potential.calculateGradient",
   };
   size_t i;
   for (i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i) {
@@ -126,9 +128,9 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 427);
-  assert_int_equal((int)schema_methods, 11);
-  assert_int_equal((int)abis, 107);
+  assert_int_equal((int)schema_fields, 428);
+  assert_int_equal((int)schema_methods, 12);
+  assert_int_equal((int)abis, 114);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +
                          schema_methods + abis),
                    (int)nwchemc_feature_count());
@@ -210,9 +212,12 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_frequencies",
       "abi.nwchemc_session_stress",
       "abi.nwchemc_session_calculate_forces",
+      "abi.nwchemc_session_calculate_gradient",
       "abi.nwchemc_session_calculate_energy",
       "abi.nwchemc_calculate_forces",
+      "abi.nwchemc_calculate_gradient",
       "abi.nwchemc_calculate_forces_from_config",
+      "abi.nwchemc_calculate_gradient_from_config",
       "abi.nwchemc_calculate_energy",
       "abi.nwchemc_calculate_energy_from_config",
       "abi.nwchemc_energy_result_size_for_force_input",
@@ -223,9 +228,13 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_calculate_result",
       "abi.nwchemc_calculate_result_from_config",
       "abi.nwchemc_forces_result_size_for_force_input",
+      "abi.nwchemc_gradient_result_size_for_force_input",
       "abi.nwchemc_session_calculate_forces_result",
+      "abi.nwchemc_session_calculate_gradient_result",
       "abi.nwchemc_calculate_forces_result",
+      "abi.nwchemc_calculate_gradient_result",
       "abi.nwchemc_calculate_forces_result_from_config",
+      "abi.nwchemc_calculate_gradient_result_from_config",
       "abi.nwchemc_calculate_hessian",
       "abi.nwchemc_calculate_hessian_from_config",
       "abi.nwchemc_hessian_result_size_for_force_input",

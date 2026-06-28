@@ -125,14 +125,26 @@ extern NWChemCResult nwchemc_session_calculate_stress(
 extern NWChemCResult nwchemc_session_calculate_energy(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_gradient(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *gradient_h_bohr,
+    size_t gradient_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_forces(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *forces_h_bohr, size_t forces_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_gradient(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_forces_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *forces_h_bohr, size_t forces_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_gradient_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_energy(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp,
@@ -158,12 +170,26 @@ extern NWChemCResult nwchemc_calculate_energy_result(
 extern size_t nwchemc_forces_result_size_for_force_input(
     const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern size_t nwchemc_gradient_result_size_for_force_input(
+    const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_session_calculate_forces_result(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_gradient_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_forces_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_gradient_result(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -344,6 +370,12 @@ extern NWChemCResult nwchemc_calculate_energy_result_from_config(
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_gradient_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -532,9 +564,14 @@ static void test_stub_reports_unavailable(void **state) {
       nwchemc_session_stress(NULL, 0, NULL, NULL, stress_au);
   assert_int_equal(session_stress.ok, 0);
   double forces_h_bohr[1] = {0.0};
+  double gradient_h_bohr[1] = {0.0};
   NWChemCResult session_step =
       nwchemc_session_calculate_forces(NULL, NULL, 0, NULL, 0);
   assert_int_equal(session_step.ok, 0);
+  assert_true(nwchemc_session_calculate_gradient != NULL);
+  NWChemCResult session_step_gradient =
+      nwchemc_session_calculate_gradient(NULL, NULL, 0, gradient_h_bohr, 1);
+  assert_int_equal(session_step_gradient.ok, 0);
   assert_true(nwchemc_session_calculate_energy != NULL);
   NWChemCResult session_step_energy =
       nwchemc_session_calculate_energy(NULL, NULL, 0);
@@ -551,10 +588,19 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_forces =
       nwchemc_calculate_forces(NULL, 0, NULL, 0, forces_h_bohr, 1);
   assert_int_equal(one_shot_forces.ok, 0);
+  assert_true(nwchemc_calculate_gradient != NULL);
+  NWChemCResult one_shot_gradient =
+      nwchemc_calculate_gradient(NULL, 0, NULL, 0, gradient_h_bohr, 1);
+  assert_int_equal(one_shot_gradient.ok, 0);
   assert_true(nwchemc_calculate_forces_from_config != NULL);
   NWChemCResult config_forces =
       nwchemc_calculate_forces_from_config(NULL, 0, NULL, 0, forces_h_bohr, 1);
   assert_int_equal(config_forces.ok, 0);
+  assert_true(nwchemc_calculate_gradient_from_config != NULL);
+  NWChemCResult config_gradient =
+      nwchemc_calculate_gradient_from_config(NULL, 0, NULL, 0,
+                                             gradient_h_bohr, 1);
+  assert_int_equal(config_gradient.ok, 0);
   NWChemCResult session_result =
       nwchemc_session_calculate_result(NULL, NULL, 0, NULL, 0, NULL);
   assert_int_equal(session_result.ok, 0);
@@ -583,21 +629,39 @@ static void test_stub_reports_unavailable(void **state) {
   assert_int_equal(config_energy_result.ok, 0);
   assert_true(nwchemc_forces_result_size_for_force_input != NULL);
   assert_int_equal(nwchemc_forces_result_size_for_force_input(NULL, 0), 0);
+  assert_true(nwchemc_gradient_result_size_for_force_input != NULL);
+  assert_int_equal(nwchemc_gradient_result_size_for_force_input(NULL, 0), 0);
   assert_true(nwchemc_session_calculate_forces_result != NULL);
   NWChemCResult session_forces_result =
       nwchemc_session_calculate_forces_result(NULL, NULL, 0, result_bytes,
                                               sizeof(result_bytes),
                                               &result_size);
   assert_int_equal(session_forces_result.ok, 0);
+  assert_true(nwchemc_session_calculate_gradient_result != NULL);
+  NWChemCResult session_gradient_result =
+      nwchemc_session_calculate_gradient_result(NULL, NULL, 0, result_bytes,
+                                                sizeof(result_bytes),
+                                                &result_size);
+  assert_int_equal(session_gradient_result.ok, 0);
   assert_true(nwchemc_calculate_forces_result != NULL);
   NWChemCResult one_shot_forces_result = nwchemc_calculate_forces_result(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(one_shot_forces_result.ok, 0);
+  assert_true(nwchemc_calculate_gradient_result != NULL);
+  NWChemCResult one_shot_gradient_result =
+      nwchemc_calculate_gradient_result(NULL, 0, NULL, 0, result_bytes,
+                                        sizeof(result_bytes), &result_size);
+  assert_int_equal(one_shot_gradient_result.ok, 0);
   assert_true(nwchemc_calculate_forces_result_from_config != NULL);
   NWChemCResult config_forces_result =
       nwchemc_calculate_forces_result_from_config(
           NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
   assert_int_equal(config_forces_result.ok, 0);
+  assert_true(nwchemc_calculate_gradient_result_from_config != NULL);
+  NWChemCResult config_gradient_result =
+      nwchemc_calculate_gradient_result_from_config(
+          NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);
+  assert_int_equal(config_gradient_result.ok, 0);
   assert_true(nwchemc_calculate_result_from_config != NULL);
   NWChemCResult config_result = nwchemc_calculate_result_from_config(
       NULL, 0, NULL, 0, result_bytes, sizeof(result_bytes), &result_size);

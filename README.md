@@ -27,7 +27,7 @@ Use this path for the rgpot adapter:
    `ForceInput.box` so the cell travels with the step.
 5. Allocate the output buffer with
    `nwchemc_potential_result_size_for_force_input()` for energy+forces or the
-   operation-specific sizing helper for Hessian, stress, dipole,
+   operation-specific sizing helper for gradient, Hessian, stress, dipole,
    polarizability, quadrupole, optimization, or frequencies.
 6. Call `nwchemc_session_calculate_result()` for energy+forces, or the named
    session result-carrier entry point for a specific operation.
@@ -190,6 +190,10 @@ NWChemCResult nwchemc_session_calculate_forces(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *forces_h_bohr, size_t forces_len);
+NWChemCResult nwchemc_session_calculate_gradient(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len);
 NWChemCResult nwchemc_session_calculate_energy(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
@@ -197,10 +201,18 @@ NWChemCResult nwchemc_calculate_forces(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *forces_h_bohr, size_t forces_len);
+NWChemCResult nwchemc_calculate_gradient(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len);
 NWChemCResult nwchemc_calculate_forces_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *forces_h_bohr, size_t forces_len);
+NWChemCResult nwchemc_calculate_gradient_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len);
 NWChemCResult nwchemc_calculate_energy(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
@@ -229,7 +241,15 @@ NWChemCResult nwchemc_calculate_energy_result_from_config(
     size_t *potential_result_capnp_size_bytes);
 size_t nwchemc_forces_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+size_t nwchemc_gradient_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_forces_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_gradient_result(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -241,7 +261,19 @@ NWChemCResult nwchemc_calculate_forces_result(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_gradient_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_gradient_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,
@@ -523,7 +555,9 @@ calling
 `nwchemc_session_calculate_result()`. The evaluating call keeps
 `NWChemCResult.energy_h` in Hartree and writes `PotentialResult.energy` /
 `PotentialResult.forces` in `ForceInput.energyUnit` and
-`ForceInput.energyUnit / ForceInput.lengthUnit`.
+`ForceInput.energyUnit / ForceInput.lengthUnit`. The named gradient carrier
+writes `PotentialResult.gradient` in the same energy/length unit without the
+force sign flip.
 `ForceInput.hasCharge` / `ForceInput.charge` and
 `ForceInput.hasMultiplicity` / `ForceInput.multiplicity` can override the
 session charge or spin multiplicity for that serialized step; unset flags keep
@@ -540,14 +574,16 @@ writes an energy-only `PotentialResult`, converting `PotentialResult.energy` to
 `ForceInput.energyUnit` while leaving `NWChemCResult.energy_h` in Hartree.
 `nwchemc_session_calculate_forces_result()` mirrors
 `Potential.calculateForces`; it is the method-named form of the existing
-energy+forces result-carrier path. `nwchemc_calculate_energy()`,
-`nwchemc_calculate_energy_result()`, `nwchemc_calculate_forces_result()`, and
-`nwchemc_calculate_result()` offer the same `NWChemParams + ForceInput` carrier
-for one-shot callers and delegate through the session paths; callers with
-multiple steps should reuse `NWChemCSession`. Matching `*_from_config()`
-one-shot wrappers accept `PotentialConfig + ForceInput` for raw C buffers and
-for `PotentialResult` carriers, reading the `nwchem` union arm before
-evaluation.
+energy+forces result-carrier path. `nwchemc_session_calculate_gradient_result()`
+mirrors `Potential.calculateGradient` and writes the native derivative sign.
+`nwchemc_calculate_energy()`, `nwchemc_calculate_gradient()`,
+`nwchemc_calculate_energy_result()`, `nwchemc_calculate_forces_result()`,
+`nwchemc_calculate_gradient_result()`, and `nwchemc_calculate_result()` offer
+the same `NWChemParams + ForceInput` carrier for one-shot callers and delegate
+through the session paths; callers with multiple steps should reuse
+`NWChemCSession`. Matching `*_from_config()` one-shot wrappers accept
+`PotentialConfig + ForceInput` for raw C buffers and for `PotentialResult`
+carriers, reading the `nwchem` union arm before evaluation.
 `nwchemc_session_calculate_hessian_result()` and
 `nwchemc_calculate_hessian_result()` populate `PotentialResult.hessian` in
 `ForceInput.energyUnit / ForceInput.lengthUnit^2`. Dipole, polarizability, and
@@ -557,9 +593,9 @@ units. `PotentialResult.polarizability` stores NWChem `aoresponse:alpha` as
 frequency, xx, xy, xz, yy, yz, zz, three eigenvalues, isotropic, and
 anisotropic entries. Stress result-carrier wrappers populate
 `PotentialResult.stress` in `ForceInput.energyUnit / ForceInput.lengthUnit^3`.
-Raw force, Hessian, dipole, polarizability, quadrupole, and stress wrappers use
-the same `NWChemParams + ForceInput` carrier for callers that want native C
-buffers. Optimization result-carrier wrappers
+Raw force, gradient, Hessian, dipole, polarizability, quadrupole, and stress
+wrappers use the same `NWChemParams + ForceInput` carrier for callers that want
+native C buffers. Optimization result-carrier wrappers
 populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
 `PotentialResult.energy` in `ForceInput.energyUnit`; frequency result-carrier
 wrappers populate `PotentialResult.frequencies` in cm^-1 and
@@ -568,7 +604,8 @@ wrappers populate `PotentialResult.frequencies` in cm^-1 and
 The Cap'n Proto `Potential` RPC interface mirrors the operation surface with
 explicit `calculateEnergy`, `calculateForces`, `calculateHessian`,
 `calculateDipole`, `calculatePolarizability`, `calculateQuadrupole`,
-`calculateStress`, `calculateOptimize`, and `calculateFrequencies` methods.
+`calculateStress`, `calculateOptimize`, `calculateFrequencies`, and
+`calculateGradient` methods.
 `Potential.configure` maps to `nwchemc_configure()` and
 `nwchemc_session_configure()` for C ABI callers. The original `calculate`
 method remains the compatibility energy/forces call.

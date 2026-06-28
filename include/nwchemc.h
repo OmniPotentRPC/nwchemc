@@ -417,6 +417,23 @@ NWChemCResult nwchemc_session_calculate_forces(
     size_t forces_len);
 
 /**
+ * @brief Compute energy and nuclear gradient for one Cap'n Proto `ForceInput`.
+ *
+ * Returned energy and gradient use NWChem native units: Hartree and
+ * Hartree/Bohr.
+ *
+ * @param session Persistent session created from `NWChemParams`.
+ * @param force_input_capnp Pointer to an unpacked flat `ForceInput` message.
+ * @param force_input_capnp_size_bytes Size of `force_input_capnp` in bytes.
+ * @param gradient_h_bohr Output gradient array in Hartree/Bohr.
+ * @param gradient_len Number of doubles available in `gradient_h_bohr`.
+ */
+NWChemCResult nwchemc_session_calculate_gradient(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *gradient_h_bohr,
+    size_t gradient_len);
+
+/**
  * @brief Compute energy for one Cap'n Proto `ForceInput` step.
  *
  * This is the session-oriented energy-only potential loop entry point. The
@@ -438,12 +455,32 @@ NWChemCResult nwchemc_calculate_forces(
     double *forces_h_bohr, size_t forces_len);
 
 /**
+ * @brief Compute one `ForceInput` step and write a raw gradient buffer.
+ *
+ * This is the one-shot Cap'n Proto gradient entry point for callers that do
+ * not keep a persistent session. The gradient buffer is returned in
+ * Hartree/Bohr.
+ */
+NWChemCResult nwchemc_calculate_gradient(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len);
+
+/**
  * @brief One-shot `PotentialConfig + ForceInput -> raw forces`.
  */
 NWChemCResult nwchemc_calculate_forces_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *forces_h_bohr, size_t forces_len);
+
+/**
+ * @brief One-shot `PotentialConfig + ForceInput -> raw gradient`.
+ */
+NWChemCResult nwchemc_calculate_gradient_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *gradient_h_bohr, size_t gradient_len);
 
 /**
  * @brief Compute one `ForceInput` step and return scalar energy.
@@ -520,6 +557,16 @@ size_t nwchemc_forces_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 
 /**
+ * @brief Return the byte count needed for a gradient `PotentialResult`.
+ *
+ * This parses the serialized `ForceInput` geometry and returns the size of the
+ * unpacked flat `PotentialResult` message with `energy` and `gradient`
+ * populated. The function does not initialize or evaluate NWChem.
+ */
+size_t nwchemc_gradient_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+
+/**
  * @brief Compute forces for one `ForceInput` step and write `PotentialResult`.
  *
  * This method-named entry point mirrors `Potential.calculateForces`. It writes
@@ -527,6 +574,19 @@ size_t nwchemc_forces_result_size_for_force_input(
  * `ForceInput` result units.
  */
 NWChemCResult nwchemc_session_calculate_forces_result(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief Compute gradient for one `ForceInput` step and write `PotentialResult`.
+ *
+ * This method-named entry point mirrors `Potential.calculateGradient`. It
+ * writes `PotentialResult.energy` and `PotentialResult.gradient` using the
+ * `ForceInput` result units.
+ */
+NWChemCResult nwchemc_session_calculate_gradient_result(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
@@ -543,9 +603,29 @@ NWChemCResult nwchemc_calculate_forces_result(
     size_t *potential_result_capnp_size_bytes);
 
 /**
+ * @brief One-shot `NWChemParams + ForceInput -> PotentialResult.gradient`.
+ */
+NWChemCResult nwchemc_calculate_gradient_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
  * @brief One-shot `PotentialConfig + ForceInput -> PotentialResult.forces`.
  */
 NWChemCResult nwchemc_calculate_forces_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+
+/**
+ * @brief One-shot `PotentialConfig + ForceInput -> PotentialResult.gradient`.
+ */
+NWChemCResult nwchemc_calculate_gradient_result_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     void *potential_result_capnp,

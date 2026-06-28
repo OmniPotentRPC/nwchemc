@@ -344,6 +344,8 @@ int nwchemc_force_input_position_result_factors(ForceInput_ptr force_input,
 
 size_t nwchemc_potential_result_flat_size(size_t force_count);
 
+size_t nwchemc_gradient_result_flat_size(size_t gradient_count);
+
 size_t nwchemc_hessian_result_flat_size(size_t hessian_count);
 
 size_t nwchemc_dipole_result_flat_size(void);
@@ -363,6 +365,11 @@ int nwchemc_potential_result_write(double energy, const double *forces,
                                    void *potential_result_capnp,
                                    size_t potential_result_capacity_bytes,
                                    size_t *potential_result_size_bytes);
+
+int nwchemc_potential_result_write_gradient(
+    double energy, const double *gradient, size_t gradient_count,
+    void *potential_result_capnp, size_t potential_result_capacity_bytes,
+    size_t *potential_result_size_bytes);
 
 int nwchemc_potential_result_write_hessian(
     double energy, const double *hessian, size_t hessian_count,
