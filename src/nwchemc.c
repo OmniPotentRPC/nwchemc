@@ -4704,6 +4704,7 @@ NWChemCResult nwchemc_energy(
   int n = n_atoms;
   int ch = params.charge;
   int mult = params.multiplicity > 0 ? params.multiplicity : 1;
+  remember_applied_params_blob(params_capnp, params_capnp_size_bytes, ch, mult);
   double eh = 0.0;
   int rc = nwchemc_embed_energy_only(&n, positions_ang, atomic_numbers, &ch,
                                      &mult, &eh, errmsg,

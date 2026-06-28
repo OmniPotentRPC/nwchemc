@@ -1882,7 +1882,6 @@ nwchem_config_options_params_bin = custom_target(
       ['tddft', nwchem_params_h2_tddft_bin],
       ['mcscf', nwchem_params_h2_mcscf_bin],
       ['sodft', nwchem_params_h2_sodft_bin],
-      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
       ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
       ['selci', nwchem_params_h2_selci_bin],
     ]

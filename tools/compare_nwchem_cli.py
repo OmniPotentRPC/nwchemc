@@ -26,20 +26,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MATRIX = ROOT / "tests/integration/task_matrix.json"
 
-ENERGY_RE = re.compile(
-    r"Total\s+SCF\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE
-)
-ENERGY_RE_ALT = [
-    re.compile(r"Total\s+DFT\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+# Method totals (prefer chronologically last match among these — never SCF first).
+METHOD_ENERGY_RES = [
+    re.compile(r"Excited\s+state\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"Total\s+SO-DFT\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"Total\s+MCSCF\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r">>>\|\s*MCSCF\s+energy:\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"Root\s+\d+\s+final\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"Total\s+MP2\s+energy\s+([-+0-9.Ee+]+)", re.IGNORECASE),
-    re.compile(r"CI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"Total\s+DFT\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"SELCI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"Final\s+CI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
-    re.compile(r"excited\s+state\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"ci\+pt\s+energy\s+([-+0-9.Ee+]+)", re.IGNORECASE),
+]
+# Only if no method-total line appears (pure SCF jobs).
+FALLBACK_ENERGY_RES = [
+    re.compile(r"Total\s+SCF\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"^\s*Total\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE | re.M),
 ]
+# Back-compat aliases for callers/tests that imported these names.
+ENERGY_RE = FALLBACK_ENERGY_RES[0]
+ENERGY_RE_ALT = METHOD_ENERGY_RES + FALLBACK_ENERGY_RES
 
 # NWChem prints gradients under several banners; only search after a banner.
 GRAD_BANNER_RE = re.compile(
@@ -87,13 +94,31 @@ def embed_launch_command(
 
 
 def parse_energy(text: str) -> float | None:
-    m = ENERGY_RE.search(text)
-    if m:
-        return float(m.group(1))
-    for rx in ENERGY_RE_ALT:
-        m = rx.search(text)
-        if m:
-            return float(m.group(1))
+    """Return the method total energy (Ha), not a prior SCF/guess line.
+
+    Collects all matches from method-total patterns and returns the
+    chronologically last one (final NWChem printout). Falls back to SCF /
+    bare ``Total energy`` only when no method total is present.
+    """
+    candidates: list[tuple[int, float]] = []
+    for rx in METHOD_ENERGY_RES:
+        for m in rx.finditer(text):
+            try:
+                candidates.append((m.start(), float(m.group(1))))
+            except ValueError:
+                continue
+    if candidates:
+        candidates.sort(key=lambda item: item[0])
+        return candidates[-1][1]
+    for rx in FALLBACK_ENERGY_RES:
+        for m in rx.finditer(text):
+            try:
+                candidates.append((m.start(), float(m.group(1))))
+            except ValueError:
+                continue
+    if candidates:
+        candidates.sort(key=lambda item: item[0])
+        return candidates[-1][1]
     return None
 
 

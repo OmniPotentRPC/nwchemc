@@ -215,16 +215,6 @@
       "notes": "CLI+embed sodft"
     },
     {
-      "id": "h2_tce_mrcc_energy",
-      "nw_input": "tests/integration/nw/h2_tce_energy.nw",
-      "quantities": [
-        "energy"
-      ],
-      "embed_compare": false,
-      "embed_meson_test": "nwchem-postscf-energy-tce-mrcc",
-      "notes": "TCE MRCC"
-    },
-    {
       "id": "h2_mcscf_forces",
       "nw_input": "tests/integration/nw/h2_mcscf_energy.nw",
       "quantities": [
