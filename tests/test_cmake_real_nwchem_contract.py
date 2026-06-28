@@ -287,6 +287,7 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
                 "tests/test_nwchem_config_parity.c",
                 "nwchem-rgpot-smoke",
                 "tests/test_nwchem_rgpot_smoke.c",
+                "force_input_h2_ev.capnp.txt",
                 "nwchem-potential-config-pseudopotential",
                 "tests/test_nwchem_potential_config_pseudopotential.c",
                 "tests/nwchem_configured_pseudopotential_rtdb_probe.F",

@@ -15,6 +15,10 @@
 
 static const char *g_config_path = NULL;
 static const char *g_force_input_path = NULL;
+static const char *g_unit_force_input_path = NULL;
+
+static const double BOHR_TO_ANGSTROM = 0.529177210903;
+static const double HARTREE_TO_EV = 27.211386245988;
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -180,6 +184,54 @@ static void assert_potential_result_hessian(const unsigned char *message,
     }
   }
   assert_true(max_abs >= 1e-6);
+
+  capn_free(&arena);
+}
+
+static void assert_potential_result_forces_values(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_forces, double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+  assert_close_relative("PotentialResult.energy", 0, result.energy,
+                        expected_energy, tolerance);
+
+  double forces[6];
+  assert_f64_list("force", result.forces, 6, forces);
+  for (int i = 0; i < 6; ++i)
+    assert_close_relative("PotentialResult.forces", i, forces[i],
+                          expected_forces[i], tolerance);
+
+  capn_free(&arena);
+}
+
+static void assert_potential_result_hessian_values(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_hessian, double tolerance) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+  assert_close_relative("PotentialResult.energy", 0, result.energy,
+                        expected_energy, tolerance);
+
+  double hessian[36];
+  assert_f64_list("hessian", result.hessian, 36, hessian);
+  for (int i = 0; i < 36; ++i)
+    assert_close_relative("PotentialResult.hessian", i, hessian[i],
+                          expected_hessian[i], tolerance);
 
   capn_free(&arena);
 }
@@ -976,20 +1028,119 @@ static void test_rgpot_config_raw_forceinput_operations(void **state) {
   free(config);
 }
 
+static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t config_size = 0;
+  size_t force_input_size = 0;
+  unsigned char *config = read_file(g_config_path, &config_size);
+  unsigned char *force_input =
+      read_file(g_unit_force_input_path, &force_input_size);
+  assert_non_null(config);
+  assert_non_null(force_input);
+
+  NWChemCResult energy_status = nwchemc_calculate_energy_from_config(
+      config, config_size, force_input, force_input_size);
+  assert_status_energy("nwchemc_calculate_energy_from_config", energy_status);
+
+  double raw_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_forces_status = nwchemc_calculate_forces_from_config(
+      config, config_size, force_input, force_input_size, raw_forces, 6);
+  assert_status_energy("nwchemc_calculate_forces_from_config",
+                       raw_forces_status);
+
+  double raw_hessian[36] = {0.0};
+  NWChemCResult raw_hessian_status = nwchemc_calculate_hessian_from_config(
+      config, config_size, force_input, force_input_size, raw_hessian, 36);
+  assert_status_energy("nwchemc_calculate_hessian_from_config",
+                       raw_hessian_status);
+
+  size_t energy_capacity =
+      nwchemc_energy_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_energy_result_size_for_force_input",
+                         energy_capacity);
+  unsigned char *energy_bytes = (unsigned char *)malloc(energy_capacity);
+  assert_non_null(energy_bytes);
+  size_t energy_size = 0;
+  NWChemCResult energy_result = nwchemc_calculate_energy_result_from_config(
+      config, config_size, force_input, force_input_size, energy_bytes,
+      energy_capacity, &energy_size);
+  assert_status_energy("nwchemc_calculate_energy_result_from_config",
+                       energy_result);
+  assert_int_equal(energy_size, energy_capacity);
+  assert_potential_result_energy_only(energy_bytes, energy_size,
+                                      energy_status.energy_h * HARTREE_TO_EV);
+
+  double expected_forces[6];
+  for (int i = 0; i < 6; ++i)
+    expected_forces[i] = raw_forces[i] * HARTREE_TO_EV / BOHR_TO_ANGSTROM;
+  size_t forces_capacity =
+      nwchemc_forces_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_result_capacity("nwchemc_forces_result_size_for_force_input",
+                         forces_capacity);
+  unsigned char *forces_bytes = (unsigned char *)malloc(forces_capacity);
+  assert_non_null(forces_bytes);
+  size_t forces_size = 0;
+  NWChemCResult forces_result = nwchemc_calculate_forces_result_from_config(
+      config, config_size, force_input, force_input_size, forces_bytes,
+      forces_capacity, &forces_size);
+  assert_status_energy("nwchemc_calculate_forces_result_from_config",
+                       forces_result);
+  assert_int_equal(forces_size, forces_capacity);
+  assert_potential_result_forces_values(
+      forces_bytes, forces_size, raw_forces_status.energy_h * HARTREE_TO_EV,
+      expected_forces, 1.0e-9);
+
+  double hessian_factor =
+      HARTREE_TO_EV / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM);
+  double expected_hessian[36];
+  for (int i = 0; i < 36; ++i)
+    expected_hessian[i] = raw_hessian[i] * hessian_factor;
+  size_t hessian_capacity =
+      nwchemc_hessian_result_size_for_force_input(force_input,
+                                                  force_input_size);
+  assert_result_capacity("nwchemc_hessian_result_size_for_force_input",
+                         hessian_capacity);
+  unsigned char *hessian_bytes = (unsigned char *)malloc(hessian_capacity);
+  assert_non_null(hessian_bytes);
+  size_t hessian_size = 0;
+  NWChemCResult hessian_result = nwchemc_calculate_hessian_result_from_config(
+      config, config_size, force_input, force_input_size, hessian_bytes,
+      hessian_capacity, &hessian_size);
+  assert_status_energy("nwchemc_calculate_hessian_result_from_config",
+                       hessian_result);
+  assert_int_equal(hessian_size, hessian_capacity);
+  assert_potential_result_hessian_values(
+      hessian_bytes, hessian_size,
+      raw_hessian_status.energy_h * HARTREE_TO_EV, expected_hessian, 1.0e-8);
+
+  free(hessian_bytes);
+  free(forces_bytes);
+  free(energy_bytes);
+  free(force_input);
+  free(config);
+}
+
 int main(int argc, char **argv) {
-  if (argc != 3) {
-    fprintf(stderr, "usage: %s POTENTIAL_CONFIG_BIN FORCE_INPUT_BIN\n",
+  if (argc != 4) {
+    fprintf(stderr,
+            "usage: %s POTENTIAL_CONFIG_BIN FORCE_INPUT_BIN UNIT_FORCE_INPUT_BIN\n",
             argv[0]);
     return 2;
   }
   g_config_path = argv[1];
   g_force_input_path = argv[2];
+  g_unit_force_input_path = argv[3];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_rgpot_config_forceinput_result_carrier),
       cmocka_unit_test(test_rgpot_config_named_result_carriers),
       cmocka_unit_test(test_rgpot_config_session_named_result_carriers),
       cmocka_unit_test(test_rgpot_config_stress_rejects_short_buffers),
       cmocka_unit_test(test_rgpot_config_raw_forceinput_operations),
+      cmocka_unit_test(test_rgpot_result_carriers_convert_forceinput_units),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }

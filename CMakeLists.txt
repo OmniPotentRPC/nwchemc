@@ -803,6 +803,14 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     DEPENDS "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
   )
 
+  nwchemc_add_encoded_fixture(
+    force_input_h2_ev_bin
+    NWCHEMC_FORCE_INPUT_H2_EV_BIN
+    ForceInput
+    force_input_h2_ev.capnp.txt
+    force_input_h2_ev.bin
+  )
+
   set(NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN
     "${CMAKE_CURRENT_BINARY_DIR}/force_input_h2_stretched.bin"
   )
@@ -1216,12 +1224,14 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     add_dependencies(nwchem-rgpot-smoke
       potential_config_structured_bin
       force_input_h2_eq_bin
+      force_input_h2_ev_bin
     )
     nwchemc_add_real_nwchem_test(
       nwchem-rgpot-smoke
       nwchem-rgpot-smoke
       "${potential_config_structured_BIN}"
       "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_EV_BIN}"
     )
 
     add_executable(nwchem-potential-config-pseudopotential
