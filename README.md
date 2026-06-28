@@ -606,7 +606,9 @@ native C buffers. Optimization result-carrier wrappers
 populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
 `PotentialResult.energy` in `ForceInput.energyUnit`; frequency result-carrier
 wrappers populate `PotentialResult.frequencies` in cm^-1 and
-`PotentialResult.intensities` in atomic units.
+`PotentialResult.intensities` in atomic units. Frequency result-carrier
+wrappers also populate `PotentialResult.normalModes` as a dense Cartesian
+normal-mode matrix with `(3 * natoms) * (3 * natoms)` entries.
 
 The Cap'n Proto `Potential` RPC interface mirrors the operation surface with
 explicit `calculateEnergy`, `calculateForces`, `calculateHessian`,
@@ -713,7 +715,8 @@ One-shot callers can use `nwchemc_calculate_result_from_config()` with the same
 serialized messages. Method-specific calls such as
 `nwchemc_calculate_forces_result_from_config()` and
 `nwchemc_calculate_gradient_result_from_config()` are available when rgpot wants
-a narrower result carrier. See `docs/rgpot-integration.md` for the merge/pr
+a narrower result carrier; frequency carriers include
+`PotentialResult.normalModes`. See `docs/rgpot-integration.md` for the merge/pr
 release gate, supported operation matrix, real-NWChem probes, and the NWPW
 stress probe.
 

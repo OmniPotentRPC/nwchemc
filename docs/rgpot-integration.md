@@ -14,7 +14,8 @@ installed package and call the serialized-message ABI directly:
   step.
 - `PotentialResult` carries energy, forces, gradient, Hessian, stress, dipole,
   polarizability, quadrupole, optimized geometry, frequencies, and
-  intensities.
+  intensities. Frequency result carriers also include
+  `PotentialResult.normalModes` as a dense Cartesian normal-mode matrix.
 - Structured pseudopotentials are promoted to NWChem RTDB state by the embed
   bridge; rgpot does not need to render NWChem pseudopotential text.
 
@@ -100,6 +101,7 @@ fields in `ForceInput`:
 | `PotentialResult.quadrupole` | atomic units |
 | `PotentialResult.frequencies` | cm^-1 |
 | `PotentialResult.intensities` | atomic units |
+| `PotentialResult.normalModes` | dimensionless dense Cartesian normal-mode matrix |
 
 Raw gradient calls and `PotentialResult.gradient` return the NWChem nuclear
 derivative sign. Raw force calls and `PotentialResult.forces` return the
@@ -120,7 +122,7 @@ above and these probes are green:
 | `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy, forces, and gradient | `tests/test_nwchem_rgpot_smoke.c` |
 | `ForceInput.energyUnit` / `ForceInput.lengthUnit` conversion for result-carrier energy, forces, gradient, Hessian, and optimized coordinates | `tests/test_nwchem_rgpot_smoke.c`, `tests/test_nwchem_hessian.c` |
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
-| Hessian, dipole, polarizability, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
+| Hessian, dipole, polarizability, quadrupole, optimize, and frequencies plus normal-mode result carriers | `tests/test_nwchem_rgpot_smoke.c` |
 | Periodic PSPW stress coordinate/session, ForceInput raw calls, result carriers, and unit conversion | `tests/test_nwchem_stress.c` |
 | PSPW pseudopotential energy, forces, and gradient one-shot/session result carriers, including Bohr/eV unit conversion | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
 | `ForceInput.box`, `ForceInput.charge`, and `ForceInput.multiplicity` RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
@@ -130,9 +132,9 @@ above and these probes are green:
 | Stub/parser ABI and result-carrier shape | `tests/cmocka/test_embed_config_cmocka.c` |
 
 Molecular energy, forces, gradient, Hessian, dipole, polarizability, quadrupole,
-optimization, and frequencies are covered by real-NWChem smoke tests. Periodic
-stress is covered by the PSPW stress smoke when rgpot is paired with an
-NWPW-enabled NWChem build. Molecular NWChem modules reject periodic
+optimization, frequencies, and normal modes are covered by real-NWChem smoke
+tests. Periodic stress is covered by the PSPW stress smoke when rgpot is paired
+with an NWPW-enabled NWChem build. Molecular NWChem modules reject periodic
 geometries, so periodic coverage uses that NWPW-enabled path. The ABI, Cap'n
 Proto result shape, unit conversion path, and direct RTDB cell/state storage
 are still covered without a periodic-capable NWChem build.

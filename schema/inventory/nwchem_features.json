@@ -1515,6 +1515,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.PotentialResult.normalModes",
+      "schema_path": "PotentialResult.normalModes",
+      "struct": "PotentialResult",
+      "name": "normalModes",
+      "field_id": 11,
+      "type": "List(Float64)",
+      "role": "PotentialResult.normalModes Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDirective.keyword",
       "schema_path": "NWChemDirective.keyword",
       "struct": "NWChemDirective",

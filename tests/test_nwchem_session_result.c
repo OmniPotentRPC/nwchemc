@@ -290,7 +290,10 @@ static void assert_potential_result_frequencies(const unsigned char *message,
   double max_frequency_abs =
       assert_f64_list("frequency", result.frequencies, 6, NULL);
   assert_f64_list("intensity", result.intensities, 6, NULL);
+  double max_mode_abs =
+      assert_f64_list("normal mode", result.normalModes, 36, NULL);
   assert_true(max_frequency_abs > 1.0);
+  assert_true(max_mode_abs > 1.0e-12);
 
   capn_free(&arena);
 }

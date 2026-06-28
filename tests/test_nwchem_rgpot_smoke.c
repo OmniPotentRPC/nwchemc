@@ -426,7 +426,10 @@ static void assert_potential_result_frequencies(
   double max_frequency_abs =
       assert_f64_list("frequency", result.frequencies, 6, frequencies);
   assert_f64_list("intensity", result.intensities, 6, intensities);
+  double max_mode_abs =
+      assert_f64_list("normal mode", result.normalModes, 36, NULL);
   assert_true(max_frequency_abs > 1.0);
+  assert_true(max_mode_abs > 1.0e-12);
   if (expected_frequencies) {
     for (int i = 0; i < 6; ++i)
       assert_close_relative("PotentialResult.frequencies", i, frequencies[i],

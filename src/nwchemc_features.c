@@ -143,6 +143,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.PotentialResult.stress", "PotentialResult.stress", "PotentialResult.stress Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 1},
     {"field.PotentialResult.polarizability", "PotentialResult.polarizability", "PotentialResult.polarizability Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 9, 1, 1},
     {"field.PotentialResult.gradient", "PotentialResult.gradient", "PotentialResult.gradient Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 10, 1, 1},
+    {"field.PotentialResult.normalModes", "PotentialResult.normalModes", "PotentialResult.normalModes Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 11, 1, 1},
     {"field.NWChemDirective.keyword", "NWChemDirective.keyword", "NWChemDirective.keyword Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemDirective.args", "NWChemDirective.args", "NWChemDirective.args Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemGenericStanza.name", "NWChemGenericStanza.name", "NWChemGenericStanza.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
@@ -679,7 +680,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 674;
+static const size_t k_feature_count = 675;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
