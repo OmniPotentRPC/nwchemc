@@ -57,24 +57,22 @@ def pkg_config_env(install_prefix):
     return env
 
 
-def setup_or_reconfigure(args, package_build):
-    if (package_build / "build.ninja").exists():
-        run([args.meson, "setup", "--reconfigure", package_build])
-        return
-    run(
-        [
-            args.meson,
-            "setup",
-            package_build,
-            args.source_dir,
-            f"--prefix={args.install_prefix}",
-            "-Dwith_nwchem=true",
-            f"-Dnwchem_root={args.nwchem_root}",
-            f"-Dnwchem_target={args.nwchem_target}",
-            "-Dwith_tests=false",
-            "-Ddefault_library=static",
-        ]
-    )
+def setup_package(args, package_build):
+    command = [
+        args.meson,
+        "setup",
+        package_build,
+        args.source_dir,
+        f"--prefix={args.install_prefix}",
+        "-Dwith_nwchem=true",
+        f"-Dnwchem_root={args.nwchem_root}",
+        f"-Dnwchem_target={args.nwchem_target}",
+        "-Dwith_tests=false",
+        "-Ddefault_library=static",
+    ]
+    if package_build.exists():
+        command.append("--wipe")
+    run(command)
 
 
 def parse_args(argv):
@@ -103,7 +101,7 @@ def main(argv):
     build_root.mkdir(parents=True, exist_ok=True)
     write_consumer(consumer_source)
 
-    setup_or_reconfigure(args, package_build)
+    setup_package(args, package_build)
     run([args.meson, "compile", "-C", package_build, "-j", str(args.parallel)])
     run([args.meson, "install", "-C", package_build])
 
