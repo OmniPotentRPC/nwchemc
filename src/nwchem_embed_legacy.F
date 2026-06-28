@@ -1370,7 +1370,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     brillouin_kvector_count, brillouin_kvectors,
      $     energy_h, frequencies_cm1, intensities_au, normal_modes,
-     $     read_modes, errmsg, ok)
+     $     read_modes, thermochemistry, read_thermo, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -1381,6 +1381,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer rtdb, n_atoms, charge, mult, ok
       integer has_cell
       integer read_modes
+      integer read_thermo
       integer psp_count
       integer set_string_count
       integer typed_set_count
@@ -1417,6 +1418,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision frequencies_cm1(*)
       double precision intensities_au(*)
       double precision normal_modes(*)
+      double precision thermochemistry(*)
       character*(*) errmsg
       integer n3, nhess, i
       logical status, ignore
@@ -1441,6 +1443,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       if (read_modes .ne. 0) then
          do i = 1, nhess
             normal_modes(i) = 0.0d0
+         enddo
+      endif
+      if (read_thermo .ne. 0) then
+         do i = 1, 5
+            thermochemistry(i) = 0.0d0
          enddo
       endif
 
@@ -1488,6 +1495,13 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       if (read_modes .ne. 0) then
          ignore = rtdb_delete(rtdb, 'mc_data:eigenvectors')
       endif
+      if (read_thermo .ne. 0) then
+         ignore = rtdb_delete(rtdb, 'vib:zpe')
+         ignore = rtdb_delete(rtdb, 'vib:ethermal')
+         ignore = rtdb_delete(rtdb, 'vib:hthermal')
+         ignore = rtdb_delete(rtdb, 'vib:entropy')
+         ignore = rtdb_delete(rtdb, 'vib:Cv')
+      endif
       status = rtdb_cput(rtdb, 'task:operation', 1, 'freq')
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
 
@@ -1517,6 +1531,33 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          if (.not. rtdb_get(rtdb, 'mc_data:eigenvectors', mt_dbl,
      $      nhess, normal_modes(1))) then
             errmsg = 'rtdb_get mc_data:eigenvectors failed'
+            return
+         endif
+      endif
+      if (read_thermo .ne. 0) then
+         if (.not. rtdb_get(rtdb, 'vib:zpe', mt_dbl, 1,
+     $      thermochemistry(1))) then
+            errmsg = 'rtdb_get vib:zpe failed'
+            return
+         endif
+         if (.not. rtdb_get(rtdb, 'vib:ethermal', mt_dbl, 1,
+     $      thermochemistry(2))) then
+            errmsg = 'rtdb_get vib:ethermal failed'
+            return
+         endif
+         if (.not. rtdb_get(rtdb, 'vib:hthermal', mt_dbl, 1,
+     $      thermochemistry(3))) then
+            errmsg = 'rtdb_get vib:hthermal failed'
+            return
+         endif
+         if (.not. rtdb_get(rtdb, 'vib:entropy', mt_dbl, 1,
+     $      thermochemistry(4))) then
+            errmsg = 'rtdb_get vib:entropy failed'
+            return
+         endif
+         if (.not. rtdb_get(rtdb, 'vib:Cv', mt_dbl, 1,
+     $      thermochemistry(5))) then
+            errmsg = 'rtdb_get vib:Cv failed'
             return
          endif
       endif

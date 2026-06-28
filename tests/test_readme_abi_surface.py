@@ -106,6 +106,7 @@ class ReadmeAbiSurfaceTest(unittest.TestCase):
             "ForceInput",
             "PotentialResult",
             "PotentialResult.normalModes",
+            "PotentialResult.zeroPointEnergy",
             "nwchemc_session_create_from_config",
             "nwchemc_potential_result_size_for_force_input",
             "nwchemc_gradient_result_size_for_force_input",

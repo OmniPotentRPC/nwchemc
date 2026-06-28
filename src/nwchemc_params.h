@@ -403,6 +403,7 @@ int nwchemc_potential_result_write_optimized(
 
 int nwchemc_potential_result_write_frequencies(
     double energy, const double *frequencies, const double *intensities,
-    const double *normal_modes, size_t frequency_count,
+    const double *normal_modes, const double *thermochemistry,
+    size_t frequency_count,
     void *potential_result_capnp, size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes);

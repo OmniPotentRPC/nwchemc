@@ -127,6 +127,11 @@ EXPECTED_POTENTIAL_RESULT_FIELDS = {
     "polarizability": 9,
     "gradient": 10,
     "normalModes": 11,
+    "zeroPointEnergy": 12,
+    "thermalEnergy": 13,
+    "thermalEnthalpy": 14,
+    "entropy": 15,
+    "heatCapacityCv": 16,
 }
 
 

@@ -42,6 +42,11 @@ struct PotentialResult {
   polarizability @9 :List(Float64); # @brief NWChem aoresponse:alpha vector [12] in atomic units.
   gradient @10 :List(Float64); # @brief Flat nuclear gradient [natoms * 3] in energy/length units.
   normalModes @11 :List(Float64); # @brief Dense Cartesian normal-mode matrix [natoms * 3]^2.
+  zeroPointEnergy @12 :Float64; # @brief Vibrational zero-point correction in energy units.
+  thermalEnergy @13 :Float64; # @brief Vibrational thermal energy correction in energy units.
+  thermalEnthalpy @14 :Float64; # @brief Vibrational thermal enthalpy correction in energy units.
+  entropy @15 :Float64; # @brief NWChem vibrational total entropy in cal/mol-K.
+  heatCapacityCv @16 :Float64; # @brief NWChem constant-volume heat capacity in cal/mol-K.
 }
 
 # @struct NWChemParams

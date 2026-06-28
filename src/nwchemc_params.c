@@ -10,7 +10,7 @@ static const double NWCHEMC_BOHR_TO_ANGSTROM = 0.529177210903;
 static const double NWCHEMC_HARTREE_TO_EV = 27.211386245988;
 static const double NWCHEMC_HARTREE_TO_J = 4.359744722206048e-18;
 static const double NWCHEMC_AVOGADRO = 6.02214076e23;
-static const size_t NWCHEMC_POTENTIAL_RESULT_BASE_SIZE = 112u;
+static const size_t NWCHEMC_POTENTIAL_RESULT_BASE_SIZE = 152u;
 
 static const capn_text empty_text = {0, "", 0};
 
@@ -6184,6 +6184,8 @@ static int nwchemc_potential_result_write_lists(
     const double *frequencies, size_t frequency_count,
     const double *intensities, size_t intensity_count,
     const double *normal_modes, size_t normal_mode_count,
+    double zero_point_energy, double thermal_energy,
+    double thermal_enthalpy, double entropy, double heat_capacity_cv,
     void *potential_result_capnp, size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes) {
   if (!potential_result_capnp || !potential_result_size_bytes ||
@@ -6332,6 +6334,11 @@ static int nwchemc_potential_result_write_lists(
   struct PotentialResult view;
   memset(&view, 0, sizeof(view));
   view.energy = energy;
+  view.zeroPointEnergy = zero_point_energy;
+  view.thermalEnergy = thermal_energy;
+  view.thermalEnthalpy = thermal_enthalpy;
+  view.entropy = entropy;
+  view.heatCapacityCv = heat_capacity_cv;
   view.forces = force_list;
   view.gradient = gradient_list;
   view.hessian = hessian_list;
@@ -6366,8 +6373,8 @@ int nwchemc_potential_result_write(double energy, const double *forces,
   return nwchemc_potential_result_write_lists(
       energy, forces, force_count, NULL, 0, NULL, 0, NULL, 0,
       NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
-      NULL, 0, potential_result_capnp, potential_result_capacity_bytes,
-      potential_result_size_bytes);
+      NULL, 0, 0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes, potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_gradient(
@@ -6377,8 +6384,8 @@ int nwchemc_potential_result_write_gradient(
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, gradient, gradient_count, NULL, 0, NULL, 0,
       NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
-      NULL, 0, potential_result_capnp, potential_result_capacity_bytes,
-      potential_result_size_bytes);
+      NULL, 0, 0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes, potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_hessian(
@@ -6388,8 +6395,8 @@ int nwchemc_potential_result_write_hessian(
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, hessian, hessian_count, NULL, 0,
       NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
-      NULL, 0, potential_result_capnp, potential_result_capacity_bytes,
-      potential_result_size_bytes);
+      NULL, 0, 0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes, potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_dipole(
@@ -6399,7 +6406,8 @@ int nwchemc_potential_result_write_dipole(
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, NULL, 0, dipole, 3, NULL, 0,
       NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
-      potential_result_capnp, potential_result_capacity_bytes,
+      0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes,
       potential_result_size_bytes);
 }
 
@@ -6410,8 +6418,8 @@ int nwchemc_potential_result_write_polarizability(
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
       NULL, 0, polarizability, 12, NULL, 0, NULL, 0, NULL, 0,
-      NULL, 0, potential_result_capnp, potential_result_capacity_bytes,
-      potential_result_size_bytes);
+      NULL, 0, 0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes, potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_quadrupole(
@@ -6421,8 +6429,8 @@ int nwchemc_potential_result_write_quadrupole(
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, quadrupole, 6,
       NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
-      NULL, 0, potential_result_capnp, potential_result_capacity_bytes,
-      potential_result_size_bytes);
+      NULL, 0, 0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes, potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_stress(
@@ -6432,7 +6440,8 @@ int nwchemc_potential_result_write_stress(
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
       stress, 9, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
-      potential_result_capnp, potential_result_capacity_bytes,
+      0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes,
       potential_result_size_bytes);
 }
 
@@ -6444,22 +6453,31 @@ int nwchemc_potential_result_write_optimized(
       energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
       NULL, 0, NULL, 0, optimized_positions, position_count, NULL, 0,
       NULL, 0, NULL, 0,
-      potential_result_capnp, potential_result_capacity_bytes,
+      0.0, 0.0, 0.0, 0.0, 0.0, potential_result_capnp,
+      potential_result_capacity_bytes,
       potential_result_size_bytes);
 }
 
 int nwchemc_potential_result_write_frequencies(
     double energy, const double *frequencies, const double *intensities,
-    const double *normal_modes, size_t frequency_count,
+    const double *normal_modes, const double *thermochemistry,
+    size_t frequency_count,
     void *potential_result_capnp, size_t potential_result_capacity_bytes,
     size_t *potential_result_size_bytes) {
   if (frequency_count > 0 && frequency_count > SIZE_MAX / frequency_count)
     return -1;
   size_t normal_mode_count = frequency_count * frequency_count;
+  double zero_point_energy = thermochemistry ? thermochemistry[0] : 0.0;
+  double thermal_energy = thermochemistry ? thermochemistry[1] : 0.0;
+  double thermal_enthalpy = thermochemistry ? thermochemistry[2] : 0.0;
+  double entropy = thermochemistry ? thermochemistry[3] : 0.0;
+  double heat_capacity_cv = thermochemistry ? thermochemistry[4] : 0.0;
   return nwchemc_potential_result_write_lists(
       energy, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
       NULL, 0, NULL, 0, frequencies, frequency_count, intensities,
       frequency_count, normal_modes, normal_mode_count,
+      zero_point_energy, thermal_energy, thermal_enthalpy, entropy,
+      heat_capacity_cv,
       potential_result_capnp, potential_result_capacity_bytes,
       potential_result_size_bytes);
 }

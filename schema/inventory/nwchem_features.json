@@ -1527,6 +1527,66 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.PotentialResult.zeroPointEnergy",
+      "schema_path": "PotentialResult.zeroPointEnergy",
+      "struct": "PotentialResult",
+      "name": "zeroPointEnergy",
+      "field_id": 12,
+      "type": "Float64",
+      "role": "PotentialResult.zeroPointEnergy Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.thermalEnergy",
+      "schema_path": "PotentialResult.thermalEnergy",
+      "struct": "PotentialResult",
+      "name": "thermalEnergy",
+      "field_id": 13,
+      "type": "Float64",
+      "role": "PotentialResult.thermalEnergy Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.thermalEnthalpy",
+      "schema_path": "PotentialResult.thermalEnthalpy",
+      "struct": "PotentialResult",
+      "name": "thermalEnthalpy",
+      "field_id": 14,
+      "type": "Float64",
+      "role": "PotentialResult.thermalEnthalpy Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.entropy",
+      "schema_path": "PotentialResult.entropy",
+      "struct": "PotentialResult",
+      "name": "entropy",
+      "field_id": 15,
+      "type": "Float64",
+      "role": "PotentialResult.entropy Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.heatCapacityCv",
+      "schema_path": "PotentialResult.heatCapacityCv",
+      "struct": "PotentialResult",
+      "name": "heatCapacityCv",
+      "field_id": 16,
+      "type": "Float64",
+      "role": "PotentialResult.heatCapacityCv Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDirective.keyword",
       "schema_path": "NWChemDirective.keyword",
       "struct": "NWChemDirective",

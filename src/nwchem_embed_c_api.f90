@@ -50,6 +50,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_frequencies_cell
   public :: nwchemc_embed_frequencies_modes
   public :: nwchemc_embed_frequencies_modes_cell
+  public :: nwchemc_embed_frequencies_detail_cell
   public :: nwchemc_embed_finalize
 
   ! Module state (saved across C calls).
@@ -565,7 +566,7 @@ module nwchem_embed_c_api
         brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
         brillouin_kvector_count, brillouin_kvectors, &
         energy_h, frequencies_cm1, intensities_au, normal_modes, &
-        read_modes, errmsg, ok)
+        read_modes, thermochemistry, read_thermo, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -607,6 +608,8 @@ module nwchem_embed_c_api
       real(real64), intent(out) :: intensities_au(*)
       real(real64), intent(out) :: normal_modes(*)
       integer, intent(in) :: read_modes
+      real(real64), intent(out) :: thermochemistry(*)
+      integer, intent(in) :: read_thermo
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_frequencies
@@ -1938,14 +1941,17 @@ contains
     integer(c_int) :: rc
     real(c_double) :: empty_cell(9)
     real(c_double) :: no_modes(1)
+    real(c_double) :: no_thermo(5)
     integer(c_int) :: no_cell
 
     empty_cell = 0.0_c_double
     no_modes = 0.0_c_double
+    no_thermo = 0.0_c_double
     no_cell = 0_c_int
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, empty_cell, no_cell, charge, mult, frequencies_cm1, &
-        intensities_au, no_modes, 0_c_int, errmsg, errmsg_len)
+        intensities_au, no_modes, 0_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
   end function nwchemc_embed_frequencies
 
   !> Harmonic vibrational frequencies and dense Cartesian normal modes.
@@ -1965,13 +1971,16 @@ contains
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
     real(c_double) :: empty_cell(9)
+    real(c_double) :: no_thermo(5)
     integer(c_int) :: no_cell
 
     empty_cell = 0.0_c_double
+    no_thermo = 0.0_c_double
     no_cell = 0_c_int
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, empty_cell, no_cell, charge, mult, frequencies_cm1, &
-        intensities_au, normal_modes, 1_c_int, errmsg, errmsg_len)
+        intensities_au, normal_modes, 1_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
   end function nwchemc_embed_frequencies_modes
 
   !> Harmonic vibrational frequencies with an optional 3x3 cell.
@@ -1992,11 +2001,14 @@ contains
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
     real(c_double) :: no_modes(1)
+    real(c_double) :: no_thermo(5)
 
     no_modes = 0.0_c_double
+    no_thermo = 0.0_c_double
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
-        intensities_au, no_modes, 0_c_int, errmsg, errmsg_len)
+        intensities_au, no_modes, 0_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
   end function nwchemc_embed_frequencies_cell
 
   !> Harmonic vibrational frequencies and normal modes with an optional 3x3 cell.
@@ -2017,15 +2029,45 @@ contains
     character(kind=c_char), intent(out) :: errmsg(*)
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
+    real(c_double) :: no_thermo(5)
+
+    no_thermo = 0.0_c_double
+    rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+        atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
+        intensities_au, normal_modes, 1_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
+  end function nwchemc_embed_frequencies_modes_cell
+
+  !> Harmonic frequencies, normal modes, and thermochemistry with an optional cell.
+  function nwchemc_embed_frequencies_detail_cell(n_atoms, positions_ang, &
+      atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
+      intensities_au, normal_modes, thermochemistry, errmsg, errmsg_len) &
+      result(rc) bind(C, name='nwchemc_embed_frequencies_detail_cell')
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    real(c_double), intent(in) :: cell_ang(*)
+    integer(c_int), intent(in) :: has_cell
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: frequencies_cm1(*)
+    real(c_double), intent(out) :: intensities_au(*)
+    real(c_double), intent(out) :: normal_modes(*)
+    real(c_double), intent(out) :: thermochemistry(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
 
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
-        intensities_au, normal_modes, 1_c_int, errmsg, errmsg_len)
-  end function nwchemc_embed_frequencies_modes_cell
+        intensities_au, normal_modes, 1_c_int, thermochemistry, 1_c_int, &
+        errmsg, errmsg_len)
+  end function nwchemc_embed_frequencies_detail_cell
 
   function nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
       atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
-      intensities_au, normal_modes, read_modes, errmsg, errmsg_len) result(rc)
+      intensities_au, normal_modes, read_modes, thermochemistry, read_thermo, &
+      errmsg, errmsg_len) result(rc)
     integer(c_int), intent(in) :: n_atoms
     real(c_double), intent(in) :: positions_ang(*)
     integer(c_int), intent(in) :: atomic_numbers(*)
@@ -2037,6 +2079,8 @@ contains
     real(c_double), intent(out) :: intensities_au(*)
     real(c_double), intent(out) :: normal_modes(*)
     integer(c_int), intent(in) :: read_modes
+    real(c_double), intent(out) :: thermochemistry(*)
+    integer(c_int), intent(in) :: read_thermo
     character(kind=c_char), intent(out) :: errmsg(*)
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
@@ -2076,6 +2120,9 @@ contains
       modes(i) = 0.0_real64
       if (read_modes /= 0_c_int) normal_modes(i) = 0.0_c_double
     end do
+    do i = 1, 5
+      if (read_thermo /= 0_c_int) thermochemistry(i) = 0.0_c_double
+    end do
     do i = 1, 9
       cell(i) = real(cell_ang(i), kind=real64)
     end do
@@ -2103,7 +2150,8 @@ contains
         cfg_brillouin_has_options, cfg_brillouin_zone_name, &
         cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
         cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
-        energy_h, freq, intensity, modes, int(read_modes), msg, ok)
+        energy_h, freq, intensity, modes, int(read_modes), thermochemistry, &
+        int(read_thermo), msg, ok)
 
     do i = 1, ndof
       frequencies_cm1(i) = real(freq(i), kind=c_double)

@@ -286,6 +286,16 @@ static void assert_potential_result_frequencies(const unsigned char *message,
   struct PotentialResult result;
   read_PotentialResult(&result, root);
   assert_close(result.energy, expected_energy, 1.0e-12);
+  assert_true(isfinite(result.zeroPointEnergy));
+  assert_true(isfinite(result.thermalEnergy));
+  assert_true(isfinite(result.thermalEnthalpy));
+  assert_true(isfinite(result.entropy));
+  assert_true(isfinite(result.heatCapacityCv));
+  assert_true(result.zeroPointEnergy > 0.0);
+  assert_true(result.thermalEnergy > 0.0);
+  assert_true(result.thermalEnthalpy > 0.0);
+  assert_true(result.entropy > 0.0);
+  assert_true(result.heatCapacityCv > 0.0);
 
   double max_frequency_abs =
       assert_f64_list("frequency", result.frequencies, 6, NULL);

@@ -118,6 +118,8 @@ static int g_frequency_calls = 0;
 static int g_frequency_cell_calls = 0;
 static int g_frequency_modes_calls = 0;
 static int g_frequency_modes_cell_calls = 0;
+static int g_frequency_detail_calls = 0;
+static int g_frequency_detail_cell_calls = 0;
 static int g_stress_calls = 0;
 static int g_stress_cell_calls = 0;
 static double g_last_energy_h = 0.0;
@@ -1227,6 +1229,28 @@ int nwchemc_embed_frequencies_modes_cell(
       errmsg_len);
 }
 
+int nwchemc_embed_frequencies_detail_cell(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *frequencies_cm1,
+    double *intensities_au, double *normal_modes, double *thermochemistry,
+    char *errmsg, int errmsg_len) {
+  ++g_frequency_detail_calls;
+  ++g_frequency_detail_cell_calls;
+  int rc = capture_frequency_modes_call(
+      n_atoms, positions_ang, atomic_numbers, cell_ang, has_cell, charge,
+      multiplicity, frequencies_cm1, intensities_au, normal_modes, errmsg,
+      errmsg_len);
+  if (thermochemistry) {
+    thermochemistry[0] = 0.001;
+    thermochemistry[1] = 0.002;
+    thermochemistry[2] = 0.003;
+    thermochemistry[3] = 4.0;
+    thermochemistry[4] = 5.0;
+  }
+  return rc;
+}
+
 static int capture_stress_call(const int *n_atoms,
                                const double *positions_ang,
                                const int *atomic_numbers,
@@ -1359,6 +1383,8 @@ static void reset_embed_captures(void) {
   g_frequency_cell_calls = 0;
   g_frequency_modes_calls = 0;
   g_frequency_modes_cell_calls = 0;
+  g_frequency_detail_calls = 0;
+  g_frequency_detail_cell_calls = 0;
   g_stress_calls = 0;
   g_stress_cell_calls = 0;
   g_last_energy_h = 0.0;
@@ -1633,6 +1659,11 @@ static void assert_potential_result_frequencies(
   struct PotentialResult result;
   read_PotentialResult(&result, root);
   assert_close(result.energy, expected_energy, tolerance);
+  assert_close(result.zeroPointEnergy, 0.001, tolerance);
+  assert_close(result.thermalEnergy, 0.002, tolerance);
+  assert_close(result.thermalEnthalpy, 0.003, tolerance);
+  assert_close(result.entropy, 4.0, tolerance);
+  assert_close(result.heatCapacityCv, 5.0, tolerance);
   capn_resolve(&result.frequencies.p);
   assert_int_equal(result.frequencies.p.type, CAPN_LIST);
   assert_int_equal(result.frequencies.p.datasz, 8);
@@ -5533,6 +5564,7 @@ static void test_session_calculate_structural_results_write_potential_result(
   assert_int_equal(required_size, expected_frequencies_size);
   assert_int_equal(g_frequency_calls, 0);
   assert_int_equal(g_frequency_modes_calls, 0);
+  assert_int_equal(g_frequency_detail_calls, 0);
 
   result_size = 0;
   NWChemCResult frequencies_result =
@@ -5545,7 +5577,9 @@ static void test_session_calculate_structural_results_write_potential_result(
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_cell_calls, 0);
   assert_int_equal(g_frequency_modes_calls, 1);
-  assert_int_equal(g_frequency_modes_cell_calls, 1);
+  assert_int_equal(g_frequency_modes_cell_calls, 0);
+  assert_int_equal(g_frequency_detail_calls, 1);
+  assert_int_equal(g_frequency_detail_cell_calls, 1);
   const double expected_frequencies[6] = {100.0, 101.0, 102.0,
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
@@ -5564,6 +5598,7 @@ static void test_session_calculate_structural_results_write_potential_result(
   assert_int_equal(changed_frequencies_size, expected_frequencies_size);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_modes_calls, 1);
+  assert_int_equal(g_frequency_detail_calls, 1);
 
   nwchemc_session_destroy(session);
   free(step_changed_species);
@@ -5912,6 +5947,7 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
   assert_int_equal(g_set_config_calls, 0);
   assert_int_equal(g_frequency_calls, 0);
   assert_int_equal(g_frequency_modes_calls, 0);
+  assert_int_equal(g_frequency_detail_calls, 0);
 
   result_size = 0;
   NWChemCResult frequencies_result = nwchemc_calculate_frequencies_result(
@@ -5923,6 +5959,7 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_modes_calls, 1);
+  assert_int_equal(g_frequency_detail_calls, 1);
   const double expected_frequencies[6] = {100.0, 101.0, 102.0,
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
@@ -6126,6 +6163,7 @@ static void test_calculate_config_results_one_shot_write_potential_results(
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
   assert_int_equal(g_frequency_modes_calls, 1);
+  assert_int_equal(g_frequency_detail_calls, 1);
   const double expected_frequencies[6] = {100.0, 101.0, 102.0,
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
