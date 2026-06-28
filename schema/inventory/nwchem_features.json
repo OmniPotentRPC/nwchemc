@@ -1587,6 +1587,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.PotentialResult.projectedFrequencies",
+      "schema_path": "PotentialResult.projectedFrequencies",
+      "struct": "PotentialResult",
+      "name": "projectedFrequencies",
+      "field_id": 17,
+      "type": "List(Float64)",
+      "role": "PotentialResult.projectedFrequencies Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.PotentialResult.projectedIntensities",
+      "schema_path": "PotentialResult.projectedIntensities",
+      "struct": "PotentialResult",
+      "name": "projectedIntensities",
+      "field_id": 18,
+      "type": "List(Float64)",
+      "role": "PotentialResult.projectedIntensities Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemDirective.keyword",
       "schema_path": "NWChemDirective.keyword",
       "struct": "NWChemDirective",

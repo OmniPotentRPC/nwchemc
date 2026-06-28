@@ -160,7 +160,9 @@ extern int nwchemc_embed_frequencies_detail_cell(
     const int *n_atoms, const double *positions_ang,
     const int *atomic_numbers, const double *cell_ang, const int *has_cell,
     const int *charge, const int *multiplicity, double *frequencies_cm1,
-    double *intensities_au, double *normal_modes, double *thermochemistry,
+    double *intensities_au, double *normal_modes,
+    double *projected_frequencies_cm1, double *projected_intensities_au,
+    double *thermochemistry,
     char *errmsg, int errmsg_len);
 extern void nwchemc_embed_finalize(void);
 
@@ -5625,7 +5627,8 @@ static NWChemCResult session_frequencies_cell(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, const double *cell_ang, int has_cell,
     double *frequencies_cm1, double *intensities_au,
-    double *normal_modes, double *thermochemistry) {
+    double *normal_modes, double *projected_frequencies_cm1,
+    double *projected_intensities_au, double *thermochemistry) {
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
@@ -5676,7 +5679,8 @@ static NWChemCResult session_frequencies_cell(
   if (normal_modes && thermochemistry) {
     rc = nwchemc_embed_frequencies_detail_cell(
         &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
-        frequencies_cm1, intensity_arg, normal_modes, thermochemistry, errmsg,
+        frequencies_cm1, intensity_arg, normal_modes, projected_frequencies_cm1,
+        projected_intensities_au, thermochemistry, errmsg,
         (int)sizeof(errmsg) - 1);
   } else if (normal_modes) {
     rc = nwchemc_embed_frequencies_modes_cell(
@@ -5710,7 +5714,7 @@ NWChemCResult nwchemc_session_frequencies(
     double *intensities_au) {
   return session_frequencies_cell(session, n_atoms, positions_ang,
                                   atomic_numbers, NULL, 0, frequencies_cm1,
-                                  intensities_au, NULL, NULL);
+                                  intensities_au, NULL, NULL, NULL, NULL);
 }
 
 NWChemCResult nwchemc_session_calculate_forces(
@@ -7723,6 +7727,8 @@ static NWChemCResult session_calculate_frequencies_impl(
     size_t force_input_capnp_size_bytes, double *frequencies_cm1,
     size_t frequencies_len, double *intensities_au, size_t intensities_len,
     double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
     double thermochemistry[5]) {
   NWChemCResult r;
   r.ok = 0;
@@ -7756,7 +7762,11 @@ static NWChemCResult session_calculate_frequencies_impl(
       (intensities_au && intensities_len < frequency_count) ||
       (normal_modes && frequency_count > SIZE_MAX / frequency_count) ||
       (normal_modes &&
-       normal_modes_len < frequency_count * frequency_count)) {
+       normal_modes_len < frequency_count * frequency_count) ||
+      (projected_frequencies_cm1 &&
+       projected_frequencies_len < frequency_count) ||
+      (projected_intensities_au &&
+       projected_intensities_len < frequency_count)) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
     return r;
@@ -7789,7 +7799,8 @@ static NWChemCResult session_calculate_frequencies_impl(
   r = session_frequencies_cell(
       session, (int)n_atoms, session->step_positions_ang,
       session->step_atomic_numbers, cell_ang, has_cell, frequencies_cm1,
-      intensities_au, normal_modes, thermochemistry);
+      intensities_au, normal_modes, projected_frequencies_cm1,
+      projected_intensities_au, thermochemistry);
   session_clear_step_state(session);
   return r;
 }
@@ -7801,7 +7812,7 @@ NWChemCResult nwchemc_session_calculate_frequencies(
   return session_calculate_frequencies_impl(
       session, force_input_capnp, force_input_capnp_size_bytes,
       frequencies_cm1, frequencies_len, intensities_au, intensities_len, NULL,
-      0, NULL);
+      0, NULL, 0, NULL, 0, NULL);
 }
 
 NWChemCResult nwchemc_session_calculate_frequencies_result(
@@ -7860,8 +7871,15 @@ NWChemCResult nwchemc_session_calculate_frequencies_result(
       (double *)malloc(frequency_count * sizeof(*intensities));
   double *normal_modes =
       (double *)malloc(normal_mode_count * sizeof(*normal_modes));
+  double *projected_frequencies =
+      (double *)calloc(frequency_count, sizeof(*projected_frequencies));
+  double *projected_intensities =
+      (double *)calloc(frequency_count, sizeof(*projected_intensities));
   double thermochemistry[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
-  if (!frequencies || !intensities || !normal_modes) {
+  if (!frequencies || !intensities || !normal_modes ||
+      !projected_frequencies || !projected_intensities) {
+    free(projected_intensities);
+    free(projected_frequencies);
     free(normal_modes);
     free(intensities);
     free(frequencies);
@@ -7871,7 +7889,8 @@ NWChemCResult nwchemc_session_calculate_frequencies_result(
   r = session_calculate_frequencies_impl(
       session, force_input_capnp, force_input_capnp_size_bytes, frequencies,
       frequency_count, intensities, frequency_count, normal_modes,
-      normal_mode_count, thermochemistry);
+      normal_mode_count, projected_frequencies, frequency_count,
+      projected_intensities, frequency_count, thermochemistry);
   if (r.ok) {
     double result_thermochemistry[5] = {
         thermochemistry[0] * energy_factor, thermochemistry[1] * energy_factor,
@@ -7879,13 +7898,16 @@ NWChemCResult nwchemc_session_calculate_frequencies_result(
         thermochemistry[4]};
     if (nwchemc_potential_result_write_frequencies(
             r.energy_h * energy_factor, frequencies, intensities, normal_modes,
-            result_thermochemistry, frequency_count, potential_result_capnp,
+            result_thermochemistry, projected_frequencies,
+            projected_intensities, frequency_count, potential_result_capnp,
             potential_result_capnp_capacity_bytes,
             potential_result_capnp_size_bytes) != 0) {
       r.ok = 0;
       snprintf(r.message, sizeof(r.message), "PotentialResult write failed");
     }
   }
+  free(projected_intensities);
+  free(projected_frequencies);
   free(normal_modes);
   free(intensities);
   free(frequencies);

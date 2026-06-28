@@ -1233,7 +1233,9 @@ int nwchemc_embed_frequencies_detail_cell(
     const int *n_atoms, const double *positions_ang,
     const int *atomic_numbers, const double *cell_ang, const int *has_cell,
     const int *charge, const int *multiplicity, double *frequencies_cm1,
-    double *intensities_au, double *normal_modes, double *thermochemistry,
+    double *intensities_au, double *normal_modes,
+    double *projected_frequencies_cm1, double *projected_intensities_au,
+    double *thermochemistry,
     char *errmsg, int errmsg_len) {
   ++g_frequency_detail_calls;
   ++g_frequency_detail_cell_calls;
@@ -1248,6 +1250,11 @@ int nwchemc_embed_frequencies_detail_cell(
     thermochemistry[3] = 4.0;
     thermochemistry[4] = 5.0;
   }
+  int ndof = (*n_atoms) * 3;
+  for (int i = 0; projected_frequencies_cm1 && i < ndof; ++i)
+    projected_frequencies_cm1[i] = 90.0 + (double)i;
+  for (int i = 0; projected_intensities_au && i < ndof; ++i)
+    projected_intensities_au[i] = 0.02 * (double)(i + 1);
   return rc;
 }
 

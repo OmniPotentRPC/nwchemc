@@ -60,6 +60,8 @@ static void test_find_tce_schema_fields(void **state) {
       "field.PotentialResult.optimizedPos",
       "field.PotentialResult.frequencies",
       "field.PotentialResult.intensities",
+      "field.PotentialResult.projectedFrequencies",
+      "field.PotentialResult.projectedIntensities",
       "field.PotentialResult.stress",
       "field.PotentialResult.polarizability",
       "field.PotentialResult.gradient",
@@ -128,7 +130,7 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 434);
+  assert_int_equal((int)schema_fields, 436);
   assert_int_equal((int)schema_methods, 12);
   assert_int_equal((int)abis, 114);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +

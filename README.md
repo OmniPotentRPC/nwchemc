@@ -621,11 +621,13 @@ wrappers use the same `NWChemParams + ForceInput` carrier for callers that want
 native C buffers. Optimization result-carrier wrappers
 populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
 `PotentialResult.energy` in `ForceInput.energyUnit`; frequency result-carrier
-wrappers populate `PotentialResult.frequencies` in cm^-1 and
-`PotentialResult.intensities` in atomic units. Frequency result-carrier
-wrappers also populate `PotentialResult.normalModes` as a dense Cartesian
-normal-mode matrix with `(3 * natoms) * (3 * natoms)` entries, plus NWChem
-frequency thermochemistry scalars: `PotentialResult.zeroPointEnergy`,
+wrappers populate `PotentialResult.frequencies` and
+`PotentialResult.projectedFrequencies` in cm^-1 and
+`PotentialResult.intensities` and `PotentialResult.projectedIntensities` in
+atomic units. Frequency result-carrier wrappers also populate
+`PotentialResult.normalModes` as a dense Cartesian normal-mode matrix with
+`(3 * natoms) * (3 * natoms)` entries, plus NWChem frequency thermochemistry
+scalars: `PotentialResult.zeroPointEnergy`,
 `PotentialResult.thermalEnergy`, `PotentialResult.thermalEnthalpy`,
 `PotentialResult.entropy`, and `PotentialResult.heatCapacityCv`.
 
@@ -735,9 +737,10 @@ serialized messages. Method-specific calls such as
 `nwchemc_calculate_forces_result_from_config()` and
 `nwchemc_calculate_gradient_result_from_config()` are available when rgpot wants
 a narrower result carrier; frequency carriers include
-`PotentialResult.normalModes` and frequency thermochemistry scalar fields. See
-`docs/rgpot-integration.md` for the merge/pr release gate, supported operation
-matrix, real-NWChem probes, and the NWPW stress probe.
+`PotentialResult.normalModes`, projected vibrational fields, and frequency
+thermochemistry scalar fields. See `docs/rgpot-integration.md` for the
+merge/pr release gate, supported operation matrix, real-NWChem probes, and the
+NWPW stress probe.
 
 ## Build
 

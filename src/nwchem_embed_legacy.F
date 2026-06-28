@@ -1370,7 +1370,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     brillouin_kvector_count, brillouin_kvectors,
      $     energy_h, frequencies_cm1, intensities_au, normal_modes,
-     $     read_modes, thermochemistry, read_thermo, errmsg, ok)
+     $     read_modes, projected_frequencies_cm1,
+     $     projected_intensities_au, read_projected, thermochemistry,
+     $     read_thermo, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -1381,6 +1383,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       integer rtdb, n_atoms, charge, mult, ok
       integer has_cell
       integer read_modes
+      integer read_projected
       integer read_thermo
       integer psp_count
       integer set_string_count
@@ -1418,6 +1421,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision frequencies_cm1(*)
       double precision intensities_au(*)
       double precision normal_modes(*)
+      double precision projected_frequencies_cm1(*)
+      double precision projected_intensities_au(*)
       double precision thermochemistry(*)
       character*(*) errmsg
       integer n3, nhess, i
@@ -1439,6 +1444,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       do i = 1, n3
          frequencies_cm1(i) = 0.0d0
          intensities_au(i) = 0.0d0
+         if (read_projected .ne. 0) then
+            projected_frequencies_cm1(i) = 0.0d0
+            projected_intensities_au(i) = 0.0d0
+         endif
       enddo
       if (read_modes .ne. 0) then
          do i = 1, nhess
@@ -1492,6 +1501,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       ignore = rtdb_delete(rtdb, 'vib:frequencies')
       ignore = rtdb_delete(rtdb, 'vib:intensities')
+      if (read_projected .ne. 0) then
+         ignore = rtdb_delete(rtdb, 'vib:projected frequencies')
+         ignore = rtdb_delete(rtdb, 'vib:projected intensities')
+      endif
       if (read_modes .ne. 0) then
          ignore = rtdb_delete(rtdb, 'mc_data:eigenvectors')
       endif
@@ -1527,6 +1540,12 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       status = rtdb_get(rtdb, 'vib:intensities', mt_dbl, n3,
      $     intensities_au(1))
+      if (read_projected .ne. 0) then
+         status = rtdb_get(rtdb, 'vib:projected frequencies',
+     $      mt_dbl, n3, projected_frequencies_cm1(1))
+         status = rtdb_get(rtdb, 'vib:projected intensities',
+     $      mt_dbl, n3, projected_intensities_au(1))
+      endif
       if (read_modes .ne. 0) then
          if (.not. rtdb_get(rtdb, 'mc_data:eigenvectors', mt_dbl,
      $      nhess, normal_modes(1))) then

@@ -14,9 +14,9 @@ installed package and call the serialized-message ABI directly:
   step.
 - `PotentialResult` carries energy, forces, gradient, Hessian, stress, dipole,
   polarizability, quadrupole, optimized geometry, frequencies, and
-  intensities. Frequency result carriers also include
-  `PotentialResult.normalModes` as a dense Cartesian normal-mode matrix and
-  NWChem thermochemistry scalars.
+  intensities. Frequency result carriers also include projected frequencies,
+  projected intensities, `PotentialResult.normalModes` as a dense Cartesian
+  normal-mode matrix, and NWChem thermochemistry scalars.
 - Structured pseudopotentials are promoted to NWChem RTDB state by the embed
   bridge; rgpot does not need to render NWChem pseudopotential text.
 
@@ -111,6 +111,8 @@ fields in `ForceInput`:
 | `PotentialResult.quadrupole` | atomic units |
 | `PotentialResult.frequencies` | cm^-1 |
 | `PotentialResult.intensities` | atomic units |
+| `PotentialResult.projectedFrequencies` | cm^-1 |
+| `PotentialResult.projectedIntensities` | atomic units |
 | `PotentialResult.normalModes` | dimensionless dense Cartesian normal-mode matrix |
 | `PotentialResult.zeroPointEnergy` | `ForceInput.energyUnit` |
 | `PotentialResult.thermalEnergy` | `ForceInput.energyUnit` |
@@ -134,6 +136,10 @@ embed/RTDB state and serialize with explicit units. That includes energies,
 derivatives, response tensors, optimized coordinates, vibrational modes, and
 frequency thermochemistry.
 
+Projected vibrational result lists are populated from NWChem projected
+frequency RTDB outputs when those outputs are present. They remain zero-filled
+for frequency runs that do not emit projected vibrational analysis.
+
 Mulliken and population-analysis controls remain available in
 `PotentialConfig.nwchem`. They are not part of `PotentialResult` because the
 corresponding NWChem paths produce print/ECCE output and store control flags,
@@ -149,7 +155,7 @@ above and these probes are green:
 | `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy, forces, and gradient | `tests/test_nwchem_rgpot_smoke.c` |
 | `ForceInput.energyUnit` / `ForceInput.lengthUnit` conversion for result-carrier energy, forces, gradient, Hessian, and optimized coordinates | `tests/test_nwchem_rgpot_smoke.c`, `tests/test_nwchem_hessian.c` |
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
-| Hessian, dipole, polarizability, quadrupole, optimize, and frequencies plus normal-mode and thermochemistry result carriers | `tests/test_nwchem_rgpot_smoke.c` |
+| Hessian, dipole, polarizability, quadrupole, optimize, and frequencies plus projected vibration, normal-mode, and thermochemistry result carriers | `tests/test_nwchem_rgpot_smoke.c` |
 | Periodic PSPW stress coordinate/session, ForceInput raw calls, result carriers, and unit conversion | `tests/test_nwchem_stress.c` |
 | PSPW pseudopotential energy, forces, and gradient one-shot/session result carriers, including Bohr/eV unit conversion | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
 | `ForceInput.box`, `ForceInput.charge`, and `ForceInput.multiplicity` RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
