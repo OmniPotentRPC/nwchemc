@@ -491,7 +491,8 @@ The quadrupole entry points set ~task:operation~ to ~energy~ and call
 ~hnd_mtpole2~ through loaded RTDB geometry and basis handles instead of
 rendering a text property task.
 The stress entry points set ~task:operation~ to ~stress~ and read the NWPW
-stress RTDB arrays directly.
+stress RTDB arrays directly. The real PSPW stress smoke covers one-shot and
+session raw buffers plus ~PotentialResult.stress~ serialization.
 
 Simple named ~exchangeCorrelation~ values also reset ~pspw:SIC_all~,
 ~pspw:HFX~, ~band:HFX~, ~pspw:SIC_xc_parameter~, ~pspw:SIC_h_parameter~,

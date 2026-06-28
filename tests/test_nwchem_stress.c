@@ -1,4 +1,5 @@
 #include "nwchemc.h"
+#include "Potentials.capnp.h"
 
 #include <errno.h>
 #include <math.h>
@@ -70,6 +71,31 @@ static int teardown_nwchem(void **state) {
   return 0;
 }
 
+static void assert_potential_result_stress(const unsigned char *message,
+                                           size_t message_size) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+
+  capn_resolve(&result.stress.p);
+  assert_int_equal(result.stress.p.type, CAPN_LIST);
+  assert_int_equal(result.stress.p.datasz, 8);
+  assert_int_equal(result.stress.p.len, 9);
+  for (int i = 0; i < result.stress.p.len; ++i) {
+    double stress = capn_to_f64(capn_get64(result.stress, i));
+    if (!isfinite(stress))
+      fail_msg("non-finite PotentialResult.stress[%d]", i);
+  }
+
+  capn_free(&arena);
+}
+
 static void test_pspw_stress_from_config(void **state) {
   (void)state;
   assert_true(nwchemc_available());
@@ -107,7 +133,39 @@ static void test_pspw_stress_from_config(void **state) {
              result_status.message);
   assert_true(isfinite(result_status.energy_h));
   assert_int_equal(result_size, result_capacity);
+  assert_potential_result_stress(result_bytes, result_size);
 
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config, config_size);
+  assert_non_null(session);
+
+  double session_stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0};
+  NWChemCResult session_raw_status = nwchemc_session_calculate_stress(
+      session, force_input, force_input_size, session_stress, 9);
+  if (!session_raw_status.ok)
+    fail_msg("nwchemc_session_calculate_stress failed: %s",
+             session_raw_status.message);
+  assert_true(isfinite(session_raw_status.energy_h));
+  for (int i = 0; i < 9; ++i) {
+    if (!isfinite(session_stress[i]))
+      fail_msg("non-finite session_stress[%d]", i);
+  }
+
+  memset(result_bytes, 0, result_capacity);
+  result_size = 0;
+  NWChemCResult session_result_status =
+      nwchemc_session_calculate_stress_result(
+          session, force_input, force_input_size, result_bytes,
+          result_capacity, &result_size);
+  if (!session_result_status.ok)
+    fail_msg("nwchemc_session_calculate_stress_result failed: %s",
+             session_result_status.message);
+  assert_true(isfinite(session_result_status.energy_h));
+  assert_int_equal(result_size, result_capacity);
+  assert_potential_result_stress(result_bytes, result_size);
+
+  nwchemc_session_destroy(session);
   free(result_bytes);
   free(force_input);
   free(config);

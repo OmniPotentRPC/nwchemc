@@ -96,7 +96,7 @@ above and these probes are green:
 | `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy and forces | `tests/test_nwchem_rgpot_smoke.c` |
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
 | Hessian, dipole, polarizability, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
-| Periodic PSPW stress raw buffer and result carrier | `tests/test_nwchem_stress.c` |
+| Periodic PSPW stress one-shot/session raw and result carriers | `tests/test_nwchem_stress.c` |
 | PSPW pseudopotential energy and forces one-shot/session result carriers | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
 | `ForceInput.box` cell-vector RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
 | Structured pseudopotential RTDB storage from `PotentialConfig.nwchem` | `tests/test_nwchem_potential_config_pseudopotential.c` |
@@ -141,3 +141,5 @@ A rgpot-side merge/pr release is at the wiring stage when:
 
 Stress is on the same release surface when rgpot is paired with an NWPW-enabled
 NWChem build and `tests/test_nwchem_stress.c` passes in the real-NWChem suite.
+That probe covers one-shot and session stress calls plus `PotentialResult`
+stress serialization.
