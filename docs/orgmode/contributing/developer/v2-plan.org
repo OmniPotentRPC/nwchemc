@@ -185,8 +185,9 @@ promoted to the NWPW RTDB keys used by ~nwpw_input.F~. Promoted fields are
 omitted from embed-rendered text when no non-promoted syntax remains.
 Structured NWPW state controls and simple named ~exchangeCorrelation~ values
 use the same direct RTDB path. Born-Oppenheimer NWPW controls with stable
-RTDB keys are promoted in the same pass. NWPW execution controls with stable
-RTDB keys are also promoted directly. Output and motion filename fields are
+RTDB keys, including scaling atom lists, are promoted in the same pass. NWPW
+execution controls with stable RTDB keys are also promoted directly. Output and
+motion filename fields are
 promoted to the paired CPMD/NWPW RTDB string keys. Fractional orbital and smear
 controls write the matching ~nwpw:fractional_*~ keys directly.
 Virtual orbital counts, the ~virtual~ alias, LCAO skip/use mode, and Ewald
@@ -398,7 +399,7 @@ module prefix:
 | ~boTimeStep~ | ~bo_time_step~ | ~nwpw~ |
 | ~boAlgorithm~ | ~bo_algorithm~ | ~nwpw~ |
 | ~boFakeMass~ | ~bo_fake_mass~ | ~nwpw~ |
-| ~scalingFirst~ / ~scalingSecond~ | ~scaling~ | ~nwpw~, ~cpmd~ |
+| ~scalingFirst~ / ~scalingSecond~ / ~scalingAtomIndices~ | ~scaling~, ~scaling_natms~, ~scaling_atoms~ | ~nwpw~, ~cpmd~ |
 | ~npFftProcesses~ / ~npOrbitalProcesses~ / ~npKspaceProcesses~ | ~np_dimensions~ | ~nwpw~ |
 | ~spinOrbit~ | ~spin_orbit~ | ~nwpw~, ~pspw~, ~band~ |
 | ~parallelIo~ | ~parallel_io~ | ~nwpw~ |

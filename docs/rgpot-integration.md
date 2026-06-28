@@ -167,7 +167,7 @@ above and these probes are green:
 | PSPW pseudopotential energy, forces, and gradient one-shot/session result carriers, including Bohr/eV unit conversion | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
 | `ForceInput.box`, `ForceInput.charge`, and `ForceInput.multiplicity` RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
 | Structured pseudopotential RTDB storage and pre-topology session reset from `PotentialConfig.nwchem` | `tests/test_nwchem_potential_config_pseudopotential.c` |
-| Configured NWPW periodic controls, including fractional occupations, reaching embedded RTDB | `tests/test_nwchem_nwpw_rtdb.c` |
+| Configured NWPW periodic controls, including scaling atom indexes and fractional occupations, reaching embedded RTDB | `tests/test_nwchem_nwpw_rtdb.c` |
 | Direct pseudopotential RTDB storage | `tests/test_nwchem_pseudopotential_rtdb.c` |
 | Stub/parser ABI and result-carrier shape | `tests/cmocka/test_embed_config_cmocka.c` |
 

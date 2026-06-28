@@ -691,8 +691,8 @@ defaults reset explicitly; complex `exchange_correlation new ...` grammar
 stays in the text/directive path. Born-Oppenheimer controls such as
 `balanceMode`, `boStepStart` / `boStepEnd`, `mcStepStart` / `mcStepEnd`,
 `boTimeStep`, `boAlgorithm`, `boFakeMass`, and `scalingFirst` /
-`scalingSecond` are also promoted directly to the NWPW/CPMD RTDB keys used by
-NWChem. Execution controls for
+`scalingSecond`, including optional `scalingAtomIndices`, are also promoted
+directly to the NWPW/CPMD RTDB keys used by NWChem. Execution controls for
 `np_dimensions`, `spin_orbit`, and `parallel_io` have structured fields and use
 direct RTDB writes in embed builds. NWPW output and motion filename fields are
 also structured and promoted to the paired `cpmd:*` / `nwpw:*` RTDB keys.
