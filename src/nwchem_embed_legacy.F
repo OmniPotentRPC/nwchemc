@@ -40,7 +40,10 @@ C        from environment / .nwchemrc / compiled-in limits.
          call memory_defaults(total, tsrc, heap, hsrc, stack,
      $        ssrc, global, gsrc)
 C        Match nwchem.F order: GA limited init, then MA (GA may use MA).
-C        Fallback if memory_defaults yields zero (no .nwchemrc / env).
+C        Memory is a user option (same as NWChem CLI / SocketNWChem input):
+C          env NWCHEM_MEMORY_TOTAL / _HEAP / _STACK / _GLOBAL (words),
+C          or .nwchemrc memory stanza. Do not hard-code sizes here.
+C        Only fill zeros if nothing was configured (safety).
          if (stack .le. 0) stack = 4000000
          if (heap .le. 0) heap = 4000000
          if (global .le. 0) global = 8000000
@@ -333,7 +336,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*255 vectors_in
       integer n3, i
       integer l_grad, k_grad
-      logical status, l_false
+      logical status
       external task_energy, task_gradient
       logical task_energy, task_gradient
       external nw_inp_from_character, util_file_name, util_file_name_resolve
@@ -369,8 +372,7 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
          endif
       endif
       n3 = 3 * n_atoms
-C     Same as socket bead_list: one permanent movecs file. Read only if present
-C     (input==output without file aborts in movecs_converged).
+C     Socket bead_list parity: one permanent movecs; atomic only if missing.
       call util_file_name('movecs', .false., .false., vectors_in)
       call util_file_name_resolve(vectors_in, .false.)
       status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
@@ -388,9 +390,6 @@ C     (input==output without file aborts in movecs_converged).
          errmsg = 'rtdb_cput scf:input vectors failed'
          return
       endif
-C     Match run_bead_list: force SCF to re-enter (not trust stale converged flag).
-      l_false = .false.
-      status = rtdb_put(rtdb, 'scf:converged', mt_log, 1, l_false)
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
       status = rtdb_cput(rtdb, 'task:operation', 1, 'gradient')
       if (.not. task_gradient(rtdb)) then
@@ -2033,7 +2032,7 @@ C     Match run_bead_list: force SCF to re-enter (not trust stale converged flag
 
       ok = .true.
 C     New method/config: drop cached geometry handle.
-      call nwchemc_reset_geom_hold()
+      call nwchemc_reset_geom_hold(rtdb)
       chg = dble(charge)
       call nwchemc_rtdb_put_dbl(rtdb, 'charge', chg, status)
       ok = ok .and. status
@@ -2109,14 +2108,23 @@ C     Prefer permanent movecs so multi-call forces reuse MOs (not atomic guess).
          ok = ok .and. status
          call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
          ok = ok .and. status
-         status = rtdb_cput(rtdb, 'dft:input vectors', 1, vectors_in)
-         ok = ok .and. status
+C        Never set input==output when movecs file is missing (movecs_converged).
          status = rtdb_cput(rtdb, 'dft:output vectors', 1, vectors_in)
-         ok = ok .and. status
-         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
          ok = ok .and. status
+         inquire(file=vectors_in(1:inp_strlen(vectors_in)), exist=status)
+         if (status) then
+            status = rtdb_cput(rtdb, 'dft:input vectors', 1, vectors_in)
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+            ok = ok .and. status
+         else
+            status = rtdb_cput(rtdb, 'dft:input vectors', 1, 'atomic')
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
+            ok = ok .and. status
+         endif
          nopen = mult - 1
          call nwchemc_rtdb_put_int(rtdb, 'dft:nopen', nopen, status)
          ok = ok .and. status
@@ -2710,8 +2718,6 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
       character*16 tags(maxat)
       double precision scale
       logical status
-      integer geom_hold
-      common /nwchemc_geom_hold_c/ geom_hold
       external geom_create, geom_destroy, geom_rtdb_load
       external geom_cart_get, geom_cart_set, geom_rtdb_store
       external geom_get_user_scale
@@ -2724,23 +2730,22 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
          errmsg = 'invalid geometry atom count'
          return
       endif
-C     Keep one live geometry handle across forces (SocketNWChem style) so
-C     MO vectors stay valid for the same basis; RTDB reload each force
-C     was forcing atomic guesses.
-      if (geom_hold .lt. 0) then
-         if (.not. geom_create(geom_hold, 'geometry')) then
+C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
+C     Same intent as socket coords_set_bead_list: update coords, keep basis/MOs.
+      if (.not. rtdb_get(rtdb, 'nwchemc:geom_hold', mt_int, 1, geom))
+     $     geom = -1
+      if (geom .lt. 0) then
+         if (.not. geom_create(geom, 'geometry')) then
             errmsg = 'geom_create failed'
-            geom_hold = -1
             return
          endif
-         if (.not. geom_rtdb_load(rtdb, geom_hold, 'geometry')) then
-            status = geom_destroy(geom_hold)
-            geom_hold = -1
+         if (.not. geom_rtdb_load(rtdb, geom, 'geometry')) then
+            status = geom_destroy(geom)
             errmsg = 'geom_rtdb_load failed'
             return
          endif
+         status = rtdb_put(rtdb, 'nwchemc:geom_hold', mt_int, 1, geom)
       endif
-      geom = geom_hold
       if (.not. geom_cart_get(geom, n_atoms, tags, coords, charge)) then
          errmsg = 'geom_cart_get failed'
          return
@@ -2767,24 +2772,22 @@ C     was forcing atomic guesses.
       return
       end
 
-      block data nwchemc_geom_hold_bd
-      integer geom_hold
-      common /nwchemc_geom_hold_c/ geom_hold
-      data geom_hold / -1 /
-      end
 
-      subroutine nwchemc_reset_geom_hold()
+      subroutine nwchemc_reset_geom_hold(rtdb)
       implicit none
-      integer geom_hold
-      save geom_hold
+#include "rtdb.fh"
+#include "mafdecls.fh"
+      integer rtdb, geom
       logical status
       external geom_destroy
       logical geom_destroy
-      common /nwchemc_geom_hold_c/ geom_hold
-      if (geom_hold .ge. 0) then
-         status = geom_destroy(geom_hold)
+      if (rtdb .lt. 0) return
+      if (.not. rtdb_get(rtdb, 'nwchemc:geom_hold', mt_int, 1, geom))
+     $     return
+      if (geom .ge. 0) then
+         status = geom_destroy(geom)
       endif
-      geom_hold = -1
+      status = rtdb_delete(rtdb, 'nwchemc:geom_hold')
       return
       end
 
