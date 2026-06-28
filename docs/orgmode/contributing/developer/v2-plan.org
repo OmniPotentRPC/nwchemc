@@ -276,28 +276,36 @@ feature tests verify the generated inventory lookup table and ABI coverage.
 * Pickup Tasks
 ** Long-Running Step Calls
 ~nwchemc_session_calculate_forces~,
+~nwchemc_session_calculate_gradient~,
+~nwchemc_session_calculate_energy~,
 ~nwchemc_session_calculate_result~,
 ~nwchemc_session_calculate_hessian~,
 ~nwchemc_session_calculate_dipole~,
 ~nwchemc_session_calculate_polarizability~,
-~nwchemc_session_calculate_quadrupole~, and
-~nwchemc_session_calculate_stress~ are C ABI entry points for socket-style,
-optimizer-style, property, stress, and vibrational callers. They take the
-session's persistent ~NWChemParams~ and a per-call serialized ~ForceInput~
-message, validate atom counts and output buffer sizes, convert coordinates and
-cells to the C ABI units, call the embed bridge, and return either native
-NWChem buffers or a serialized ~PotentialResult~ in the caller's requested
-units.
-~nwchemc_potential_result_size_for_force_input~ gives callers the
-~PotentialResult~ byte count from the per-step ~ForceInput~ without evaluating
-NWChem.
+~nwchemc_session_calculate_quadrupole~,
+~nwchemc_session_calculate_stress~,
+~nwchemc_session_calculate_optimize~, and
+~nwchemc_session_calculate_frequencies~ are C ABI entry points for
+socket-style, optimizer-style, property, stress, and vibrational callers. They
+take the session's persistent ~NWChemParams~ and a per-call serialized
+~ForceInput~ message, validate atom counts and output buffer sizes, convert
+coordinates and cells to the C ABI units, call the embed bridge, and return
+either native NWChem buffers or a serialized ~PotentialResult~ in the caller's
+requested units.
+~nwchemc_potential_result_size_for_force_input~ gives callers the full
+energy/forces ~PotentialResult~ byte count from the per-step ~ForceInput~
+without evaluating NWChem. Operation-specific helpers size the energy-only,
+force, gradient, Hessian, property, stress, optimization, and frequency result
+carriers with the same no-evaluation contract.
 ~nwchemc_calculate_result~ is the one-shot convenience wrapper around the same
 ~NWChemParams + ForceInput -> PotentialResult~ path. Multi-step callers should
 reuse a session so configuration is applied once and per-step calls only carry
 coordinates, cell data, atom numbers, and requested units.
+~nwchemc_calculate_forces~, ~nwchemc_calculate_gradient~,
 ~nwchemc_calculate_hessian~, ~nwchemc_calculate_dipole~,
-~nwchemc_calculate_polarizability~, ~nwchemc_calculate_quadrupole~, and
-~nwchemc_calculate_stress~ are one-shot wrappers around the same session
+~nwchemc_calculate_polarizability~, ~nwchemc_calculate_quadrupole~,
+~nwchemc_calculate_stress~, ~nwchemc_calculate_optimize~, and
+~nwchemc_calculate_frequencies~ are one-shot wrappers around the same session
 ForceInput validation and direct numeric geometry path.
 The session owns the topology invariant. A caller that changes atom count or
 species ordering is rejected before NWChem evaluation. Resetting or replacing

@@ -125,28 +125,43 @@ captures the embedded energy and gradient vector.
 * Session Step Calls
 Callers that drive multiple geometry steps can keep the NWChem configuration in
 a session and pass a serialized ~ForceInput~ message for each step. The same
-step carrier works for force, serialized result, Hessian, dipole,
-polarizability, quadrupole, and stress entry points.
+step carrier works for energy, force, gradient, serialized result, Hessian,
+dipole, polarizability, quadrupole, stress, optimization, and frequency entry
+points.
 
 #+begin_src c
 NWChemCSession *session = nwchemc_session_create(params_bytes, params_size);
 
 if (session != NULL) {
   double forces_h_bohr[n_atoms * 3];
+  double gradient_h_bohr[n_atoms * 3];
   size_t potential_result_capacity =
       nwchemc_potential_result_size_for_force_input(
           force_input_bytes, force_input_size);
   unsigned char *potential_result_bytes =
       malloc(potential_result_capacity);
   size_t potential_result_size = 0;
+  size_t gradient_result_capacity =
+      nwchemc_gradient_result_size_for_force_input(
+          force_input_bytes, force_input_size);
+  unsigned char *gradient_result_bytes =
+      malloc(gradient_result_capacity);
+  size_t gradient_result_size = 0;
   double hessian_h_bohr2[(n_atoms * 3) * (n_atoms * 3)];
   NWChemCResult step = nwchemc_session_calculate_forces(
       session, force_input_bytes, force_input_size, forces_h_bohr,
+      n_atoms * 3);
+  NWChemCResult gradient_step = nwchemc_session_calculate_gradient(
+      session, force_input_bytes, force_input_size, gradient_h_bohr,
       n_atoms * 3);
   NWChemCResult rpc_step = nwchemc_session_calculate_result(
       session, force_input_bytes, force_input_size,
       potential_result_bytes, potential_result_capacity,
       &potential_result_size);
+  NWChemCResult rpc_gradient = nwchemc_session_calculate_gradient_result(
+      session, force_input_bytes, force_input_size,
+      gradient_result_bytes, gradient_result_capacity,
+      &gradient_result_size);
   NWChemCResult curvature = nwchemc_session_calculate_hessian(
       session, force_input_bytes, force_input_size, hessian_h_bohr2,
       (n_atoms * 3) * (n_atoms * 3));
@@ -163,6 +178,7 @@ if (session != NULL) {
   NWChemCResult cell_stress = nwchemc_session_calculate_stress(
       session, force_input_bytes, force_input_size, stress_au, 9);
   free(potential_result_bytes);
+  free(gradient_result_bytes);
   nwchemc_session_destroy(session);
 }
 #+end_src
@@ -176,10 +192,14 @@ them in NWChem geometry state. ~ForceInput.hasCharge~ / ~ForceInput.charge~ and
 charge or spin multiplicity for that serialized step; unset flags keep the
 values from ~NWChemParams~, and non-positive multiplicities are rejected. The
 energy in ~NWChemCResult.energy_h~ is in Hartree. ~forces_h_bohr~ is filled in
-Hartree per Bohr for low-overhead native callers.
+Hartree per Bohr for low-overhead native callers; ~gradient_h_bohr~ is filled
+with the corresponding nuclear gradient sign in the same unit.
 ~nwchemc_session_calculate_result~ fills an unpacked flat
 ~PotentialResult~ Cap'n Proto message: ~energy~ uses ~ForceInput.energyUnit~,
 and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
+~nwchemc_session_calculate_gradient_result~ fills ~PotentialResult.energy~ and
+~PotentialResult.gradient~ with the native derivative sign in
+~ForceInput.energyUnit / ForceInput.lengthUnit~.
 ~nwchemc_session_calculate_hessian_result~ fills ~PotentialResult.hessian~ with
 the dense row-major Cartesian Hessian in
 ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
@@ -210,6 +230,10 @@ also requires a separate session.
 returns the result byte count without evaluating NWChem. If the output buffer is
 too small, ~nwchemc_session_calculate_result~ reports the required byte count
 through ~potential_result_size~ and does not evaluate NWChem.
+~nwchemc_energy_result_size_for_force_input~,
+~nwchemc_forces_result_size_for_force_input~, and
+~nwchemc_gradient_result_size_for_force_input~ provide the operation-specific
+preflight sizes for energy-only, force, and gradient result carriers.
 ~nwchemc_hessian_result_size_for_force_input~ provides the same preflight size
 for Hessian result messages. ~nwchemc_dipole_result_size_for_force_input~,
 ~nwchemc_polarizability_result_size_for_force_input~, and
@@ -236,6 +260,8 @@ without initializing NWChem when the buffer is too small.
 ~nwchemc_session_calculate_energy~ and ~nwchemc_calculate_energy~ return only
 the native Hartree scalar for serialized ~ForceInput~ callers that do not need
 forces or a ~PotentialResult~ message.
+~nwchemc_calculate_gradient~ provides the same carrier for native gradient
+buffers.
 ~nwchemc_calculate_hessian~, ~nwchemc_calculate_dipole~, and
 ~nwchemc_calculate_polarizability~ provide the same one-shot ~NWChemParams~ +
 ~ForceInput~ carrier for native Hessian, dipole, and polarizability buffers.
@@ -245,6 +271,9 @@ quadrupole buffer. ~nwchemc_calculate_stress~ provides the same carrier for the
 nine-component stress buffer.
 ~nwchemc_calculate_hessian_result~ uses the same one-shot carrier and writes
 the Hessian to ~PotentialResult.hessian~.
+~nwchemc_calculate_forces_result~ and
+~nwchemc_calculate_gradient_result~ write the corresponding force and gradient
+lists to ~PotentialResult~.
 ~nwchemc_calculate_dipole_result~,
 ~nwchemc_calculate_polarizability_result~, and
 ~nwchemc_calculate_quadrupole_result~ write the corresponding property lists to
@@ -270,9 +299,14 @@ their scalar energy in Hartree.
 ~nwchemc_energy_forces()~, ~nwchemc_session_calculate_forces()~, and
 ~nwchemc_calculate_forces()~ return forces as negative gradients in Hartree per
 Bohr.
+~nwchemc_session_calculate_gradient()~ and ~nwchemc_calculate_gradient()~
+return nuclear gradients in Hartree per Bohr.
 ~nwchemc_session_calculate_result()~ writes ~PotentialResult.energy~ and
 ~PotentialResult.forces~ in the units requested by ~ForceInput.energyUnit~ and
 ~ForceInput.lengthUnit~, while ~NWChemCResult.energy_h~ remains Hartree.
+~nwchemc_session_calculate_gradient_result()~ and
+~nwchemc_calculate_gradient_result()~ write ~PotentialResult.gradient~ in
+~ForceInput.energyUnit / ForceInput.lengthUnit~.
 ~nwchemc_hessian()~, ~nwchemc_session_calculate_hessian()~, and
 ~nwchemc_calculate_hessian()~ fill a dense row-major Cartesian Hessian in
 Hartree per Bohr squared, with length ~(natoms * 3) * (natoms * 3)~.

@@ -11,7 +11,8 @@
 - ~src/nwchemc_params.c~ opens serialized Cap'n Proto messages and returns the
   generated ~NWChemParams_ptr~ or ~ForceInput_ptr~ roots.
 - ~src/nwchemc.c~ applies persistent session parameters to the embed bridge and
-  calls the energy/gradient, force, or Hessian entry point.
+  calls the energy, gradient, force, Hessian, property, stress, optimization,
+  or frequency entry point.
 - ~src/nwchem_embed_c_api.f90~ owns the ISO C binding layer and saved NWChem
   runtime configuration.
 - ~src/nwchem_embed_legacy.F~ calls the fixed-form NWChem routines that set up
@@ -23,8 +24,7 @@ The ABI receives a byte pointer and byte count.
 ~capn_init_mem()~ opens the flat message, ~capn_getp(capn_root(...))~ obtains
 the generated ~NWChemParams_ptr~, and generated ~read_NWChemParams()~ calls are
 used only as short-lived C views while the arena is alive.
-Session force and Hessian calls use the same pattern for generated
-~ForceInput_ptr~ roots.
+Session ~ForceInput~ calls use the same pattern for generated roots.
 
 There is no persistent copy of the Cap'n Proto parameter tree in the C runtime.
 The embed bridge stores the small Fortran strings and scalar values it needs to
@@ -41,23 +41,31 @@ grammar is intentionally upstream NWChem input text.
 ~nwchemc_session_create()~ applies an ~NWChemParams~ message once and keeps the
 NWChem runtime state inside the session.
 ~nwchemc_session_calculate_forces()~,
+~nwchemc_session_calculate_gradient()~,
+~nwchemc_session_calculate_energy()~,
 ~nwchemc_session_calculate_result()~,
 ~nwchemc_session_calculate_hessian()~,
-~nwchemc_session_calculate_polarizability()~, and
-~nwchemc_session_calculate_stress()~ accept serialized ~ForceInput~ messages,
-so molecular dynamics, optimizers, stress probes, vibrational workflows, and
-socket-style drivers can update coordinates and the periodic cell without
-rebuilding the full configuration carrier. The result-carrier entry points write
-unpacked flat ~PotentialResult~ messages for RPC callers and report the exact
-byte count required before an NWChem evaluation when the caller's buffer is too
-small.
+~nwchemc_session_calculate_dipole()~,
+~nwchemc_session_calculate_polarizability()~,
+~nwchemc_session_calculate_quadrupole()~,
+~nwchemc_session_calculate_stress()~,
+~nwchemc_session_calculate_optimize()~, and
+~nwchemc_session_calculate_frequencies()~ accept serialized ~ForceInput~
+messages, so molecular dynamics, optimizers, stress probes, vibrational
+workflows, and socket-style drivers can update coordinates and the periodic
+cell without rebuilding the full configuration carrier. The result-carrier
+entry points write unpacked flat ~PotentialResult~ messages for RPC callers and
+report the exact byte count required before an NWChem evaluation when the
+caller's buffer is too small.
 ~nwchemc_potential_result_size_for_force_input()~ exposes the same size
 calculation without touching the NWChem runtime, which lets long-running loops
 allocate or grow the result buffer from the per-step ~ForceInput~ alone.
-~nwchemc_session_calculate_energy()~ accepts the same serialized step and
-returns only the native Hartree scalar.
+Energy, force, and gradient result-size helpers expose the same preflight
+contract for operation-specific ~PotentialResult~ messages.
 ~nwchemc_calculate_forces()~ creates a temporary session for one-shot raw-force
 callers and writes native Hartree/Bohr force buffers.
+~nwchemc_calculate_gradient()~ creates the matching one-shot gradient buffer
+path and keeps the native derivative sign.
 ~nwchemc_calculate_energy()~ provides the matching one-shot energy-only path.
 ~nwchemc_hessian_result_size_for_force_input()~ does the same for
 ~PotentialResult.hessian~.
@@ -95,6 +103,9 @@ Per-step electronic-state overrides are held as temporary session state only
 for the bridge call, so the session defaults remain available to other calls.
 ~PotentialResult.energy~ and ~PotentialResult.forces~ are converted to the
 caller units named by ~ForceInput.energyUnit~ and ~ForceInput.lengthUnit~.
+~PotentialResult.gradient~ uses the same
+~ForceInput.energyUnit / ForceInput.lengthUnit~ scale with the native nuclear
+gradient sign.
 ~PotentialResult.hessian~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
 ~PotentialResult.dipole~, ~PotentialResult.polarizability~, and
 ~PotentialResult.quadrupole~ use NWChem atomic units. The polarizability list
@@ -116,6 +127,8 @@ families as the C ABI:
 - ~calculateEnergy~ writes ~PotentialResult.energy~.
 - ~calculateForces~ writes ~PotentialResult.energy~ and
   ~PotentialResult.forces~.
+- ~calculateGradient~ writes ~PotentialResult.energy~ and
+  ~PotentialResult.gradient~.
 - ~calculateHessian~ writes ~PotentialResult.hessian~.
 - ~calculateDipole~, ~calculatePolarizability~, and ~calculateQuadrupole~ write
   the corresponding property result fields.

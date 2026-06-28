@@ -79,6 +79,21 @@ def parse_schema_methods(text: str) -> set[str]:
     return methods
 
 
+def parse_options_doc_abi_names(text: str) -> set[str]:
+    names: set[str] = set()
+    for line in text.splitlines():
+        match = re.match(
+            r"\| ~(?P<symbol>nwchemc_[A-Za-z0-9_]+)~ "
+            r"\| ~abi\.(?P<intern>nwchemc_[A-Za-z0-9_]+)~ \|",
+            line,
+        )
+        if not match:
+            continue
+        if match.group("symbol") == match.group("intern"):
+            names.add(match.group("symbol"))
+    return names
+
+
 def parse_stanza_kinds(text: str) -> set[str]:
     stanza_block = find_named_block(text, "struct", "NWChemInputStanza")
     block = find_named_block(stanza_block, "enum", "Kind") if stanza_block else None
@@ -281,6 +296,15 @@ def main() -> int:
             errors.append("options.org missing schema field inventory coverage")
         if "field.NWChemTceStanza.quadrupole" not in options_doc:
             errors.append("options.org missing TCE schema field inventory example")
+        options_doc_abi = parse_options_doc_abi_names(options_doc)
+        missing_doc_abi = inventory_abi - options_doc_abi
+        extra_doc_abi = options_doc_abi - inventory_abi
+        if missing_doc_abi:
+            errors.append(
+                f"options.org missing ABI table rows: {sorted(missing_doc_abi)}"
+            )
+        if extra_doc_abi:
+            errors.append(f"options.org extra ABI table rows: {sorted(extra_doc_abi)}")
         for name in sorted(schema_fields):
             if f"~{name}~" not in options_doc and f"| ~{name}~" not in options_doc:
                 # enginePath may be embed-only; still require intern row (checked above)

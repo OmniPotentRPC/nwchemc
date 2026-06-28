@@ -564,67 +564,120 @@ spin-scaling rules.
 * ABI Entry Points
 | Symbol | Intern id | Stub | Embed |
 |--------+-----------+------+-------|
-| ~nwchemc_set_params~ | ~abi.nwchemc_set_params~ | fails | apply params |
-| ~nwchemc_energy_gradient~ | ~abi.nwchemc_energy_gradient~ | fails | energy/gradient |
-| ~nwchemc_energy~ | ~abi.nwchemc_energy~ | fails | energy-only (no grad buffer) |
-| ~nwchemc_energy_forces~ | ~abi.nwchemc_energy_forces~ | fails | energy/forces (-grad) |
-| ~nwchemc_hessian~ | ~abi.nwchemc_hessian~ | fails | Cartesian Hessian |
-| ~nwchemc_dipole~ | ~abi.nwchemc_dipole~ | fails | total dipole |
-| ~nwchemc_quadrupole~ | ~abi.nwchemc_quadrupole~ | fails | total traceless quadrupole |
-| ~nwchemc_stress~ | ~abi.nwchemc_stress~ | fails | stress tensor |
-| ~nwchemc_optimize~ | ~abi.nwchemc_optimize~ | fails | geometry optimization |
-| ~nwchemc_frequencies~ | ~abi.nwchemc_frequencies~ | fails | harmonic frequencies |
-| ~nwchemc_session_create~ | ~abi.nwchemc_session_create~ | NULL | create persistent session |
-| ~nwchemc_session_set_params~ | ~abi.nwchemc_session_set_params~ | fails | replace params before topology |
-| ~nwchemc_session_destroy~ | ~abi.nwchemc_session_destroy~ | no-op | release session |
-| ~nwchemc_session_energy_gradient~ | ~abi.nwchemc_session_energy_gradient~ | fails | session energy/gradient |
-| ~nwchemc_session_energy~ | ~abi.nwchemc_session_energy~ | fails | session energy-only |
-| ~nwchemc_session_energy_forces~ | ~abi.nwchemc_session_energy_forces~ | fails | session energy/forces |
-| ~nwchemc_session_dipole~ | ~abi.nwchemc_session_dipole~ | fails | session total dipole |
-| ~nwchemc_session_quadrupole~ | ~abi.nwchemc_session_quadrupole~ | fails | session total traceless quadrupole |
-| ~nwchemc_session_stress~ | ~abi.nwchemc_session_stress~ | fails | session stress tensor |
-| ~nwchemc_session_optimize~ | ~abi.nwchemc_session_optimize~ | fails | session geometry optimization |
-| ~nwchemc_session_frequencies~ | ~abi.nwchemc_session_frequencies~ | fails | session harmonic frequencies |
-| ~nwchemc_session_calculate_forces~ | ~abi.nwchemc_session_calculate_forces~ | fails | ForceInput energy/forces |
-| ~nwchemc_session_calculate_energy~ | ~abi.nwchemc_session_calculate_energy~ | fails | ForceInput energy-only |
-| ~nwchemc_calculate_forces~ | ~abi.nwchemc_calculate_forces~ | fails | one-shot ForceInput energy/forces |
-| ~nwchemc_calculate_energy~ | ~abi.nwchemc_calculate_energy~ | fails | one-shot ForceInput energy-only |
-| ~nwchemc_session_calculate_result~ | ~abi.nwchemc_session_calculate_result~ | fails | ForceInput PotentialResult |
-| ~nwchemc_calculate_result~ | ~abi.nwchemc_calculate_result~ | fails | one-shot ForceInput PotentialResult |
-| ~nwchemc_calculate_hessian~ | ~abi.nwchemc_calculate_hessian~ | fails | one-shot ForceInput Hessian |
-| ~nwchemc_hessian_result_size_for_force_input~ | ~abi.nwchemc_hessian_result_size_for_force_input~ | 0 | Hessian PotentialResult sizing |
-| ~nwchemc_session_calculate_hessian_result~ | ~abi.nwchemc_session_calculate_hessian_result~ | fails | ForceInput Hessian PotentialResult |
-| ~nwchemc_calculate_hessian_result~ | ~abi.nwchemc_calculate_hessian_result~ | fails | one-shot ForceInput Hessian PotentialResult |
-| ~nwchemc_calculate_dipole~ | ~abi.nwchemc_calculate_dipole~ | fails | one-shot ForceInput dipole |
-| ~nwchemc_dipole_result_size_for_force_input~ | ~abi.nwchemc_dipole_result_size_for_force_input~ | 0 | dipole PotentialResult sizing |
-| ~nwchemc_session_calculate_dipole_result~ | ~abi.nwchemc_session_calculate_dipole_result~ | fails | ForceInput dipole PotentialResult |
-| ~nwchemc_calculate_dipole_result~ | ~abi.nwchemc_calculate_dipole_result~ | fails | one-shot ForceInput dipole PotentialResult |
-| ~nwchemc_calculate_quadrupole~ | ~abi.nwchemc_calculate_quadrupole~ | fails | one-shot ForceInput quadrupole |
-| ~nwchemc_quadrupole_result_size_for_force_input~ | ~abi.nwchemc_quadrupole_result_size_for_force_input~ | 0 | quadrupole PotentialResult sizing |
-| ~nwchemc_session_calculate_quadrupole_result~ | ~abi.nwchemc_session_calculate_quadrupole_result~ | fails | ForceInput quadrupole PotentialResult |
-| ~nwchemc_calculate_quadrupole_result~ | ~abi.nwchemc_calculate_quadrupole_result~ | fails | one-shot ForceInput quadrupole PotentialResult |
-| ~nwchemc_calculate_stress~ | ~abi.nwchemc_calculate_stress~ | fails | one-shot ForceInput stress |
-| ~nwchemc_stress_result_size_for_force_input~ | ~abi.nwchemc_stress_result_size_for_force_input~ | 0 | stress PotentialResult sizing |
-| ~nwchemc_session_calculate_stress_result~ | ~abi.nwchemc_session_calculate_stress_result~ | fails | ForceInput stress PotentialResult |
-| ~nwchemc_calculate_stress_result~ | ~abi.nwchemc_calculate_stress_result~ | fails | one-shot ForceInput stress PotentialResult |
-| ~nwchemc_calculate_optimize~ | ~abi.nwchemc_calculate_optimize~ | fails | one-shot ForceInput optimization |
-| ~nwchemc_optimize_result_size_for_force_input~ | ~abi.nwchemc_optimize_result_size_for_force_input~ | 0 | optimization PotentialResult sizing |
-| ~nwchemc_session_calculate_optimize_result~ | ~abi.nwchemc_session_calculate_optimize_result~ | fails | ForceInput optimization PotentialResult |
-| ~nwchemc_calculate_optimize_result~ | ~abi.nwchemc_calculate_optimize_result~ | fails | one-shot ForceInput optimization PotentialResult |
-| ~nwchemc_calculate_frequencies~ | ~abi.nwchemc_calculate_frequencies~ | fails | one-shot ForceInput frequencies |
-| ~nwchemc_frequencies_result_size_for_force_input~ | ~abi.nwchemc_frequencies_result_size_for_force_input~ | 0 | frequencies PotentialResult sizing |
-| ~nwchemc_session_calculate_frequencies_result~ | ~abi.nwchemc_session_calculate_frequencies_result~ | fails | ForceInput frequencies PotentialResult |
-| ~nwchemc_calculate_frequencies_result~ | ~abi.nwchemc_calculate_frequencies_result~ | fails | one-shot ForceInput frequencies PotentialResult |
-| ~nwchemc_session_calculate_hessian~ | ~abi.nwchemc_session_calculate_hessian~ | fails | ForceInput Hessian |
-| ~nwchemc_session_calculate_dipole~ | ~abi.nwchemc_session_calculate_dipole~ | fails | ForceInput dipole |
-| ~nwchemc_session_calculate_quadrupole~ | ~abi.nwchemc_session_calculate_quadrupole~ | fails | ForceInput quadrupole |
-| ~nwchemc_session_calculate_stress~ | ~abi.nwchemc_session_calculate_stress~ | fails | ForceInput stress |
-| ~nwchemc_session_calculate_optimize~ | ~abi.nwchemc_session_calculate_optimize~ | fails | ForceInput optimization |
-| ~nwchemc_session_calculate_frequencies~ | ~abi.nwchemc_session_calculate_frequencies~ | fails | ForceInput frequencies |
-| ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails | session Cartesian Hessian |
-| ~nwchemc_available~ | ~abi.nwchemc_available~ | 0 | 1 |
-| ~nwchemc_version~ | ~abi.nwchemc_version~ | stub marker | version string |
-| ~nwchemc_finalize~ | ~abi.nwchemc_finalize~ | no-op | finalize runtime |
+| ~nwchemc_set_params~ | ~abi.nwchemc_set_params~ | fails non-zero | applies Cap'n Proto params |
+| ~nwchemc_configure~ | ~abi.nwchemc_configure~ | fails non-zero | applies PotentialConfig.nwchem params |
+| ~nwchemc_energy_gradient~ | ~abi.nwchemc_energy_gradient~ | fails ok==0 | runs energy/gradient |
+| ~nwchemc_energy~ | ~abi.nwchemc_energy~ | fails ok==0 | runs energy-only (no grad output) |
+| ~nwchemc_energy_forces~ | ~abi.nwchemc_energy_forces~ | fails ok==0 | runs energy/forces (negated gradient) |
+| ~nwchemc_hessian~ | ~abi.nwchemc_hessian~ | fails ok==0 | runs Cartesian Hessian |
+| ~nwchemc_dipole~ | ~abi.nwchemc_dipole~ | fails ok==0 | runs total dipole |
+| ~nwchemc_polarizability~ | ~abi.nwchemc_polarizability~ | fails ok==0 | runs electric polarizability response |
+| ~nwchemc_quadrupole~ | ~abi.nwchemc_quadrupole~ | fails ok==0 | runs total traceless quadrupole |
+| ~nwchemc_stress~ | ~abi.nwchemc_stress~ | fails ok==0 | runs stress tensor |
+| ~nwchemc_optimize~ | ~abi.nwchemc_optimize~ | fails ok==0 | runs geometry optimization |
+| ~nwchemc_frequencies~ | ~abi.nwchemc_frequencies~ | fails ok==0 | runs harmonic frequencies |
+| ~nwchemc_energy_gradient_from_config~ | ~abi.nwchemc_energy_gradient_from_config~ | fails ok==0 | runs PotentialConfig energy/gradient |
+| ~nwchemc_energy_from_config~ | ~abi.nwchemc_energy_from_config~ | fails ok==0 | runs PotentialConfig energy-only |
+| ~nwchemc_energy_forces_from_config~ | ~abi.nwchemc_energy_forces_from_config~ | fails ok==0 | runs PotentialConfig energy/forces |
+| ~nwchemc_hessian_from_config~ | ~abi.nwchemc_hessian_from_config~ | fails ok==0 | runs PotentialConfig Cartesian Hessian |
+| ~nwchemc_dipole_from_config~ | ~abi.nwchemc_dipole_from_config~ | fails ok==0 | runs PotentialConfig total dipole |
+| ~nwchemc_polarizability_from_config~ | ~abi.nwchemc_polarizability_from_config~ | fails ok==0 | runs PotentialConfig electric polarizability response |
+| ~nwchemc_quadrupole_from_config~ | ~abi.nwchemc_quadrupole_from_config~ | fails ok==0 | runs PotentialConfig total traceless quadrupole |
+| ~nwchemc_stress_from_config~ | ~abi.nwchemc_stress_from_config~ | fails ok==0 | runs PotentialConfig stress tensor |
+| ~nwchemc_optimize_from_config~ | ~abi.nwchemc_optimize_from_config~ | fails ok==0 | runs PotentialConfig geometry optimization |
+| ~nwchemc_frequencies_from_config~ | ~abi.nwchemc_frequencies_from_config~ | fails ok==0 | runs PotentialConfig harmonic frequencies |
+| ~nwchemc_session_create~ | ~abi.nwchemc_session_create~ | returns NULL | creates persistent Cap'n Proto session |
+| ~nwchemc_session_create_from_config~ | ~abi.nwchemc_session_create_from_config~ | returns NULL | creates persistent PotentialConfig session |
+| ~nwchemc_session_set_params~ | ~abi.nwchemc_session_set_params~ | fails non-zero | replaces params before topology |
+| ~nwchemc_session_configure~ | ~abi.nwchemc_session_configure~ | fails non-zero | configures PotentialConfig before topology |
+| ~nwchemc_session_destroy~ | ~abi.nwchemc_session_destroy~ | no-op | releases persistent session |
+| ~nwchemc_session_energy_gradient~ | ~abi.nwchemc_session_energy_gradient~ | fails ok==0 | runs session energy/gradient |
+| ~nwchemc_session_energy~ | ~abi.nwchemc_session_energy~ | fails ok==0 | runs session energy-only |
+| ~nwchemc_session_energy_forces~ | ~abi.nwchemc_session_energy_forces~ | fails ok==0 | runs session energy/forces |
+| ~nwchemc_session_dipole~ | ~abi.nwchemc_session_dipole~ | fails ok==0 | runs session total dipole |
+| ~nwchemc_session_polarizability~ | ~abi.nwchemc_session_polarizability~ | fails ok==0 | runs session electric polarizability response |
+| ~nwchemc_session_quadrupole~ | ~abi.nwchemc_session_quadrupole~ | fails ok==0 | runs session total traceless quadrupole |
+| ~nwchemc_session_stress~ | ~abi.nwchemc_session_stress~ | fails ok==0 | runs session stress tensor |
+| ~nwchemc_session_optimize~ | ~abi.nwchemc_session_optimize~ | fails ok==0 | runs session geometry optimization |
+| ~nwchemc_session_frequencies~ | ~abi.nwchemc_session_frequencies~ | fails ok==0 | runs session harmonic frequencies |
+| ~nwchemc_session_calculate_forces~ | ~abi.nwchemc_session_calculate_forces~ | fails ok==0 | runs session ForceInput energy/forces |
+| ~nwchemc_session_calculate_gradient~ | ~abi.nwchemc_session_calculate_gradient~ | fails ok==0 | runs session ForceInput energy/gradient |
+| ~nwchemc_session_calculate_energy~ | ~abi.nwchemc_session_calculate_energy~ | fails ok==0 | runs session ForceInput energy-only |
+| ~nwchemc_calculate_forces~ | ~abi.nwchemc_calculate_forces~ | fails ok==0 | runs one-shot ForceInput energy/forces |
+| ~nwchemc_calculate_gradient~ | ~abi.nwchemc_calculate_gradient~ | fails ok==0 | runs one-shot ForceInput energy/gradient |
+| ~nwchemc_calculate_forces_from_config~ | ~abi.nwchemc_calculate_forces_from_config~ | fails ok==0 | runs one-shot PotentialConfig energy/forces |
+| ~nwchemc_calculate_gradient_from_config~ | ~abi.nwchemc_calculate_gradient_from_config~ | fails ok==0 | runs one-shot PotentialConfig energy/gradient |
+| ~nwchemc_calculate_energy~ | ~abi.nwchemc_calculate_energy~ | fails ok==0 | runs one-shot ForceInput energy-only |
+| ~nwchemc_calculate_energy_from_config~ | ~abi.nwchemc_calculate_energy_from_config~ | fails ok==0 | runs one-shot PotentialConfig energy-only |
+| ~nwchemc_energy_result_size_for_force_input~ | ~abi.nwchemc_energy_result_size_for_force_input~ | returns 0 | sizes ForceInput energy-only PotentialResult |
+| ~nwchemc_session_calculate_energy_result~ | ~abi.nwchemc_session_calculate_energy_result~ | fails ok==0 | runs session ForceInput energy-only into PotentialResult |
+| ~nwchemc_calculate_energy_result~ | ~abi.nwchemc_calculate_energy_result~ | fails ok==0 | runs one-shot ForceInput energy-only into PotentialResult |
+| ~nwchemc_calculate_energy_result_from_config~ | ~abi.nwchemc_calculate_energy_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig energy-only into PotentialResult |
+| ~nwchemc_session_calculate_result~ | ~abi.nwchemc_session_calculate_result~ | fails ok==0 | runs session ForceInput energy/forces into PotentialResult |
+| ~nwchemc_calculate_result~ | ~abi.nwchemc_calculate_result~ | fails ok==0 | runs one-shot ForceInput energy/forces into PotentialResult |
+| ~nwchemc_calculate_result_from_config~ | ~abi.nwchemc_calculate_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig energy/forces into PotentialResult |
+| ~nwchemc_forces_result_size_for_force_input~ | ~abi.nwchemc_forces_result_size_for_force_input~ | returns 0 | sizes ForceInput forces PotentialResult |
+| ~nwchemc_gradient_result_size_for_force_input~ | ~abi.nwchemc_gradient_result_size_for_force_input~ | returns 0 | sizes ForceInput gradient PotentialResult |
+| ~nwchemc_session_calculate_forces_result~ | ~abi.nwchemc_session_calculate_forces_result~ | fails ok==0 | runs session ForceInput forces into PotentialResult |
+| ~nwchemc_session_calculate_gradient_result~ | ~abi.nwchemc_session_calculate_gradient_result~ | fails ok==0 | runs session ForceInput gradient into PotentialResult |
+| ~nwchemc_calculate_forces_result~ | ~abi.nwchemc_calculate_forces_result~ | fails ok==0 | runs one-shot ForceInput forces into PotentialResult |
+| ~nwchemc_calculate_gradient_result~ | ~abi.nwchemc_calculate_gradient_result~ | fails ok==0 | runs one-shot ForceInput gradient into PotentialResult |
+| ~nwchemc_calculate_forces_result_from_config~ | ~abi.nwchemc_calculate_forces_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig forces into PotentialResult |
+| ~nwchemc_calculate_gradient_result_from_config~ | ~abi.nwchemc_calculate_gradient_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig gradient into PotentialResult |
+| ~nwchemc_calculate_hessian~ | ~abi.nwchemc_calculate_hessian~ | fails ok==0 | runs one-shot ForceInput Hessian |
+| ~nwchemc_calculate_hessian_from_config~ | ~abi.nwchemc_calculate_hessian_from_config~ | fails ok==0 | runs one-shot PotentialConfig Hessian |
+| ~nwchemc_hessian_result_size_for_force_input~ | ~abi.nwchemc_hessian_result_size_for_force_input~ | returns 0 | sizes ForceInput Hessian PotentialResult |
+| ~nwchemc_session_calculate_hessian_result~ | ~abi.nwchemc_session_calculate_hessian_result~ | fails ok==0 | runs session ForceInput Hessian into PotentialResult |
+| ~nwchemc_calculate_hessian_result~ | ~abi.nwchemc_calculate_hessian_result~ | fails ok==0 | runs one-shot ForceInput Hessian into PotentialResult |
+| ~nwchemc_calculate_hessian_result_from_config~ | ~abi.nwchemc_calculate_hessian_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig Hessian into PotentialResult |
+| ~nwchemc_calculate_dipole~ | ~abi.nwchemc_calculate_dipole~ | fails ok==0 | runs one-shot ForceInput dipole |
+| ~nwchemc_calculate_dipole_from_config~ | ~abi.nwchemc_calculate_dipole_from_config~ | fails ok==0 | runs one-shot PotentialConfig dipole |
+| ~nwchemc_dipole_result_size_for_force_input~ | ~abi.nwchemc_dipole_result_size_for_force_input~ | returns 0 | sizes ForceInput dipole PotentialResult |
+| ~nwchemc_session_calculate_dipole_result~ | ~abi.nwchemc_session_calculate_dipole_result~ | fails ok==0 | runs session ForceInput dipole into PotentialResult |
+| ~nwchemc_calculate_dipole_result~ | ~abi.nwchemc_calculate_dipole_result~ | fails ok==0 | runs one-shot ForceInput dipole into PotentialResult |
+| ~nwchemc_calculate_dipole_result_from_config~ | ~abi.nwchemc_calculate_dipole_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig dipole into PotentialResult |
+| ~nwchemc_calculate_polarizability~ | ~abi.nwchemc_calculate_polarizability~ | fails ok==0 | runs one-shot ForceInput polarizability |
+| ~nwchemc_calculate_polarizability_from_config~ | ~abi.nwchemc_calculate_polarizability_from_config~ | fails ok==0 | runs one-shot PotentialConfig polarizability |
+| ~nwchemc_polarizability_result_size_for_force_input~ | ~abi.nwchemc_polarizability_result_size_for_force_input~ | returns 0 | sizes ForceInput polarizability PotentialResult |
+| ~nwchemc_session_calculate_polarizability_result~ | ~abi.nwchemc_session_calculate_polarizability_result~ | fails ok==0 | runs session ForceInput polarizability into PotentialResult |
+| ~nwchemc_calculate_polarizability_result~ | ~abi.nwchemc_calculate_polarizability_result~ | fails ok==0 | runs one-shot ForceInput polarizability into PotentialResult |
+| ~nwchemc_calculate_polarizability_result_from_config~ | ~abi.nwchemc_calculate_polarizability_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig polarizability into PotentialResult |
+| ~nwchemc_calculate_quadrupole~ | ~abi.nwchemc_calculate_quadrupole~ | fails ok==0 | runs one-shot ForceInput quadrupole |
+| ~nwchemc_calculate_quadrupole_from_config~ | ~abi.nwchemc_calculate_quadrupole_from_config~ | fails ok==0 | runs one-shot PotentialConfig quadrupole |
+| ~nwchemc_quadrupole_result_size_for_force_input~ | ~abi.nwchemc_quadrupole_result_size_for_force_input~ | returns 0 | sizes ForceInput quadrupole PotentialResult |
+| ~nwchemc_session_calculate_quadrupole_result~ | ~abi.nwchemc_session_calculate_quadrupole_result~ | fails ok==0 | runs session ForceInput quadrupole into PotentialResult |
+| ~nwchemc_calculate_quadrupole_result~ | ~abi.nwchemc_calculate_quadrupole_result~ | fails ok==0 | runs one-shot ForceInput quadrupole into PotentialResult |
+| ~nwchemc_calculate_quadrupole_result_from_config~ | ~abi.nwchemc_calculate_quadrupole_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig quadrupole into PotentialResult |
+| ~nwchemc_calculate_stress~ | ~abi.nwchemc_calculate_stress~ | fails ok==0 | runs one-shot ForceInput stress |
+| ~nwchemc_calculate_stress_from_config~ | ~abi.nwchemc_calculate_stress_from_config~ | fails ok==0 | runs one-shot PotentialConfig stress |
+| ~nwchemc_stress_result_size_for_force_input~ | ~abi.nwchemc_stress_result_size_for_force_input~ | returns 0 | sizes ForceInput stress PotentialResult |
+| ~nwchemc_session_calculate_stress_result~ | ~abi.nwchemc_session_calculate_stress_result~ | fails ok==0 | runs session ForceInput stress into PotentialResult |
+| ~nwchemc_calculate_stress_result~ | ~abi.nwchemc_calculate_stress_result~ | fails ok==0 | runs one-shot ForceInput stress into PotentialResult |
+| ~nwchemc_calculate_stress_result_from_config~ | ~abi.nwchemc_calculate_stress_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig stress into PotentialResult |
+| ~nwchemc_calculate_optimize~ | ~abi.nwchemc_calculate_optimize~ | fails ok==0 | runs one-shot ForceInput geometry optimization |
+| ~nwchemc_calculate_optimize_from_config~ | ~abi.nwchemc_calculate_optimize_from_config~ | fails ok==0 | runs one-shot PotentialConfig geometry optimization |
+| ~nwchemc_optimize_result_size_for_force_input~ | ~abi.nwchemc_optimize_result_size_for_force_input~ | returns 0 | sizes ForceInput optimization PotentialResult |
+| ~nwchemc_session_calculate_optimize_result~ | ~abi.nwchemc_session_calculate_optimize_result~ | fails ok==0 | runs session ForceInput optimization into PotentialResult |
+| ~nwchemc_calculate_optimize_result~ | ~abi.nwchemc_calculate_optimize_result~ | fails ok==0 | runs one-shot ForceInput optimization into PotentialResult |
+| ~nwchemc_calculate_optimize_result_from_config~ | ~abi.nwchemc_calculate_optimize_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig optimization into PotentialResult |
+| ~nwchemc_calculate_frequencies~ | ~abi.nwchemc_calculate_frequencies~ | fails ok==0 | runs one-shot ForceInput harmonic frequencies |
+| ~nwchemc_calculate_frequencies_from_config~ | ~abi.nwchemc_calculate_frequencies_from_config~ | fails ok==0 | runs one-shot PotentialConfig harmonic frequencies |
+| ~nwchemc_frequencies_result_size_for_force_input~ | ~abi.nwchemc_frequencies_result_size_for_force_input~ | returns 0 | sizes ForceInput frequencies PotentialResult |
+| ~nwchemc_session_calculate_frequencies_result~ | ~abi.nwchemc_session_calculate_frequencies_result~ | fails ok==0 | runs session ForceInput frequencies into PotentialResult |
+| ~nwchemc_calculate_frequencies_result~ | ~abi.nwchemc_calculate_frequencies_result~ | fails ok==0 | runs one-shot ForceInput frequencies into PotentialResult |
+| ~nwchemc_calculate_frequencies_result_from_config~ | ~abi.nwchemc_calculate_frequencies_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig frequencies into PotentialResult |
+| ~nwchemc_potential_result_size_for_force_input~ | ~abi.nwchemc_potential_result_size_for_force_input~ | returns 0 | sizes session PotentialResult output from ForceInput |
+| ~nwchemc_session_calculate_hessian~ | ~abi.nwchemc_session_calculate_hessian~ | fails ok==0 | runs session ForceInput Hessian |
+| ~nwchemc_session_calculate_dipole~ | ~abi.nwchemc_session_calculate_dipole~ | fails ok==0 | runs session ForceInput dipole |
+| ~nwchemc_session_calculate_polarizability~ | ~abi.nwchemc_session_calculate_polarizability~ | fails ok==0 | runs session ForceInput polarizability |
+| ~nwchemc_session_calculate_quadrupole~ | ~abi.nwchemc_session_calculate_quadrupole~ | fails ok==0 | runs session ForceInput quadrupole |
+| ~nwchemc_session_calculate_stress~ | ~abi.nwchemc_session_calculate_stress~ | fails ok==0 | runs session ForceInput stress |
+| ~nwchemc_session_calculate_optimize~ | ~abi.nwchemc_session_calculate_optimize~ | fails ok==0 | runs session ForceInput geometry optimization |
+| ~nwchemc_session_calculate_frequencies~ | ~abi.nwchemc_session_calculate_frequencies~ | fails ok==0 | runs session ForceInput harmonic frequencies |
+| ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails ok==0 | runs session Cartesian Hessian |
+| ~nwchemc_available~ | ~abi.nwchemc_available~ | returns 0 | returns 1 |
+| ~nwchemc_version~ | ~abi.nwchemc_version~ | contains stub | library version |
+| ~nwchemc_finalize~ | ~abi.nwchemc_finalize~ | no-op | finalize owned runtime |
 
 * Feature Inventory
 Machine-readable intern tables:
