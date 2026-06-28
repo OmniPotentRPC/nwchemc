@@ -334,9 +334,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*255 vectors_in
       integer n3, i
       integer l_grad, k_grad
-      logical status
-      external task_energy, task_gradient
-      logical task_energy, task_gradient
+      logical status, have_movecs
+      external task_gradient
+      logical task_gradient
       external nw_inp_from_character, util_file_name, util_file_name_resolve
       logical nw_inp_from_character
 
@@ -347,30 +347,46 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-C     Warm multi-call: update coords in existing geometry (keep basis/SCF).
-C     Single task_gradient (energy included); skip method/PSP/input re-apply.
-      call nwchemc_update_geometry_coords(rtdb, n_atoms, pos_ang,
-     $     errmsg, status)
-      if (.not. status) then
-         call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
-     $        atmnrs, cell_ang, has_cell, errmsg, status)
-         if (.not. status) return
-         call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
-     $        basis_name, errmsg, status)
-         if (.not. status) return
-         call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
-     $        charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $        dft_smear_spinset, scf_has_options, scf_maxiter,
-     $        scf_thresh, scf_tol2e, driver_has_options,
-     $        driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
-     $        driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
-         if (.not. status) then
-            errmsg = 'method RTDB setup failed'
+C     Full method setup (same as energy_only), including inputBlocks.
+      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_pseudopotentials(rtdb, psp_count, psp_elements,
+     $     psp_types, psp_names, errmsg, status)
+      if (.not. status) return
+      if (inp_strlen(input_blocks) .gt. 0) then
+         if (.not. nw_inp_from_character(rtdb,
+     $        input_blocks(1:inp_strlen(input_blocks)))) then
+            errmsg = 'nw_inp_from_character inputBlocks failed'
             return
          endif
       endif
+      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
+     $     brillouin_zone_name, brillouin_monkhorst_pack,
+     $     brillouin_max_kpoints_print, brillouin_kvector_count,
+     $     brillouin_kvectors, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
+     $     set_keys, set_values, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_typed_sets(rtdb, typed_set_count,
+     $     typed_set_keys, typed_set_types, typed_set_value_counts,
+     $     typed_set_values, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, scf_has_options, scf_maxiter,
+     $     scf_thresh, scf_tol2e, driver_has_options,
+     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
+      if (.not. status) then
+         errmsg = 'method RTDB setup failed'
+         return
+      endif
       n3 = 3 * n_atoms
-C     Socket bead parity: one permanent movecs; atomic only if missing.
       call util_file_name('movecs', .false., .false., vectors_in)
       call util_file_name_resolve(vectors_in, .false.)
       status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
@@ -378,11 +394,9 @@ C     Socket bead parity: one permanent movecs; atomic only if missing.
          errmsg = 'rtdb_cput scf:output vectors failed'
          return
       endif
-C     GCC16: no substring in INQUIRE FILE=; blank-pad after length.
-      i = inp_strlen(vectors_in)
-      vectors_in(i+1:) = ' '
-      inquire(file=vectors_in, exist=status)
-      if (status) then
+      inquire(file=vectors_in(1:inp_strlen(vectors_in)),
+     $     exist=have_movecs)
+      if (have_movecs) then
          status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
       else
          status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
@@ -397,7 +411,6 @@ C     GCC16: no substring in INQUIRE FILE=; blank-pad after length.
          errmsg = 'task_gradient failed'
          return
       endif
-
       call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
      $     status)
       if (.not. status) then
@@ -409,7 +422,6 @@ C     GCC16: no substring in INQUIRE FILE=; blank-pad after length.
          errmsg = 'ma_push_get grad failed'
          return
       endif
-C     Prefer task:gradient (socket/task_gradient path); scf:gradient fallback.
       if (.not. rtdb_get(rtdb, 'task:gradient', mt_dbl, n3,
      $        dbl_mb(k_grad))) then
          if (.not. rtdb_get(rtdb, 'scf:gradient', mt_dbl, n3,
@@ -417,7 +429,7 @@ C     Prefer task:gradient (socket/task_gradient path); scf:gradient fallback.
             do i = 1, n3
                grad_h_bohr(i) = 0.0d0
             enddo
-            errmsg = 'rtdb_get task/scf:gradient failed; grad zeroed'
+            errmsg = 'rtdb_get gradient failed; grad zeroed'
          else
             do i = 1, n3
                grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
