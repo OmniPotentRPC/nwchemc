@@ -126,6 +126,7 @@ EXPECTED_POTENTIAL_RESULT_FIELDS = {
     "stress": 8,
     "polarizability": 9,
     "gradient": 10,
+    "normalModes": 11,
 }
 
 

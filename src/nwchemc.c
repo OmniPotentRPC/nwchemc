@@ -145,6 +145,17 @@ extern int nwchemc_embed_frequencies_cell(
     const int *atomic_numbers, const double *cell_ang, const int *has_cell,
     const int *charge, const int *multiplicity, double *frequencies_cm1,
     double *intensities_au, char *errmsg, int errmsg_len);
+extern int nwchemc_embed_frequencies_modes(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const int *charge, const int *multiplicity,
+    double *frequencies_cm1, double *intensities_au, double *normal_modes,
+    char *errmsg, int errmsg_len);
+extern int nwchemc_embed_frequencies_modes_cell(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *frequencies_cm1,
+    double *intensities_au, double *normal_modes, char *errmsg,
+    int errmsg_len);
 extern void nwchemc_embed_finalize(void);
 
 static int g_initialized = 0;
@@ -5607,7 +5618,8 @@ NWChemCResult nwchemc_session_optimize(NWChemCSession *session, int n_atoms,
 static NWChemCResult session_frequencies_cell(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, const double *cell_ang, int has_cell,
-    double *frequencies_cm1, double *intensities_au) {
+    double *frequencies_cm1, double *intensities_au,
+    double *normal_modes) {
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
@@ -5654,9 +5666,17 @@ static NWChemCResult session_frequencies_cell(
                           0.0, 0.0, 0.0, 0.0};
   const double *cell_arg = cell_flag ? cell_ang : empty_cell;
   double eh = 0.0;
-  int rc = nwchemc_embed_frequencies_cell(
-      &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
-      frequencies_cm1, intensity_arg, errmsg, (int)sizeof(errmsg) - 1);
+  int rc = 0;
+  if (normal_modes) {
+    rc = nwchemc_embed_frequencies_modes_cell(
+        &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
+        frequencies_cm1, intensity_arg, normal_modes, errmsg,
+        (int)sizeof(errmsg) - 1);
+  } else {
+    rc = nwchemc_embed_frequencies_cell(
+        &n, positions_ang, atomic_numbers, cell_arg, &cell_flag, &ch, &mult,
+        frequencies_cm1, intensity_arg, errmsg, (int)sizeof(errmsg) - 1);
+  }
   free(scratch_intensities);
   if (rc != 0) {
     snprintf(r.message, sizeof(r.message), "%s",
@@ -5679,7 +5699,7 @@ NWChemCResult nwchemc_session_frequencies(
     double *intensities_au) {
   return session_frequencies_cell(session, n_atoms, positions_ang,
                                   atomic_numbers, NULL, 0, frequencies_cm1,
-                                  intensities_au);
+                                  intensities_au, NULL);
 }
 
 NWChemCResult nwchemc_session_calculate_forces(
@@ -7687,10 +7707,11 @@ NWChemCResult nwchemc_session_calculate_optimize_result(
   return r;
 }
 
-NWChemCResult nwchemc_session_calculate_frequencies(
+static NWChemCResult session_calculate_frequencies_impl(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *frequencies_cm1,
-    size_t frequencies_len, double *intensities_au, size_t intensities_len) {
+    size_t frequencies_len, double *intensities_au, size_t intensities_len,
+    double *normal_modes, size_t normal_modes_len) {
   NWChemCResult r;
   r.ok = 0;
   r.energy_h = 0.0;
@@ -7712,9 +7733,18 @@ NWChemCResult nwchemc_session_calculate_frequencies(
   size_t n_atoms = 0;
   int has_cell = 0;
   if (nwchemc_force_input_atom_count(force_input, &n_atoms, &has_cell) != 0 ||
-      n_atoms > (size_t)INT_MAX || n_atoms > SIZE_MAX / 3u ||
-      frequencies_len < n_atoms * 3u ||
-      (intensities_au && intensities_len < n_atoms * 3u)) {
+      n_atoms == 0 || n_atoms > (size_t)INT_MAX ||
+      n_atoms > SIZE_MAX / 3u) {
+    nwchemc_params_release(&arena);
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  size_t frequency_count = n_atoms * 3u;
+  if (frequencies_len < frequency_count ||
+      (intensities_au && intensities_len < frequency_count) ||
+      (normal_modes && frequency_count > SIZE_MAX / frequency_count) ||
+      (normal_modes &&
+       normal_modes_len < frequency_count * frequency_count)) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
     return r;
@@ -7747,9 +7777,19 @@ NWChemCResult nwchemc_session_calculate_frequencies(
   r = session_frequencies_cell(
       session, (int)n_atoms, session->step_positions_ang,
       session->step_atomic_numbers, cell_ang, has_cell, frequencies_cm1,
-      intensities_au);
+      intensities_au, normal_modes);
   session_clear_step_state(session);
   return r;
+}
+
+NWChemCResult nwchemc_session_calculate_frequencies(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *frequencies_cm1,
+    size_t frequencies_len, double *intensities_au, size_t intensities_len) {
+  return session_calculate_frequencies_impl(
+      session, force_input_capnp, force_input_capnp_size_bytes,
+      frequencies_cm1, frequencies_len, intensities_au, intensities_len, NULL,
+      0);
 }
 
 NWChemCResult nwchemc_session_calculate_frequencies_result(
@@ -7784,6 +7824,11 @@ NWChemCResult nwchemc_session_calculate_frequencies_result(
     snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
     return r;
   }
+  if (frequency_count > 0 && frequency_count > SIZE_MAX / frequency_count) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
+    return r;
+  }
+  size_t normal_mode_count = frequency_count * frequency_count;
   double energy_factor = 1.0;
   if (force_input_result_energy_factor(force_input_capnp,
                                        force_input_capnp_size_bytes,
@@ -7801,23 +7846,29 @@ NWChemCResult nwchemc_session_calculate_frequencies_result(
       (double *)malloc(frequency_count * sizeof(*frequencies));
   double *intensities =
       (double *)malloc(frequency_count * sizeof(*intensities));
-  if (!frequencies || !intensities) {
+  double *normal_modes =
+      (double *)malloc(normal_mode_count * sizeof(*normal_modes));
+  if (!frequencies || !intensities || !normal_modes) {
+    free(normal_modes);
     free(intensities);
     free(frequencies);
     snprintf(r.message, sizeof(r.message), "out of memory");
     return r;
   }
-  r = nwchemc_session_calculate_frequencies(
+  r = session_calculate_frequencies_impl(
       session, force_input_capnp, force_input_capnp_size_bytes, frequencies,
-      frequency_count, intensities, frequency_count);
+      frequency_count, intensities, frequency_count, normal_modes,
+      normal_mode_count);
   if (r.ok &&
       nwchemc_potential_result_write_frequencies(
-          r.energy_h * energy_factor, frequencies, intensities, frequency_count,
-          potential_result_capnp, potential_result_capnp_capacity_bytes,
+          r.energy_h * energy_factor, frequencies, intensities, normal_modes,
+          frequency_count, potential_result_capnp,
+          potential_result_capnp_capacity_bytes,
           potential_result_capnp_size_bytes) != 0) {
     r.ok = 0;
     snprintf(r.message, sizeof(r.message), "PotentialResult write failed");
   }
+  free(normal_modes);
   free(intensities);
   free(frequencies);
   return r;

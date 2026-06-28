@@ -48,6 +48,8 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_optimize_cell
   public :: nwchemc_embed_frequencies
   public :: nwchemc_embed_frequencies_cell
+  public :: nwchemc_embed_frequencies_modes
+  public :: nwchemc_embed_frequencies_modes_cell
   public :: nwchemc_embed_finalize
 
   ! Module state (saved across C calls).
@@ -562,7 +564,8 @@ module nwchem_embed_c_api
         brillouin_has_options, brillouin_zone_name, &
         brillouin_monkhorst_pack, brillouin_max_kpoints_print, &
         brillouin_kvector_count, brillouin_kvectors, &
-        energy_h, frequencies_cm1, intensities_au, errmsg, ok)
+        energy_h, frequencies_cm1, intensities_au, normal_modes, &
+        read_modes, errmsg, ok)
       import :: real64
       integer, intent(in) :: rtdb, n_atoms
       real(real64), intent(in) :: pos_ang(*)
@@ -602,6 +605,8 @@ module nwchem_embed_c_api
       real(real64), intent(out) :: energy_h
       real(real64), intent(out) :: frequencies_cm1(*)
       real(real64), intent(out) :: intensities_au(*)
+      real(real64), intent(out) :: normal_modes(*)
+      integer, intent(in) :: read_modes
       character(len=*), intent(out) :: errmsg
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_frequencies
@@ -1932,14 +1937,42 @@ contains
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
     real(c_double) :: empty_cell(9)
+    real(c_double) :: no_modes(1)
+    integer(c_int) :: no_cell
+
+    empty_cell = 0.0_c_double
+    no_modes = 0.0_c_double
+    no_cell = 0_c_int
+    rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+        atomic_numbers, empty_cell, no_cell, charge, mult, frequencies_cm1, &
+        intensities_au, no_modes, 0_c_int, errmsg, errmsg_len)
+  end function nwchemc_embed_frequencies
+
+  !> Harmonic vibrational frequencies and dense Cartesian normal modes.
+  function nwchemc_embed_frequencies_modes(n_atoms, positions_ang, &
+      atomic_numbers, charge, mult, frequencies_cm1, intensities_au, &
+      normal_modes, errmsg, errmsg_len) result(rc) &
+      bind(C, name='nwchemc_embed_frequencies_modes')
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: frequencies_cm1(*)
+    real(c_double), intent(out) :: intensities_au(*)
+    real(c_double), intent(out) :: normal_modes(*)
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
+    real(c_double) :: empty_cell(9)
     integer(c_int) :: no_cell
 
     empty_cell = 0.0_c_double
     no_cell = 0_c_int
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, empty_cell, no_cell, charge, mult, frequencies_cm1, &
-        intensities_au, errmsg, errmsg_len)
-  end function nwchemc_embed_frequencies
+        intensities_au, normal_modes, 1_c_int, errmsg, errmsg_len)
+  end function nwchemc_embed_frequencies_modes
 
   !> Harmonic vibrational frequencies with an optional 3x3 cell.
   function nwchemc_embed_frequencies_cell(n_atoms, positions_ang, &
@@ -1958,15 +1991,19 @@ contains
     character(kind=c_char), intent(out) :: errmsg(*)
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
+    real(c_double) :: no_modes(1)
 
+    no_modes = 0.0_c_double
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
-        intensities_au, errmsg, errmsg_len)
+        intensities_au, no_modes, 0_c_int, errmsg, errmsg_len)
   end function nwchemc_embed_frequencies_cell
 
-  function nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+  !> Harmonic vibrational frequencies and normal modes with an optional 3x3 cell.
+  function nwchemc_embed_frequencies_modes_cell(n_atoms, positions_ang, &
       atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
-      intensities_au, errmsg, errmsg_len) result(rc)
+      intensities_au, normal_modes, errmsg, errmsg_len) result(rc) &
+      bind(C, name='nwchemc_embed_frequencies_modes_cell')
     integer(c_int), intent(in) :: n_atoms
     real(c_double), intent(in) :: positions_ang(*)
     integer(c_int), intent(in) :: atomic_numbers(*)
@@ -1976,13 +2013,37 @@ contains
     integer(c_int), intent(in) :: mult
     real(c_double), intent(out) :: frequencies_cm1(*)
     real(c_double), intent(out) :: intensities_au(*)
+    real(c_double), intent(out) :: normal_modes(*)
     character(kind=c_char), intent(out) :: errmsg(*)
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
-    integer :: ok, n, ndof, i
+
+    rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+        atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
+        intensities_au, normal_modes, 1_c_int, errmsg, errmsg_len)
+  end function nwchemc_embed_frequencies_modes_cell
+
+  function nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
+      atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
+      intensities_au, normal_modes, read_modes, errmsg, errmsg_len) result(rc)
+    integer(c_int), intent(in) :: n_atoms
+    real(c_double), intent(in) :: positions_ang(*)
+    integer(c_int), intent(in) :: atomic_numbers(*)
+    real(c_double), intent(in) :: cell_ang(*)
+    integer(c_int), intent(in) :: has_cell
+    integer(c_int), intent(in) :: charge
+    integer(c_int), intent(in) :: mult
+    real(c_double), intent(out) :: frequencies_cm1(*)
+    real(c_double), intent(out) :: intensities_au(*)
+    real(c_double), intent(out) :: normal_modes(*)
+    integer(c_int), intent(in) :: read_modes
+    character(kind=c_char), intent(out) :: errmsg(*)
+    integer(c_int), intent(in), value :: errmsg_len
+    integer(c_int) :: rc
+    integer :: ok, n, ndof, mode_count, i
     character(len=512) :: msg
     real(real64) :: energy_h
-    real(real64), allocatable :: pos(:), freq(:), intensity(:), cell(:)
+    real(real64), allocatable :: pos(:), freq(:), intensity(:), modes(:), cell(:)
     integer, allocatable :: z(:)
 
     rc = -1_c_int
@@ -2001,13 +2062,19 @@ contains
       return
     end if
     ndof = 3 * n
-    allocate (pos(ndof), freq(ndof), intensity(ndof), cell(9), z(n))
+    mode_count = max(1, ndof * ndof)
+    allocate (pos(ndof), freq(ndof), intensity(ndof), modes(mode_count), &
+        cell(9), z(n))
     do i = 1, ndof
       pos(i) = real(positions_ang(i), kind=real64)
       freq(i) = 0.0_real64
       intensity(i) = 0.0_real64
       frequencies_cm1(i) = 0.0_c_double
       intensities_au(i) = 0.0_c_double
+    end do
+    do i = 1, mode_count
+      modes(i) = 0.0_real64
+      if (read_modes /= 0_c_int) normal_modes(i) = 0.0_c_double
     end do
     do i = 1, 9
       cell(i) = real(cell_ang(i), kind=real64)
@@ -2018,7 +2085,7 @@ contains
 
     if (.not. ensure_brillouin_kvectors()) then
       call set_c_errmsg(errmsg, errmsg_len, 'brillouin kvector allocation failed')
-      deallocate (pos, freq, intensity, cell, z)
+      deallocate (pos, freq, intensity, modes, cell, z)
       return
     end if
     call nwchem_legacy_frequencies(rtdb_handle, n, pos, z, cell, &
@@ -2036,18 +2103,23 @@ contains
         cfg_brillouin_has_options, cfg_brillouin_zone_name, &
         cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
         cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
-        energy_h, freq, intensity, msg, ok)
+        energy_h, freq, intensity, modes, int(read_modes), msg, ok)
 
     do i = 1, ndof
       frequencies_cm1(i) = real(freq(i), kind=c_double)
       intensities_au(i) = real(intensity(i), kind=c_double)
     end do
+    if (read_modes /= 0_c_int) then
+      do i = 1, mode_count
+        normal_modes(i) = real(modes(i), kind=c_double)
+      end do
+    end if
     call set_c_errmsg(errmsg, errmsg_len, trim(msg))
     if (ok == 0) then
       last_task_energy_h = energy_h
       rc = 0_c_int
     end if
-    deallocate (pos, freq, intensity, cell, z)
+    deallocate (pos, freq, intensity, modes, cell, z)
   end function nwchemc_embed_frequencies_impl
 
   !> Dense Cartesian Hessian (Hartree/Bohr**2) for current config.

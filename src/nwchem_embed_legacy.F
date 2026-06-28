@@ -1369,7 +1369,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
      $     brillouin_has_options, brillouin_zone_name,
      $     brillouin_monkhorst_pack, brillouin_max_kpoints_print,
      $     brillouin_kvector_count, brillouin_kvectors,
-     $     energy_h, frequencies_cm1, intensities_au, errmsg, ok)
+     $     energy_h, frequencies_cm1, intensities_au, normal_modes,
+     $     read_modes, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "global.fh"
@@ -1379,6 +1380,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
 #include "inp.fh"
       integer rtdb, n_atoms, charge, mult, ok
       integer has_cell
+      integer read_modes
       integer psp_count
       integer set_string_count
       integer typed_set_count
@@ -1414,8 +1416,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       double precision energy_h
       double precision frequencies_cm1(*)
       double precision intensities_au(*)
+      double precision normal_modes(*)
       character*(*) errmsg
-      integer n3, i
+      integer n3, nhess, i
       logical status, ignore
       external task_freq
       logical task_freq
@@ -1430,10 +1433,16 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          return
       endif
       n3 = 3 * n_atoms
+      nhess = n3 * n3
       do i = 1, n3
          frequencies_cm1(i) = 0.0d0
          intensities_au(i) = 0.0d0
       enddo
+      if (read_modes .ne. 0) then
+         do i = 1, nhess
+            normal_modes(i) = 0.0d0
+         enddo
+      endif
 
       call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
      $     atmnrs, cell_ang, has_cell, errmsg, status)
@@ -1476,6 +1485,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       ignore = rtdb_delete(rtdb, 'vib:frequencies')
       ignore = rtdb_delete(rtdb, 'vib:intensities')
+      if (read_modes .ne. 0) then
+         ignore = rtdb_delete(rtdb, 'mc_data:eigenvectors')
+      endif
       status = rtdb_cput(rtdb, 'task:operation', 1, 'freq')
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
 
@@ -1501,6 +1513,13 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       status = rtdb_get(rtdb, 'vib:intensities', mt_dbl, n3,
      $     intensities_au(1))
+      if (read_modes .ne. 0) then
+         if (.not. rtdb_get(rtdb, 'mc_data:eigenvectors', mt_dbl,
+     $      nhess, normal_modes(1))) then
+            errmsg = 'rtdb_get mc_data:eigenvectors failed'
+            return
+         endif
+      endif
 
       errmsg = 'ok'
       ok = 0

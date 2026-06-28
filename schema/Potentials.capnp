@@ -41,6 +41,7 @@ struct PotentialResult {
   stress @8 :List(Float64); # @brief Stress tensor [9] in energy/length^3 units.
   polarizability @9 :List(Float64); # @brief NWChem aoresponse:alpha vector [12] in atomic units.
   gradient @10 :List(Float64); # @brief Flat nuclear gradient [natoms * 3] in energy/length units.
+  normalModes @11 :List(Float64); # @brief Dense Cartesian normal-mode matrix [natoms * 3]^2.
 }
 
 # @struct NWChemParams

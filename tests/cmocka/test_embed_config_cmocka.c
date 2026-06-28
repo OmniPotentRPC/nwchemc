@@ -116,6 +116,8 @@ static int g_optimize_calls = 0;
 static int g_optimize_cell_calls = 0;
 static int g_frequency_calls = 0;
 static int g_frequency_cell_calls = 0;
+static int g_frequency_modes_calls = 0;
+static int g_frequency_modes_cell_calls = 0;
 static int g_stress_calls = 0;
 static int g_stress_cell_calls = 0;
 static double g_last_energy_h = 0.0;
@@ -1184,6 +1186,47 @@ int nwchemc_embed_frequencies_cell(
                                 errmsg_len);
 }
 
+static int capture_frequency_modes_call(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *frequencies_cm1,
+    double *intensities_au, double *normal_modes, char *errmsg,
+    int errmsg_len) {
+  ++g_frequency_modes_calls;
+  int rc = capture_frequency_call(n_atoms, positions_ang, atomic_numbers,
+                                  cell_ang, has_cell, charge, multiplicity,
+                                  frequencies_cm1, intensities_au, errmsg,
+                                  errmsg_len);
+  int ndof = (*n_atoms) * 3;
+  for (int i = 0; normal_modes && i < ndof * ndof; ++i)
+    normal_modes[i] = 0.001 * (double)(i + 1);
+  return rc;
+}
+
+int nwchemc_embed_frequencies_modes(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const int *charge, const int *multiplicity,
+    double *frequencies_cm1, double *intensities_au, double *normal_modes,
+    char *errmsg, int errmsg_len) {
+  return capture_frequency_modes_call(
+      n_atoms, positions_ang, atomic_numbers, NULL, NULL, charge,
+      multiplicity, frequencies_cm1, intensities_au, normal_modes, errmsg,
+      errmsg_len);
+}
+
+int nwchemc_embed_frequencies_modes_cell(
+    const int *n_atoms, const double *positions_ang,
+    const int *atomic_numbers, const double *cell_ang, const int *has_cell,
+    const int *charge, const int *multiplicity, double *frequencies_cm1,
+    double *intensities_au, double *normal_modes, char *errmsg,
+    int errmsg_len) {
+  ++g_frequency_modes_cell_calls;
+  return capture_frequency_modes_call(
+      n_atoms, positions_ang, atomic_numbers, cell_ang, has_cell, charge,
+      multiplicity, frequencies_cm1, intensities_au, normal_modes, errmsg,
+      errmsg_len);
+}
+
 static int capture_stress_call(const int *n_atoms,
                                const double *positions_ang,
                                const int *atomic_numbers,
@@ -1314,6 +1357,8 @@ static void reset_embed_captures(void) {
   g_optimize_cell_calls = 0;
   g_frequency_calls = 0;
   g_frequency_cell_calls = 0;
+  g_frequency_modes_calls = 0;
+  g_frequency_modes_cell_calls = 0;
   g_stress_calls = 0;
   g_stress_cell_calls = 0;
   g_last_energy_h = 0.0;
@@ -1596,6 +1641,11 @@ static void assert_potential_result_frequencies(
   assert_int_equal(result.intensities.p.type, CAPN_LIST);
   assert_int_equal(result.intensities.p.datasz, 8);
   assert_int_equal(result.intensities.p.len, (int)expected_count);
+  capn_resolve(&result.normalModes.p);
+  assert_int_equal(result.normalModes.p.type, CAPN_LIST);
+  assert_int_equal(result.normalModes.p.datasz, 8);
+  assert_int_equal(result.normalModes.p.len,
+                   (int)(expected_count * expected_count));
   for (size_t i = 0; i < expected_count; ++i) {
     double actual_frequency =
         capn_to_f64(capn_get64(result.frequencies, (int)i));
@@ -1603,6 +1653,10 @@ static void assert_potential_result_frequencies(
         capn_to_f64(capn_get64(result.intensities, (int)i));
     assert_close(actual_frequency, expected_frequencies[i], tolerance);
     assert_close(actual_intensity, expected_intensities[i], tolerance);
+  }
+  for (size_t i = 0; i < expected_count * expected_count; ++i) {
+    double actual_mode = capn_to_f64(capn_get64(result.normalModes, (int)i));
+    assert_close(actual_mode, 0.001 * (double)(i + 1), tolerance);
   }
   capn_free(&arena);
 }
@@ -4764,7 +4818,7 @@ static void test_session_force_input_state_overrides_params(void **state) {
   assert_int_equal(g_call_charge[1], -2);
   assert_int_equal(g_call_multiplicity[1], 5);
 
-  unsigned char result_bytes[512];
+  unsigned char result_bytes[2048];
   size_t result_size = 0;
   double gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult override_gradient = nwchemc_session_calculate_gradient(
@@ -5116,7 +5170,7 @@ static void test_session_calculate_hessian_result_writes_potential_result(
   assert_non_null(session);
   assert_int_equal(g_set_config_calls, 1);
 
-  unsigned char result_bytes[512];
+  unsigned char result_bytes[2048];
   size_t result_size = 0;
   size_t expected_size =
       nwchemc_hessian_result_size_for_force_input(step_a, step_a_size);
@@ -5407,7 +5461,7 @@ static void test_session_calculate_structural_results_write_potential_result(
   assert_non_null(session);
   assert_int_equal(g_set_config_calls, 1);
 
-  unsigned char result_bytes[512];
+  unsigned char result_bytes[2048];
   unsigned char short_result[63];
   size_t result_size = 0;
   size_t required_size = 0;
@@ -5478,6 +5532,7 @@ static void test_session_calculate_structural_results_write_potential_result(
   assert_int_equal(short_frequencies.ok, 0);
   assert_int_equal(required_size, expected_frequencies_size);
   assert_int_equal(g_frequency_calls, 0);
+  assert_int_equal(g_frequency_modes_calls, 0);
 
   result_size = 0;
   NWChemCResult frequencies_result =
@@ -5488,7 +5543,9 @@ static void test_session_calculate_structural_results_write_potential_result(
   assert_close(frequencies_result.energy_h, -1.625, 1.0e-12);
   assert_int_equal(result_size, expected_frequencies_size);
   assert_int_equal(g_frequency_calls, 1);
-  assert_int_equal(g_frequency_cell_calls, 1);
+  assert_int_equal(g_frequency_cell_calls, 0);
+  assert_int_equal(g_frequency_modes_calls, 1);
+  assert_int_equal(g_frequency_modes_cell_calls, 1);
   const double expected_frequencies[6] = {100.0, 101.0, 102.0,
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
@@ -5506,6 +5563,7 @@ static void test_session_calculate_structural_results_write_potential_result(
   assert_non_null(strstr(changed_frequencies.message, "topology"));
   assert_int_equal(changed_frequencies_size, expected_frequencies_size);
   assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_modes_calls, 1);
 
   nwchemc_session_destroy(session);
   free(step_changed_species);
@@ -5591,7 +5649,7 @@ static void test_calculate_hessian_result_one_shot_writes_potential_result(
   assert_non_null(message);
   assert_non_null(step_a);
 
-  unsigned char result_bytes[512];
+  unsigned char result_bytes[2048];
   size_t result_size = 0;
   size_t expected_size =
       nwchemc_hessian_result_size_for_force_input(step_a, step_a_size);
@@ -5812,7 +5870,7 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
   assert_non_null(message);
   assert_non_null(step_a);
 
-  unsigned char result_bytes[512];
+  unsigned char result_bytes[2048];
   unsigned char short_result[63];
   size_t result_size = 0;
   size_t required_size = 0;
@@ -5853,6 +5911,7 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
   assert_int_equal(required_size, expected_frequencies_size);
   assert_int_equal(g_set_config_calls, 0);
   assert_int_equal(g_frequency_calls, 0);
+  assert_int_equal(g_frequency_modes_calls, 0);
 
   result_size = 0;
   NWChemCResult frequencies_result = nwchemc_calculate_frequencies_result(
@@ -5863,6 +5922,7 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
   assert_int_equal(result_size, expected_frequencies_size);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_modes_calls, 1);
   const double expected_frequencies[6] = {100.0, 101.0, 102.0,
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
@@ -5900,7 +5960,7 @@ static void test_calculate_config_results_one_shot_write_potential_results(
                                                 &config_size);
   assert_non_null(config);
 
-  unsigned char result_bytes[512];
+  unsigned char result_bytes[2048];
   size_t result_size = 0;
   const double bohr_to_angstrom = 0.529177210903;
   const double native_forces[6] = {-1.0, -2.0, -3.0, -4.0, -5.0, -6.0};
@@ -6065,6 +6125,7 @@ static void test_calculate_config_results_one_shot_write_potential_results(
   assert_int_equal(result_size, expected_frequencies_size);
   assert_int_equal(g_set_config_calls, 1);
   assert_int_equal(g_frequency_calls, 1);
+  assert_int_equal(g_frequency_modes_calls, 1);
   const double expected_frequencies[6] = {100.0, 101.0, 102.0,
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
