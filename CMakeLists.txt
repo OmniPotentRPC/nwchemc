@@ -67,7 +67,11 @@ if(NWCHEMC_NEEDS_CAPNP_C)
     "${CAPNP_C_ROOT}/capn-stream.c"
   )
   set_target_properties(capnp_c_runtime PROPERTIES POSITION_INDEPENDENT_CODE ON)
-  target_include_directories(capnp_c_runtime PUBLIC ${CAPNP_C_INCLUDES})
+  target_include_directories(capnp_c_runtime PUBLIC
+    "$<BUILD_INTERFACE:${CAPNP_C_ROOT}>"
+    "$<BUILD_INTERFACE:${CAPNP_C_ROOT}/compiler>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nwchemc/internal/c-capnproto>"
+  )
   target_compile_options(capnp_c_runtime PRIVATE ${CAPNP_C_WARNINGS})
 
   add_executable(capnpc-c
@@ -118,9 +122,12 @@ if(NWCHEMC_NEEDS_CAPNP_C)
   )
   set_target_properties(nwchemc_params PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_include_directories(nwchemc_params PUBLIC
-    ${NWCHEMC_INCLUDE_DIRS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/schema"
-    "${NWCHEMC_SCHEMA_BUILD_DIR}"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/schema>"
+    "$<BUILD_INTERFACE:${NWCHEMC_SCHEMA_BUILD_DIR}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nwchemc/internal>"
   )
   target_link_libraries(nwchemc_params PUBLIC capnp_c_runtime)
   target_compile_options(nwchemc_params PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
@@ -299,12 +306,26 @@ if(NWCHEMC_WITH_NWCHEM)
     ${NWCHEM_LINK_ITEMS}
   )
 
-  install(TARGETS nwchemc EXPORT nwchemcTargets
+  install(TARGETS
+    nwchemc
+    nwchemc_legacy
+    nwchemc_params
+    capnp_c_runtime
+    EXPORT nwchemcTargets
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   )
   install(FILES include/nwchemc.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+  install(FILES
+    src/nwchemc_params.h
+    "${NWCHEMC_POTENTIALS_CAPNP_H}"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nwchemc/internal"
+  )
+  install(FILES
+    "${CAPNP_C_ROOT}/capn.h"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nwchemc/internal/c-capnproto"
+  )
   install(EXPORT nwchemcTargets
     NAMESPACE nwchemc::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/nwchemc"
