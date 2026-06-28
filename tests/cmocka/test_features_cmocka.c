@@ -128,7 +128,7 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 18);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 428);
+  assert_int_equal((int)schema_fields, 429);
   assert_int_equal((int)schema_methods, 12);
   assert_int_equal((int)abis, 114);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +
