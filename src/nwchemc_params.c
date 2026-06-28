@@ -370,6 +370,16 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  if (include_direct_promoted && dft.iterations > 0 &&
+      append_format(block, sizeof(block), "  iterations %d\n",
+                    dft.iterations) != 0)
+    return -1;
+  if (include_direct_promoted && dft.grid.len > 0) {
+    if (append_format(block, sizeof(block), "  grid ") != 0 ||
+        append_text(block, sizeof(block), dft.grid) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (render_directives(dft.directives, block, sizeof(block), "  ") != 0 ||
       append_format(block, sizeof(block), "end") != 0)
     return -1;
@@ -1120,14 +1130,25 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(scf.directives);
   if (has_directives < 0)
     return -1;
-  int has_promoted = scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0;
+  int has_wf = scf.wavefunctionType.len > 0;
+  int has_nopen = scf.nopen >= 0;
+  int has_promoted = scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0 ||
+                     has_wf || has_nopen;
   int has_remaining = scf.vectorsInput.len > 0 || scf.vectorsOutput.len > 0 ||
-                      scf.noprint || has_directives ||
+                      scf.noprint || has_directives || has_wf || has_nopen ||
                       (include_direct_promoted && has_promoted);
   if (!has_remaining)
     return 0;
   if (append_format(block, sizeof(block), "scf\n") != 0)
     return -1;
+  /* Always emit wavefunction / nopen in text so embed decks carry them even
+   * when maxiter/thresh/tol2e are stripped for RTDB promotion. */
+  if (has_wf) {
+    if (append_format(block, sizeof(block), "  ") != 0 ||
+        append_text(block, sizeof(block), scf.wavefunctionType) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
   if (scf.vectorsInput.len > 0) {
     if (append_format(block, sizeof(block), "  vectors input ") != 0 ||
         append_text(block, sizeof(block), scf.vectorsInput) != 0 ||
@@ -1148,6 +1169,9 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
     return -1;
   if (include_direct_promoted && scf.tol2e > 0.0 &&
       append_format(block, sizeof(block), "  tol2e %.12g\n", scf.tol2e) != 0)
+    return -1;
+  if (has_nopen &&
+      append_format(block, sizeof(block), "  nopen %d\n", scf.nopen) != 0)
     return -1;
   if (scf.noprint && append_format(block, sizeof(block), "  noprint\n") != 0)
     return -1;
@@ -3237,15 +3261,20 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
 
 int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       int *maxiter, double *thresh,
-                                      double *tol2e) {
+                                      double *tol2e, capn_text *wavefunction_type,
+                                      int *nopen, int *has_nopen) {
   if (params.p.type == CAPN_NULL || !has_options || !maxiter || !thresh ||
-      !tol2e)
+      !tol2e || !wavefunction_type || !nopen || !has_nopen)
     return -1;
 
   *has_options = 0;
   *maxiter = 0;
   *thresh = 0.0;
   *tol2e = 0.0;
+  wavefunction_type->str = NULL;
+  wavefunction_type->len = 0;
+  *nopen = -1;
+  *has_nopen = 0;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -3273,6 +3302,15 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
     if (scf.tol2e > 0.0) {
       *has_options = 1;
       *tol2e = scf.tol2e;
+    }
+    if (scf.wavefunctionType.len > 0) {
+      *has_options = 1;
+      *wavefunction_type = scf.wavefunctionType;
+    }
+    if (scf.nopen >= 0) {
+      *has_options = 1;
+      *has_nopen = 1;
+      *nopen = scf.nopen;
     }
   }
 

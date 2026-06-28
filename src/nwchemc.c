@@ -1666,9 +1666,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   int scf_maxiter = 0;
   double scf_thresh = 0.0;
   double scf_tol2e = 0.0;
+  capn_text scf_wavefunction = {0};
+  int scf_nopen = -1;
+  int scf_has_nopen = 0;
   if (nwchemc_params_extract_direct_scf(params_root, &scf_has_options,
-                                        &scf_maxiter, &scf_thresh,
-                                        &scf_tol2e) != 0)
+                                        &scf_maxiter, &scf_thresh, &scf_tol2e,
+                                        &scf_wavefunction, &scf_nopen,
+                                        &scf_has_nopen) != 0)
     return -1;
   int ccsd_has_options = 0;
   int ccsd_maxiter = 0;
@@ -4206,6 +4210,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_embed_set_scf_direct(scf_has_options, scf_maxiter, scf_thresh,
                                    scf_tol2e) != 0)
     return -1;
+  /* Wavefunction type / nopen are applied via rendered SCF text (see
+   * render_scf_stanza) so they remain C-ABI accessible without extending every
+   * legacy signature; RTDB promotion for maxiter/thresh/tol2e stays direct. */
+  (void)scf_wavefunction;
+  (void)scf_nopen;
+  (void)scf_has_nopen;
   if (nwchemc_embed_set_driver_direct(driver_has_options, driver_maxiter,
                                       driver_tolerance_mode, driver_gmax_tol,
                                       driver_grms_tol, driver_xmax_tol,

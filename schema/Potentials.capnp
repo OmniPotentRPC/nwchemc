@@ -96,6 +96,8 @@ struct NWChemDftStanza {
   direct     @1 :Bool = false;               # Emit "direct".
   smearing   @2 :NWChemDftSmearing;          # Emit "smear ...".
   directives @3 :List(NWChemDirective);      # Extra structured DFT directives.
+  iterations @4 :Int32 = 0;                  # Emit/promote dft iterations when >0.
+  grid       @5 :Text = "";                  # Optional grid token; long-tail stays in directives.
 }
 
 enum NWChemModuleName {
@@ -642,6 +644,12 @@ struct NWChemScfStanza {
   tol2e         @4 :Float64 = 0; # Two-electron tolerance; embed writes RTDB directly.
   noprint       @5 :Bool = false;# Emit "noprint".
   directives    @6 :List(NWChemDirective);
+  # Wavefunction keyword (rhf/uhf/rohf/...). Emitted in the scf block and promoted
+  # to RTDB key scf:scftype on embed so HF spin cases are C-ABI accessible without
+  # relying only on NWChemParams.scfType / directives.
+  wavefunctionType @7 :Text = "";
+  # Open-shell count for UHF/ROHF; negative means unset. Promotes scf:nopen.
+  nopen            @8 :Int32 = -1;
 }
 
 # @struct NWChemCcsdStanza

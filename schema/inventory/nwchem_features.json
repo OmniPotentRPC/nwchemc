@@ -1779,6 +1779,30 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemDftStanza.iterations",
+      "schema_path": "NWChemDftStanza.iterations",
+      "struct": "NWChemDftStanza",
+      "name": "iterations",
+      "field_id": 4,
+      "type": "Int32 = 0",
+      "role": "NWChemDftStanza.iterations Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.grid",
+      "schema_path": "NWChemDftStanza.grid",
+      "struct": "NWChemDftStanza",
+      "name": "grid",
+      "field_id": 5,
+      "type": "Text = \"\"",
+      "role": "NWChemDftStanza.grid Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemModuleStanza.name",
       "schema_path": "NWChemModuleStanza.name",
       "struct": "NWChemModuleStanza",
@@ -4762,6 +4786,30 @@
       "field_id": 6,
       "type": "List(NWChemDirective)",
       "role": "NWChemScfStanza.directives Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.wavefunctionType",
+      "schema_path": "NWChemScfStanza.wavefunctionType",
+      "struct": "NWChemScfStanza",
+      "name": "wavefunctionType",
+      "field_id": 7,
+      "type": "Text = \"\"",
+      "role": "NWChemScfStanza.wavefunctionType Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.nopen",
+      "schema_path": "NWChemScfStanza.nopen",
+      "struct": "NWChemScfStanza",
+      "name": "nopen",
+      "field_id": 8,
+      "type": "Int32 = -1",
+      "role": "NWChemScfStanza.nopen Cap'n Proto field",
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "schema_field"

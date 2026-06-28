@@ -49,7 +49,8 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
 
 int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       int *maxiter, double *thresh,
-                                      double *tol2e);
+                                      double *tol2e, capn_text *wavefunction_type,
+                                      int *nopen, int *has_nopen);
 
 int nwchemc_params_extract_direct_ccsd(
     NWChemParams_ptr params, int *has_options, int *maxiter, double *thresh,

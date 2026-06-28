@@ -137,9 +137,12 @@ static void test_render_config_options_stanzas(void **state) {
   double scf_thresh = 0.0;
   double scf_tol2e = 0.0;
   int has_scf = 0;
+  capn_text scf_wf = {0};
+  int scf_nopen = -1;
+  int scf_has_nopen = 0;
   assert_int_equal(nwchemc_params_extract_direct_scf(
                        params_root, &has_scf, &scf_maxiter, &scf_thresh,
-                       &scf_tol2e),
+                       &scf_tol2e, &scf_wf, &scf_nopen, &scf_has_nopen),
                    0);
   assert_int_equal(has_scf, 1);
   assert_int_equal(scf_maxiter, 50);
