@@ -357,6 +357,29 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   target_compile_options(test_stub_abi PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
   add_test(NAME stub-abi COMMAND test_stub_abi)
 
+  function(nwchemc_add_encoded_fixture target_name output_var schema_type
+           input_file output_file)
+    set(bin_path "${CMAKE_CURRENT_BINARY_DIR}/${output_file}")
+    add_custom_command(
+      OUTPUT "${bin_path}"
+      COMMAND
+        "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+        "${CAPNP_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+        "${schema_type}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/${input_file}"
+        "${bin_path}"
+      DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/${input_file}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      VERBATIM
+    )
+    add_custom_target("${target_name}" DEPENDS "${bin_path}")
+    set("${output_var}" "${bin_path}" PARENT_SCOPE)
+  endfunction()
+
   set(NWCHEMC_PARSER_PARAMS_BIN
     "${CMAKE_CURRENT_BINARY_DIR}/nwchem_params_parser.bin"
   )
@@ -424,6 +447,224 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   )
   add_custom_target(nwchem_config_options_params_bin
     DEPENDS "${NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN}"
+  )
+
+  nwchemc_add_encoded_fixture(
+    nwchem_pspspin_params_bin
+    NWCHEMC_PSPSPIN_PARAMS_BIN
+    NWChemParams
+    nwchem_params_pspspin.capnp.txt
+    nwchem_params_pspspin.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_pspspin_many_params_bin
+    NWCHEMC_PSPSPIN_MANY_PARAMS_BIN
+    NWChemParams
+    nwchem_params_pspspin_many.capnp.txt
+    nwchem_params_pspspin_many.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_spin_mode_params_bin
+    NWCHEMC_NWPW_SPIN_MODE_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_spin_mode.capnp.txt
+    nwchem_params_nwpw_spin_mode.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_allow_translation_params_bin
+    NWCHEMC_NWPW_ALLOW_TRANSLATION_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_allow_translation.capnp.txt
+    nwchem_params_nwpw_allow_translation.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_cutoff_alias_params_bin
+    NWCHEMC_NWPW_CUTOFF_ALIAS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_cutoff_alias.capnp.txt
+    nwchem_params_nwpw_cutoff_alias.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_mc_steps_params_bin
+    NWCHEMC_NWPW_MC_STEPS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_mc_steps.capnp.txt
+    nwchem_params_nwpw_mc_steps.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_bo_steps_default_params_bin
+    NWCHEMC_NWPW_BO_STEPS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_bo_steps_default.capnp.txt
+    nwchem_params_nwpw_bo_steps_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_bo_time_step_default_params_bin
+    NWCHEMC_NWPW_BO_TIME_STEP_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_bo_time_step_default.capnp.txt
+    nwchem_params_nwpw_bo_time_step_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_bo_fake_mass_default_params_bin
+    NWCHEMC_NWPW_BO_FAKE_MASS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_bo_fake_mass_default.capnp.txt
+    nwchem_params_nwpw_bo_fake_mass_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_scaling_default_params_bin
+    NWCHEMC_NWPW_SCALING_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_scaling_default.capnp.txt
+    nwchem_params_nwpw_scaling_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_np_dimensions_default_params_bin
+    NWCHEMC_NWPW_NP_DIMENSIONS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_np_dimensions_default.capnp.txt
+    nwchem_params_nwpw_np_dimensions_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_tolerances_default_params_bin
+    NWCHEMC_NWPW_TOLERANCES_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_tolerances_default.capnp.txt
+    nwchem_params_nwpw_tolerances_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_mc_steps_default_params_bin
+    NWCHEMC_NWPW_MC_STEPS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_mc_steps_default.capnp.txt
+    nwchem_params_nwpw_mc_steps_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_brillouin_tetrahedron_params_bin
+    NWCHEMC_BRILLOUIN_TETRAHEDRON_PARAMS_BIN
+    NWChemParams
+    nwchem_params_brillouin_tetrahedron.capnp.txt
+    nwchem_params_brillouin_tetrahedron.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_brillouin_dos_grid_params_bin
+    NWCHEMC_BRILLOUIN_DOS_GRID_PARAMS_BIN
+    NWChemParams
+    nwchem_params_brillouin_dos_grid.capnp.txt
+    nwchem_params_brillouin_dos_grid.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_et_params_bin
+    NWCHEMC_NWPW_ET_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_et.capnp.txt
+    nwchem_params_nwpw_et.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_temperature_params_bin
+    NWCHEMC_NWPW_TEMPERATURE_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_temperature.capnp.txt
+    nwchem_params_nwpw_temperature.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_dos_default_params_bin
+    NWCHEMC_NWPW_DOS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_dos_default.capnp.txt
+    nwchem_params_nwpw_dos_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_mapping_alias_params_bin
+    NWCHEMC_NWPW_MAPPING_ALIAS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_mapping_alias.capnp.txt
+    nwchem_params_nwpw_mapping_alias.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_mapping_default_params_bin
+    NWCHEMC_NWPW_MAPPING_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_mapping_default.capnp.txt
+    nwchem_params_nwpw_mapping_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_virtual_alias_params_bin
+    NWCHEMC_NWPW_VIRTUAL_ALIAS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_virtual_alias.capnp.txt
+    nwchem_params_nwpw_virtual_alias.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_one_electron_guess_defaults_params_bin
+    NWCHEMC_NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_one_electron_guess_defaults.capnp.txt
+    nwchem_params_nwpw_one_electron_guess_defaults.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_fractional_orbitals_default_params_bin
+    NWCHEMC_NWPW_FRACTIONAL_ORBITALS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_fractional_orbitals_default.capnp.txt
+    nwchem_params_nwpw_fractional_orbitals_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_smear_orbitals_default_params_bin
+    NWCHEMC_NWPW_SMEAR_ORBITALS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_smear_orbitals_default.capnp.txt
+    nwchem_params_nwpw_smear_orbitals_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_virtual_orbitals_default_params_bin
+    NWCHEMC_NWPW_VIRTUAL_ORBITALS_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_virtual_orbitals_default.capnp.txt
+    nwchem_params_nwpw_virtual_orbitals_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_translate_vector_default_params_bin
+    NWCHEMC_NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_translate_vector_default.capnp.txt
+    nwchem_params_nwpw_translate_vector_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_nwpw_cell_expand_default_params_bin
+    NWCHEMC_NWPW_CELL_EXPAND_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_nwpw_cell_expand_default.capnp.txt
+    nwchem_params_nwpw_cell_expand_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_brillouin_monkhorst_default_params_bin
+    NWCHEMC_BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_brillouin_monkhorst_default.capnp.txt
+    nwchem_params_brillouin_monkhorst_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_brillouin_dos_grid_default_params_bin
+    NWCHEMC_BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN
+    NWChemParams
+    nwchem_params_brillouin_dos_grid_default.capnp.txt
+    nwchem_params_brillouin_dos_grid_default.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_tce_methods_params_bin
+    NWCHEMC_TCE_METHODS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_tce_methods.capnp.txt
+    nwchem_params_tce_methods.bin
+  )
+  nwchemc_add_encoded_fixture(
+    nwchem_compact_cells_params_bin
+    NWCHEMC_COMPACT_CELLS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_compact_cells.capnp.txt
+    nwchem_params_compact_cells.bin
   )
 
   set(NWCHEMC_FORCE_INPUT_STEP_A_BIN
@@ -564,15 +805,98 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     DEPENDS "${NWCHEMC_FORCE_INPUT_H2_STRETCHED_BIN}"
   )
 
+  nwchemc_add_encoded_fixture(
+    force_input_step_state_bin
+    NWCHEMC_FORCE_INPUT_STEP_STATE_BIN
+    ForceInput
+    force_input_step_state.capnp.txt
+    force_input_step_state.bin
+  )
+  nwchemc_add_encoded_fixture(
+    force_input_h2_box_ang_bin
+    NWCHEMC_FORCE_INPUT_H2_BOX_ANG_BIN
+    ForceInput
+    force_input_h2_box_ang.capnp.txt
+    force_input_h2_box_ang.bin
+  )
+  nwchemc_add_encoded_fixture(
+    force_input_h2_box_bohr_bin
+    NWCHEMC_FORCE_INPUT_H2_BOX_BOHR_BIN
+    ForceInput
+    force_input_h2_box_bohr.capnp.txt
+    force_input_h2_box_bohr.bin
+  )
+
   add_executable(test_capnp_parser tests/test_capnp_parser.c)
   target_link_libraries(test_capnp_parser PRIVATE
     nwchemc_params
     PkgConfig::CMOCKA
   )
   target_compile_options(test_capnp_parser PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
-  add_dependencies(test_capnp_parser nwchem_parser_params_bin)
+  add_dependencies(test_capnp_parser
+    nwchem_parser_params_bin
+    nwchem_pspspin_params_bin
+    nwchem_nwpw_spin_mode_params_bin
+    nwchem_nwpw_allow_translation_params_bin
+    nwchem_nwpw_cutoff_alias_params_bin
+    nwchem_nwpw_mc_steps_params_bin
+    nwchem_nwpw_bo_steps_default_params_bin
+    nwchem_nwpw_bo_time_step_default_params_bin
+    nwchem_nwpw_bo_fake_mass_default_params_bin
+    nwchem_nwpw_scaling_default_params_bin
+    nwchem_nwpw_np_dimensions_default_params_bin
+    nwchem_nwpw_tolerances_default_params_bin
+    nwchem_nwpw_mc_steps_default_params_bin
+    nwchem_brillouin_tetrahedron_params_bin
+    nwchem_brillouin_dos_grid_params_bin
+    nwchem_nwpw_et_params_bin
+    nwchem_nwpw_temperature_params_bin
+    nwchem_nwpw_dos_default_params_bin
+    nwchem_nwpw_mapping_alias_params_bin
+    nwchem_nwpw_mapping_default_params_bin
+    nwchem_nwpw_virtual_alias_params_bin
+    nwchem_nwpw_one_electron_guess_defaults_params_bin
+    nwchem_nwpw_fractional_orbitals_default_params_bin
+    nwchem_nwpw_smear_orbitals_default_params_bin
+    nwchem_nwpw_virtual_orbitals_default_params_bin
+    nwchem_nwpw_translate_vector_default_params_bin
+    nwchem_nwpw_cell_expand_default_params_bin
+    nwchem_brillouin_monkhorst_default_params_bin
+    nwchem_brillouin_dos_grid_default_params_bin
+    nwchem_compact_cells_params_bin
+  )
   add_test(NAME capnp-parser
-    COMMAND test_capnp_parser "${NWCHEMC_PARSER_PARAMS_BIN}"
+    COMMAND test_capnp_parser
+      "${NWCHEMC_PARSER_PARAMS_BIN}"
+      "${NWCHEMC_PSPSPIN_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_SPIN_MODE_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_ALLOW_TRANSLATION_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_CUTOFF_ALIAS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MC_STEPS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_BO_STEPS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_BO_TIME_STEP_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_BO_FAKE_MASS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_SCALING_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_NP_DIMENSIONS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_TOLERANCES_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MC_STEPS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_TETRAHEDRON_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_DOS_GRID_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_ET_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_TEMPERATURE_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_DOS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MAPPING_ALIAS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MAPPING_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_VIRTUAL_ALIAS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_FRACTIONAL_ORBITALS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_SMEAR_ORBITALS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_VIRTUAL_ORBITALS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_CELL_EXPAND_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_COMPACT_CELLS_PARAMS_BIN}"
   )
 
   add_executable(test_embed_config_cmocka
@@ -592,19 +916,81 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   add_dependencies(test_embed_config_cmocka
     nwchem_direct_dft_params_bin
     nwchem_config_options_params_bin
+    nwchem_pspspin_params_bin
+    nwchem_pspspin_many_params_bin
+    nwchem_nwpw_spin_mode_params_bin
+    nwchem_nwpw_allow_translation_params_bin
+    nwchem_nwpw_cutoff_alias_params_bin
+    nwchem_nwpw_mc_steps_params_bin
+    nwchem_nwpw_bo_steps_default_params_bin
+    nwchem_nwpw_bo_time_step_default_params_bin
+    nwchem_nwpw_bo_fake_mass_default_params_bin
+    nwchem_nwpw_scaling_default_params_bin
+    nwchem_nwpw_np_dimensions_default_params_bin
+    nwchem_nwpw_tolerances_default_params_bin
+    nwchem_nwpw_mc_steps_default_params_bin
+    nwchem_brillouin_tetrahedron_params_bin
+    nwchem_brillouin_dos_grid_params_bin
+    nwchem_nwpw_et_params_bin
+    nwchem_nwpw_temperature_params_bin
+    nwchem_nwpw_dos_default_params_bin
+    nwchem_nwpw_mapping_alias_params_bin
+    nwchem_nwpw_mapping_default_params_bin
+    nwchem_nwpw_virtual_alias_params_bin
+    nwchem_nwpw_one_electron_guess_defaults_params_bin
+    nwchem_nwpw_fractional_orbitals_default_params_bin
+    nwchem_nwpw_smear_orbitals_default_params_bin
+    nwchem_nwpw_virtual_orbitals_default_params_bin
     force_input_step_a_bin
     force_input_step_b_bin
     force_input_step_ev_bin
     force_input_step_changed_species_bin
+    force_input_step_state_bin
+    nwchem_tce_methods_params_bin
+    nwchem_compact_cells_params_bin
+    nwchem_nwpw_translate_vector_default_params_bin
+    nwchem_brillouin_monkhorst_default_params_bin
+    nwchem_brillouin_dos_grid_default_params_bin
   )
   add_test(NAME embed-config-cmocka
     COMMAND test_embed_config_cmocka
       "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
       "${NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN}"
+      "${NWCHEMC_PSPSPIN_PARAMS_BIN}"
+      "${NWCHEMC_PSPSPIN_MANY_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_SPIN_MODE_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_ALLOW_TRANSLATION_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_CUTOFF_ALIAS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MC_STEPS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_BO_STEPS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_BO_TIME_STEP_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_BO_FAKE_MASS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_SCALING_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_NP_DIMENSIONS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_TOLERANCES_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MC_STEPS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_TETRAHEDRON_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_DOS_GRID_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_ET_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_TEMPERATURE_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_DOS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MAPPING_ALIAS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_MAPPING_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_VIRTUAL_ALIAS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_FRACTIONAL_ORBITALS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_SMEAR_ORBITALS_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_VIRTUAL_ORBITALS_DEFAULT_PARAMS_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_EV_BIN}"
       "${NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN}"
+      "${NWCHEMC_FORCE_INPUT_STEP_STATE_BIN}"
+      "${NWCHEMC_TCE_METHODS_PARAMS_BIN}"
+      "${NWCHEMC_COMPACT_CELLS_PARAMS_BIN}"
+      "${NWCHEMC_NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN}"
   )
 
   if(NWCHEMC_WITH_NWCHEM)
@@ -649,9 +1035,9 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       endif()
     endfunction()
 
-    function(nwchemc_configure_params input_name output_name)
+    function(nwchemc_configure_fixture input_file output_name schema_type)
       configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/${input_name}.capnp.txt.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/${input_file}"
         "${CMAKE_CURRENT_BINARY_DIR}/${output_name}.capnp.txt"
         @ONLY
       )
@@ -663,7 +1049,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
           "${CMAKE_CURRENT_SOURCE_DIR}/tests/encode_capnp.py"
           "${CAPNP_EXECUTABLE}"
           "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
-          "NWChemParams"
+          "${schema_type}"
           "${CMAKE_CURRENT_BINARY_DIR}/${output_name}.capnp.txt"
           "${bin_path}"
         DEPENDS
@@ -676,10 +1062,36 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       set("${output_name}_BIN" "${bin_path}" PARENT_SCOPE)
     endfunction()
 
-    nwchemc_configure_params(nwchem_params nwchem_params)
-    nwchemc_configure_params(nwchem_params_input_blocks nwchem_params_input_blocks)
-    nwchemc_configure_params(nwchem_params_structured nwchem_params_structured)
-    nwchemc_configure_params(nwchem_params_hessian nwchem_params_hessian)
+    nwchemc_configure_fixture(
+      nwchem_params.capnp.txt.in
+      nwchem_params
+      NWChemParams
+    )
+    nwchemc_configure_fixture(
+      nwchem_params_input_blocks.capnp.txt.in
+      nwchem_params_input_blocks
+      NWChemParams
+    )
+    nwchemc_configure_fixture(
+      nwchem_params_structured.capnp.txt.in
+      nwchem_params_structured
+      NWChemParams
+    )
+    nwchemc_configure_fixture(
+      nwchem_params_hessian.capnp.txt.in
+      nwchem_params_hessian
+      NWChemParams
+    )
+    nwchemc_configure_fixture(
+      potential_config_structured.capnp.txt.in
+      potential_config_structured
+      PotentialConfig
+    )
+    nwchemc_configure_fixture(
+      potential_config_pseudopotential.capnp.txt.in
+      potential_config_pseudopotential
+      PotentialConfig
+    )
 
     function(nwchemc_add_gradient_test target_name params_bin_target params_bin)
       add_executable("${target_name}" tests/test_nwchem_energy_gradient.c)
@@ -707,6 +1119,141 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       nwchem-energy-gradient-structured
       nwchem_params_structured_bin
       "${nwchem_params_structured_BIN}"
+    )
+
+    add_executable(nwchem-config-parity tests/test_nwchem_config_parity.c)
+    target_link_libraries(nwchem-config-parity PRIVATE nwchemc PkgConfig::CMOCKA)
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-config-parity PRIVATE "${NWCHEMC_M_LIBRARY}")
+    endif()
+    target_compile_options(nwchem-config-parity PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
+    target_compile_definitions(nwchem-config-parity PRIVATE
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-config-parity
+      nwchem_params_input_blocks_bin
+      potential_config_structured_bin
+      force_input_h2_eq_bin
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-config-parity
+      nwchem-config-parity
+      "${nwchem_params_input_blocks_BIN}"
+      "${potential_config_structured_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+    )
+
+    add_executable(nwchem-rgpot-smoke tests/test_nwchem_rgpot_smoke.c)
+    target_sources(nwchem-rgpot-smoke PRIVATE "${NWCHEMC_POTENTIALS_CAPNP_C}")
+    target_include_directories(nwchem-rgpot-smoke PRIVATE
+      ${NWCHEMC_INCLUDE_DIRS}
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema"
+      "${NWCHEMC_SCHEMA_BUILD_DIR}"
+      ${CAPNP_C_INCLUDES}
+    )
+    target_link_libraries(nwchem-rgpot-smoke PRIVATE
+      nwchemc
+      capnp_c_runtime
+      PkgConfig::CMOCKA
+    )
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-rgpot-smoke PRIVATE "${NWCHEMC_M_LIBRARY}")
+    endif()
+    target_compile_options(nwchem-rgpot-smoke PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
+    target_compile_definitions(nwchem-rgpot-smoke PRIVATE
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-rgpot-smoke
+      potential_config_structured_bin
+      force_input_h2_eq_bin
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-rgpot-smoke
+      nwchem-rgpot-smoke
+      "${potential_config_structured_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+    )
+
+    add_executable(nwchem-potential-config-pseudopotential
+      tests/test_nwchem_potential_config_pseudopotential.c
+      tests/nwchem_configured_pseudopotential_rtdb_probe.F
+      tests/nwchem_rtdb_probe_get_log.F
+      tests/nwchem_rtdb_probe_get_int.F
+      tests/nwchem_rtdb_probe_get_dbl_array.F
+      tests/nwchem_rtdb_probe_get_int_array.F
+    )
+    target_link_libraries(nwchem-potential-config-pseudopotential PRIVATE
+      nwchemc
+      PkgConfig::CMOCKA
+    )
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-potential-config-pseudopotential
+        PRIVATE "${NWCHEMC_M_LIBRARY}"
+      )
+    endif()
+    target_include_directories(nwchem-potential-config-pseudopotential PRIVATE
+      ${NWCHEM_EMBED_INCLUDES}
+    )
+    target_compile_options(nwchem-potential-config-pseudopotential PRIVATE
+      "$<$<COMPILE_LANGUAGE:C>:${NWCHEMC_COMMON_C_WARNINGS}>"
+      "$<$<COMPILE_LANGUAGE:Fortran>:${NWCHEM_FORTRAN_OPTIONS}>"
+      $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+    )
+    target_compile_definitions(nwchem-potential-config-pseudopotential PRIVATE
+      NWCHEMC_HAS_NWCHEM
+      GFORTRAN
+      LINUX64
+      EXT_INT
+      OPENBLAS
+      "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
+      "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
+    )
+    add_dependencies(nwchem-potential-config-pseudopotential
+      potential_config_pseudopotential_bin
+      force_input_h2_eq_bin
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-potential-config-pseudopotential
+      nwchem-potential-config-pseudopotential
+      "${potential_config_pseudopotential_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+    )
+
+    add_executable(nwchem-forceinput-cell-rtdb
+      tests/test_nwchem_forceinput_cell_rtdb.c
+      tests/nwchem_forceinput_cell_rtdb_probe.F
+    )
+    target_link_libraries(nwchem-forceinput-cell-rtdb PRIVATE
+      nwchemc
+      nwchemc_params
+      PkgConfig::CMOCKA
+    )
+    target_include_directories(nwchem-forceinput-cell-rtdb PRIVATE
+      ${NWCHEM_EMBED_INCLUDES}
+    )
+    target_compile_options(nwchem-forceinput-cell-rtdb PRIVATE
+      "$<$<COMPILE_LANGUAGE:C>:${NWCHEMC_COMMON_C_WARNINGS}>"
+      "$<$<COMPILE_LANGUAGE:Fortran>:${NWCHEM_FORTRAN_OPTIONS}>"
+      $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+    )
+    target_compile_definitions(nwchem-forceinput-cell-rtdb PRIVATE
+      NWCHEMC_HAS_NWCHEM
+      GFORTRAN
+      LINUX64
+      EXT_INT
+      OPENBLAS
+    )
+    add_dependencies(nwchem-forceinput-cell-rtdb
+      force_input_h2_box_ang_bin
+      force_input_h2_box_bohr_bin
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-forceinput-cell-rtdb
+      nwchem-forceinput-cell-rtdb
+      "${NWCHEMC_FORCE_INPUT_H2_BOX_ANG_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_BOX_BOHR_BIN}"
     )
 
     add_executable(nwchem-energy-forces tests/test_nwchem_energy_forces.c)
@@ -775,6 +1322,72 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       nwchem-hessian
       nwchem-hessian
       "${nwchem_params_hessian_BIN}"
+    )
+
+    add_executable(nwchem-pseudopotential-rtdb
+      tests/test_nwchem_pseudopotential_rtdb.c
+      tests/nwchem_pseudopotential_rtdb_probe.F
+      tests/nwchem_rtdb_probe_get_log.F
+      tests/nwchem_rtdb_probe_get_int.F
+      tests/nwchem_rtdb_probe_get_dbl_array.F
+      tests/nwchem_rtdb_probe_get_int_array.F
+    )
+    target_link_libraries(nwchem-pseudopotential-rtdb PRIVATE
+      nwchemc_legacy
+      ${NWCHEM_LINK_ITEMS}
+      PkgConfig::CMOCKA
+    )
+    target_include_directories(nwchem-pseudopotential-rtdb PRIVATE
+      ${NWCHEM_EMBED_INCLUDES}
+    )
+    target_compile_definitions(nwchem-pseudopotential-rtdb PRIVATE
+      NWCHEMC_HAS_NWCHEM
+      GFORTRAN
+      LINUX64
+      EXT_INT
+      OPENBLAS
+    )
+    target_compile_options(nwchem-pseudopotential-rtdb PRIVATE
+      "$<$<COMPILE_LANGUAGE:C>:${NWCHEMC_COMMON_C_WARNINGS}>"
+      "$<$<COMPILE_LANGUAGE:Fortran>:${NWCHEM_FORTRAN_OPTIONS}>"
+      $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-pseudopotential-rtdb
+      nwchem-pseudopotential-rtdb
+    )
+
+    add_executable(nwchem-nwpw-rtdb
+      tests/test_nwchem_nwpw_rtdb.c
+      tests/nwchem_nwpw_rtdb_probe.F
+      tests/nwchem_rtdb_probe_get_log.F
+      tests/nwchem_rtdb_probe_get_int.F
+      tests/nwchem_rtdb_probe_get_dbl_array.F
+      tests/nwchem_rtdb_probe_get_int_array.F
+    )
+    target_link_libraries(nwchem-nwpw-rtdb PRIVATE
+      nwchemc_legacy
+      ${NWCHEM_LINK_ITEMS}
+      PkgConfig::CMOCKA
+    )
+    target_include_directories(nwchem-nwpw-rtdb PRIVATE
+      ${NWCHEM_EMBED_INCLUDES}
+    )
+    target_compile_definitions(nwchem-nwpw-rtdb PRIVATE
+      NWCHEMC_HAS_NWCHEM
+      GFORTRAN
+      LINUX64
+      EXT_INT
+      OPENBLAS
+    )
+    target_compile_options(nwchem-nwpw-rtdb PRIVATE
+      "$<$<COMPILE_LANGUAGE:C>:${NWCHEMC_COMMON_C_WARNINGS}>"
+      "$<$<COMPILE_LANGUAGE:Fortran>:${NWCHEM_FORTRAN_OPTIONS}>"
+      $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+    )
+    nwchemc_add_real_nwchem_test(
+      nwchem-nwpw-rtdb
+      nwchem-nwpw-rtdb
     )
 
     add_executable(nwchem-geometry-basis-rtdb
