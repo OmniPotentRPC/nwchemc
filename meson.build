@@ -1132,14 +1132,16 @@ nwchem_config_options_params_bin = custom_target(
 
   calculator_result_writers_exe = executable(
     'test_calculator_result_writers',
-    ['tests/test_calculator_result_writers.c'] + nwchemc_params_sources,
+    ['tests/test_calculator_result_writers.c', 'src/nwchemc.c'] +
+    nwchemc_params_sources,
     include_directories: [inc] + nwchemc_params_includes,
     dependencies: nwchemc_params_deps + [cmocka_dep],
-    c_args: common_c_args,
+    c_args: common_c_args + ['-DNWCHEMC_HAS_NWCHEM=1'],
   )
   test(
     'calculator-result-writers',
     calculator_result_writers_exe,
+    args: [nwchem_direct_dft_params_bin, force_input_step_a_bin],
     suite: ['cmocka', 'parser', 'coverage'],
   )
 
