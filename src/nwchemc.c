@@ -4248,7 +4248,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (dft_xc.len > 0 && dft_xc.str) {
     scf_type = dft_xc.str;
     scf_len = (int)dft_xc.len;
+    /* Typed DFT XC is a reference functional, not a theory override.
+     * Preserve tddft / sodft / etc.; only promote legacy XC-as-theory names. */
     if (!span_starts_with(theory, theory_len, "dft") &&
+        !span_starts_with(theory, theory_len, "tddft") &&
+        !span_starts_with(theory, theory_len, "sodft") &&
+        !span_starts_with(theory, theory_len, "rt_tddft") &&
         !span_starts_with(theory, theory_len, "blyp") &&
         !span_starts_with(theory, theory_len, "b3lyp") &&
         !span_starts_with(theory, theory_len, "pbe")) {
@@ -4503,6 +4508,19 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     if (tddft_ecut > 0.0) {
       PROMO_DBL("tddft:ecut", tddft_ecut);
       PROMO_LOG("tddft:lecut", 1);
+    }
+    /* TDDFT analytic gradient needs CI vector path + root indices (no input parser). */
+    {
+      int grad_root = tddft_target > 0 ? tddft_target : 1;
+      PROMO_INT("tddft_grad:isinglet_roots", grad_root);
+      PROMO_INT("tddft_grad:itriplet_roots", grad_root);
+      PROMO_INT("tddft_grad:iroots", grad_root);
+      PROMO_STR("tddft:civecs",
+                ((capn_text){.str = "nwchemc.civecs", .len = 13}));
+      PROMO_STR("tddft:trials",
+                ((capn_text){.str = "nwchemc.trials", .len = 13}));
+      PROMO_STR("tddft:transden",
+                ((capn_text){.str = "nwchemc.tdens", .len = 12}));
     }
 
 #undef PROMO_STR

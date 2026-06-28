@@ -395,3 +395,9 @@ nwchemc.t1
 /nwchemc.t2.*
 /nwchemc.movecs
 /nwchemc.temp*.nw
+
+nwchemc.civecs
+nwchemc.trials
+nwchemc.tdens
+nwchemc.civecs_singlet
+nwchemc.civecs_triplet

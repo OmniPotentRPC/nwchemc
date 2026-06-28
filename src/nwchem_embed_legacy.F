@@ -2135,6 +2135,28 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
                ok = ok .and. status
             endif
          endif
+c        TDDFT SP forces: CI vector filenames + gradient root (no input).
+         if (theory_name(1:5) .eq. 'tddft') then
+            status = rtdb_cput(rtdb, 'tddft:civecs', 1,
+     $         'nwchemc.civecs')
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'tddft:trials', 1,
+     $         'nwchemc.trials')
+            ok = ok .and. status
+            status = rtdb_cput(rtdb, 'tddft:transden', 1,
+     $         'nwchemc.tdens')
+            ok = ok .and. status
+            ival = 1
+            status = rtdb_put(rtdb, 'tddft_grad:isinglet_roots',
+     $         mt_int, 1, ival)
+            ok = ok .and. status
+            status = rtdb_put(rtdb, 'tddft_grad:itriplet_roots',
+     $         mt_int, 1, ival)
+            ok = ok .and. status
+            status = rtdb_put(rtdb, 'tddft_grad:iroots',
+     $         mt_int, 1, ival)
+            ok = ok .and. status
+         endif
       else
          status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
          ok = ok .and. status

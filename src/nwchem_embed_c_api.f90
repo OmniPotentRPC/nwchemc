@@ -848,7 +848,11 @@ contains
     if (len_trim(xcstr) > 0) then
       cfg_dft_xc = xcstr
       cfg_scf = xcstr
-      if (cfg_theory(1:3) /= 'dft') cfg_theory = 'dft'
+      ! DFT XC is the reference functional; do not clobber tddft/sodft theory.
+      if (cfg_theory(1:3) /= 'dft' .and. cfg_theory(1:5) /= 'tddft' .and. &
+          cfg_theory(1:5) /= 'sodft' .and. cfg_theory(1:8) /= 'rt_tddft') then
+        cfg_theory = 'dft'
+      end if
     end if
     cfg_dft_direct = int(direct_enabled)
     cfg_dft_smear_on = int(smearing_enabled)

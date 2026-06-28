@@ -5,7 +5,7 @@
   charge = 0,
   multiplicity = 1,
   task = "energy",
-  title = "H2 TDDFT energy",
+  title = "H2 TDDFT energy (singlet target root 1)",
   memoryMb = 512,
   inputStanzas = [
     (
@@ -20,7 +20,9 @@
       kind = tddft,
       tddft = (
         nroots = 1,
+        target = 1,
         singlet = enabled,
+        triplet = disabled,
         tda = enabled,
       )
     )
