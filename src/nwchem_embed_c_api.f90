@@ -1945,19 +1945,22 @@ contains
     integer(c_int) :: rc
     real(c_double) :: empty_cell(9)
     real(c_double) :: no_modes(1)
-    real(c_double) :: no_projected(1)
+    real(c_double) :: no_projected_freq(1)
+    real(c_double) :: no_projected_intensity(1)
     real(c_double) :: no_thermo(5)
     integer(c_int) :: no_cell
 
     empty_cell = 0.0_c_double
     no_modes = 0.0_c_double
-    no_projected = 0.0_c_double
+    no_projected_freq = 0.0_c_double
+    no_projected_intensity = 0.0_c_double
     no_thermo = 0.0_c_double
     no_cell = 0_c_int
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, empty_cell, no_cell, charge, mult, frequencies_cm1, &
-        intensities_au, no_modes, 0_c_int, no_projected, no_projected, &
-        0_c_int, no_thermo, 0_c_int, errmsg, errmsg_len)
+        intensities_au, no_modes, 0_c_int, no_projected_freq, &
+        no_projected_intensity, 0_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
   end function nwchemc_embed_frequencies
 
   !> Harmonic vibrational frequencies and dense Cartesian normal modes.
@@ -1977,18 +1980,21 @@ contains
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
     real(c_double) :: empty_cell(9)
-    real(c_double) :: no_projected(1)
+    real(c_double) :: no_projected_freq(1)
+    real(c_double) :: no_projected_intensity(1)
     real(c_double) :: no_thermo(5)
     integer(c_int) :: no_cell
 
     empty_cell = 0.0_c_double
-    no_projected = 0.0_c_double
+    no_projected_freq = 0.0_c_double
+    no_projected_intensity = 0.0_c_double
     no_thermo = 0.0_c_double
     no_cell = 0_c_int
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, empty_cell, no_cell, charge, mult, frequencies_cm1, &
-        intensities_au, normal_modes, 1_c_int, no_projected, no_projected, &
-        0_c_int, no_thermo, 0_c_int, errmsg, errmsg_len)
+        intensities_au, normal_modes, 1_c_int, no_projected_freq, &
+        no_projected_intensity, 0_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
   end function nwchemc_embed_frequencies_modes
 
   !> Harmonic vibrational frequencies with an optional 3x3 cell.
@@ -2009,16 +2015,19 @@ contains
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
     real(c_double) :: no_modes(1)
-    real(c_double) :: no_projected(1)
+    real(c_double) :: no_projected_freq(1)
+    real(c_double) :: no_projected_intensity(1)
     real(c_double) :: no_thermo(5)
 
     no_modes = 0.0_c_double
-    no_projected = 0.0_c_double
+    no_projected_freq = 0.0_c_double
+    no_projected_intensity = 0.0_c_double
     no_thermo = 0.0_c_double
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
-        intensities_au, no_modes, 0_c_int, no_projected, no_projected, &
-        0_c_int, no_thermo, 0_c_int, errmsg, errmsg_len)
+        intensities_au, no_modes, 0_c_int, no_projected_freq, &
+        no_projected_intensity, 0_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
   end function nwchemc_embed_frequencies_cell
 
   !> Harmonic vibrational frequencies and normal modes with an optional 3x3 cell.
@@ -2039,15 +2048,18 @@ contains
     character(kind=c_char), intent(out) :: errmsg(*)
     integer(c_int), intent(in), value :: errmsg_len
     integer(c_int) :: rc
-    real(c_double) :: no_projected(1)
+    real(c_double) :: no_projected_freq(1)
+    real(c_double) :: no_projected_intensity(1)
     real(c_double) :: no_thermo(5)
 
-    no_projected = 0.0_c_double
+    no_projected_freq = 0.0_c_double
+    no_projected_intensity = 0.0_c_double
     no_thermo = 0.0_c_double
     rc = nwchemc_embed_frequencies_impl(n_atoms, positions_ang, &
         atomic_numbers, cell_ang, has_cell, charge, mult, frequencies_cm1, &
-        intensities_au, normal_modes, 1_c_int, no_projected, no_projected, &
-        0_c_int, no_thermo, 0_c_int, errmsg, errmsg_len)
+        intensities_au, normal_modes, 1_c_int, no_projected_freq, &
+        no_projected_intensity, 0_c_int, no_thermo, 0_c_int, errmsg, &
+        errmsg_len)
   end function nwchemc_embed_frequencies_modes_cell
 
   !> Harmonic frequencies, normal modes, and thermochemistry with an optional cell.
