@@ -857,6 +857,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  force_input_h2_invalid_state_bin = custom_target(
+    'force_input_h2_invalid_state_bin',
+    input: 'tests/force_input_h2_invalid_state.capnp.txt',
+    output: 'force_input_h2_invalid_state.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'ForceInput',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   force_input_h2_box_ang_bin = custom_target(
     'force_input_h2_box_ang_bin',
     input: 'tests/force_input_h2_box_ang.capnp.txt',
@@ -1599,8 +1613,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-session-result',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_session_result_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_session_result_test, nwchem_params_bin, force_input_h2_eq_bin, force_input_h2_stretched_bin]
-        : [nwchem_params_bin, force_input_h2_eq_bin, force_input_h2_stretched_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_session_result_test, nwchem_params_bin, force_input_h2_eq_bin, force_input_h2_stretched_bin, force_input_h2_invalid_state_bin]
+        : [nwchem_params_bin, force_input_h2_eq_bin, force_input_h2_stretched_bin, force_input_h2_invalid_state_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )

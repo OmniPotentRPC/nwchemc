@@ -16,6 +16,7 @@
 static const char *g_params_path = NULL;
 static const char *g_step_eq_path = NULL;
 static const char *g_step_stretched_path = NULL;
+static const char *g_step_invalid_state_path = NULL;
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -463,6 +464,81 @@ static void test_session_named_energy_and_forces_results_reuse_config(
 
   nwchemc_session_destroy(session);
   free(step_stretched);
+  free(step_eq);
+  free(params);
+}
+
+static void test_session_gradient_result_rejects_invalid_step_state(
+    void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t params_size = 0;
+  size_t step_eq_size = 0;
+  size_t step_invalid_size = 0;
+  unsigned char *params = read_file(g_params_path, &params_size);
+  unsigned char *step_eq = read_file(g_step_eq_path, &step_eq_size);
+  unsigned char *step_invalid =
+      read_file(g_step_invalid_state_path, &step_invalid_size);
+  assert_non_null(params);
+  assert_non_null(step_eq);
+  assert_non_null(step_invalid);
+
+  size_t valid_capacity =
+      nwchemc_gradient_result_size_for_force_input(step_eq, step_eq_size);
+  size_t invalid_capacity = nwchemc_gradient_result_size_for_force_input(
+      step_invalid, step_invalid_size);
+  assert_true(valid_capacity > 0);
+  assert_int_equal(invalid_capacity, valid_capacity);
+
+  NWChemCSession *session = nwchemc_session_create(params, params_size);
+  assert_non_null(session);
+
+  unsigned char result_bytes[256];
+  size_t result_size = 0;
+  NWChemCResult first_status = nwchemc_session_calculate_gradient_result(
+      session, step_eq, step_eq_size, result_bytes, sizeof(result_bytes),
+      &result_size);
+  if (!first_status.ok)
+    fail_msg("initial nwchemc_session_calculate_gradient_result failed: %s",
+             first_status.message);
+  assert_int_equal(result_size, valid_capacity);
+  double first_energy = assert_potential_result_gradient(
+      result_bytes, result_size, first_status.energy_h);
+
+  double gradient[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_invalid = nwchemc_session_calculate_gradient(
+      session, step_invalid, step_invalid_size, gradient, 6);
+  assert_int_equal(raw_invalid.ok, 0);
+  assert_non_null(strstr(raw_invalid.message, "invalid ForceInput state"));
+
+  memset(result_bytes, 0, sizeof(result_bytes));
+  result_size = 0;
+  NWChemCResult carrier_invalid =
+      nwchemc_session_calculate_gradient_result(
+          session, step_invalid, step_invalid_size, result_bytes,
+          sizeof(result_bytes), &result_size);
+  assert_int_equal(carrier_invalid.ok, 0);
+  assert_non_null(strstr(carrier_invalid.message, "invalid ForceInput state"));
+  assert_int_equal(result_size, invalid_capacity);
+
+  memset(result_bytes, 0, sizeof(result_bytes));
+  result_size = 0;
+  NWChemCResult recovered_status =
+      nwchemc_session_calculate_gradient_result(
+          session, step_eq, step_eq_size, result_bytes, sizeof(result_bytes),
+          &result_size);
+  if (!recovered_status.ok)
+    fail_msg("recovered nwchemc_session_calculate_gradient_result failed: %s",
+             recovered_status.message);
+  assert_int_equal(result_size, valid_capacity);
+  double recovered_energy = assert_potential_result_gradient(
+      result_bytes, result_size, recovered_status.energy_h);
+  assert_close(recovered_status.energy_h, first_status.energy_h, 1.0e-10);
+  assert_close(recovered_energy, first_energy, 1.0e-10);
+
+  nwchemc_session_destroy(session);
+  free(step_invalid);
   free(step_eq);
   free(params);
 }
@@ -1182,19 +1258,23 @@ static void test_calculate_optimize_returns_final_geometry(void **state) {
 }
 
 int main(int argc, char **argv) {
-  if (argc != 4) {
+  if (argc != 5) {
     fprintf(stderr,
-            "usage: %s PARAMS_BIN FORCE_STEP_EQ_BIN FORCE_STEP_STRETCHED_BIN\n",
+            "usage: %s PARAMS_BIN FORCE_STEP_EQ_BIN FORCE_STEP_STRETCHED_BIN "
+            "FORCE_STEP_INVALID_STATE_BIN\n",
             argv[0]);
     return 2;
   }
   g_params_path = argv[1];
   g_step_eq_path = argv[2];
   g_step_stretched_path = argv[3];
+  g_step_invalid_state_path = argv[4];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_session_calculate_result_accepts_multiple_steps),
       cmocka_unit_test(
           test_session_named_energy_and_forces_results_reuse_config),
+      cmocka_unit_test(
+          test_session_gradient_result_rejects_invalid_step_state),
       cmocka_unit_test(test_session_named_property_and_structural_results),
       cmocka_unit_test(test_calculate_named_result_carriers_one_shot),
       cmocka_unit_test(test_session_coordinate_entry_points),
