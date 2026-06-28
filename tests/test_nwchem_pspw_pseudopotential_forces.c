@@ -137,6 +137,13 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   assert_non_null(config);
   assert_non_null(force_input);
 
+  NWChemCResult raw_energy_status = nwchemc_calculate_energy_from_config(
+      config, config_size, force_input, force_input_size);
+  if (!raw_energy_status.ok)
+    fail_msg("nwchemc_calculate_energy_from_config failed: %s",
+             raw_energy_status.message);
+  assert_true(isfinite(raw_energy_status.energy_h));
+
   double raw_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult raw_status = nwchemc_calculate_forces_from_config(
       config, config_size, force_input, force_input_size, raw_forces, 6);
@@ -201,6 +208,13 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
   assert_non_null(session);
+
+  NWChemCResult session_raw_energy_status =
+      nwchemc_session_calculate_energy(session, force_input, force_input_size);
+  if (!session_raw_energy_status.ok)
+    fail_msg("nwchemc_session_calculate_energy failed: %s",
+             session_raw_energy_status.message);
+  assert_true(isfinite(session_raw_energy_status.energy_h));
 
   double session_raw_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult session_raw_status = nwchemc_session_calculate_forces(
