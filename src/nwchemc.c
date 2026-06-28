@@ -1639,6 +1639,46 @@ static int append_tce_direct_values(
 
 static void finalize_at_exit(void) { nwchemc_finalize(); }
 
+/* Hot multi-call path: SocketNWChem reuses one NWChem process across POSDATA.
+ * Stateless energy_gradient used to call apply_config_to_embed (reset RTDB +
+ * full method setup) on *every* force, which destroys warm SCF and makes the
+ * in-process path slower than the socket. Cache last applied params blob and
+ * skip re-apply when unchanged (optimize steps / NEB images share method). */
+static unsigned char *g_applied_params_blob = NULL;
+static size_t g_applied_params_size = 0;
+static int g_cached_charge = 0;
+static int g_cached_mult = 1;
+
+static int params_blob_matches_applied(const void *params_capnp,
+                                       size_t params_capnp_size_bytes) {
+  if (!params_capnp || params_capnp_size_bytes == 0 || !g_applied_params_blob ||
+      g_applied_params_size != params_capnp_size_bytes)
+    return 0;
+  return memcmp(g_applied_params_blob, params_capnp, params_capnp_size_bytes) ==
+         0;
+}
+
+static void remember_applied_params_blob(const void *params_capnp,
+                                         size_t params_capnp_size_bytes,
+                                         int charge, int mult) {
+  if (!params_capnp || params_capnp_size_bytes == 0)
+    return;
+  if (g_applied_params_size != params_capnp_size_bytes ||
+      !g_applied_params_blob) {
+    free(g_applied_params_blob);
+    g_applied_params_blob =
+        (unsigned char *)malloc(params_capnp_size_bytes);
+    g_applied_params_size =
+        g_applied_params_blob ? params_capnp_size_bytes : 0;
+  }
+  if (g_applied_params_blob) {
+    memcpy(g_applied_params_blob, params_capnp, params_capnp_size_bytes);
+    g_applied_params_size = params_capnp_size_bytes;
+  }
+  g_cached_charge = charge;
+  g_cached_mult = mult > 0 ? mult : 1;
+}
+
 static void ensure_init(void) {
   if (!g_initialized) {
     nwchemc_embed_init();
@@ -4552,6 +4592,8 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
 
 int nwchemc_set_params(const void *params_capnp,
                        size_t params_capnp_size_bytes) {
+  if (params_blob_matches_applied(params_capnp, params_capnp_size_bytes))
+    return 0;
   struct capn arena;
   NWChemParams_ptr params_root;
   if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
@@ -4564,6 +4606,8 @@ int nwchemc_set_params(const void *params_capnp,
     return -1;
   }
   g_active_session = NULL;
+  remember_applied_params_blob(params_capnp, params_capnp_size_bytes,
+                               params.charge, params.multiplicity);
   nwchemc_params_release(&arena);
   return 0;
 }
@@ -4582,33 +4626,39 @@ NWChemCResult nwchemc_energy_gradient(
     return r;
   }
 
-  struct capn arena;
-  NWChemParams_ptr params_root;
-  if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
-                          &params_root) != 0) {
-    snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
-    return r;
-  }
+  int ch = g_cached_charge;
+  int mult = g_cached_mult;
+  if (!params_blob_matches_applied(params_capnp, params_capnp_size_bytes)) {
+    struct capn arena;
+    NWChemParams_ptr params_root;
+    if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
+                            &params_root) != 0) {
+      snprintf(r.message, sizeof(r.message), "invalid NWChemParams message");
+      return r;
+    }
 
-  struct NWChemParams params;
-  read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+    struct NWChemParams params;
+    read_NWChemParams(&params, params_root);
+    if (apply_config_to_embed(params_root, &params) != 0) {
+      nwchemc_params_release(&arena);
+      snprintf(r.message, sizeof(r.message), "embed config failed");
+      return r;
+    }
+    g_active_session = NULL;
+    ch = params.charge;
+    mult = params.multiplicity > 0 ? params.multiplicity : 1;
+    remember_applied_params_blob(params_capnp, params_capnp_size_bytes, ch,
+                                 mult);
     nwchemc_params_release(&arena);
-    snprintf(r.message, sizeof(r.message), "embed config failed");
-    return r;
   }
-  g_active_session = NULL;
 
   char errmsg[512];
   memset(errmsg, 0, sizeof(errmsg));
   int n = n_atoms;
-  int ch = params.charge;
-  int mult = params.multiplicity > 0 ? params.multiplicity : 1;
   double eh = 0.0;
   int rc = nwchemc_embed_energy_grad(&n, positions_ang, atomic_numbers, &ch,
                                      &mult, &eh, grad_h_bohr, errmsg,
                                      (int)sizeof(errmsg) - 1);
-  nwchemc_params_release(&arena);
   if (rc != 0) {
     snprintf(r.message, sizeof(r.message), "%s",
              errmsg[0] ? errmsg : "nwchem embed energy/grad failed");
