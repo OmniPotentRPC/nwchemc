@@ -34,26 +34,22 @@ ENERGY_RE_ALT = [
     re.compile(r"^\s*Total\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE | re.M),
 ]
 
-# NWChem prints gradients under several banners; capture triples of floats.
-GRAD_BLOCK_RE = re.compile(
-    r"(?:DFT\s+ENERGY\s+GRADIENTS|ENERGY\s+GRADIENTS|Nuclear\s+Gradient)"
-    r"[\s\S]{0,4000}?"
-    r"(?P<body>(?:^\s*(?:[A-Za-z]+\s+)?\d+\s+[-+0-9.Ee+]+\s+[-+0-9.Ee+]+\s+[-+0-9.Ee+]+.*$\n?)+)",
-    re.IGNORECASE | re.MULTILINE,
+# NWChem prints gradients under several banners; only search after a banner.
+GRAD_BANNER_RE = re.compile(
+    r"(?:DFT\s+ENERGY\s+GRADIENTS|RHF\s+ENERGY\s+GRADIENTS|ENERGY\s+GRADIENTS|"
+    r"Nuclear\s+Gradient)",
+    re.IGNORECASE,
 )
-GRAD_LINE_RE = re.compile(
-    r"^\s*(?:[A-Za-z]+\s+)?\d+\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)",
-    re.MULTILINE,
-)
+# Atom table: index symbol x y z gx gy gz (gradient columns are last three).
 GRAD_TABLE_LINE_RE = re.compile(
     r"^\s*\d+\s+[A-Za-z]+\s+"
     r"[-+0-9.Ee]+\s+[-+0-9.Ee]+\s+[-+0-9.Ee]+\s+"
     r"([-+0-9.Ee]+)\s+([-+0-9.Ee]+)\s+([-+0-9.Ee]+)",
     re.MULTILINE,
 )
-# Fallback: lines like "1     H     0.0000     0.0000    -0.0123" in gradient sections
-GRAD_LINE_ALT_RE = re.compile(
-    r"^\s*\d+\s+[A-Za-z]+\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)",
+# Compact: optional symbol before index, then three floats (legacy layouts).
+GRAD_LINE_RE = re.compile(
+    r"^\s*(?:[A-Za-z]+\s+)?\d+\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)\s+([-+0-9.Ee+]+)\s*$",
     re.MULTILINE,
 )
 
@@ -95,24 +91,24 @@ def parse_energy(text: str) -> float | None:
 
 
 def parse_gradient(text: str) -> list[float] | None:
-    """Return flat 3*N gradient in Ha/Bohr if parsable, else None."""
+    """Return flat 3*N gradient in Ha/Bohr if parsable, else None.
+
+    Only searches after a recognized NWChem gradient banner so energy-only
+    runs (which may mention "gradient" in prose) do not invent triples from
+    unrelated coordinate tables.
+    """
+    m = GRAD_BANNER_RE.search(text)
+    if not m:
+        return None
+    # Cap scan window to avoid later modules; prefer table lines (6 floats).
+    search_text = text[m.start() : m.start() + 8000]
     grads: list[float] = []
-    m = GRAD_BLOCK_RE.search(text)
-    search_text = m.group("body") if m else text
     for line_m in GRAD_TABLE_LINE_RE.finditer(search_text):
         grads.extend(float(line_m.group(i)) for i in (1, 2, 3))
     if grads:
         return grads
-    for rx in (GRAD_LINE_RE, GRAD_LINE_ALT_RE):
-        grads = []
-        for line_m in rx.finditer(search_text):
-            grads.extend(float(line_m.group(i)) for i in (1, 2, 3))
-        if grads:
-            return grads
-    # Last resort: scan whole file for atom gradient triples after "gradient"
-    if "gradient" not in text.lower():
-        return None
-    for line_m in GRAD_LINE_ALT_RE.finditer(text):
+    grads = []
+    for line_m in GRAD_LINE_RE.finditer(search_text):
         grads.extend(float(line_m.group(i)) for i in (1, 2, 3))
     return grads if grads else None
 

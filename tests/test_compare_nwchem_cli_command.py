@@ -93,6 +93,19 @@ class CompareNWChemCommandTest(unittest.TestCase):
             [0.0, 0.0, -0.028956, 0.0, 0.0, 0.028956],
         )
 
+    def test_parse_gradient_ignores_energy_only_stdout_with_gradient_word(self):
+        compare = load_compare()
+        # Energy-only SCF output may mention "gradient" in module lists/prose
+        # without a gradient table; parser must not invent triples.
+        text = """
+         Total SCF energy =     -1.116684390014
+
+         NWChem Gradients Module is not requested for this task.
+         1 H   0.000000   0.000000  -0.370700
+         2 H   0.000000   0.000000   0.370700
+"""
+        self.assertIsNone(compare.parse_gradient(text))
+
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())
