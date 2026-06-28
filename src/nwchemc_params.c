@@ -346,7 +346,10 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(dft.directives);
   if (has_directives < 0)
     return -1;
-  if (!include_direct_promoted && !has_directives)
+  /* iterations/grid are text-path fields (like SCF wavefunction/nopen): always
+   * emit so embed render (include_direct_promoted=0) still reaches NWChem. */
+  int has_text_controls = dft.iterations > 0 || dft.grid.len > 0;
+  if (!include_direct_promoted && !has_directives && !has_text_controls)
     return 0;
   if (append_format(block, sizeof(block), "dft\n") != 0)
     return -1;
@@ -370,11 +373,11 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
-  if (include_direct_promoted && dft.iterations > 0 &&
+  if (dft.iterations > 0 &&
       append_format(block, sizeof(block), "  iterations %d\n",
                     dft.iterations) != 0)
     return -1;
-  if (include_direct_promoted && dft.grid.len > 0) {
+  if (dft.grid.len > 0) {
     if (append_format(block, sizeof(block), "  grid ") != 0 ||
         append_text(block, sizeof(block), dft.grid) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)

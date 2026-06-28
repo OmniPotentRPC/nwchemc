@@ -246,6 +246,96 @@ static void test_render_structured_dft_full_and_embed(void **state) {
   free(message);
 }
 
+static capn_text test_text_from_cstr(const char *s) {
+  capn_text text;
+  text.len = s ? (int)strlen(s) : 0;
+  text.str = s ? s : "";
+  text.seg = NULL;
+  return text;
+}
+
+/* Build NWChemParams with SCF wf/nopen + DFT iterations/grid; drive shipped
+ * full vs embed renderers (no fixture reimplementation of render logic). */
+static void test_render_scf_wf_and_dft_text_controls_full_and_embed(
+    void **state) {
+  (void)state;
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  assert_int_not_equal(root.type, CAPN_NULL);
+  NWChemParams_ptr params_root = new_NWChemParams(root.seg);
+  assert_int_not_equal(params_root.p.type, CAPN_NULL);
+
+  struct NWChemScfStanza scf;
+  memset(&scf, 0, sizeof(scf));
+  scf.wavefunctionType = test_text_from_cstr("uhf");
+  scf.nopen = 1;
+  scf.maxiter = 40;
+  scf.thresh = 1.0e-6;
+
+  struct NWChemDftStanza dft;
+  memset(&dft, 0, sizeof(dft));
+  dft.xc = test_text_from_cstr("blyp");
+  dft.direct = 1;
+  dft.iterations = 77;
+  dft.grid = test_text_from_cstr("xfine");
+
+  struct NWChemInputStanza scf_stanza;
+  memset(&scf_stanza, 0, sizeof(scf_stanza));
+  scf_stanza.kind = NWChemInputStanza_Kind_scf;
+  scf_stanza.scf = new_NWChemScfStanza(root.seg);
+  write_NWChemScfStanza(&scf, scf_stanza.scf);
+
+  struct NWChemInputStanza dft_stanza;
+  memset(&dft_stanza, 0, sizeof(dft_stanza));
+  dft_stanza.kind = NWChemInputStanza_Kind_dft;
+  dft_stanza.dft = new_NWChemDftStanza(root.seg);
+  write_NWChemDftStanza(&dft, dft_stanza.dft);
+
+  struct NWChemParams view;
+  memset(&view, 0, sizeof(view));
+  view.basis = test_text_from_cstr("sto-3g");
+  view.theory = test_text_from_cstr("scf");
+  view.scfType = test_text_from_cstr("rhf");
+  view.task = test_text_from_cstr("energy");
+  view.multiplicity = 1;
+  view.inputStanzas = new_NWChemInputStanza_list(root.seg, 2);
+  set_NWChemInputStanza(&scf_stanza, view.inputStanzas, 0);
+  set_NWChemInputStanza(&dft_stanza, view.inputStanzas, 1);
+  write_NWChemParams(&view, params_root);
+  assert_int_equal(capn_setp(root, 0, params_root.p), 0);
+
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(params_root, full_blocks,
+                                                      sizeof(full_blocks)),
+                   0);
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+
+  assert_render_contains(full_blocks, "scf\n");
+  assert_render_contains(full_blocks, "uhf");
+  assert_render_contains(full_blocks, "nopen 1");
+  assert_render_contains(full_blocks, "maxiter 40");
+  assert_render_contains(full_blocks, "dft\n");
+  assert_render_contains(full_blocks, "xc blyp");
+  assert_render_contains(full_blocks, "iterations 77");
+  assert_render_contains(full_blocks, "grid xfine");
+
+  assert_render_contains(embed_blocks, "scf\n");
+  assert_render_contains(embed_blocks, "uhf");
+  assert_render_contains(embed_blocks, "nopen 1");
+  assert_null(strstr(embed_blocks, "maxiter 40"));
+  assert_render_contains(embed_blocks, "dft\n");
+  assert_render_contains(embed_blocks, "iterations 77");
+  assert_render_contains(embed_blocks, "grid xfine");
+  assert_null(strstr(embed_blocks, "xc blyp"));
+  assert_null(strstr(embed_blocks, "  direct"));
+
+  nwchemc_params_release(&arena);
+}
+
 static void test_render_rejects_null_dst(void **state) {
   (void)state;
   assert_non_null(g_config_options_path);
@@ -286,6 +376,7 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_render_config_options_stanzas),
       cmocka_unit_test(test_render_structured_dft_full_and_embed),
+      cmocka_unit_test(test_render_scf_wf_and_dft_text_controls_full_and_embed),
       cmocka_unit_test(test_render_rejects_null_dst),
       cmocka_unit_test(test_params_root_rejects_empty),
   };
