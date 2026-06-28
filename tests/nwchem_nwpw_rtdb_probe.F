@@ -8,12 +8,12 @@
       integer rtdb, init_ok, finish_ok, owns_mpi
       integer i, j
       integer typed_count
-      integer typed_types(36)
-      integer typed_value_counts(36)
+      integer typed_types(41)
+      integer typed_value_counts(41)
       integer ivals(3)
       integer ival
-      character*128 typed_keys(36)
-      character*256 typed_values(64,36)
+      character*128 typed_keys(41)
+      character*256 typed_values(64,41)
       save typed_values
       character*256 text_value
       character*256 errmsg
@@ -34,7 +34,7 @@
          return
       endif
 
-      do i = 1, 36
+      do i = 1, 41
          typed_keys(i) = ' '
          typed_types(i) = 0
          typed_value_counts(i) = 0
@@ -42,7 +42,7 @@
             typed_values(j,i) = ' '
          enddo
       enddo
-      typed_count = 36
+      typed_count = 41
       typed_keys(1) = 'nwpw:balance'
       typed_types(1) = 4
       typed_value_counts(1) = 1
@@ -200,6 +200,26 @@
       typed_types(36) = 4
       typed_value_counts(36) = 1
       typed_values(1,36) = 'false'
+      typed_keys(37) = 'nwpw:kerker_g0'
+      typed_types(37) = 2
+      typed_value_counts(37) = 1
+      typed_values(1,37) = '0.375'
+      typed_keys(38) = 'nwpw:ks_alpha'
+      typed_types(38) = 2
+      typed_value_counts(38) = 1
+      typed_values(1,38) = '0.125'
+      typed_keys(39) = 'nwpw:ks_maxit_orb'
+      typed_types(39) = 3
+      typed_value_counts(39) = 1
+      typed_values(1,39) = '12'
+      typed_keys(40) = 'nwpw:ks_maxit_orbs'
+      typed_types(40) = 3
+      typed_value_counts(40) = 1
+      typed_values(1,40) = '4'
+      typed_keys(41) = 'nwpw:diis_histories'
+      typed_types(41) = 3
+      typed_value_counts(41) = 1
+      typed_values(1,41) = '6'
 
       call nwchemc_apply_direct_typed_sets(rtdb, typed_count,
      $     typed_keys, typed_types, typed_value_counts, typed_values,
@@ -544,10 +564,55 @@
          result = 81
          goto 900
       endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:kerker_g0', 1, dvals)) then
+         result = 82
+         goto 900
+      endif
+      if (dabs(dvals(1) - 0.375d0) .gt. 1.0d-12) then
+         result = 83
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:ks_alpha', 1, dvals)) then
+         result = 84
+         goto 900
+      endif
+      if (dabs(dvals(1) - 0.125d0) .gt. 1.0d-12) then
+         result = 85
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:ks_maxit_orb', ival)) then
+         result = 86
+         goto 900
+      endif
+      if (ival .ne. 12) then
+         result = 87
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:ks_maxit_orbs', ival)) then
+         result = 88
+         goto 900
+      endif
+      if (ival .ne. 4) then
+         result = 89
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:diis_histories', ival)) then
+         result = 90
+         goto 900
+      endif
+      if (ival .ne. 6) then
+         result = 91
+         goto 900
+      endif
 
  900  continue
       finish_ok = 0
       call nwchem_legacy_finalize(rtdb, owns_mpi, finish_ok)
-      if ((finish_ok .ne. 0) .and. (result .eq. 0)) result = 90
+      if ((finish_ok .ne. 0) .and. (result .eq. 0)) result = 100
       return
       end
