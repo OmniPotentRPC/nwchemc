@@ -2067,6 +2067,18 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemPseudopotentialStanza.blockName",
+      "schema_path": "NWChemPseudopotentialStanza.blockName",
+      "struct": "NWChemPseudopotentialStanza",
+      "name": "blockName",
+      "field_id": 7,
+      "type": "NWChemPseudopotentialBlockName = pseudopotentials",
+      "role": "NWChemPseudopotentialStanza.blockName Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemKVector.x",
       "schema_path": "NWChemKVector.x",
       "struct": "NWChemKVector",

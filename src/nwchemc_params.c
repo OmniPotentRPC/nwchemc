@@ -646,6 +646,17 @@ static int render_pseudopotential_entries(
   return 0;
 }
 
+static const char *pseudopotential_block_name_literal(
+    enum NWChemPseudopotentialBlockName block_name) {
+  switch (block_name) {
+  case NWChemPseudopotentialBlockName_pseudopotentialLibraries:
+    return "pseudopotential_libraries";
+  case NWChemPseudopotentialBlockName_pseudopotentials:
+  default:
+    return "pseudopotentials";
+  }
+}
+
 static const char *pseudopotential_spin_literal(
     enum NWChemPseudopotentialSpinMode spin_mode) {
   switch (spin_mode) {
@@ -806,7 +817,9 @@ static int render_pseudopotential_stanza(NWChemPseudopotentialStanza_ptr ptr,
   if (append_format(block, sizeof(block), "nwpw\n") != 0)
     return -1;
   if (include_direct_entries && has_entries) {
-    if (append_format(block, sizeof(block), "  pseudopotentials\n") != 0 ||
+    if (append_format(block, sizeof(block), "  %s\n",
+                      pseudopotential_block_name_literal(
+                          pseudopotential.blockName)) != 0 ||
         render_pseudopotential_entries(pseudopotential.entries, block,
                                        sizeof(block)) != 0 ||
         append_format(block, sizeof(block), "  end\n") != 0)

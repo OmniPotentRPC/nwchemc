@@ -189,6 +189,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemPseudopotentialStanza.semicoreSmall", "NWChemPseudopotentialStanza.semicoreSmall", "NWChemPseudopotentialStanza.semicoreSmall Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 1},
     {"field.NWChemPseudopotentialStanza.uterm", "NWChemPseudopotentialStanza.uterm", "NWChemPseudopotentialStanza.uterm Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 1},
     {"field.NWChemPseudopotentialStanza.utermRules", "NWChemPseudopotentialStanza.utermRules", "NWChemPseudopotentialStanza.utermRules Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 1},
+    {"field.NWChemPseudopotentialStanza.blockName", "NWChemPseudopotentialStanza.blockName", "NWChemPseudopotentialStanza.blockName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 1},
     {"field.NWChemKVector.x", "NWChemKVector.x", "NWChemKVector.x Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemKVector.y", "NWChemKVector.y", "NWChemKVector.y Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemKVector.z", "NWChemKVector.z", "NWChemKVector.z Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 1},
@@ -694,7 +695,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 689;
+static const size_t k_feature_count = 690;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

@@ -251,6 +251,11 @@ struct NWChemPseudopotentialUtermRule {
   }
 }
 
+enum NWChemPseudopotentialBlockName {
+  pseudopotentials        @0; # Emit NWChem "pseudopotentials".
+  pseudopotentialLibraries @1; # Emit NWChem "pseudopotential_libraries" alias.
+}
+
 struct NWChemPseudopotentialStanza {
   entries    @0 :List(NWChemPseudopotentialEntry);
   directives @1 :List(NWChemDirective); # Extra nwpw directives near the block.
@@ -259,6 +264,7 @@ struct NWChemPseudopotentialStanza {
   semicoreSmall @4 :NWChemToggle = unspecified; # Promote nwpw:psp:semicore_small.
   uterm      @5 :NWChemToggle = unspecified; # Emit/promote NWPW uterm on/off.
   utermRules @6 :List(NWChemPseudopotentialUtermRule); # Emit/promote indexed uterm rules.
+  blockName  @7 :NWChemPseudopotentialBlockName = pseudopotentials; # Select the NWChem pseudopotential block spelling.
 }
 
 struct NWChemKVector {
