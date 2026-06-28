@@ -124,6 +124,42 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
   assert_int_equal(result_size, result_capacity);
   assert_potential_result_forces(result_bytes, result_size);
 
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config, config_size);
+  assert_non_null(session);
+
+  memset(result_bytes, 0, result_capacity);
+  result_size = 0;
+  NWChemCResult session_result_status = nwchemc_session_calculate_result(
+      session, force_input, force_input_size, result_bytes, result_capacity,
+      &result_size);
+  if (!session_result_status.ok)
+    fail_msg("nwchemc_session_calculate_result failed: %s",
+             session_result_status.message);
+  assert_true(isfinite(session_result_status.energy_h));
+  assert_int_equal(result_size, result_capacity);
+  assert_potential_result_forces(result_bytes, result_size);
+
+  size_t forces_capacity =
+      nwchemc_forces_result_size_for_force_input(force_input,
+                                                 force_input_size);
+  assert_true(forces_capacity > 0);
+  unsigned char *forces_bytes = (unsigned char *)malloc(forces_capacity);
+  assert_non_null(forces_bytes);
+  size_t forces_size = 0;
+  NWChemCResult session_forces_status =
+      nwchemc_session_calculate_forces_result(
+          session, force_input, force_input_size, forces_bytes,
+          forces_capacity, &forces_size);
+  if (!session_forces_status.ok)
+    fail_msg("nwchemc_session_calculate_forces_result failed: %s",
+             session_forces_status.message);
+  assert_true(isfinite(session_forces_status.energy_h));
+  assert_int_equal(forces_size, forces_capacity);
+  assert_potential_result_forces(forces_bytes, forces_size);
+
+  nwchemc_session_destroy(session);
+  free(forces_bytes);
   free(result_bytes);
   free(force_input);
   free(config);

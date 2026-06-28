@@ -575,7 +575,8 @@ link. It renders the full ~nwpw / pseudopotentials~ block, parses it with
 ~not_m~, semicore, and ~uterm~ RTDB keys that the direct path writes.
 The ~nwchem-pspw-pseudopotential-forces~ smoke runs a Si PSPW force step whose
 structured pseudopotential entry matches the Si atoms in ~ForceInput~ and
-verifies finite ~PotentialResult.energy~ and ~PotentialResult.forces~ values.
+verifies finite ~PotentialResult.energy~ and ~PotentialResult.forces~ values
+through one-shot and session result-carrier entry points.
 The ~nwchem-nwpw-rtdb~ probe also installs a configured
 ~PotentialConfig.nwchem~ fixture and verifies the same NWPW control families
 against the embedded RTDB handle, including string-valued ~vfieldFilenames~

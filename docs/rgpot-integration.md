@@ -97,7 +97,7 @@ above and these probes are green:
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
 | Hessian, dipole, polarizability, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
 | Periodic PSPW stress raw buffer and result carrier | `tests/test_nwchem_stress.c` |
-| PSPW pseudopotential energy and forces result carrier | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
+| PSPW pseudopotential energy and forces one-shot/session result carriers | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
 | `ForceInput.box` cell-vector RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
 | Structured pseudopotential RTDB storage from `PotentialConfig.nwchem` | `tests/test_nwchem_potential_config_pseudopotential.c` |
 | Configured NWPW periodic controls reaching embedded RTDB | `tests/test_nwchem_nwpw_rtdb.c` |
