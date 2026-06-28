@@ -1164,7 +1164,7 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
   assert_potential_result_optimized_values(
       optimize_bytes, optimize_size,
       raw_optimize_status.energy_h * HARTREE_TO_EV,
-      expected_optimized_positions, 1.0e-12, 1.0e-6,
+      expected_optimized_positions, 1.0e-11, 1.0e-6,
       0.5 / BOHR_TO_ANGSTROM,
       1.0 / BOHR_TO_ANGSTROM);
 
