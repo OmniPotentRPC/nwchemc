@@ -2723,6 +2723,126 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
   free(message);
 }
 
+/* Typed-only SCF wavefunctionType/nopen + DFT iterations: set_params must RTDB
+ * promote (scf:scftype, scf:nopen, dft:iterations) and omit those lines from
+ * embed-rendered input_blocks (shipped apply path, not strings(1) theater). */
+static void test_embed_promotes_typed_scf_wf_nopen_and_dft_iterations(
+    void **state) {
+  (void)state;
+  reset_embed_captures();
+
+  struct capn arena;
+  capn_init_malloc(&arena);
+  capn_ptr root = capn_root(&arena);
+  assert_int_not_equal(root.type, CAPN_NULL);
+  NWChemParams_ptr params = new_NWChemParams(root.seg);
+  assert_int_not_equal(params.p.type, CAPN_NULL);
+
+  struct NWChemScfStanza scf;
+  memset(&scf, 0, sizeof(scf));
+  scf.wavefunctionType = test_text_from_cstr("uhf");
+  scf.nopen = 2;
+
+  struct NWChemDftStanza dft;
+  memset(&dft, 0, sizeof(dft));
+  dft.iterations = 88;
+
+  struct NWChemInputStanza scf_stanza;
+  memset(&scf_stanza, 0, sizeof(scf_stanza));
+  scf_stanza.kind = NWChemInputStanza_Kind_scf;
+  scf_stanza.scf = new_NWChemScfStanza(root.seg);
+  write_NWChemScfStanza(&scf, scf_stanza.scf);
+
+  struct NWChemInputStanza dft_stanza;
+  memset(&dft_stanza, 0, sizeof(dft_stanza));
+  dft_stanza.kind = NWChemInputStanza_Kind_dft;
+  dft_stanza.dft = new_NWChemDftStanza(root.seg);
+  write_NWChemDftStanza(&dft, dft_stanza.dft);
+
+  struct NWChemParams view;
+  memset(&view, 0, sizeof(view));
+  view.basis = test_text_from_cstr("sto-3g");
+  view.theory = test_text_from_cstr("scf");
+  view.scfType = test_text_from_cstr("rhf");
+  view.task = test_text_from_cstr("energy");
+  view.multiplicity = 1;
+  view.inputStanzas = new_NWChemInputStanza_list(root.seg, 2);
+  set_NWChemInputStanza(&scf_stanza, view.inputStanzas, 0);
+  set_NWChemInputStanza(&dft_stanza, view.inputStanzas, 1);
+  write_NWChemParams(&view, params);
+  assert_int_equal(capn_setp(root, 0, params.p), 0);
+
+  size_t capacity = 4096u;
+  unsigned char *buffer = NULL;
+  int written = -1;
+  for (int attempt = 0; attempt < 6 && written < 0; ++attempt) {
+    unsigned char *next = (unsigned char *)realloc(buffer, capacity);
+    assert_non_null(next);
+    buffer = next;
+    written = capn_write_mem(&arena, buffer, capacity, 0);
+    capacity *= 2u;
+  }
+  assert_true(written > 0);
+  capn_free(&arena);
+
+  assert_int_equal(nwchemc_set_params(buffer, (size_t)written), 0);
+  assert_int_equal(g_set_config_calls, 1);
+
+  struct capn render_arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(buffer, (size_t)written, &render_arena, &params_root),
+      0);
+  char full_blocks[NWCHEMC_BLOCKS];
+  char embed_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, full_blocks, sizeof(full_blocks)),
+                   0);
+  assert_int_equal(nwchemc_params_render_embed_input_blocks(
+                       params_root, embed_blocks, sizeof(embed_blocks)),
+                   0);
+  assert_non_null(strstr(full_blocks, "uhf"));
+  assert_non_null(strstr(full_blocks, "nopen 2"));
+  assert_non_null(strstr(full_blocks, "iterations 88"));
+  assert_null(strstr(embed_blocks, "uhf"));
+  assert_null(strstr(embed_blocks, "nopen 2"));
+  assert_null(strstr(embed_blocks, "iterations 88"));
+  nwchemc_params_release(&render_arena);
+
+  int found_scftype = 0;
+  for (int i = 0; i < g_set_string_count; ++i) {
+    if (strcmp(g_set_keys[i], "scf:scftype") == 0) {
+      assert_string_equal(g_set_values[i], "uhf");
+      found_scftype = 1;
+    }
+  }
+  assert_int_equal(found_scftype, 1);
+
+  int found_nopen = 0;
+  int found_iterations = 0;
+  for (int i = 0; i < g_typed_set_count; ++i) {
+    if (strcmp(g_typed_set_keys[i], "scf:nopen") == 0) {
+      assert_int_equal(g_typed_set_types[i], NWCHEMC_DIRECT_SET_VALUE_INTEGER);
+      assert_int_equal(g_typed_set_value_counts[i], 1);
+      assert_string_equal(g_typed_set_values[i][0], "2");
+      found_nopen = 1;
+    } else if (strcmp(g_typed_set_keys[i], "dft:iterations") == 0) {
+      assert_int_equal(g_typed_set_types[i], NWCHEMC_DIRECT_SET_VALUE_INTEGER);
+      assert_int_equal(g_typed_set_value_counts[i], 1);
+      assert_string_equal(g_typed_set_values[i][0], "88");
+      found_iterations = 1;
+    }
+  }
+  assert_int_equal(found_nopen, 1);
+  assert_int_equal(found_iterations, 1);
+
+  assert_null(strstr(g_input_blocks, "uhf"));
+  assert_null(strstr(g_input_blocks, "nopen 2"));
+  assert_null(strstr(g_input_blocks, "iterations 88"));
+
+  free(buffer);
+}
+
 static void test_configure_accepts_potential_config_nwchem(void **state) {
   (void)state;
   reset_embed_captures();
@@ -6941,6 +7061,8 @@ int main(int argc, char **argv) {
   g_brillouin_monkhorst_default_path = argv[36];
   g_brillouin_dos_grid_default_path = argv[37];
   const struct CMUnitTest tests[] = {
+      cmocka_unit_test(
+          test_embed_promotes_typed_scf_wf_nopen_and_dft_iterations),
       cmocka_unit_test(test_embed_config_uses_direct_dft_values),
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
       cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),

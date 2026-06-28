@@ -313,12 +313,18 @@ The special ~exchange_correlation new ...~ grammar remains represented with
 * DFT Controls
 ~NWChemDftStanza~ provides typed fields for common DFT setup:
 
-| Field | NWChem text |
-|-------+-------------|
-| ~xc~ | ~xc <value>~ |
-| ~direct~ | ~direct~ |
-| ~smearing.sigmaHartree~ | ~smear <sigma> fixsz~ or ~smear <sigma> nofixsz~ |
-| ~directives~ | Extra tokenized DFT directives. |
+| Field | Full deck text | Embed apply path |
+|-------+----------------+------------------|
+| ~xc~ | ~xc <value>~ | RTDB / ~cfg_dft_xc~ via ~embed_set_dft_direct~; omitted from embed render |
+| ~direct~ | ~direct~ | ~dft:direct~ (legacy RTDB setup); omitted from embed render |
+| ~smearing.sigmaHartree~ | ~smear <sigma> fixsz~ or ~nofixsz~ | ~dft:smear_sigma~ / ~dft:spinset~; omitted from embed render |
+| ~iterations~ | ~iterations <n>~ when ~>0~ | RTDB ~dft:iterations~; omitted from embed render |
+| ~grid~ | ~grid <token>~ | Text on full and embed (no stable multi-token RTDB key) |
+| ~energyConv~ / ~densityConv~ / ~gradientConv~ | ~convergence energy/density/gradient~ | RTDB ~dft:e_conv~ / ~d_conv~ / ~g_conv~; omitted from embed render |
+| ~odft~ | ~odft~ | ~dft:ipol=2~; omitted from embed render |
+| ~diis~ / ~nfock~ / ~levelShift~ | convergence DIIS / lshift lines | ~dft:diis~ / ~nfock~ / ~rlshift~; omitted from embed render |
+| ~vectorsInput~ / ~vectorsOutput~ | ~vectors input/output <path>~ | ~dft:input vectors~ / ~dft:output vectors~; omitted from embed render |
+| ~directives~ | Extra tokenized DFT directives | Text (long-tail escape hatch) |
 
 Fermi smearing and related occupancy controls can also be expressed with
 ~NWChemSetDirective~, for example RTDB keys under ~dft:*~, or with explicit DFT
@@ -340,15 +346,19 @@ handler names derived from the local NWChem source tree.
 ~NWChemScfStanza~ covers common HF/SCF setup that complements top-level
 ~scfType~ (rhf/uhf/...). Typed fields:
 
-| Field | NWChem text |
-|-------+-------------|
-| ~vectorsInput~ | ~vectors input <path>~ |
-| ~vectorsOutput~ | ~vectors output <path>~ |
-| ~maxiter~ | Full input emits ~maxiter <n>~; embed writes ~scf:maxiter~ or ~dft:iterations~ directly. |
-| ~thresh~ | Full input emits ~thresh <value>~; embed writes ~scf:thresh~ directly. |
-| ~tol2e~ | Full input emits ~tol2e <value>~; embed writes ~scf:tol2e~ or ~dft:tol2e~ directly. |
-| ~noprint~ | ~noprint~ |
-| ~directives~ | Extra SCF directives (convergence, semidirect, ...). |
+| Field | Full deck text | Embed apply path |
+|-------+----------------+------------------|
+| ~wavefunctionType~ | ~<rhf\|uhf\|rohf\|...>~ line in ~scf~ block | RTDB ~scf:scftype~; omitted from embed render |
+| ~nopen~ | ~nopen <n>~ when ~>=0~ | RTDB ~scf:nopen~; omitted from embed render |
+| ~vectorsInput~ | ~vectors input <path>~ | RTDB ~scf:input vectors~; omitted from embed render |
+| ~vectorsOutput~ | ~vectors output <path>~ | RTDB ~scf:output vectors~; omitted from embed render |
+| ~maxiter~ | ~maxiter <n>~ | ~scf:maxiter~ via ~embed_set_scf_direct~; omitted from embed render |
+| ~thresh~ | ~thresh <value>~ | ~scf:thresh~ via ~embed_set_scf_direct~; omitted from embed render |
+| ~tol2e~ | ~tol2e <value>~ | ~scf:tol2e~ (or DFT ~dft:tol2e~ where shared); omitted from embed render |
+| ~diis~ / ~diisBas~ / ~maxsub~ | ~diis~ / ~diis <n>~ / ~maxsub <n>~ | ~scf:diis~ / ~diisbas~ / ~maxsub~; omitted from embed render |
+| ~lock~ / ~adapt~ / ~noscf~ | toggle keywords | ~scf:lock~ / ~adapt~ / ~noscf~; omitted from embed render |
+| ~noprint~ | ~noprint~ | Text on full and embed (no single RTDB flag) |
+| ~directives~ | Extra SCF directives (convergence, semidirect, ...) | Text (long-tail escape hatch) |
 
 * CCSD Controls
 ~NWChemCcsdStanza~ covers classic molecular CCSD scalar controls from

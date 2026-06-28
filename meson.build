@@ -1499,6 +1499,7 @@ nwchem_config_options_params_bin = custom_target(
         : [potential_config_structured_bin, force_input_h2_eq_bin, force_input_h2_ev_bin, force_input_h2_bohr_ev_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
+      timeout: 600,
     )
     nwchem_potential_config_pseudopotential_test = executable(
       'test_nwchem_potential_config_pseudopotential',
@@ -1629,6 +1630,7 @@ nwchem_config_options_params_bin = custom_target(
         : [nwchem_params_bin, force_input_h2_eq_bin, force_input_h2_stretched_bin, force_input_h2_invalid_state_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
+      timeout: 600,
     )
     nwchem_hessian_test = executable(
       'test_nwchem_hessian',
@@ -1823,8 +1825,10 @@ nwchem_config_options_params_bin = custom_target(
         meson.current_build_dir() / 'installed-pkgconfig-consumer-prefix',
         '--meson',
         meson_prog.full_path(),
+        # Prefer real compiler over sccache launcher so consumer builds work
+        # when the launcher binary is missing or misconfigured.
         '--cc',
-        cc.cmd_array()[0],
+        cc.cmd_array().length() > 1 ? cc.cmd_array()[1] : cc.cmd_array()[0],
         '--pkg-config',
         pkg_config_prog.full_path(),
         '--nwchem-root',
