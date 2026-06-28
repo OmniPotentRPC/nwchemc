@@ -1,0 +1,20 @@
+(
+  basis = "sto-3g",
+  theory = "dft",
+  scfType = "b3lyp",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "H2 DFT B3LYP energy",
+  memoryMb = 512,
+  inputStanzas = [
+    (
+      kind = dft,
+      dft = (
+        xc = "b3lyp",
+        direct = true,
+        iterations = 50,
+      )
+    )
+  ],
+)

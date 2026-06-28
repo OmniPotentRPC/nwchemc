@@ -1,0 +1,14 @@
+echo
+start h2_dft
+geometry units angstrom
+  H 0 0 -0.3707
+  H 0 0  0.3707
+end
+basis
+  * library sto-3g
+end
+dft
+  xc b3lyp
+  direct
+end
+task dft energy

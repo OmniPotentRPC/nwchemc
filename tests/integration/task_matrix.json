@@ -76,6 +76,36 @@
       "embed_compare": false,
       "embed_meson_test": "nwchem-postscf-energy-tce",
       "notes": "CLI task tce energy; embed nwchemc_energy theory=tce + tce:model ccsd"
+    },
+    {
+      "id": "h2_dft_energy",
+      "nw_input": "tests/integration/nw/h2_dft_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-dft",
+      "notes": "CLI task dft energy; embed theory=dft B3LYP"
+    },
+    {
+      "id": "h2_rimp2_energy",
+      "nw_input": "tests/integration/nw/h2_rimp2_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-rimp2",
+      "notes": "CLI task rimp2 energy; embed theory=rimp2"
+    },
+    {
+      "id": "h2_tce_ccsdt_energy",
+      "nw_input": "tests/integration/nw/h2_tce_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-tce-ccsdt",
+      "notes": "CLI tce; embed TCE model ccsd + perturbative (t)"
     }
   ]
 }

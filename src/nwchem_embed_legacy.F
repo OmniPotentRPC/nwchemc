@@ -2773,6 +2773,33 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
       subroutine nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
      $     basis_name, errmsg, ok)
       implicit none
+      integer rtdb, n_atoms
+      integer atmnrs(*)
+      character*(*) basis_name
+      character*(*) errmsg
+      logical ok
+      logical status
+
+      ok = .false.
+      if (n_atoms .le. 0) then
+         errmsg = 'invalid basis atom count'
+         return
+      endif
+c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
+      call nwchemc_store_one_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, 'ao basis', errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_one_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, 'ri-mp2 basis', errmsg, status)
+      if (.not. status) return
+      ok = .true.
+      errmsg = 'ok'
+      return
+      end
+
+      subroutine nwchemc_store_one_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, rtdb_key, errmsg, ok)
+      implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
 #include "stdio.fh"
@@ -2781,6 +2808,7 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
       integer rtdb, n_atoms
       integer atmnrs(*)
       character*(*) basis_name
+      character*(*) rtdb_key
       character*(*) errmsg
       logical ok
       integer iat, j, nlib, ntags, basis, alloc_status
@@ -2801,10 +2829,6 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
       logical bas_set_spherical
 
       ok = .false.
-      if (n_atoms .le. 0) then
-         errmsg = 'invalid basis atom count'
-         return
-      endif
       allocate(tags(n_atoms), stat=alloc_status)
       if (alloc_status .ne. 0) then
          errmsg = 'basis tag allocation failed'
@@ -2812,7 +2836,7 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
       endif
       mydir = ' '
       call bas_set_library_name(mydir)
-      if (.not. bas_create(basis, 'ao basis')) then
+      if (.not. bas_create(basis, rtdb_key)) then
          errmsg = 'bas_create failed'
          deallocate(tags)
          return
@@ -2854,7 +2878,7 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
          endif
       enddo
       deallocate(tags)
-      if (.not. bas_rtdb_store(rtdb, 'ao basis', basis)) then
+      if (.not. bas_rtdb_store(rtdb, rtdb_key, basis)) then
          errmsg = 'bas_rtdb_store failed'
          status = bas_do_destroy(basis)
          return

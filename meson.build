@@ -1232,6 +1232,49 @@ nwchem_config_options_params_bin = custom_target(
         '@OUTPUT@',
       ],
     )
+
+    nwchem_params_h2_dft_bin = custom_target(
+      'nwchem_params_h2_dft_bin',
+      input: 'tests/nwchem_params_h2_dft.capnp.txt',
+      output: 'nwchem_params_h2_dft.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_params_h2_rimp2_bin = custom_target(
+      'nwchem_params_h2_rimp2_bin',
+      input: 'tests/nwchem_params_h2_rimp2.capnp.txt',
+      output: 'nwchem_params_h2_rimp2.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_params_h2_tce_ccsdt_bin = custom_target(
+      'nwchem_params_h2_tce_ccsdt_bin',
+      input: 'tests/nwchem_params_h2_tce_ccsdt.capnp.txt',
+      output: 'nwchem_params_h2_tce_ccsdt.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_input_blocks_params_text = configure_file(
       input: 'tests/nwchem_params_input_blocks.capnp.txt.in',
       output: 'nwchem_params_input_blocks.capnp.txt',
@@ -1701,6 +1744,9 @@ nwchem_config_options_params_bin = custom_target(
       ['ccsd', nwchem_params_h2_ccsd_bin],
       ['mp2', nwchem_params_h2_mp2_bin],
       ['tce', nwchem_params_h2_tce_bin],
+      ['dft', nwchem_params_h2_dft_bin],
+      ['rimp2', nwchem_params_h2_rimp2_bin],
+      ['tce-ccsdt', nwchem_params_h2_tce_ccsdt_bin],
     ]
       test(
         'nwchem-postscf-energy-' + postscf[0],

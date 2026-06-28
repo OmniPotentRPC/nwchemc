@@ -1,0 +1,13 @@
+echo
+start h2_rimp2
+geometry units angstrom
+  H 0 0 -0.3707
+  H 0 0  0.3707
+end
+basis
+  * library sto-3g
+end
+basis "ri-mp2"
+  * library sto-3g
+end
+task rimp2 energy
