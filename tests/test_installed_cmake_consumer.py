@@ -60,6 +60,39 @@ typedef NWChemCResult (*SessionCoordinateBufferFn)(
 typedef NWChemCResult (*SessionCoordinateFrequenciesFn)(
     NWChemCSession *, int, const double *, const int *, double *, double *);
 
+static int expect_result_failure(const char *label, NWChemCResult result) {
+  if (result.ok != 0) {
+    fprintf(stderr, "%s accepted invalid input\\n", label);
+    return 5;
+  }
+  return 0;
+}
+
+static int expect_status_failure(const char *label, int status) {
+  if (status == 0) {
+    fprintf(stderr, "%s accepted invalid input\\n", label);
+    return 6;
+  }
+  return 0;
+}
+
+static int expect_size_zero(const char *label, size_t value) {
+  if (value != 0) {
+    fprintf(stderr, "%s returned nonzero invalid-input size\\n", label);
+    return 7;
+  }
+  return 0;
+}
+
+static int expect_null_session(const char *label, NWChemCSession *session) {
+  if (session != NULL) {
+    fprintf(stderr, "%s accepted invalid input\\n", label);
+    nwchemc_session_destroy(session);
+    return 8;
+  }
+  return 0;
+}
+
 static int exercise_rgpot_result_abi(void) {
   PotentialResultSizeFn size_fns[] = {
       nwchemc_potential_result_size_for_force_input,
@@ -85,16 +118,30 @@ static int exercise_rgpot_result_abi(void) {
       nwchemc_calculate_optimize_result_from_config,
       nwchemc_calculate_frequencies_result_from_config,
   };
+  unsigned char result_bytes[1] = {0};
+  size_t result_size = 0;
   size_t index;
 
   for (index = 0; index < sizeof(size_fns) / sizeof(size_fns[0]); ++index) {
     if (size_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_size_zero("result size", size_fns[index](NULL, 0));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0; index < sizeof(result_fns) / sizeof(result_fns[0]); ++index) {
     if (result_fns[index] == NULL) {
       return 4;
+    }
+    result_size = 0;
+    int status = expect_result_failure(
+        "result function",
+        result_fns[index](NULL, 0, NULL, 0, result_bytes,
+                          sizeof(result_bytes), &result_size));
+    if (status != 0) {
+      return status;
     }
   }
   return 0;
@@ -170,6 +217,9 @@ static int exercise_rgpot_raw_and_session_abi(void) {
       nwchemc_session_calculate_optimize_result,
       nwchemc_session_calculate_frequencies_result,
   };
+  double doubles[36] = {0.0};
+  unsigned char result_bytes[1] = {0};
+  size_t result_size = 0;
   size_t index;
 
   for (index = 0; index < sizeof(params_energy_fns) / sizeof(params_energy_fns[0]);
@@ -177,11 +227,22 @@ static int exercise_rgpot_raw_and_session_abi(void) {
     if (params_energy_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "params energy function", params_energy_fns[index](NULL, 0, NULL, 0));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0; index < sizeof(params_buffer_fns) / sizeof(params_buffer_fns[0]);
        ++index) {
     if (params_buffer_fns[index] == NULL) {
       return 4;
+    }
+    int status = expect_result_failure(
+        "params buffer function",
+        params_buffer_fns[index](NULL, 0, NULL, 0, doubles, 36));
+    if (status != 0) {
+      return status;
     }
   }
   for (index = 0;
@@ -190,11 +251,26 @@ static int exercise_rgpot_raw_and_session_abi(void) {
     if (params_frequency_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "params frequency function",
+        params_frequency_fns[index](NULL, 0, NULL, 0, doubles, 36, doubles,
+                                    36));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0; index < sizeof(params_result_fns) / sizeof(params_result_fns[0]);
        ++index) {
     if (params_result_fns[index] == NULL) {
       return 4;
+    }
+    result_size = 0;
+    int status = expect_result_failure(
+        "params result function",
+        params_result_fns[index](NULL, 0, NULL, 0, result_bytes,
+                                 sizeof(result_bytes), &result_size));
+    if (status != 0) {
+      return status;
     }
   }
   for (index = 0;
@@ -203,12 +279,23 @@ static int exercise_rgpot_raw_and_session_abi(void) {
     if (config_energy_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "config energy function", config_energy_fns[index](NULL, 0, NULL, 0));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0;
        index < sizeof(config_buffer_fns) / sizeof(config_buffer_fns[0]);
        ++index) {
     if (config_buffer_fns[index] == NULL) {
       return 4;
+    }
+    int status = expect_result_failure(
+        "config buffer function",
+        config_buffer_fns[index](NULL, 0, NULL, 0, doubles, 36));
+    if (status != 0) {
+      return status;
     }
   }
   for (index = 0;
@@ -217,12 +304,24 @@ static int exercise_rgpot_raw_and_session_abi(void) {
     if (config_frequency_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "config frequency function",
+        config_frequency_fns[index](NULL, 0, NULL, 0, doubles, 36, doubles,
+                                    36));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0;
        index < sizeof(session_energy_fns) / sizeof(session_energy_fns[0]);
        ++index) {
     if (session_energy_fns[index] == NULL) {
       return 4;
+    }
+    int status = expect_result_failure(
+        "session energy function", session_energy_fns[index](NULL, NULL, 0));
+    if (status != 0) {
+      return status;
     }
   }
   for (index = 0;
@@ -231,6 +330,12 @@ static int exercise_rgpot_raw_and_session_abi(void) {
     if (session_buffer_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "session buffer function",
+        session_buffer_fns[index](NULL, NULL, 0, doubles, 36));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0;
        index < sizeof(session_frequency_fns) / sizeof(session_frequency_fns[0]);
@@ -238,12 +343,26 @@ static int exercise_rgpot_raw_and_session_abi(void) {
     if (session_frequency_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "session frequency function",
+        session_frequency_fns[index](NULL, NULL, 0, doubles, 36, doubles, 36));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0;
        index < sizeof(session_result_fns) / sizeof(session_result_fns[0]);
        ++index) {
     if (session_result_fns[index] == NULL) {
       return 4;
+    }
+    result_size = 0;
+    int status = expect_result_failure(
+        "session result function",
+        session_result_fns[index](NULL, NULL, 0, result_bytes,
+                                  sizeof(result_bytes), &result_size));
+    if (status != 0) {
+      return status;
     }
   }
   return 0;
@@ -291,10 +410,10 @@ static int exercise_coordinate_session_abi(void) {
   SessionDestroyFn session_destroy_fns[] = {
       nwchemc_session_destroy,
   };
-  SessionCoordinateEnergyFn session_energy_fns[] = {
+  SessionCoordinateEnergyFn session_coordinate_energy_fns[] = {
       nwchemc_session_energy,
   };
-  SessionCoordinateBufferFn session_buffer_fns[] = {
+  SessionCoordinateBufferFn session_coordinate_buffer_fns[] = {
       nwchemc_session_energy_gradient,
       nwchemc_session_energy_forces,
       nwchemc_session_dipole,
@@ -304,15 +423,21 @@ static int exercise_coordinate_session_abi(void) {
       nwchemc_session_stress,
       nwchemc_session_hessian,
   };
-  SessionCoordinateFrequenciesFn session_frequency_fns[] = {
+  SessionCoordinateFrequenciesFn session_coordinate_frequency_fns[] = {
       nwchemc_session_frequencies,
   };
+  double doubles[36] = {0.0};
   size_t index;
 
   for (index = 0; index < sizeof(config_fns) / sizeof(config_fns[0]);
        ++index) {
     if (config_fns[index] == NULL) {
       return 4;
+    }
+    int status = expect_status_failure("config function",
+                                       config_fns[index](NULL, 0));
+    if (status != 0) {
+      return status;
     }
   }
   for (index = 0;
@@ -321,12 +446,24 @@ static int exercise_coordinate_session_abi(void) {
     if (coordinate_energy_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "coordinate energy function",
+        coordinate_energy_fns[index](0, NULL, NULL, NULL, 0));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0;
        index < sizeof(coordinate_buffer_fns) / sizeof(coordinate_buffer_fns[0]);
        ++index) {
     if (coordinate_buffer_fns[index] == NULL) {
       return 4;
+    }
+    int status = expect_result_failure(
+        "coordinate buffer function",
+        coordinate_buffer_fns[index](0, NULL, NULL, NULL, 0, doubles));
+    if (status != 0) {
+      return status;
     }
   }
   for (index = 0;
@@ -336,12 +473,24 @@ static int exercise_coordinate_session_abi(void) {
     if (coordinate_frequency_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_result_failure(
+        "coordinate frequency function",
+        coordinate_frequency_fns[index](0, NULL, NULL, NULL, 0, doubles,
+                                        doubles));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0;
        index < sizeof(session_create_fns) / sizeof(session_create_fns[0]);
        ++index) {
     if (session_create_fns[index] == NULL) {
       return 4;
+    }
+    int status = expect_null_session("session create function",
+                                     session_create_fns[index](NULL, 0));
+    if (status != 0) {
+      return status;
     }
   }
   for (index = 0;
@@ -350,6 +499,11 @@ static int exercise_coordinate_session_abi(void) {
     if (session_config_fns[index] == NULL) {
       return 4;
     }
+    int status = expect_status_failure(
+        "session config function", session_config_fns[index](NULL, NULL, 0));
+    if (status != 0) {
+      return status;
+    }
   }
   for (index = 0;
        index < sizeof(session_destroy_fns) / sizeof(session_destroy_fns[0]);
@@ -357,26 +511,46 @@ static int exercise_coordinate_session_abi(void) {
     if (session_destroy_fns[index] == NULL) {
       return 4;
     }
+    session_destroy_fns[index](NULL);
   }
-  for (index = 0;
-       index < sizeof(session_energy_fns) / sizeof(session_energy_fns[0]);
+  for (index = 0; index < sizeof(session_coordinate_energy_fns) /
+                          sizeof(session_coordinate_energy_fns[0]);
        ++index) {
-    if (session_energy_fns[index] == NULL) {
+    if (session_coordinate_energy_fns[index] == NULL) {
       return 4;
     }
-  }
-  for (index = 0;
-       index < sizeof(session_buffer_fns) / sizeof(session_buffer_fns[0]);
-       ++index) {
-    if (session_buffer_fns[index] == NULL) {
-      return 4;
+    int status = expect_result_failure(
+        "session coordinate energy function",
+        session_coordinate_energy_fns[index](NULL, 0, NULL, NULL));
+    if (status != 0) {
+      return status;
     }
   }
-  for (index = 0;
-       index < sizeof(session_frequency_fns) / sizeof(session_frequency_fns[0]);
+  for (index = 0; index < sizeof(session_coordinate_buffer_fns) /
+                          sizeof(session_coordinate_buffer_fns[0]);
        ++index) {
-    if (session_frequency_fns[index] == NULL) {
+    if (session_coordinate_buffer_fns[index] == NULL) {
       return 4;
+    }
+    int status = expect_result_failure(
+        "session coordinate buffer function",
+        session_coordinate_buffer_fns[index](NULL, 0, NULL, NULL, doubles));
+    if (status != 0) {
+      return status;
+    }
+  }
+  for (index = 0; index < sizeof(session_coordinate_frequency_fns) /
+                          sizeof(session_coordinate_frequency_fns[0]);
+       ++index) {
+    if (session_coordinate_frequency_fns[index] == NULL) {
+      return 4;
+    }
+    int status = expect_result_failure(
+        "session coordinate frequency function",
+        session_coordinate_frequency_fns[index](NULL, 0, NULL, NULL, doubles,
+                                               doubles));
+    if (status != 0) {
+      return status;
     }
   }
   return 0;

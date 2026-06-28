@@ -227,6 +227,45 @@ class MesonInstallContractTest(unittest.TestCase):
                 ]
                 self.assertEqual(missing, [])
 
+    def test_installed_consumers_exercise_invalid_input_abi(self):
+        required_terms = [
+            "expect_result_failure",
+            "expect_size_zero",
+            "expect_status_failure",
+            "expect_null_session",
+            "size_fns[index](NULL, 0)",
+            "result_fns[index](NULL, 0, NULL, 0, result_bytes",
+            "params_energy_fns[index](NULL, 0, NULL, 0)",
+            "params_buffer_fns[index](NULL, 0, NULL, 0, doubles",
+            "params_frequency_fns[index](NULL, 0, NULL, 0, doubles",
+            "params_result_fns[index](NULL, 0, NULL, 0, result_bytes",
+            "config_energy_fns[index](NULL, 0, NULL, 0)",
+            "config_buffer_fns[index](NULL, 0, NULL, 0, doubles",
+            "config_frequency_fns[index](NULL, 0, NULL, 0, doubles",
+            "session_energy_fns[index](NULL, NULL, 0)",
+            "session_buffer_fns[index](NULL, NULL, 0, doubles",
+            "session_frequency_fns[index](NULL, NULL, 0, doubles",
+            "session_result_fns[index](NULL, NULL, 0, result_bytes",
+            "config_fns[index](NULL, 0)",
+            "session_create_fns[index](NULL, 0)",
+            "session_config_fns[index](NULL, NULL, 0)",
+            "coordinate_energy_fns[index](0, NULL, NULL, NULL, 0)",
+            "coordinate_buffer_fns[index](0, NULL, NULL, NULL, 0, doubles)",
+            "coordinate_frequency_fns[index](0, NULL, NULL, NULL, 0, doubles",
+            "session_coordinate_energy_fns[index](NULL, 0, NULL, NULL)",
+            "session_coordinate_buffer_fns[index](NULL, 0, NULL, NULL, doubles)",
+            "session_coordinate_frequency_fns[index](NULL, 0, NULL, NULL, doubles",
+        ]
+        consumer_scripts = [
+            ROOT / "tests" / "test_installed_cmake_consumer.py",
+            ROOT / "tests" / "test_installed_pkgconfig_consumer.py",
+        ]
+        for script in consumer_scripts:
+            with self.subTest(script=script.name):
+                consumer = script.read_text(encoding="utf-8")
+                missing = [term for term in required_terms if term not in consumer]
+                self.assertEqual(missing, [])
+
     def test_docs_explain_installed_consumer_release_gate(self):
         docs = README.read_text(encoding="utf-8") + "\n" + RGPOT_GUIDE.read_text(
             encoding="utf-8"
@@ -239,6 +278,7 @@ class MesonInstallContractTest(unittest.TestCase):
             "pkg-config --cflags --libs nwchemc",
             "nwchem-installed-pkgconfig-consumer",
             "nwchem-installed-cmake-consumer",
+            "invalid-input ABI checks",
         ]
         missing = [term for term in required_terms if term not in docs]
         self.assertEqual(missing, [])

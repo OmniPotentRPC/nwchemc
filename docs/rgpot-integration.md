@@ -152,10 +152,12 @@ A rgpot-side merge/pr release is at the wiring stage when:
   in the supported merge scope table.
 - The installed package smoke `nwchem-installed-cmake-consumer` compiles and
   links the `PotentialResult` sizing and calculation ABI against the same
-  NWChem build used for the real probe suite.
+  NWChem build used for the real probe suite, then runs invalid-input ABI
+  checks across rgpot result-carrier, raw ForceInput, session, and coordinate
+  entry points.
 - The installed package smoke `nwchem-installed-pkgconfig-consumer` compiles
   and links the same `PotentialResult` ABI when rgpot uses pkg-config for
-  discovery.
+  discovery, then runs the same invalid-input ABI checks.
 
 Stress is on the same release surface when rgpot is paired with an NWPW-enabled
 NWChem build and `tests/test_nwchem_stress.c` passes in the real-NWChem suite.
