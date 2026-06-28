@@ -161,6 +161,56 @@ static void test_potential_config_pseudopotential_resets_reach_rtdb(
   free(config);
 }
 
+static void test_session_configure_pseudopotential_reset_reaches_rtdb(
+    void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t config_size = 0;
+  size_t reset_config_size = 0;
+  size_t force_input_size = 0;
+  unsigned char *config = read_file(g_config_path, &config_size);
+  unsigned char *reset_config =
+      read_file(g_reset_config_path, &reset_config_size);
+  unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  assert_non_null(config);
+  assert_non_null(reset_config);
+  assert_non_null(force_input);
+
+  NWChemCSession *session =
+      nwchemc_session_create_from_config(config, config_size);
+  assert_non_null(session);
+  assert_int_equal(nwchemc_session_configure(session, reset_config,
+                                             reset_config_size),
+                   0);
+
+  size_t result_capacity =
+      nwchemc_potential_result_size_for_force_input(force_input,
+                                                    force_input_size);
+  assert_true(result_capacity > 0);
+  unsigned char *result_bytes = (unsigned char *)malloc(result_capacity);
+  assert_non_null(result_bytes);
+  size_t result_size = 0;
+  NWChemCResult result_status = nwchemc_session_calculate_result(
+      session, force_input, force_input_size, result_bytes, result_capacity,
+      &result_size);
+  if (!result_status.ok)
+    fail_msg("session reset nwchemc_session_calculate_result failed: %s",
+             result_status.message);
+  assert_true(isfinite(result_status.energy_h));
+  assert_int_equal(result_size, result_capacity);
+
+  int probe_result = -1;
+  nwchemc_test_config_psp_reset_rtdb(&probe_result);
+  assert_int_equal(probe_result, 0);
+
+  nwchemc_session_destroy(session);
+  free(result_bytes);
+  free(force_input);
+  free(reset_config);
+  free(config);
+}
+
 int main(int argc, char **argv) {
   if (argc != 4) {
     fprintf(stderr,
@@ -175,6 +225,8 @@ int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_potential_config_pseudopotentials_reach_rtdb),
       cmocka_unit_test(test_potential_config_pseudopotential_resets_reach_rtdb),
+      cmocka_unit_test(
+          test_session_configure_pseudopotential_reset_reaches_rtdb),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }
