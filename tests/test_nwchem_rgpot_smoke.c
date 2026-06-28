@@ -198,6 +198,29 @@ static void assert_potential_result_dipole(const unsigned char *message,
   capn_free(&arena);
 }
 
+static void assert_potential_result_polarizability(
+    const unsigned char *message, size_t message_size, double expected_energy) {
+  struct capn arena;
+  assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
+  PotentialResult_ptr root;
+  root.p = capn_getp(capn_root(&arena), 0, 1);
+  assert_int_equal(root.p.type, CAPN_STRUCT);
+
+  struct PotentialResult result;
+  read_PotentialResult(&result, root);
+  assert_true(isfinite(result.energy));
+  assert_close(result.energy, expected_energy, 1.0e-12);
+
+  double polarizability[12];
+  double max_abs =
+      assert_f64_list("polarizability", result.polarizability, 12,
+                      polarizability);
+  assert_true(max_abs > 1.0e-6);
+  assert_true(polarizability[10] > 0.0);
+
+  capn_free(&arena);
+}
+
 static void assert_potential_result_quadrupole(const unsigned char *message,
                                                size_t message_size,
                                                double expected_energy) {
@@ -405,6 +428,26 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   assert_potential_result_dipole(dipole_bytes, dipole_size,
                                  dipole_status.energy_h);
 
+  size_t polarizability_capacity =
+      nwchemc_polarizability_result_size_for_force_input(force_input,
+                                                         force_input_size);
+  assert_result_capacity("nwchemc_polarizability_result_size_for_force_input",
+                         polarizability_capacity);
+  unsigned char *polarizability_bytes =
+      (unsigned char *)malloc(polarizability_capacity);
+  assert_non_null(polarizability_bytes);
+  size_t polarizability_size = 0;
+  NWChemCResult polarizability_status =
+      nwchemc_calculate_polarizability_result_from_config(
+          config, config_size, force_input, force_input_size,
+          polarizability_bytes, polarizability_capacity, &polarizability_size);
+  assert_status_energy("nwchemc_calculate_polarizability_result_from_config",
+                       polarizability_status);
+  assert_int_equal(polarizability_size, polarizability_capacity);
+  assert_potential_result_polarizability(
+      polarizability_bytes, polarizability_size,
+      polarizability_status.energy_h);
+
   size_t quadrupole_capacity =
       nwchemc_quadrupole_result_size_for_force_input(force_input,
                                                      force_input_size);
@@ -463,6 +506,7 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   free(frequencies_bytes);
   free(optimize_bytes);
   free(quadrupole_bytes);
+  free(polarizability_bytes);
   free(dipole_bytes);
   free(hessian_bytes);
   free(forces_bytes);
@@ -554,6 +598,26 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
   assert_potential_result_dipole(dipole_bytes, dipole_size,
                                  dipole_status.energy_h);
 
+  size_t polarizability_capacity =
+      nwchemc_polarizability_result_size_for_force_input(force_input,
+                                                         force_input_size);
+  assert_result_capacity("nwchemc_polarizability_result_size_for_force_input",
+                         polarizability_capacity);
+  unsigned char *polarizability_bytes =
+      (unsigned char *)malloc(polarizability_capacity);
+  assert_non_null(polarizability_bytes);
+  size_t polarizability_size = 0;
+  NWChemCResult polarizability_status =
+      nwchemc_session_calculate_polarizability_result(
+          session, force_input, force_input_size, polarizability_bytes,
+          polarizability_capacity, &polarizability_size);
+  assert_status_energy("nwchemc_session_calculate_polarizability_result",
+                       polarizability_status);
+  assert_int_equal(polarizability_size, polarizability_capacity);
+  assert_potential_result_polarizability(
+      polarizability_bytes, polarizability_size,
+      polarizability_status.energy_h);
+
   size_t quadrupole_capacity =
       nwchemc_quadrupole_result_size_for_force_input(force_input,
                                                      force_input_size);
@@ -612,6 +676,7 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
   free(frequencies_bytes);
   free(optimize_bytes);
   free(quadrupole_bytes);
+  free(polarizability_bytes);
   free(dipole_bytes);
   free(hessian_bytes);
   free(forces_bytes);
@@ -729,6 +794,23 @@ static void test_rgpot_config_raw_forceinput_operations(void **state) {
       fail_msg("non-finite raw dipole[%d]", i);
     assert_true(fabs(dipole[i]) < 1.0e-7);
   }
+
+  double polarizability[12] = {0.0};
+  NWChemCResult polarizability_status =
+      nwchemc_calculate_polarizability_from_config(
+          config, config_size, force_input, force_input_size, polarizability,
+          12);
+  assert_status_energy("nwchemc_calculate_polarizability_from_config",
+                       polarizability_status);
+  double max_polarizability_abs = 0.0;
+  for (int i = 0; i < 12; ++i) {
+    if (!isfinite(polarizability[i]))
+      fail_msg("non-finite raw polarizability[%d]", i);
+    max_polarizability_abs =
+        fmax(max_polarizability_abs, fabs(polarizability[i]));
+  }
+  assert_true(max_polarizability_abs > 1.0e-6);
+  assert_true(polarizability[10] > 0.0);
 
   double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult quadrupole_status =
