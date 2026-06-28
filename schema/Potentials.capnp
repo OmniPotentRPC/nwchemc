@@ -47,6 +47,8 @@ struct PotentialResult {
   thermalEnthalpy @14 :Float64; # @brief Vibrational thermal enthalpy correction in energy units.
   entropy @15 :Float64; # @brief NWChem vibrational total entropy in cal/mol-K.
   heatCapacityCv @16 :Float64; # @brief NWChem constant-volume heat capacity in cal/mol-K.
+  projectedFrequencies @17 :List(Float64); # @brief Vibrational frequencies with translations/rotations projected out [natoms * 3] in cm^-1.
+  projectedIntensities @18 :List(Float64); # @brief IR intensities for projected vibrational modes [natoms * 3] in atomic units.
 }
 
 # @struct NWChemParams
