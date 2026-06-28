@@ -454,8 +454,12 @@ static void test_public_calculator_matrix(void **state) {
     struct capn arena;
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
-    printf("calc_matrix energy ok energy_finite=1 forces_len=%d nbytes=%zu\n",
-           list64_len(pr.forces), n);
+    /* Energy-only payloads omit forces (list arm absent => list64_len -1). */
+    int energy_forces_len = list64_len(pr.forces);
+    assert_true(energy_forces_len <= 0);
+    printf("calc_matrix energy ok energy_finite=1 forces_absent=1 "
+           "forces_len=%d nbytes=%zu api=nwchemc_session_calculate_energy_result\n",
+           energy_forces_len, n);
     double e_wire = pr.energy;
     capn_free(&arena);
     n = 0;
@@ -479,7 +483,8 @@ static void test_public_calculator_matrix(void **state) {
     struct capn arena;
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_finite_list(pr.forces, ndof, "forces");
-    printf("calc_matrix forces ok energy_finite=1 forces_len=%d nbytes=%zu\n",
+    printf("calc_matrix forces ok energy_finite=1 forces_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_forces_result\n",
            list64_len(pr.forces), n);
     double f0 = capn_to_f64(capn_get64(pr.forces, 0));
     capn_free(&arena);
@@ -507,7 +512,8 @@ static void test_public_calculator_matrix(void **state) {
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
     assert_finite_list(pr.gradient, ndof, "gradient");
-    printf("calc_matrix gradient ok energy_finite=1 gradient_len=%d nbytes=%zu\n",
+    printf("calc_matrix gradient ok energy_finite=1 gradient_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_gradient_result\n",
            list64_len(pr.gradient), n);
     capn_free(&arena);
   }
@@ -522,7 +528,8 @@ static void test_public_calculator_matrix(void **state) {
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
     assert_finite_list(pr.hessian, ndof * ndof, "hessian");
-    printf("calc_matrix hessian ok energy_finite=1 hessian_len=%d nbytes=%zu\n",
+    printf("calc_matrix hessian ok energy_finite=1 hessian_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_hessian_result\n",
            list64_len(pr.hessian), n);
     capn_free(&arena);
   }
@@ -537,7 +544,8 @@ static void test_public_calculator_matrix(void **state) {
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
     assert_finite_list(pr.dipole, 3, "dipole");
-    printf("calc_matrix dipole ok energy_finite=1 dipole_len=%d nbytes=%zu\n",
+    printf("calc_matrix dipole ok energy_finite=1 dipole_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_dipole_result\n",
            list64_len(pr.dipole), n);
     capn_free(&arena);
   }
@@ -555,7 +563,8 @@ static void test_public_calculator_matrix(void **state) {
     assert_true(plen > 0);
     for (int i = 0; i < plen; ++i)
       assert_true(isfinite(capn_to_f64(capn_get64(pr.polarizability, i))));
-    printf("calc_matrix polarizability ok energy_finite=1 pol_len=%d nbytes=%zu\n",
+    printf("calc_matrix polarizability ok energy_finite=1 pol_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_polarizability_result\n",
            list64_len(pr.polarizability), n);
     capn_free(&arena);
   }
@@ -570,7 +579,8 @@ static void test_public_calculator_matrix(void **state) {
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
     assert_finite_list(pr.quadrupole, 6, "quadrupole");
-    printf("calc_matrix quadrupole ok energy_finite=1 quad_len=%d nbytes=%zu\n",
+    printf("calc_matrix quadrupole ok energy_finite=1 quad_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_quadrupole_result\n",
            list64_len(pr.quadrupole), n);
     capn_free(&arena);
   }
@@ -585,7 +595,8 @@ static void test_public_calculator_matrix(void **state) {
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
     assert_finite_list(pr.stress, 9, "stress");
-    printf("calc_matrix stress ok energy_finite=1 stress_len=%d nbytes=%zu\n",
+    printf("calc_matrix stress ok energy_finite=1 stress_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_stress_result\n",
            list64_len(pr.stress), n);
     capn_free(&arena);
   }
@@ -600,7 +611,8 @@ static void test_public_calculator_matrix(void **state) {
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
     assert_finite_list(pr.optimizedPos, ndof, "optimizedPos");
-    printf("calc_matrix optimize ok energy_finite=1 optimized_len=%d nbytes=%zu\n",
+    printf("calc_matrix optimize ok energy_finite=1 optimized_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_optimize_result\n",
            list64_len(pr.optimizedPos), n);
     capn_free(&arena);
   }
@@ -624,7 +636,8 @@ static void test_public_calculator_matrix(void **state) {
       assert_true(isfinite(capn_to_f64(capn_get64(pr.intensities, i))));
     }
     printf("calc_matrix frequencies ok energy_finite=1 freq_len=%d "
-           "inten_len=%d nbytes=%zu\n",
+           "inten_len=%d nbytes=%zu "
+           "api=nwchemc_session_calculate_frequencies_result\n",
            list64_len(pr.frequencies), list64_len(pr.intensities), n);
     capn_free(&arena);
   }
@@ -638,7 +651,9 @@ static void test_public_calculator_matrix(void **state) {
     struct capn arena;
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_true(isfinite(pr.energy));
-    printf("calc_matrix oneshot_energy ok energy_finite=1 nbytes=%zu\n", n);
+    printf("calc_matrix oneshot_energy ok energy_finite=1 nbytes=%zu "
+           "api=nwchemc_calculate_energy_result\n",
+           n);
     capn_free(&arena);
   }
   n = 0;
@@ -649,7 +664,8 @@ static void test_public_calculator_matrix(void **state) {
     struct capn arena;
     struct PotentialResult pr = decode_result(buf, n, &arena);
     assert_finite_list(pr.forces, ndof, "oneshot_forces");
-    printf("calc_matrix oneshot_forces ok forces_len=%d nbytes=%zu\n",
+    printf("calc_matrix oneshot_forces ok forces_len=%d nbytes=%zu "
+           "api=nwchemc_calculate_forces_result\n",
            list64_len(pr.forces), n);
     capn_free(&arena);
   }
