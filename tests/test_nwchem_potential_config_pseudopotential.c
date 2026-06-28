@@ -13,9 +13,11 @@
 #include <cmocka.h>
 
 static const char *g_config_path = NULL;
+static const char *g_reset_config_path = NULL;
 static const char *g_force_input_path = NULL;
 
 extern void nwchemc_test_configured_pseudopotential_rtdb(int *result);
+extern void nwchemc_test_configured_pseudopotential_reset_rtdb(int *result);
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -63,7 +65,13 @@ static int setup_nwchem_dirs(void **state) {
     return 1;
   if (ensure_dir(NWCHEMC_TEST_SCRATCH_DIR "-config-psp") != 0)
     return 1;
-  return ensure_dir(NWCHEMC_TEST_PERMANENT_DIR "-config-psp");
+  if (ensure_dir(NWCHEMC_TEST_SCRATCH_DIR "-config-psp-reset") != 0)
+    return 1;
+  if (ensure_dir(NWCHEMC_TEST_PERMANENT_DIR "-config-psp") != 0)
+    return 1;
+  if (ensure_dir(NWCHEMC_TEST_PERMANENT_DIR "-config-psp-reset") != 0)
+    return 1;
+  return 0;
 }
 
 static int teardown_nwchem(void **state) {
@@ -116,17 +124,57 @@ static void test_potential_config_pseudopotentials_reach_rtdb(void **state) {
   free(config);
 }
 
+static void test_potential_config_pseudopotential_resets_reach_rtdb(
+    void **state) {
+  (void)state;
+  assert_true(nwchemc_available());
+
+  size_t config_size = 0;
+  size_t force_input_size = 0;
+  unsigned char *config = read_file(g_reset_config_path, &config_size);
+  unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  assert_non_null(config);
+  assert_non_null(force_input);
+
+  size_t result_capacity =
+      nwchemc_potential_result_size_for_force_input(force_input,
+                                                    force_input_size);
+  assert_true(result_capacity > 0);
+  unsigned char *result_bytes = (unsigned char *)malloc(result_capacity);
+  assert_non_null(result_bytes);
+  size_t result_size = 0;
+  NWChemCResult result_status = nwchemc_calculate_result_from_config(
+      config, config_size, force_input, force_input_size, result_bytes,
+      result_capacity, &result_size);
+  if (!result_status.ok)
+    fail_msg("reset nwchemc_calculate_result_from_config failed: %s",
+             result_status.message);
+  assert_true(isfinite(result_status.energy_h));
+  assert_int_equal(result_size, result_capacity);
+
+  int probe_result = -1;
+  nwchemc_test_configured_pseudopotential_reset_rtdb(&probe_result);
+  assert_int_equal(probe_result, 0);
+
+  free(result_bytes);
+  free(force_input);
+  free(config);
+}
+
 int main(int argc, char **argv) {
-  if (argc != 3) {
-    fprintf(stderr, "usage: %s potential-config.bin force-input.bin\n",
+  if (argc != 4) {
+    fprintf(stderr,
+            "usage: %s potential-config.bin reset-config.bin force-input.bin\n",
             argv[0]);
     return 2;
   }
   g_config_path = argv[1];
-  g_force_input_path = argv[2];
+  g_reset_config_path = argv[2];
+  g_force_input_path = argv[3];
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_potential_config_pseudopotentials_reach_rtdb),
+      cmocka_unit_test(test_potential_config_pseudopotential_resets_reach_rtdb),
   };
   return cmocka_run_group_tests(tests, setup_nwchem_dirs, teardown_nwchem);
 }

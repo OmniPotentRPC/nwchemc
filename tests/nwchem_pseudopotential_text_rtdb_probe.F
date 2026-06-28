@@ -337,3 +337,99 @@
       if (result .eq. 0 .and. finish_ok .ne. 0) result = 200
       return
       end
+
+      subroutine nwchemc_test_pseudopotential_text_reset_rtdb(
+     $     input_blocks, input_len, result) bind(C,
+     $     name='nwchemc_test_pseudopotential_text_reset_rtdb')
+      use, intrinsic :: iso_c_binding, only: c_char, c_int
+      implicit none
+#include "bafdecls.fh"
+      character(kind=c_char), intent(in) :: input_blocks(*)
+      integer(c_int), intent(in) :: input_len
+      integer(c_int), intent(out) :: result
+      integer rtdb, init_ok, finish_ok, owns_mpi
+      integer i, n
+      integer stored_type
+      character*8192 deck
+      logical typed_log
+      logical nw_inp_from_character
+      logical nwchemc_probe_get_int, nwchemc_probe_get_log
+      external nw_inp_from_character
+      external nwchemc_probe_get_int, nwchemc_probe_get_log
+
+      result = 0
+      rtdb = -1
+      init_ok = -1
+      owns_mpi = 0
+      n = input_len
+      if (n .le. 0 .or. n .gt. 8192) then
+         result = 1
+         return
+      endif
+      deck = ' '
+      do i = 1, n
+         deck(i:i) = input_blocks(i)
+      enddo
+
+      call nwchem_legacy_init(rtdb, init_ok, owns_mpi)
+      if (init_ok .ne. 0) then
+         result = 2
+         return
+      endif
+
+      if (.not. nw_inp_from_character(rtdb, deck(1:n))) then
+         result = 3
+         goto 900
+      endif
+
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:pspspin',
+     $     typed_log)) then
+         result = 10
+         goto 900
+      endif
+      if (typed_log) then
+         result = 11
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:pspspin_count',
+     $     stored_type)) then
+         result = 12
+         goto 900
+      endif
+      if (stored_type .ne. 0) then
+         result = 13
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:psp:semicore_small', typed_log)) then
+         result = 14
+         goto 900
+      endif
+      if (typed_log) then
+         result = 15
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:uterm',
+     $     typed_log)) then
+         result = 16
+         goto 900
+      endif
+      if (typed_log) then
+         result = 17
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:nuterms',
+     $     stored_type)) then
+         result = 18
+         goto 900
+      endif
+      if (stored_type .ne. 0) then
+         result = 19
+         goto 900
+      endif
+
+  900 continue
+      call nwchem_legacy_finalize(rtdb, owns_mpi, finish_ok)
+      if (result .eq. 0 .and. finish_ok .ne. 0) result = 200
+      return
+      end

@@ -12,10 +12,13 @@
 #include <cmocka.h>
 
 static const char *g_params_path = NULL;
+static const char *g_reset_params_path = NULL;
 
 extern void nwchemc_test_pseudopotential_text_rtdb(const char *input_blocks,
                                                   const int *input_len,
                                                   int *result);
+extern void nwchemc_test_pseudopotential_text_reset_rtdb(
+    const char *input_blocks, const int *input_len, int *result);
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -93,15 +96,55 @@ static void test_rendered_pseudopotential_deck_reaches_rtdb(void **state) {
   free(params_bytes);
 }
 
+static void test_rendered_pseudopotential_reset_deck_reaches_rtdb(
+    void **state) {
+  (void)state;
+
+  size_t params_size = 0;
+  unsigned char *params_bytes = read_file(g_reset_params_path, &params_size);
+  assert_non_null(params_bytes);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(nwchemc_params_root(params_bytes, params_size, &arena,
+                                       &params_root),
+                   0);
+
+  char input_blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(nwchemc_params_render_input_blocks(
+                       params_root, input_blocks, sizeof(input_blocks)),
+                   0);
+  assert_non_null(strstr(input_blocks, "nwpw"));
+  assert_non_null(strstr(input_blocks, "pspspin off"));
+  assert_non_null(strstr(input_blocks, "uterm off"));
+  assert_non_null(
+      strstr(input_blocks, "set nwpw:psp:semicore_small logical false"));
+  assert_null(strstr(input_blocks, "pseudopotentials"));
+
+  size_t input_len_size = strlen(input_blocks);
+  assert_true(input_len_size > 0);
+  assert_true(input_len_size <= (size_t)INT_MAX);
+  int input_len = (int)input_len_size;
+  int probe_result = -1;
+  nwchemc_test_pseudopotential_text_reset_rtdb(input_blocks, &input_len,
+                                               &probe_result);
+  assert_int_equal(probe_result, 0);
+
+  nwchemc_params_release(&arena);
+  free(params_bytes);
+}
+
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    fprintf(stderr, "usage: %s nwchem-params.bin\n", argv[0]);
+  if (argc != 3) {
+    fprintf(stderr, "usage: %s nwchem-params.bin reset-params.bin\n", argv[0]);
     return 2;
   }
   g_params_path = argv[1];
+  g_reset_params_path = argv[2];
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_rendered_pseudopotential_deck_reaches_rtdb),
+      cmocka_unit_test(test_rendered_pseudopotential_reset_deck_reaches_rtdb),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

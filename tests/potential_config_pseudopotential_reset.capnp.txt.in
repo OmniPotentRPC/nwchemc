@@ -1,0 +1,23 @@
+(
+  nwchem = (
+    basis = "sto-3g",
+    theory = "dft",
+    scfType = "pbe0",
+    charge = 0,
+    multiplicity = 1,
+    nwchemRoot = "@NWCHEM_ROOT@",
+    task = "energy",
+    scratchDir = "@NWCHEMC_TEST_SCRATCH@-config-psp-reset",
+    permanentDir = "@NWCHEMC_TEST_PERMANENT@-config-psp-reset",
+    inputStanzas = [
+      (
+        kind = pseudopotential,
+        pseudopotential = (
+          pspSpin = disabled,
+          semicoreSmall = disabled,
+          uterm = disabled
+        )
+      )
+    ]
+  )
+)

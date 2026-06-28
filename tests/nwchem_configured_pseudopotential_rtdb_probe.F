@@ -319,3 +319,81 @@
 
       return
       end
+
+      subroutine nwchemc_test_configured_pseudopotential_reset_rtdb(result)
+     $     bind(C, name='nwchemc_test_configured_pseudopotential_reset_rtdb')
+      use, intrinsic :: iso_c_binding, only: c_int, c_long_long
+      implicit none
+#include "bafdecls.fh"
+      integer(c_int), intent(out) :: result
+      integer rtdb
+      integer stored_type
+      integer(c_long_long) current_rtdb
+      logical typed_log
+      logical nwchemc_probe_get_int, nwchemc_probe_get_log
+      external nwchemc_probe_get_int, nwchemc_probe_get_log
+
+      interface
+         function nwchemc_embed_current_rtdb() result(handle) bind(C,
+     $        name='nwchemc_embed_current_rtdb')
+            use, intrinsic :: iso_c_binding, only: c_long_long
+            integer(c_long_long) handle
+         end function nwchemc_embed_current_rtdb
+      end interface
+
+      result = 0
+      current_rtdb = nwchemc_embed_current_rtdb()
+      if (current_rtdb .lt. 0_c_long_long) then
+         result = 1
+         return
+      endif
+      rtdb = int(current_rtdb, kind(rtdb))
+
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:pspspin',
+     $     typed_log)) then
+         result = 10
+         return
+      endif
+      if (typed_log) then
+         result = 11
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:pspspin_count',
+     $     stored_type)) then
+         result = 12
+         return
+      endif
+      if (stored_type .ne. 0) then
+         result = 13
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:psp:semicore_small', typed_log)) then
+         result = 14
+         return
+      endif
+      if (typed_log) then
+         result = 15
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:uterm',
+     $     typed_log)) then
+         result = 16
+         return
+      endif
+      if (typed_log) then
+         result = 17
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:nuterms',
+     $     stored_type)) then
+         result = 18
+         return
+      endif
+      if (stored_type .ne. 0) then
+         result = 19
+         return
+      endif
+
+      return
+      end

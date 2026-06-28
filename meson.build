@@ -1168,6 +1168,25 @@ nwchem_config_options_params_bin = custom_target(
         '@OUTPUT@',
       ],
     )
+    potential_config_pseudopotential_reset_text = configure_file(
+      input: 'tests/potential_config_pseudopotential_reset.capnp.txt.in',
+      output: 'potential_config_pseudopotential_reset.capnp.txt',
+      configuration: params_conf,
+    )
+    potential_config_pseudopotential_reset_bin = custom_target(
+      'potential_config_pseudopotential_reset_bin',
+      input: potential_config_pseudopotential_reset_text,
+      output: 'potential_config_pseudopotential_reset.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'PotentialConfig',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_pseudopotential_params_text = configure_file(
       input: 'tests/nwchem_params_pseudopotential.capnp.txt.in',
       output: 'nwchem_params_pseudopotential.capnp.txt',
@@ -1177,6 +1196,25 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem_pseudopotential_params_bin',
       input: nwchem_pseudopotential_params_text,
       output: 'nwchem_params_pseudopotential.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_pseudopotential_reset_params_text = configure_file(
+      input: 'tests/nwchem_params_pseudopotential_reset.capnp.txt.in',
+      output: 'nwchem_params_pseudopotential_reset.capnp.txt',
+      configuration: params_conf,
+    )
+    nwchem_pseudopotential_reset_params_bin = custom_target(
+      'nwchem_pseudopotential_reset_params_bin',
+      input: nwchem_pseudopotential_reset_params_text,
+      output: 'nwchem_params_pseudopotential_reset.bin',
       command: [
         python,
         meson.current_source_dir() / 'tests/encode_capnp.py',
@@ -1342,8 +1380,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-potential-config-pseudopotential',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_potential_config_pseudopotential_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_potential_config_pseudopotential_test, potential_config_pseudopotential_bin, force_input_h2_eq_bin]
-        : [potential_config_pseudopotential_bin, force_input_h2_eq_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_potential_config_pseudopotential_test, potential_config_pseudopotential_bin, potential_config_pseudopotential_reset_bin, force_input_h2_eq_bin]
+        : [potential_config_pseudopotential_bin, potential_config_pseudopotential_reset_bin, force_input_h2_eq_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
@@ -1493,8 +1531,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-pseudopotential-text-rtdb',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pseudopotential_text_rtdb_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, nwchem_pseudopotential_params_bin]
-        : [nwchem_pseudopotential_params_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pseudopotential_text_rtdb_test, nwchem_pseudopotential_params_bin, nwchem_pseudopotential_reset_params_bin]
+        : [nwchem_pseudopotential_params_bin, nwchem_pseudopotential_reset_params_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
