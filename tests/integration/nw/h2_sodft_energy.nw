@@ -1,0 +1,16 @@
+echo
+start h2_sodft
+geometry units angstrom
+  H 0 0 -0.3707
+  H 0 0  0.3707
+end
+basis
+  * library sto-3g
+end
+dft
+  xc b3lyp
+  odft
+  mult 3
+  direct
+end
+task sodft energy

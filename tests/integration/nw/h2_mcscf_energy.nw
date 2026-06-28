@@ -1,0 +1,15 @@
+echo
+start h2_mcscf
+geometry units angstrom
+  H 0 0 -0.3707
+  H 0 0  0.3707
+end
+basis
+  * library sto-3g
+end
+mcscf
+  active 2
+  actelec 2
+  multiplicity 1
+end
+task mcscf energy

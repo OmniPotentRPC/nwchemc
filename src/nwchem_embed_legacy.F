@@ -2088,7 +2088,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       endif
       vectors_in = 'atomic'
       if (theory_name(1:3) .eq. 'dft' .or.
-     $    theory_name(1:5) .eq. 'tddft') then
+     $    theory_name(1:5) .eq. 'tddft' .or.
+     $    theory_name(1:5) .eq. 'sodft') then
          status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
          ok = ok .and. status
          call nwchemc_apply_named_dft_xc(rtdb, scf_type, status)
@@ -2196,6 +2197,19 @@ c           fragment=-1 selects non-fragment tce_energy path
             status = rtdb_cput(rtdb, 'tce:module', 1, 'tce')
             ok = ok .and. status
          endif
+c        MCSCF minima: full-valence CAS(2,2) for H2 STO-3G unless input set.
+         if (theory_name(1:5) .eq. 'mcscf') then
+            ival = 2
+            status = rtdb_put(rtdb, 'mcscf:nact', mt_int, 1, ival)
+            ok = ok .and. status
+            ival = 2
+            status = rtdb_put(rtdb, 'mcscf:nactelec', mt_int, 1, ival)
+            ok = ok .and. status
+            ival = mult
+            status = rtdb_put(rtdb, 'mcscf:multiplicity', mt_int, 1,
+     $         ival)
+            ok = ok .and. status
+         endif
          if (scf_has_options .ne. 0) then
             if (scf_maxiter .gt. 0) then
                call nwchemc_rtdb_put_int(rtdb, 'scf:maxiter',
@@ -2241,7 +2255,8 @@ c     Fetch total energy after task_energy for SCF/DFT and post-SCF theories.
          endif
       endif
       if (theory_name(1:3) .eq. 'mp2' .or.
-     $    theory_name(1:5) .eq. 'rimp2') then
+     $    theory_name(1:5) .eq. 'rimp2' .or.
+     $    theory_name(1:10) .eq. 'direct_mp2') then
          if (rtdb_get(rtdb, 'mp2:energy', mt_dbl, 1, energy_h)) then
             ok = .true.
             return
@@ -2258,6 +2273,18 @@ c     Fetch total energy after task_energy for SCF/DFT and post-SCF theories.
             ok = .true.
             return
          endif
+         if (rtdb_get(rtdb, 'dft:energy', mt_dbl, 1, energy_h)) then
+            ok = .true.
+            return
+         endif
+      endif
+      if (theory_name(1:5) .eq. 'mcscf') then
+         if (rtdb_get(rtdb, 'mcscf:energy', mt_dbl, 1, energy_h)) then
+            ok = .true.
+            return
+         endif
+      endif
+      if (theory_name(1:5) .eq. 'sodft') then
          if (rtdb_get(rtdb, 'dft:energy', mt_dbl, 1, energy_h)) then
             ok = .true.
             return

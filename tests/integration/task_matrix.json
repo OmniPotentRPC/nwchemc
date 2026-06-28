@@ -193,6 +193,58 @@
       "embed_compare": false,
       "embed_meson_test": "nwchem-energy-forces-tddft",
       "notes": "embed SP forces theory=tddft (ground/reference DFT gradient path)"
+    },
+    {
+      "id": "h2_mcscf_energy",
+      "nw_input": "tests/integration/nw/h2_mcscf_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-mcscf",
+      "notes": "MCSCF CAS(2,2)"
+    },
+    {
+      "id": "h2_sodft_energy",
+      "nw_input": "tests/integration/nw/h2_sodft_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-sodft",
+      "notes": "triplet SODFT"
+    },
+    {
+      "id": "h2_tce_mrcc_energy",
+      "nw_input": "tests/integration/nw/h2_tce_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-tce-mrcc",
+      "notes": "TCE MRCC"
+    },
+    {
+      "id": "h2_mcscf_forces",
+      "nw_input": "tests/integration/nw/h2_mcscf_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-mcscf",
+      "notes": "MCSCF SP forces"
+    },
+    {
+      "id": "h2_sodft_forces",
+      "nw_input": "tests/integration/nw/h2_sodft_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-sodft",
+      "notes": "SODFT SP forces"
     }
   ]
 }

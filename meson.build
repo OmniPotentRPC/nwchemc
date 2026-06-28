@@ -1303,6 +1303,64 @@ nwchem_config_options_params_bin = custom_target(
         '@OUTPUT@',
       ],
     )
+    nwchem_params_h2_mcscf_bin = custom_target(
+      'nwchem_params_h2_mcscf_bin',
+      input: 'tests/nwchem_params_h2_mcscf.capnp.txt',
+      output: 'nwchem_params_h2_mcscf.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_params_h2_sodft_bin = custom_target(
+      'nwchem_params_h2_sodft_bin',
+      input: 'tests/nwchem_params_h2_sodft.capnp.txt',
+      output: 'nwchem_params_h2_sodft.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_params_h2_tce_mrcc_bin = custom_target(
+      'nwchem_params_h2_tce_mrcc_bin',
+      input: 'tests/nwchem_params_h2_tce_mrcc.capnp.txt',
+      output: 'nwchem_params_h2_tce_mrcc.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+
+    nwchem_params_h2_direct_mp2_bin = custom_target(
+      'nwchem_params_h2_direct_mp2_bin',
+      input: 'tests/nwchem_params_h2_direct_mp2.capnp.txt',
+      output: 'nwchem_params_h2_direct_mp2.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+
     nwchem_input_blocks_params_text = configure_file(
       input: 'tests/nwchem_params_input_blocks.capnp.txt.in',
       output: 'nwchem_params_input_blocks.capnp.txt',
@@ -1756,6 +1814,8 @@ nwchem_config_options_params_bin = custom_target(
       ['ccsd', nwchem_params_h2_ccsd_bin],
       ['tce', nwchem_params_h2_tce_bin],
       ['tddft', nwchem_params_h2_tddft_bin],
+      ['mcscf', nwchem_params_h2_mcscf_bin],
+      ['sodft', nwchem_params_h2_sodft_bin],
     ]
       test(
         'nwchem-energy-forces-' + forces_case[0],
@@ -1797,6 +1857,10 @@ nwchem_config_options_params_bin = custom_target(
       ['rimp2', nwchem_params_h2_rimp2_bin],
       ['tce-ccsdt', nwchem_params_h2_tce_ccsdt_bin],
       ['tddft', nwchem_params_h2_tddft_bin],
+      ['mcscf', nwchem_params_h2_mcscf_bin],
+      ['sodft', nwchem_params_h2_sodft_bin],
+      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
+      ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
     ]
       test(
         'nwchem-postscf-energy-' + postscf[0],

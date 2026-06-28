@@ -1,0 +1,10 @@
+(
+  basis = "sto-3g",
+  theory = "direct_mp2",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "H2 direct_mp2 energy",
+  memoryMb = 512,
+)

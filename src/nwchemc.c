@@ -4254,6 +4254,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
         !span_starts_with(theory, theory_len, "tddft") &&
         !span_starts_with(theory, theory_len, "sodft") &&
         !span_starts_with(theory, theory_len, "rt_tddft") &&
+        !span_starts_with(theory, theory_len, "mcscf") &&
+        !span_starts_with(theory, theory_len, "selci") &&
+        !span_starts_with(theory, theory_len, "tce") &&
         !span_starts_with(theory, theory_len, "blyp") &&
         !span_starts_with(theory, theory_len, "b3lyp") &&
         !span_starts_with(theory, theory_len, "pbe")) {

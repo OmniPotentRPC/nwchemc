@@ -1,0 +1,13 @@
+(
+  basis = "sto-3g",
+  theory = "mcscf",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "H2 MCSCF CAS(2,2) energy",
+  memoryMb = 512,
+  inputBlocks = [
+    "mcscf\n  active 2\n  actelec 2\n  multiplicity 1\nend"
+  ],
+)

@@ -1,0 +1,21 @@
+(
+  basis = "sto-3g",
+  theory = "sodft",
+  scfType = "b3lyp",
+  charge = 0,
+  multiplicity = 3,
+  task = "energy",
+  title = "H2 triplet SODFT energy",
+  memoryMb = 512,
+  inputStanzas = [
+    (
+      kind = dft,
+      dft = (
+        xc = "b3lyp",
+        direct = true,
+        odft = true,
+        iterations = 50,
+      )
+    )
+  ],
+)
