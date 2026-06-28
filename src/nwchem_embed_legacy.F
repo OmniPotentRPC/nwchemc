@@ -345,63 +345,39 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
-     $     atmnrs, cell_ang, has_cell, errmsg, status)
-      if (.not. status) return
-      call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
-     $     basis_name, errmsg, status)
-      if (.not. status) return
-      call nwchemc_store_pseudopotentials(rtdb, psp_count, psp_elements,
-     $     psp_types, psp_names, errmsg, status)
-      if (.not. status) return
-      if (inp_strlen(input_blocks) .gt. 0) then
-         if (.not. nw_inp_from_character(rtdb,
-     $        input_blocks(1:inp_strlen(input_blocks)))) then
-            errmsg = 'nw_inp_from_character inputBlocks failed'
+C     Warm multi-call: update coords in existing geometry (keep basis/SCF).
+C     Single task_gradient (energy included); skip method/PSP/input re-apply.
+      call nwchemc_update_geometry_coords(rtdb, n_atoms, pos_ang,
+     $     errmsg, status)
+      if (.not. status) then
+         call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $        atmnrs, cell_ang, has_cell, errmsg, status)
+         if (.not. status) return
+         call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $        basis_name, errmsg, status)
+         if (.not. status) return
+         call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $        charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $        dft_smear_spinset, scf_has_options, scf_maxiter,
+     $        scf_thresh, scf_tol2e, driver_has_options,
+     $        driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $        driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
+         if (.not. status) then
+            errmsg = 'method RTDB setup failed'
             return
          endif
       endif
-      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
-     $     brillouin_zone_name, brillouin_monkhorst_pack,
-     $     brillouin_max_kpoints_print, brillouin_kvector_count,
-     $     brillouin_kvectors, errmsg, status)
-      if (.not. status) return
-      call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
-     $     set_keys, set_values, errmsg, status)
-      if (.not. status) return
-      call nwchemc_apply_direct_typed_sets(rtdb, typed_set_count,
-     $     typed_set_keys, typed_set_types, typed_set_value_counts,
-     $     typed_set_values, errmsg, status)
-      if (.not. status) return
-
-      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
-     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $     dft_smear_spinset, scf_has_options, scf_maxiter,
-     $     scf_thresh, scf_tol2e, driver_has_options,
-     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
-     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
-      if (.not. status) then
-         errmsg = 'method RTDB setup failed'
-         return
-      endif
-      status = rtdb_cput(rtdb, 'task:operation', 1, 'energy')
+      n3 = 3 * n_atoms
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
-
-      if (.not. task_energy(rtdb)) then
-         errmsg = 'task_energy/scf failed'
+      status = rtdb_cput(rtdb, 'task:operation', 1, 'gradient')
+      if (.not. task_gradient(rtdb)) then
+         errmsg = 'task_gradient failed'
          return
       endif
       call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
      $     status)
       if (.not. status) then
          errmsg = 'rtdb_get task/postscf energy failed'
-         return
-      endif
-
-      n3 = 3 * n_atoms
-      status = rtdb_cput(rtdb, 'task:operation', 1, 'gradient')
-      if (.not. task_gradient(rtdb)) then
-         errmsg = 'task_gradient failed'
          return
       endif
       if (.not. ma_push_get(mt_dbl, n3, 'nwchemc_g', l_grad,
@@ -2665,6 +2641,76 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
             return
          endif
       enddo
+      ok = .true.
+      return
+      end
+
+
+      subroutine nwchemc_update_geometry_coords(rtdb, n_atoms, pos_ang,
+     $     errmsg, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+#include "stdio.fh"
+      integer rtdb, n_atoms
+      double precision pos_ang(*)
+      character*(*) errmsg
+      logical ok
+      integer iat, i, geom, maxat
+      parameter (maxat = 64)
+      double precision coords(3,maxat)
+      double precision charge(maxat)
+      character*16 tags(maxat)
+      double precision scale
+      logical status
+      external geom_create, geom_destroy, geom_rtdb_load
+      external geom_cart_get, geom_cart_set, geom_rtdb_store
+      external geom_get_user_scale
+      logical geom_create, geom_destroy, geom_rtdb_load
+      logical geom_cart_get, geom_cart_set, geom_rtdb_store
+      logical geom_get_user_scale
+
+      ok = .false.
+      if (n_atoms .le. 0 .or. n_atoms .gt. maxat) then
+         errmsg = 'invalid geometry atom count'
+         return
+      endif
+      if (.not. geom_create(geom, 'geometry')) then
+         errmsg = 'geom_create failed'
+         return
+      endif
+      if (.not. geom_rtdb_load(rtdb, geom, 'geometry')) then
+         status = geom_destroy(geom)
+         errmsg = 'geom_rtdb_load failed'
+         return
+      endif
+      if (.not. geom_cart_get(geom, n_atoms, tags, coords, charge)) then
+         status = geom_destroy(geom)
+         errmsg = 'geom_cart_get failed'
+         return
+      endif
+      if (.not. geom_get_user_scale(geom, scale)) then
+         status = geom_destroy(geom)
+         errmsg = 'geom_get_user_scale failed'
+         return
+      endif
+      do iat = 1, n_atoms
+         do i = 1, 3
+            coords(i, iat) = pos_ang(3 * (iat - 1) + i) * scale
+         enddo
+      enddo
+      if (.not. geom_cart_set(geom, n_atoms, tags, coords, charge)) then
+         status = geom_destroy(geom)
+         errmsg = 'geom_cart_set failed'
+         return
+      endif
+      if (.not. geom_rtdb_store(rtdb, geom, 'geometry')) then
+         status = geom_destroy(geom)
+         errmsg = 'geom_rtdb_store failed'
+         return
+      endif
+      status = geom_destroy(geom)
+      errmsg = 'ok'
       ok = .true.
       return
       end
