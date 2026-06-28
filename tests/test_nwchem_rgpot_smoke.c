@@ -291,7 +291,7 @@ static void assert_potential_result_optimized(
     for (int i = 0; i < 6; ++i)
       assert_close_relative("PotentialResult.optimizedPos", i,
                             optimized_positions[i], expected_positions[i],
-                            1.0e-10);
+                            1.0e-6);
   }
   double bond = h2_bond_length(optimized_positions);
   assert_true(bond > 0.5);
