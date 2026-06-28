@@ -289,6 +289,9 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
                 "tests/test_nwchem_rgpot_smoke.c",
                 "force_input_h2_ev.capnp.txt",
                 "force_input_h2_bohr_ev.capnp.txt",
+                "nwchem-hessian",
+                "tests/test_nwchem_hessian.c",
+                "potential_config_hessian.capnp.txt.in",
                 "nwchem-potential-config-pseudopotential",
                 "tests/test_nwchem_potential_config_pseudopotential.c",
                 "tests/nwchem_configured_pseudopotential_rtdb_probe.F",
@@ -315,6 +318,40 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
                 "tests/test_nwchem_pspw_pseudopotential_forces.c",
                 "nwchem_params_pspw_pseudopotential_forces.capnp.txt.in",
                 "potential_config_pspw_pseudopotential_forces.capnp.txt.in",
+            ],
+        )
+
+    def test_cmake_hessian_real_target_receives_all_fixture_arguments(self):
+        dependencies = re.search(
+            r"add_dependencies\(\s*nwchem-hessian(?P<body>.*?)\n    \)",
+            self.text,
+            re.S,
+        )
+        self.assertIsNotNone(dependencies)
+        self.assert_contains_all(
+            dependencies.group("body"),
+            [
+                "nwchem_params_hessian_bin",
+                "potential_config_hessian_bin",
+                "force_input_h2_eq_bin",
+                "force_input_h2_bohr_ev_bin",
+            ],
+        )
+
+        command = re.search(
+            r"nwchemc_add_real_nwchem_test\(\s*nwchem-hessian\s+nwchem-hessian"
+            r"(?P<body>.*?)\n    \)",
+            self.text,
+            re.S,
+        )
+        self.assertIsNotNone(command)
+        self.assert_contains_all(
+            command.group("body"),
+            [
+                "nwchem_params_hessian_BIN",
+                "potential_config_hessian_BIN",
+                "NWCHEMC_FORCE_INPUT_H2_EQ_BIN",
+                "NWCHEMC_FORCE_INPUT_H2_BOHR_EV_BIN",
             ],
         )
 

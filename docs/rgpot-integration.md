@@ -111,7 +111,7 @@ above and these probes are green:
 | Surface | Probe |
 | --- | --- |
 | `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy and forces | `tests/test_nwchem_rgpot_smoke.c` |
-| `ForceInput.energyUnit` / `ForceInput.lengthUnit` conversion for result-carrier energy, forces, Hessian, and optimized coordinates | `tests/test_nwchem_rgpot_smoke.c` |
+| `ForceInput.energyUnit` / `ForceInput.lengthUnit` conversion for result-carrier energy, forces, Hessian, and optimized coordinates | `tests/test_nwchem_rgpot_smoke.c`, `tests/test_nwchem_hessian.c` |
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
 | Hessian, dipole, polarizability, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
 | Periodic PSPW stress coordinate/session, ForceInput raw calls, result carriers, and unit conversion | `tests/test_nwchem_stress.c` |

@@ -1618,8 +1618,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-hessian',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_hessian_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_hessian_test, nwchem_hessian_params_bin, potential_config_hessian_bin, force_input_h2_eq_bin]
-        : [nwchem_hessian_params_bin, potential_config_hessian_bin, force_input_h2_eq_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_hessian_test, nwchem_hessian_params_bin, potential_config_hessian_bin, force_input_h2_eq_bin, force_input_h2_bohr_ev_bin]
+        : [nwchem_hessian_params_bin, potential_config_hessian_bin, force_input_h2_eq_bin, force_input_h2_bohr_ev_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
       timeout: 120,

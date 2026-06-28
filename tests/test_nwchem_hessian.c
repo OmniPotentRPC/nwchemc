@@ -15,8 +15,10 @@
 static const char *g_params_path = NULL;
 static const char *g_config_path = NULL;
 static const char *g_force_input_path = NULL;
+static const char *g_unit_force_input_path = NULL;
 
 static const double BOHR_TO_ANGSTROM = 0.529177210903;
+static const double HARTREE_TO_EV = 27.211386245988;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -83,8 +85,10 @@ static void assert_matching_hessian(const char *label, const double *actual,
 
 static void assert_potential_result_hessian(const unsigned char *message,
                                             size_t message_size,
+                                            double expected_energy,
                                             const double *native_hessian,
-                                            int ncoord) {
+                                            int ncoord,
+                                            double hessian_factor) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -94,19 +98,20 @@ static void assert_potential_result_hessian(const unsigned char *message,
   struct PotentialResult result;
   read_PotentialResult(&result, root);
   assert_true(isfinite(result.energy));
+  assert_close_relative("PotentialResult.energy", 0, result.energy,
+                        expected_energy, 1.0e-5);
 
   capn_resolve(&result.hessian.p);
   assert_int_equal(result.hessian.p.type, CAPN_LIST);
   assert_int_equal(result.hessian.p.datasz, 8);
   assert_int_equal(result.hessian.p.len, ncoord * ncoord);
 
-  double conversion = 1.0 / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM);
   for (int i = 0; i < result.hessian.p.len; ++i) {
     double actual = capn_to_f64(capn_get64(result.hessian, i));
     if (!isfinite(actual))
       fail_msg("non-finite PotentialResult.hessian[%d]", i);
     assert_close_relative("PotentialResult.hessian", i, actual,
-                          native_hessian[i] * conversion, 1.0e-5);
+                          native_hessian[i] * hessian_factor, 1.0e-5);
   }
 
   capn_free(&arena);
@@ -124,12 +129,16 @@ static void test_h2_hessian(void **state) {
   size_t params_size = 0;
   size_t config_size = 0;
   size_t force_input_size = 0;
+  size_t unit_force_input_size = 0;
   unsigned char *params = read_file(g_params_path, &params_size);
   unsigned char *config = read_file(g_config_path, &config_size);
   unsigned char *force_input = read_file(g_force_input_path, &force_input_size);
+  unsigned char *unit_force_input =
+      read_file(g_unit_force_input_path, &unit_force_input_size);
   assert_non_null(params);
   assert_non_null(config);
   assert_non_null(force_input);
+  assert_non_null(unit_force_input);
 
   const int n_atoms = 2;
   const int ncoord = 3 * n_atoms;
@@ -201,6 +210,15 @@ static void test_h2_hessian(void **state) {
   assert_matching_hessian("PotentialConfig hessian", config_hessian, hessian,
                           ncoord, 1.0);
 
+  double unit_force_input_hessian[36];
+  memset(unit_force_input_hessian, 0, sizeof(unit_force_input_hessian));
+  NWChemCResult unit_force_input_status = nwchemc_calculate_hessian(
+      params, params_size, unit_force_input, unit_force_input_size,
+      unit_force_input_hessian, 36);
+  assert_success("unit nwchemc_calculate_hessian", unit_force_input_status);
+  assert_matching_hessian("unit ForceInput hessian", unit_force_input_hessian,
+                          hessian, ncoord, 1.0);
+
   size_t hessian_capacity =
       nwchemc_hessian_result_size_for_force_input(force_input,
                                                   force_input_size);
@@ -214,8 +232,29 @@ static void test_h2_hessian(void **state) {
       hessian_capacity, &hessian_size);
   assert_success("nwchemc_calculate_hessian_result", result_status);
   assert_int_equal(hessian_size, hessian_capacity);
-  assert_potential_result_hessian(hessian_bytes, hessian_size,
-                                  force_input_hessian, ncoord);
+  double hessian_hartree_per_ang2_factor =
+      1.0 / (BOHR_TO_ANGSTROM * BOHR_TO_ANGSTROM);
+  assert_potential_result_hessian(
+      hessian_bytes, hessian_size, result_status.energy_h,
+      force_input_hessian, ncoord, hessian_hartree_per_ang2_factor);
+
+  size_t unit_hessian_capacity = nwchemc_hessian_result_size_for_force_input(
+      unit_force_input, unit_force_input_size);
+  assert_true(unit_hessian_capacity > 0);
+  unsigned char *unit_hessian_bytes =
+      (unsigned char *)malloc(unit_hessian_capacity);
+  assert_non_null(unit_hessian_bytes);
+
+  size_t unit_hessian_size = 0;
+  NWChemCResult unit_result_status = nwchemc_calculate_hessian_result(
+      params, params_size, unit_force_input, unit_force_input_size,
+      unit_hessian_bytes, unit_hessian_capacity, &unit_hessian_size);
+  assert_success("unit nwchemc_calculate_hessian_result", unit_result_status);
+  assert_int_equal(unit_hessian_size, unit_hessian_capacity);
+  assert_potential_result_hessian(
+      unit_hessian_bytes, unit_hessian_size,
+      unit_result_status.energy_h * HARTREE_TO_EV, unit_force_input_hessian,
+      ncoord, HARTREE_TO_EV);
 
   memset(hessian_bytes, 0, hessian_capacity);
   hessian_size = 0;
@@ -226,8 +265,33 @@ static void test_h2_hessian(void **state) {
   assert_success("nwchemc_calculate_hessian_result_from_config",
                  config_result_status);
   assert_int_equal(hessian_size, hessian_capacity);
-  assert_potential_result_hessian(hessian_bytes, hessian_size, config_hessian,
-                                  ncoord);
+  assert_potential_result_hessian(
+      hessian_bytes, hessian_size, config_result_status.energy_h,
+      config_hessian, ncoord, hessian_hartree_per_ang2_factor);
+
+  double unit_config_hessian[36];
+  memset(unit_config_hessian, 0, sizeof(unit_config_hessian));
+  NWChemCResult unit_config_status = nwchemc_calculate_hessian_from_config(
+      config, config_size, unit_force_input, unit_force_input_size,
+      unit_config_hessian, 36);
+  assert_success("unit nwchemc_calculate_hessian_from_config",
+                 unit_config_status);
+  assert_matching_hessian("unit PotentialConfig hessian", unit_config_hessian,
+                          hessian, ncoord, 1.0);
+
+  memset(unit_hessian_bytes, 0, unit_hessian_capacity);
+  unit_hessian_size = 0;
+  NWChemCResult unit_config_result_status =
+      nwchemc_calculate_hessian_result_from_config(
+          config, config_size, unit_force_input, unit_force_input_size,
+          unit_hessian_bytes, unit_hessian_capacity, &unit_hessian_size);
+  assert_success("unit nwchemc_calculate_hessian_result_from_config",
+                 unit_config_result_status);
+  assert_int_equal(unit_hessian_size, unit_hessian_capacity);
+  assert_potential_result_hessian(
+      unit_hessian_bytes, unit_hessian_size,
+      unit_config_result_status.energy_h * HARTREE_TO_EV, unit_config_hessian,
+      ncoord, HARTREE_TO_EV);
 
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
@@ -241,25 +305,54 @@ static void test_h2_hessian(void **state) {
   assert_success("nwchemc_session_calculate_hessian_result",
                  session_result_status);
   assert_int_equal(hessian_size, hessian_capacity);
-  assert_potential_result_hessian(hessian_bytes, hessian_size, config_hessian,
-                                  ncoord);
+  assert_potential_result_hessian(
+      hessian_bytes, hessian_size, session_result_status.energy_h,
+      config_hessian, ncoord, hessian_hartree_per_ang2_factor);
+
+  double session_unit_hessian[36];
+  memset(session_unit_hessian, 0, sizeof(session_unit_hessian));
+  NWChemCResult session_unit_status = nwchemc_session_calculate_hessian(
+      session, unit_force_input, unit_force_input_size, session_unit_hessian,
+      36);
+  assert_success("unit nwchemc_session_calculate_hessian",
+                 session_unit_status);
+  assert_matching_hessian("unit session hessian", session_unit_hessian,
+                          hessian, ncoord, 1.0);
+
+  memset(unit_hessian_bytes, 0, unit_hessian_capacity);
+  unit_hessian_size = 0;
+  NWChemCResult session_unit_result_status =
+      nwchemc_session_calculate_hessian_result(
+          session, unit_force_input, unit_force_input_size, unit_hessian_bytes,
+          unit_hessian_capacity, &unit_hessian_size);
+  assert_success("unit nwchemc_session_calculate_hessian_result",
+                 session_unit_result_status);
+  assert_int_equal(unit_hessian_size, unit_hessian_capacity);
+  assert_potential_result_hessian(
+      unit_hessian_bytes, unit_hessian_size,
+      session_unit_result_status.energy_h * HARTREE_TO_EV,
+      session_unit_hessian, ncoord, HARTREE_TO_EV);
 
   nwchemc_session_destroy(session);
+  free(unit_hessian_bytes);
   free(hessian_bytes);
+  free(unit_force_input);
   free(force_input);
   free(config);
   free(params);
 }
 
 int main(int argc, char **argv) {
-  if (argc != 4) {
-    fprintf(stderr, "usage: %s PARAMS_BIN CONFIG_BIN FORCE_INPUT_BIN\n",
+  if (argc != 5) {
+    fprintf(stderr,
+            "usage: %s PARAMS_BIN CONFIG_BIN FORCE_INPUT_BIN UNIT_FORCE_INPUT_BIN\n",
             argv[0]);
     return 2;
   }
   g_params_path = argv[1];
   g_config_path = argv[2];
   g_force_input_path = argv[3];
+  g_unit_force_input_path = argv[4];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_h2_hessian),
   };

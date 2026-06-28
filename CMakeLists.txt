@@ -1134,6 +1134,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       NWChemParams
     )
     nwchemc_configure_fixture(
+      potential_config_hessian.capnp.txt.in
+      potential_config_hessian
+      PotentialConfig
+    )
+    nwchemc_configure_fixture(
       potential_config_structured.capnp.txt.in
       potential_config_structured
       PotentialConfig
@@ -1461,11 +1466,19 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "NWCHEMC_TEST_SCRATCH_DIR=\"${NWCHEMC_TEST_SCRATCH}\""
       "NWCHEMC_TEST_PERMANENT_DIR=\"${NWCHEMC_TEST_PERMANENT}\""
     )
-    add_dependencies(nwchem-hessian nwchem_params_hessian_bin)
+    add_dependencies(nwchem-hessian
+      nwchem_params_hessian_bin
+      potential_config_hessian_bin
+      force_input_h2_eq_bin
+      force_input_h2_bohr_ev_bin
+    )
     nwchemc_add_real_nwchem_test(
       nwchem-hessian
       nwchem-hessian
       "${nwchem_params_hessian_BIN}"
+      "${potential_config_hessian_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_EQ_BIN}"
+      "${NWCHEMC_FORCE_INPUT_H2_BOHR_EV_BIN}"
     )
 
     add_executable(nwchem-pseudopotential-rtdb
