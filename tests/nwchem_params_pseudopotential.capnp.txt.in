@@ -12,6 +12,7 @@
     (
       kind = pseudopotential,
       pseudopotential = (
+        blockName = pseudopotentialLibraries,
         entries = [
           (element = "Si", libraryType = library, libraryName = "sg15"),
           (element = "H", libraryType = pspwLibrary, libraryName = "hgh_lda"),

@@ -68,7 +68,7 @@ static void test_rendered_pseudopotential_deck_reaches_rtdb(void **state) {
                        params_root, input_blocks, sizeof(input_blocks)),
                    0);
   assert_non_null(strstr(input_blocks, "nwpw"));
-  assert_non_null(strstr(input_blocks, "pseudopotentials"));
+  assert_non_null(strstr(input_blocks, "pseudopotential_libraries"));
   assert_non_null(strstr(input_blocks, "Si library sg15"));
   assert_non_null(strstr(input_blocks, "H pspw_library hgh_lda"));
   assert_non_null(strstr(input_blocks, "O paw_library paw_default"));
