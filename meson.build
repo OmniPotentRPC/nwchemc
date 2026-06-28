@@ -1361,6 +1361,22 @@ nwchem_config_options_params_bin = custom_target(
       ],
     )
 
+
+    nwchem_params_h2_selci_bin = custom_target(
+      'nwchem_params_h2_selci_bin',
+      input: 'tests/nwchem_params_h2_selci.capnp.txt',
+      output: 'nwchem_params_h2_selci.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+
     nwchem_input_blocks_params_text = configure_file(
       input: 'tests/nwchem_params_input_blocks.capnp.txt.in',
       output: 'nwchem_params_input_blocks.capnp.txt',
@@ -1861,6 +1877,7 @@ nwchem_config_options_params_bin = custom_target(
       ['sodft', nwchem_params_h2_sodft_bin],
       ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
       ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
+      ['selci', nwchem_params_h2_selci_bin],
     ]
       test(
         'nwchem-postscf-energy-' + postscf[0],

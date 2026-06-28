@@ -1653,33 +1653,9 @@ static void ensure_init(void) {
 static const char *selected_theory(const struct NWChemParams *params,
                                    int *theory_len, const char **scf_type,
                                    int *scf_len) {
+  /* Cap'n Proto owns theory and scfType as separate fields; never rewrite. */
   const char *theory = text_or_with_len(params->theory, "scf", theory_len);
   *scf_type = text_or_with_len(params->scfType, "rhf", scf_len);
-  /* theory arm is itself an XC name (legacy): promote to DFT. */
-  if (span_starts_with(theory, *theory_len, "blyp") ||
-      span_starts_with(theory, *theory_len, "b3lyp") ||
-      span_starts_with(theory, *theory_len, "pbe")) {
-    *scf_type = theory;
-    *scf_len = *theory_len;
-    *theory_len = 3;
-    return "dft";
-  }
-  /* theory=dft with scfType carrying XC (b3lyp, blyp, pbe0, ...) — common
-   * potserv / RGPOT configure shape; without this, scfType was ignored for DFT. */
-  if (span_starts_with(theory, *theory_len, "dft") &&
-      (span_starts_with(*scf_type, *scf_len, "blyp") ||
-       span_starts_with(*scf_type, *scf_len, "b3lyp") ||
-       span_starts_with(*scf_type, *scf_len, "pbe") ||
-       span_starts_with(*scf_type, *scf_len, "pw91") ||
-       span_starts_with(*scf_type, *scf_len, "bp86") ||
-       span_starts_with(*scf_type, *scf_len, "hcth") ||
-       span_starts_with(*scf_type, *scf_len, "ft97") ||
-       span_starts_with(*scf_type, *scf_len, "xperpbe") ||
-       span_starts_with(*scf_type, *scf_len, "beckehandh") ||
-       span_starts_with(*scf_type, *scf_len, "hfexch"))) {
-    /* scf_type already points at the XC string; theory stays "dft". */
-    return theory;
-  }
   return theory;
 }
 
@@ -4245,26 +4221,16 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             i * NWCHEMC_DIRECT_DOS_ZONE_NAME_LEN,
         NWCHEMC_DIRECT_DOS_ZONE_NAME_LEN, brillouin_dos_zone_names[i]);
   }
-  if (dft_xc.len > 0 && dft_xc.str) {
-    scf_type = dft_xc.str;
-    scf_len = (int)dft_xc.len;
-    /* Typed DFT XC is only a functional label. Rewrite task:theory to "dft"
-     * solely when theory is still a legacy XC-as-theory alias (blyp/b3lyp/pbe…);
-     * never clobber an explicit method name (tddft, mcscf, sodft, tce, …). */
-    int theory_is_xc_alias =
-        span_starts_with(theory, theory_len, "blyp") ||
-        span_starts_with(theory, theory_len, "b3lyp") ||
-        span_starts_with(theory, theory_len, "pbe") ||
-        span_starts_with(theory, theory_len, "pw91") ||
-        span_starts_with(theory, theory_len, "bp86") ||
-        span_starts_with(theory, theory_len, "hcth") ||
-        span_starts_with(theory, theory_len, "ft97") ||
-        span_starts_with(theory, theory_len, "xperpbe") ||
-        span_starts_with(theory, theory_len, "beckehandh") ||
-        span_starts_with(theory, theory_len, "hfexch");
-    if (theory_is_xc_alias) {
-      theory = "dft";
-      theory_len = 3;
+  /* DFT stanza XC is a functional label for DFT-class theories only.
+   * Never rewrite theory; never overwrite scfType for HF-class theories. */
+  {
+    int dft_class =
+        span_starts_with(theory, theory_len, "dft") ||
+        span_starts_with(theory, theory_len, "tddft") ||
+        span_starts_with(theory, theory_len, "sodft");
+    if (dft_class && dft_xc.len > 0 && dft_xc.str) {
+      scf_type = dft_xc.str;
+      scf_len = (int)dft_xc.len;
     }
   }
 
@@ -4527,9 +4493,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
       PROMO_DBL("tddft:ecut", tddft_ecut);
       PROMO_LOG("tddft:lecut", 1);
     }
-    /* Excited-state gradient needs CI vectors on disk + a target root.
-     * Seed only when the TDDFT stanza actually requested work (nroots/target). */
-    if (tddft_nroots > 0 || tddft_target > 0) {
+    /* TDDFT CI / grad RTDB only when identity theory is tddft and stanza set work. */
+    if (span_starts_with(theory, theory_len, "tddft") &&
+        (tddft_nroots > 0 || tddft_target > 0)) {
       int grad_root = tddft_target > 0 ? tddft_target : 1;
       PROMO_LOG("tddft:lcivecs", 1);
       PROMO_INT("tddft_grad:isinglet_roots", grad_root);

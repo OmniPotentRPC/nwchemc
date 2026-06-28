@@ -31,6 +31,13 @@ ENERGY_RE = re.compile(
 )
 ENERGY_RE_ALT = [
     re.compile(r"Total\s+DFT\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"Total\s+MCSCF\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r">>>\|\s*MCSCF\s+energy:\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"Total\s+MP2\s+energy\s+([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"CI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"SELCI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"Final\s+CI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"excited\s+state\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"^\s*Total\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE | re.M),
 ]
 

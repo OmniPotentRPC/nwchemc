@@ -202,7 +202,7 @@
       ],
       "embed_compare": false,
       "embed_meson_test": "nwchem-postscf-energy-mcscf",
-      "notes": "MCSCF CAS(2,2)"
+      "notes": "CLI+embed mcscf"
     },
     {
       "id": "h2_sodft_energy",
@@ -212,7 +212,7 @@
       ],
       "embed_compare": false,
       "embed_meson_test": "nwchem-postscf-energy-sodft",
-      "notes": "triplet SODFT"
+      "notes": "CLI+embed sodft"
     },
     {
       "id": "h2_tce_mrcc_energy",
@@ -245,6 +245,26 @@
       "embed_compare": false,
       "embed_meson_test": "nwchem-energy-forces-sodft",
       "notes": "SODFT SP forces"
+    },
+    {
+      "id": "h2_selci_energy",
+      "nw_input": "tests/integration/nw/h2_selci_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-selci",
+      "notes": "CLI+embed theory=selci"
+    },
+    {
+      "id": "h2_direct_mp2_energy",
+      "nw_input": "tests/integration/nw/h2_direct_mp2_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-direct-mp2",
+      "notes": "CLI direct_mp2"
     }
   ]
 }

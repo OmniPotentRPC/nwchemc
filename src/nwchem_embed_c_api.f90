@@ -810,13 +810,7 @@ contains
     if (len_trim(bstr) == 0) bstr = 'sto-3g'
     if (len_trim(tstr) == 0) tstr = 'scf'
     if (len_trim(sstr) == 0) sstr = 'rhf'
-
-    ! theory aliases: blyp / b3lyp / pbe -> dft + xc
-    if (tstr(1:4) == 'blyp' .or. tstr(1:5) == 'b3lyp' .or. &
-        tstr(1:3) == 'pbe' .or. tstr(1:3) == 'dft') then
-      if (tstr(1:3) /= 'dft') sstr = tstr
-      tstr = 'dft'
-    end if
+    ! Cap'n Proto theory / scfType are independent; no alias rewrite here.
 
     cfg_basis = bstr
     cfg_theory = tstr
@@ -848,12 +842,7 @@ contains
     if (len_trim(xcstr) > 0) then
       cfg_dft_xc = xcstr
       cfg_scf = xcstr
-      ! XC label only rewrites theory when it is still a legacy XC-as-theory alias.
-      if (cfg_theory(1:4) == 'blyp' .or. cfg_theory(1:5) == 'b3lyp' .or. &
-          cfg_theory(1:3) == 'pbe' .or. cfg_theory(1:4) == 'pw91' .or. &
-          cfg_theory(1:4) == 'bp86' .or. cfg_theory(1:4) == 'hcth') then
-        cfg_theory = 'dft'
-      end if
+      ! Do not rewrite cfg_theory from XC; theory is set only via set_config.
     end if
     cfg_dft_direct = int(direct_enabled)
     cfg_dft_smear_on = int(smearing_enabled)

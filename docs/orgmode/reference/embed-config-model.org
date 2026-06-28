@@ -1,0 +1,56 @@
+#+title: NWChem embed configuration model
+#+options: toc:nil
+
+* Goal
+
+One path from Cap'n Proto ~NWChemParams~ to NWChem RTDB / ~task_energy~, without
+rewriting ~theory~ from stanza content or legacy string hacks.
+
+* Layers (strict order)
+
+1. *Identity* — ~params.theory~ and ~params.scfType~ are copied into embed config
+   verbatim (defaults ~scf~ / ~rhf~ only when the field is empty). Nothing later
+   mutates ~task:theory~.
+2. *Typed promotion* — Cap'n Proto stanzas (~dft~, ~tddft~, ~tce~, ~mcscf~ via
+   blocks today, …) become RTDB puts under stable keys (~dft:xc~, ~tddft:nroots~,
+   ~tce:model~, …). Stanzas never change ~theory~.
+3. *Residual text* — ~inputBlocks~ / directive leftovers run through
+   ~nw_inp_from_character~ only for knobs without RTDB promotion. Prefer ~set~
+   lines over module blocks when the linked NWChem binary lacks that module's
+   input parser.
+4. *Reference class setup* — ~nwchemc_apply_method_state~ applies *reference*
+   RTDB only:
+   - DFT-class theories (~dft~, ~tddft~, ~sodft~): ~dft:xc~ from ~scfType~ /
+     promoted XC, multiplicity, optional direct/smear.
+   - Otherwise molecular: SCF/HF reference (~scf:type~, ~scf:scftype~) for
+     post-HF / MCSCF / SELCI / TCE / MP2 / CCSD.
+5. *Task* — ~task:theory~ = layer-1 string; ~task_energy~ / ~task_gradient~.
+6. *Energy harvest* — ~task:energy~, else ~{theory}:energy~, else documented
+   NWChem aliases (~rimp2~|~direct_mp2~ → ~mp2:energy~; ~sodft~|~tddft~ may fall
+   back to ~dft:energy~ when the method stores there). Never invent energies.
+
+* What is forbidden
+
+- Rewriting ~theory~ because a ~dft~ stanza or XC string is present.
+- Hardcoded active-space / CAS defaults in embed for MCSCF/SELCI (fixtures own
+  ~inputBlocks~ / ~set~).
+- Embed-only success without CLI parity for claimed calculators (integration
+  ~.nw~ + ~tools/compare_nwchem_cli.py~ or explicit CLI logs).
+
+* Fixture shape
+
+#+begin_example
+(
+  theory = "tddft",          # identity
+  scfType = "b3lyp",         # functional / HF type label for reference class
+  inputStanzas = [ (kind = dft, dft = (...)), (kind = tddft, tddft = (...)) ],
+)
+#+end_example
+
+~theory~ selects the NWChem module; stanzas fill that module's RTDB namespace.
+
+* SELCI
+
+Link ~libselci~ into embed (~NW_MODULE_LIBS~). Prefer RTDB ~set selci:*~ in
+fixtures so embed and CLI agree without requiring ~selci_input~ in an old CLI
+binary; rebuild CLI when full stanza parse is required.

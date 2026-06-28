@@ -1,0 +1,13 @@
+(
+  basis = "sto-3g",
+  theory = "selci",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "H2 SELCI energy",
+  memoryMb = 512,
+  inputBlocks = [
+    "set selci:nroot 1\nset \"selci:selection criterion\" 0.0\nset selci:diag tol 1.0e-6"
+  ],
+)
