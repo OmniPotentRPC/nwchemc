@@ -153,6 +153,7 @@
         boFakeMass = 333.0,
         scalingFirst = 1.5,
         scalingSecond = 2.5,
+        scalingAtomIndices = [1, 3, 5],
         npFftProcesses = 2,
         npOrbitalProcesses = 3,
         npKspaceProcesses = 4,

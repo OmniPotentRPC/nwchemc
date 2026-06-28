@@ -2051,7 +2051,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_set_string("nwpw:vfield_filenames", "vf_a.ascii vf_b.ascii");
   assert_set_string("nwpw:dos:filename", "dos.dat");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 257);
+  assert_int_equal(g_typed_set_count, 259);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -2103,6 +2103,12 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                         "2.5");
   assert_typed_set_pair("cpmd:scaling", NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "1.5",
                         "2.5");
+  assert_typed_set_scalar("nwpw:scaling_natms",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3");
+  const char *scaling_atoms[3] = {"1", "3", "5"};
+  assert_typed_set_values("nwpw:scaling_atoms",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, 3,
+                          scaling_atoms);
   assert_typed_set_triple("nwpw:np_dimensions",
                           NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2", "3", "4");
   assert_typed_set_scalar("nwpw:spin_orbit", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,

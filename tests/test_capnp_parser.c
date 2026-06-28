@@ -148,7 +148,7 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "bo_time_step 0.75"));
   assert_non_null(strstr(input_blocks, "bo_algorithm velocity-verlet"));
   assert_non_null(strstr(input_blocks, "bo_fake_mass 333"));
-  assert_non_null(strstr(input_blocks, "scaling 1.5 2.5"));
+  assert_non_null(strstr(input_blocks, "scaling 1.5 2.5 1 3 5"));
   assert_non_null(strstr(input_blocks, "np_dimensions 2 3 4"));
   assert_non_null(strstr(input_blocks, "spin_orbit off"));
   assert_non_null(strstr(input_blocks, "parallel_io on"));

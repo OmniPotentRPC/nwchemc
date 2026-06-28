@@ -8,12 +8,12 @@
       integer rtdb, init_ok, finish_ok, owns_mpi
       integer i, j
       integer typed_count
-      integer typed_types(48)
-      integer typed_value_counts(48)
+      integer typed_types(50)
+      integer typed_value_counts(50)
       integer ivals(3)
       integer ival
-      character*128 typed_keys(48)
-      character*256 typed_values(64,48)
+      character*128 typed_keys(50)
+      character*256 typed_values(64,50)
       save typed_values
       character*256 text_value
       character*256 errmsg
@@ -34,7 +34,7 @@
          return
       endif
 
-      do i = 1, 48
+      do i = 1, 50
          typed_keys(i) = ' '
          typed_types(i) = 0
          typed_value_counts(i) = 0
@@ -42,7 +42,7 @@
             typed_values(j,i) = ' '
          enddo
       enddo
-      typed_count = 48
+      typed_count = 50
       typed_keys(1) = 'nwpw:balance'
       typed_types(1) = 4
       typed_value_counts(1) = 1
@@ -255,6 +255,16 @@
       typed_types(48) = 3
       typed_value_counts(48) = 1
       typed_values(1,48) = '4'
+      typed_keys(49) = 'nwpw:scaling_natms'
+      typed_types(49) = 3
+      typed_value_counts(49) = 1
+      typed_values(1,49) = '3'
+      typed_keys(50) = 'nwpw:scaling_atoms'
+      typed_types(50) = 3
+      typed_value_counts(50) = 3
+      typed_values(1,50) = '2'
+      typed_values(2,50) = '4'
+      typed_values(3,50) = '6'
 
       call nwchemc_apply_direct_typed_sets(rtdb, typed_count,
      $     typed_keys, typed_types, typed_value_counts, typed_values,
@@ -298,6 +308,25 @@
       endif
       if (dabs(dvals(1) - 502.5d0) .gt. 1.0d-12) then
          result = 17
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:scaling_natms', ival)) then
+         result = 110
+         goto 900
+      endif
+      if (ival .ne. 3) then
+         result = 111
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:scaling_atoms', 3, ivals)) then
+         result = 112
+         goto 900
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 4 .or.
+     $     ivals(3) .ne. 6) then
+         result = 113
          goto 900
       endif
       if (.not. nwchemc_probe_get_int_array(rtdb,
@@ -872,6 +901,25 @@
       endif
       if (dabs(dvals(1) - 502.5d0) .gt. 1.0d-12) then
          result = 217
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:scaling_natms', ival)) then
+         result = 240
+         return
+      endif
+      if (ival .ne. 3) then
+         result = 241
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:scaling_atoms', 3, ivals)) then
+         result = 242
+         return
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 4 .or.
+     $     ivals(3) .ne. 6) then
+         result = 243
          return
       endif
       if (.not. nwchemc_probe_get_int_array(rtdb,
