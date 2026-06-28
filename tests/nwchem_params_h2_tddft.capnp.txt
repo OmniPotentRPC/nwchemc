@@ -9,6 +9,6 @@
   memoryMb = 512,
   inputBlocks = [
     "dft\n  xc b3lyp\n  direct\n  iterations 50\nend",
-    "tddft\n  nroots 1\n  target 1\n  singlet\n  tda\nend"
+    "tddft\n  nroots 1\n  target 1\n  notriplet\n  singlet\n  tda\n  civecs\n  grad\n   root 1\n  end\nend"
   ],
 )

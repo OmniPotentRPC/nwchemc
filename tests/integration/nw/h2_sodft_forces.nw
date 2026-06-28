@@ -1,14 +1,16 @@
 echo
-start h2_tce
+start h2_sodft
 geometry units angstrom
- symmetry c1
   H 0 0 -0.3707
   H 0 0  0.3707
 end
 basis
   * library sto-3g
 end
-tce
-  ccsd
+dft
+  xc b3lyp
+  odft
+  mult 3
+  direct
 end
-task tce energy
+task sodft gradient

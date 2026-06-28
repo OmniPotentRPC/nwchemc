@@ -333,7 +333,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*255 vectors_in
       integer n3, i
       integer l_grad, k_grad
-      logical status
+      logical status, l_false
       external task_energy, task_gradient
       logical task_energy, task_gradient
       external nw_inp_from_character, util_file_name, util_file_name_resolve
@@ -369,15 +369,28 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
          endif
       endif
       n3 = 3 * n_atoms
-C     Prefer previous SCF output as next input (written by scf_vec_guess).
-      vectors_in = ' '
-      if (rtdb_cget(rtdb, 'scf:output vectors', 1, vectors_in)) then
-         if (inp_strlen(vectors_in) .gt. 0 .and.
-     $        .not. inp_compare(.false., vectors_in, 'atomic')) then
-            status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-            status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
-         endif
+C     Same as socket bead_list: one permanent movecs file. Read only if present
+C     (input==output without file aborts in movecs_converged).
+      call util_file_name('movecs', .false., .false., vectors_in)
+      call util_file_name_resolve(vectors_in, .false.)
+      status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
+      if (.not. status) then
+         errmsg = 'rtdb_cput scf:output vectors failed'
+         return
       endif
+      inquire(file=vectors_in(1:inp_strlen(vectors_in)), exist=status)
+      if (status) then
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+      else
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
+      endif
+      if (.not. status) then
+         errmsg = 'rtdb_cput scf:input vectors failed'
+         return
+      endif
+C     Match run_bead_list: force SCF to re-enter (not trust stale converged flag).
+      l_false = .false.
+      status = rtdb_put(rtdb, 'scf:converged', mt_log, 1, l_false)
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
       status = rtdb_cput(rtdb, 'task:operation', 1, 'gradient')
       if (.not. task_gradient(rtdb)) then

@@ -1,14 +1,10 @@
 echo
-start h2_tce
+start h2_mp2
 geometry units angstrom
- symmetry c1
   H 0 0 -0.3707
   H 0 0  0.3707
 end
 basis
   * library sto-3g
 end
-tce
-  ccsd
-end
-task tce energy
+task mp2 gradient

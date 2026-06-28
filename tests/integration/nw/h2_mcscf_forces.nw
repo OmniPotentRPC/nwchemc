@@ -1,5 +1,5 @@
 echo
-start h2_tce
+start h2_mcscf
 geometry units angstrom
  symmetry c1
   H 0 0 -0.3707
@@ -8,7 +8,9 @@ end
 basis
   * library sto-3g
 end
-tce
-  ccsd
+mcscf
+  active 2
+  actelec 2
+  multiplicity 1
 end
-task tce energy
+task mcscf gradient

@@ -11,4 +11,4 @@ end
 tce
   ccsd
 end
-task tce energy
+task tce gradient

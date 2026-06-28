@@ -35,6 +35,11 @@ METHOD_ENERGY_RES = [
     re.compile(r"Root\s+\d+\s+final\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"Total\s+MP2\s+energy\s+([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"Total\s+DFT\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    # Exclude SCS-CCSD (printed after plain CCSD; last-match would steal it).
+    re.compile(r"Total\s+CCSD\s+energy:\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"CCSD\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"CCSD\(T\)\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"CCSDt?\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"SELCI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"Final\s+CI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"ci\+pt\s+energy\s+([-+0-9.Ee+]+)", re.IGNORECASE),
@@ -295,7 +300,9 @@ def compare_task(
     elif embed is not None:
         notes.append("embed payload missing energy_ha")
 
-    if "gradient" in quantities:
+    # Forces are shipped as -gradient; CLI prints gradients under gradient banners.
+    want_grad = "gradient" in quantities or "forces" in quantities
+    if want_grad:
         eg = embed.get("gradient_ha_bohr") if embed else None
         if cli_grad is not None and eg is not None:
             dg = max_abs_delta(cli_grad, [float(x) for x in eg])

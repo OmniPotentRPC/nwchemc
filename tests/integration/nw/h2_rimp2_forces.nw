@@ -1,5 +1,5 @@
 echo
-start h2_tce
+start h2_rimp2
 geometry units angstrom
  symmetry c1
   H 0 0 -0.3707
@@ -8,7 +8,7 @@ end
 basis
   * library sto-3g
 end
-tce
-  ccsd
+basis "ri-mp2 basis"
+  * library sto-3g
 end
-task tce energy
+task rimp2 gradient

@@ -1,0 +1,14 @@
+echo
+start h2_scf_energy
+title "H2 SCF energy reference (pixi/conda-forge nwchem CLI)"
+geometry units angstrom noautosym
+  H 0.0 0.0 -0.3707
+  H 0.0 0.0  0.3707
+end
+basis spherical
+  H library sto-3g
+end
+scf
+  thresh 1e-8
+end
+task scf gradient

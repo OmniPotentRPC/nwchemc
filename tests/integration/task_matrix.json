@@ -119,7 +119,7 @@
     },
     {
       "id": "h2_dft_forces",
-      "nw_input": "tests/integration/nw/h2_dft_energy.nw",
+      "nw_input": "tests/integration/nw/h2_dft_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -130,7 +130,7 @@
     },
     {
       "id": "h2_scf_forces",
-      "nw_input": "tests/integration/nw/h2_scf_energy.nw",
+      "nw_input": "tests/integration/nw/h2_scf_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -141,7 +141,7 @@
     },
     {
       "id": "h2_mp2_forces",
-      "nw_input": "tests/integration/nw/h2_mp2_energy.nw",
+      "nw_input": "tests/integration/nw/h2_mp2_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -152,7 +152,7 @@
     },
     {
       "id": "h2_rimp2_forces",
-      "nw_input": "tests/integration/nw/h2_rimp2_energy.nw",
+      "nw_input": "tests/integration/nw/h2_rimp2_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -163,7 +163,7 @@
     },
     {
       "id": "h2_ccsd_forces",
-      "nw_input": "tests/integration/nw/h2_ccsd_energy.nw",
+      "nw_input": "tests/integration/nw/h2_ccsd_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -174,7 +174,7 @@
     },
     {
       "id": "h2_tce_forces",
-      "nw_input": "tests/integration/nw/h2_tce_energy.nw",
+      "nw_input": "tests/integration/nw/h2_tce_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -185,7 +185,7 @@
     },
     {
       "id": "h2_tddft_forces",
-      "nw_input": "tests/integration/nw/h2_tddft_energy.nw",
+      "nw_input": "tests/integration/nw/h2_tddft_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -216,7 +216,7 @@
     },
     {
       "id": "h2_mcscf_forces",
-      "nw_input": "tests/integration/nw/h2_mcscf_energy.nw",
+      "nw_input": "tests/integration/nw/h2_mcscf_forces.nw",
       "quantities": [
         "energy",
         "forces"
@@ -227,7 +227,7 @@
     },
     {
       "id": "h2_sodft_forces",
-      "nw_input": "tests/integration/nw/h2_sodft_energy.nw",
+      "nw_input": "tests/integration/nw/h2_sodft_forces.nw",
       "quantities": [
         "energy",
         "forces"
