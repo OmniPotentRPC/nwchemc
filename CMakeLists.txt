@@ -1130,6 +1130,11 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       potential_config_pspw_pseudopotential_forces
       PotentialConfig
     )
+    nwchemc_configure_fixture(
+      potential_config_nwpw_controls.capnp.txt.in
+      potential_config_nwpw_controls
+      PotentialConfig
+    )
 
     function(nwchemc_add_gradient_test target_name params_bin_target params_bin)
       add_executable("${target_name}" tests/test_nwchem_energy_gradient.c)
@@ -1465,10 +1470,12 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       tests/nwchem_rtdb_probe_get_int_array.F
     )
     target_link_libraries(nwchem-nwpw-rtdb PRIVATE
-      nwchemc_legacy
-      ${NWCHEM_LINK_ITEMS}
+      nwchemc
       PkgConfig::CMOCKA
     )
+    if(NWCHEMC_M_LIBRARY)
+      target_link_libraries(nwchem-nwpw-rtdb PRIVATE "${NWCHEMC_M_LIBRARY}")
+    endif()
     target_include_directories(nwchem-nwpw-rtdb PRIVATE
       ${NWCHEM_EMBED_INCLUDES}
     )
@@ -1484,9 +1491,13 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "$<$<COMPILE_LANGUAGE:Fortran>:${NWCHEM_FORTRAN_OPTIONS}>"
       $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
     )
+    add_dependencies(nwchem-nwpw-rtdb
+      potential_config_nwpw_controls_bin
+    )
     nwchemc_add_real_nwchem_test(
       nwchem-nwpw-rtdb
       nwchem-nwpw-rtdb
+      "${potential_config_nwpw_controls_BIN}"
     )
 
     add_executable(nwchem-geometry-basis-rtdb

@@ -100,6 +100,7 @@ above and these probes are green:
 | PSPW pseudopotential energy and forces result carrier | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
 | `ForceInput.box` cell-vector RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
 | Structured pseudopotential RTDB storage from `PotentialConfig.nwchem` | `tests/test_nwchem_potential_config_pseudopotential.c` |
+| Configured NWPW periodic controls reaching embedded RTDB | `tests/test_nwchem_nwpw_rtdb.c` |
 | Direct pseudopotential RTDB storage | `tests/test_nwchem_pseudopotential_rtdb.c` |
 | Stub/parser ABI and result-carrier shape | `tests/cmocka/test_embed_config_cmocka.c` |
 

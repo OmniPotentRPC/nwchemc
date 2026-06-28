@@ -616,3 +616,498 @@
       if ((finish_ok .ne. 0) .and. (result .eq. 0)) result = 100
       return
       end
+
+      subroutine nwchemc_test_configured_nwpw_rtdb(result) bind(C,
+     $     name='nwchemc_test_configured_nwpw_rtdb')
+      use, intrinsic :: iso_c_binding, only: c_int, c_long_long
+      implicit none
+#include "bafdecls.fh"
+#include "btdb.fh"
+      integer(c_int), intent(out) :: result
+      integer rtdb
+      integer ival
+      integer ivals(3)
+      integer(c_long_long) current_rtdb
+      character*256 text_value
+      double precision dvals(3)
+      double precision r1, r2
+      logical lval
+      logical nwchemc_probe_get_int, nwchemc_probe_get_log,
+     $     nwchemc_probe_get_int_array, nwchemc_probe_get_dbl_array
+      external nwchemc_probe_get_int, nwchemc_probe_get_log,
+     $     nwchemc_probe_get_int_array, nwchemc_probe_get_dbl_array
+
+      interface
+         function nwchemc_embed_current_rtdb() result(handle) bind(C,
+     $        name='nwchemc_embed_current_rtdb')
+            use, intrinsic :: iso_c_binding, only: c_long_long
+            integer(c_long_long) handle
+         end function nwchemc_embed_current_rtdb
+      end interface
+
+      result = 0
+      current_rtdb = nwchemc_embed_current_rtdb()
+      if (current_rtdb .lt. 0_c_long_long) then
+         result = 201
+         return
+      endif
+      rtdb = int(current_rtdb, kind(rtdb))
+
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:balance',
+     $     lval)) then
+         result = 210
+         return
+      endif
+      if (lval) then
+         result = 211
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb, 'nwpw:bo_steps',
+     $     2, ivals)) then
+         result = 212
+         return
+      endif
+      if (ivals(1) .ne. 13 .or. ivals(2) .ne. 17) then
+         result = 213
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:bo_time_step', 1, dvals)) then
+         result = 214
+         return
+      endif
+      if (dabs(dvals(1) - 15.5d0) .gt. 1.0d-12) then
+         result = 215
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:bo_fake_mass', 1, dvals)) then
+         result = 216
+         return
+      endif
+      if (dabs(dvals(1) - 502.5d0) .gt. 1.0d-12) then
+         result = 217
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:np_dimensions', 3, ivals)) then
+         result = 218
+         return
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 3 .or.
+     $     ivals(3) .ne. 4) then
+         result = 219
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:ewald_ngrid', 3, ivals)) then
+         result = 220
+         return
+      endif
+      if (ivals(1) .ne. 16 .or. ivals(2) .ne. 18 .or.
+     $     ivals(3) .ne. 20) then
+         result = 221
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:fractional_orbitals', 2, ivals)) then
+         result = 222
+         return
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 5) then
+         result = 223
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:fractional_temperature', 1, dvals)) then
+         result = 224
+         return
+      endif
+      if (dabs(dvals(1) - 0.0025d0) .gt. 1.0d-12) then
+         result = 225
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:fractional_smeartype', ival)) then
+         result = 226
+         return
+      endif
+      if (ival .ne. 4) then
+         result = 227
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:born',
+     $     lval)) then
+         result = 228
+         return
+      endif
+      if (.not. lval) then
+         result = 229
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:born_dielec', 1, dvals)) then
+         result = 230
+         return
+      endif
+      if (dabs(dvals(1) - 78.4d0) .gt. 1.0d-12) then
+         result = 231
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:born_vradii', 2, dvals)) then
+         result = 232
+         return
+      endif
+      r1 = 1.25d0 / 0.529177d0
+      r2 = 1.5d0 / 0.529177d0
+      if (dabs(dvals(1) - r1) .gt. 1.0d-5 .or.
+     $    dabs(dvals(2) - r2) .gt. 1.0d-5) then
+         result = 233
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:cpmd_properties', lval)) then
+         result = 234
+         return
+      endif
+      if (.not. lval) then
+         result = 235
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:cell_expand', 3, ivals)) then
+         result = 236
+         return
+      endif
+      if (ivals(1) .ne. 1 .or. ivals(2) .ne. 2 .or.
+     $     ivals(3) .ne. 3) then
+         result = 237
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'nwpw:mapping',
+     $     ival)) then
+         result = 238
+         return
+      endif
+      if (ival .ne. 4) then
+         result = 239
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:rotation',
+     $     lval)) then
+         result = 240
+         return
+      endif
+      if (.not. lval) then
+         result = 241
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:lmax_multipole', ival)) then
+         result = 242
+         return
+      endif
+      if (ival .ne. 6) then
+         result = 243
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'pspw:HFX_single_precision', lval)) then
+         result = 244
+         return
+      endif
+      if (.not. lval) then
+         result = 245
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'cgsd:geometry_optimize', lval)) then
+         result = 246
+         return
+      endif
+      if (.not. lval) then
+         result = 247
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:init_velocities_temperature', 1, dvals)) then
+         result = 248
+         return
+      endif
+      if (dabs(dvals(1) - 325.0d0) .gt. 1.0d-12) then
+         result = 249
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:init_velocities_seed', ival)) then
+         result = 250
+         return
+      endif
+      if (ival .ne. 777) then
+         result = 251
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:init_velocities', lval)) then
+         result = 252
+         return
+      endif
+      if (.not. lval) then
+         result = 253
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:makehmass2',
+     $     lval)) then
+         result = 254
+         return
+      endif
+      if (lval) then
+         result = 255
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:translate_vector', 3, dvals)) then
+         result = 256
+         return
+      endif
+      if (dabs(dvals(1) - 0.1d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(2) - 0.2d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(3) - 0.3d0) .gt. 1.0d-12) then
+         result = 257
+         return
+      endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'nwpw:translate_geom_name',
+     $     1, text_value)) then
+         result = 258
+         return
+      endif
+      if (text_value(1:6) .ne. 'mobile') then
+         result = 259
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:translate_reorder', lval)) then
+         result = 260
+         return
+      endif
+      if (lval) then
+         result = 261
+         return
+      endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'nwpw:socket_type',
+     $     1, text_value)) then
+         result = 262
+         return
+      endif
+      if (text_value(1:4) .ne. 'inet') then
+         result = 263
+         return
+      endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'nwpw:socket_ip',
+     $     1, text_value)) then
+         result = 264
+         return
+      endif
+      if (text_value(1:9) .ne. '127.0.0.1') then
+         result = 265
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw_APC:Gc', 1, dvals)) then
+         result = 266
+         return
+      endif
+      if (dabs(dvals(1) - 1.25d0) .gt. 1.0d-12) then
+         result = 267
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw_APC:nga', ival)) then
+         result = 268
+         return
+      endif
+      if (ival .ne. 3) then
+         result = 269
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw_APC:gamma', 3, dvals)) then
+         result = 270
+         return
+      endif
+      if (dabs(dvals(1) - 0.5d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(2) - 0.25d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(3) - 0.125d0) .gt. 1.0d-12) then
+         result = 271
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'cgsd:allow_translation', lval)) then
+         result = 272
+         return
+      endif
+      if (lval) then
+         result = 273
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'band:allow_translation', lval)) then
+         result = 274
+         return
+      endif
+      if (lval) then
+         result = 275
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:minimizer', ival)) then
+         result = 276
+         return
+      endif
+      if (ival .ne. 8) then
+         result = 277
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:ks_algorithm', ival)) then
+         result = 278
+         return
+      endif
+      if (ival .ne. -1) then
+         result = 279
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:scf_algorithm', ival)) then
+         result = 280
+         return
+      endif
+      if (ival .ne. 3) then
+         result = 281
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:precondition', lval)) then
+         result = 282
+         return
+      endif
+      if (lval) then
+         result = 283
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:kerker_g0', 1, dvals)) then
+         result = 284
+         return
+      endif
+      if (dabs(dvals(1) - 0.375d0) .gt. 1.0d-12) then
+         result = 285
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:ks_alpha', 1, dvals)) then
+         result = 286
+         return
+      endif
+      if (dabs(dvals(1) - 0.125d0) .gt. 1.0d-12) then
+         result = 287
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:ks_maxit_orb', ival)) then
+         result = 288
+         return
+      endif
+      if (ival .ne. 12) then
+         result = 289
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:ks_maxit_orbs', ival)) then
+         result = 290
+         return
+      endif
+      if (ival .ne. 4) then
+         result = 291
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:diis_histories', ival)) then
+         result = 292
+         return
+      endif
+      if (ival .ne. 6) then
+         result = 293
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:H1_it_in', ival)) then
+         result = 294
+         return
+      endif
+      if (ival .ne. 50) then
+         result = 295
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:H1_it_out', ival)) then
+         result = 296
+         return
+      endif
+      if (ival .ne. 1) then
+         result = 297
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:H1_it_ortho', ival)) then
+         result = 298
+         return
+      endif
+      if (ival .ne. 1) then
+         result = 299
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:lcao_skip', lval)) then
+         result = 300
+         return
+      endif
+      if (.not. lval) then
+         result = 301
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:cutoff_boot_psi', lval)) then
+         result = 302
+         return
+      endif
+      if (lval) then
+         result = 303
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:smooth_cutoff', 2, dvals)) then
+         result = 304
+         return
+      endif
+      if (dabs(dvals(1) - 2.75d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(2) - 3.25d0) .gt. 1.0d-12) then
+         result = 305
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:fast_erf', lval)) then
+         result = 306
+         return
+      endif
+      if (.not. lval) then
+         result = 307
+         return
+      endif
+
+      return
+      end

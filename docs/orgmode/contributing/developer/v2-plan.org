@@ -576,6 +576,9 @@ link. It renders the full ~nwpw / pseudopotentials~ block, parses it with
 The ~nwchem-pspw-pseudopotential-forces~ smoke runs a Si PSPW force step whose
 structured pseudopotential entry matches the Si atoms in ~ForceInput~ and
 verifies finite ~PotentialResult.energy~ and ~PotentialResult.forces~ values.
+The ~nwchem-nwpw-rtdb~ probe also installs a configured
+~PotentialConfig.nwchem~ fixture and verifies the same NWPW control families
+against the embedded RTDB handle.
 
 ** Atom And Geometry Limits
 Direct geometry and library-basis setup use ~n_atoms~-sized storage instead of

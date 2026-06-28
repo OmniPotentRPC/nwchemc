@@ -1263,6 +1263,25 @@ nwchem_config_options_params_bin = custom_target(
         '@OUTPUT@',
       ],
     )
+    potential_config_nwpw_controls_text = configure_file(
+      input: 'tests/potential_config_nwpw_controls.capnp.txt.in',
+      output: 'potential_config_nwpw_controls.capnp.txt',
+      configuration: params_conf,
+    )
+    potential_config_nwpw_controls_bin = custom_target(
+      'potential_config_nwpw_controls_bin',
+      input: potential_config_nwpw_controls_text,
+      output: 'potential_config_nwpw_controls.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'PotentialConfig',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_hessian_params_text = configure_file(
       input: 'tests/nwchem_params_hessian.capnp.txt.in',
       output: 'nwchem_params_hessian.capnp.txt',
@@ -1594,9 +1613,7 @@ nwchem_config_options_params_bin = custom_target(
         'tests/nwchem_rtdb_probe_get_int_array.F',
       ],
       include_directories: inc,
-      dependencies: [cmocka_dep],
-      link_with: nwchemc_legacy,
-      link_args: nwchem_link_args,
+      dependencies: [cmocka_dep, nwchemc_dep],
       c_args: common_c_args,
       fortran_args: nwchem_legacy_args,
     )
@@ -1604,8 +1621,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-nwpw-rtdb',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_nwpw_rtdb_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_nwpw_rtdb_test]
-        : [],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_nwpw_rtdb_test, potential_config_nwpw_controls_bin]
+        : [potential_config_nwpw_controls_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
