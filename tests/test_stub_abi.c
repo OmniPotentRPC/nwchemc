@@ -118,6 +118,14 @@ extern NWChemCResult nwchemc_session_calculate_frequencies(
     size_t force_input_capnp_size_bytes, double *frequencies_cm1,
     size_t frequencies_len, double *intensities_au, size_t intensities_len)
     NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_session_calculate_frequencies_detail(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *frequencies_cm1,
+    size_t frequencies_len, double *intensities_au, size_t intensities_len,
+    double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_session_calculate_stress(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *stress_au,
@@ -312,11 +320,27 @@ extern NWChemCResult nwchemc_calculate_frequencies(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
     size_t intensities_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_frequencies_detail(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len, double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len) NWCHEMC_TEST_WEAK;
 extern NWChemCResult nwchemc_calculate_frequencies_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
     size_t intensities_len) NWCHEMC_TEST_WEAK;
+extern NWChemCResult nwchemc_calculate_frequencies_detail_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len, double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len) NWCHEMC_TEST_WEAK;
 extern size_t nwchemc_frequencies_result_size_for_force_input(
     const void *force_input_capnp,
     size_t force_input_capnp_size_bytes) NWCHEMC_TEST_WEAK;
@@ -788,6 +812,17 @@ static void test_stub_reports_unavailable(void **state) {
       nwchemc_session_calculate_frequencies(NULL, NULL, 0, frequencies_cm1, 6,
                                             intensities_au, 6);
   assert_int_equal(session_step_frequency.ok, 0);
+  double normal_modes[36] = {0.0};
+  double projected_frequencies_cm1[6] = {0.0};
+  double projected_intensities_au[6] = {0.0};
+  double thermochemistry[5] = {0.0};
+  assert_true(nwchemc_session_calculate_frequencies_detail != NULL);
+  NWChemCResult session_step_frequency_detail =
+      nwchemc_session_calculate_frequencies_detail(
+          NULL, NULL, 0, frequencies_cm1, 6, intensities_au, 6, normal_modes,
+          36, projected_frequencies_cm1, 6, projected_intensities_au, 6,
+          thermochemistry, 5);
+  assert_int_equal(session_step_frequency_detail.ok, 0);
   assert_true(nwchemc_session_calculate_stress != NULL);
   NWChemCResult session_step_stress =
       nwchemc_session_calculate_stress(NULL, NULL, 0, stress_au, 9);
@@ -865,10 +900,24 @@ static void test_stub_reports_unavailable(void **state) {
   NWChemCResult one_shot_frequency = nwchemc_calculate_frequencies(
       NULL, 0, NULL, 0, frequencies_cm1, 6, intensities_au, 6);
   assert_int_equal(one_shot_frequency.ok, 0);
+  assert_true(nwchemc_calculate_frequencies_detail != NULL);
+  NWChemCResult one_shot_frequency_detail =
+      nwchemc_calculate_frequencies_detail(
+          NULL, 0, NULL, 0, frequencies_cm1, 6, intensities_au, 6,
+          normal_modes, 36, projected_frequencies_cm1, 6,
+          projected_intensities_au, 6, thermochemistry, 5);
+  assert_int_equal(one_shot_frequency_detail.ok, 0);
   assert_true(nwchemc_calculate_frequencies_from_config != NULL);
   NWChemCResult config_frequency = nwchemc_calculate_frequencies_from_config(
       NULL, 0, NULL, 0, frequencies_cm1, 6, intensities_au, 6);
   assert_int_equal(config_frequency.ok, 0);
+  assert_true(nwchemc_calculate_frequencies_detail_from_config != NULL);
+  NWChemCResult config_frequency_detail =
+      nwchemc_calculate_frequencies_detail_from_config(
+          NULL, 0, NULL, 0, frequencies_cm1, 6, intensities_au, 6,
+          normal_modes, 36, projected_frequencies_cm1, 6,
+          projected_intensities_au, 6, thermochemistry, 5);
+  assert_int_equal(config_frequency_detail.ok, 0);
   assert_true(nwchemc_calculate_stress != NULL);
   NWChemCResult one_shot_stress =
       nwchemc_calculate_stress(NULL, 0, NULL, 0, stress_au, 9);
