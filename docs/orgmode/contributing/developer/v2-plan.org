@@ -573,6 +573,9 @@ parity for the same NWPW pseudopotential stanza against an NWPW-enabled NWChem
 link. It renders the full ~nwpw / pseudopotentials~ block, parses it with
 ~nw_inp_from_character~, and reads the same library, reset, ~pspspin~,
 ~not_m~, semicore, and ~uterm~ RTDB keys that the direct path writes.
+The ~nwchem-pspw-pseudopotential-forces~ smoke runs a Si PSPW force step whose
+structured pseudopotential entry matches the Si atoms in ~ForceInput~ and
+verifies finite ~PotentialResult.energy~ and ~PotentialResult.forces~ values.
 
 ** Atom And Geometry Limits
 Direct geometry and library-basis setup use ~n_atoms~-sized storage instead of

@@ -1,0 +1,48 @@
+(
+  nwchem = (
+    basis = "sto-3g",
+    theory = "pspw",
+    scfType = "pbe96",
+    charge = 0,
+    multiplicity = 1,
+    nwchemRoot = "@NWCHEM_ROOT@",
+    task = "gradient",
+    scratchDir = "@NWCHEMC_TEST_SCRATCH@-pspw-forces",
+    permanentDir = "@NWCHEMC_TEST_PERMANENT@-pspw-forces",
+    inputStanzas = [
+      (
+        kind = simulationCell,
+        simulationCell = (
+          ngridX = 8,
+          ngridY = 8,
+          ngridZ = 8
+        )
+      ),
+      (
+        kind = nwpw,
+        nwpw = (
+          cutoffWavefunction = 3.0,
+          ewaldNcut = 4,
+          lcaoMode = lcao,
+          cutoffBootWavefunction = disabled
+        )
+      ),
+      (
+        kind = set,
+        set = (
+          key = "nwpw:lcao_iterations",
+          valueType = integer,
+          values = ["8"]
+        )
+      ),
+      (
+        kind = pseudopotential,
+        pseudopotential = (
+          entries = [
+            (element = "Si", libraryType = pspwLibrary, libraryName = "pspw_default")
+          ]
+        )
+      )
+    ]
+  )
+)
