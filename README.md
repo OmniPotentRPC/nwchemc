@@ -16,6 +16,22 @@ The rgpot-facing ABI is the serialized
 the backend against an installed `nwchemc` package without depending on
 NWChem text decks, C++ objects, Rust objects, or files from this source tree.
 
+Use this path for the rgpot adapter:
+
+1. Link the installed package with CMake `find_package(nwchemc CONFIG
+   REQUIRED)` or pkg-config `nwchemc`.
+2. Serialize one `PotentialConfig.nwchem` for the backend configuration.
+3. Create an `NWChemCSession` from that config for a fixed atom count and
+   species list.
+4. Serialize each geometry step as `ForceInput`. Put periodic cell vectors in
+   `ForceInput.box` so the cell travels with the step.
+5. Allocate the output buffer with
+   `nwchemc_potential_result_size_for_force_input()` for energy+forces or the
+   operation-specific sizing helper for Hessian, stress, dipole,
+   polarizability, quadrupole, optimization, or frequencies.
+6. Call `nwchemc_session_calculate_result()` for energy+forces, or the named
+   session result-carrier entry point for a specific operation.
+
 The merge/pr release gate is:
 
 - rgpot creates `PotentialConfig.nwchem` and per-step `ForceInput` messages
@@ -29,8 +45,21 @@ The merge/pr release gate is:
   result-carrier function.
 - `nwchem-rgpot-smoke`, `nwchem-session-result`,
   `nwchem-potential-config-pseudopotential`, `nwchem-pseudopotential-rtdb`,
-  `nwchem-stress`, and the installed CMake/pkg-config consumers pass against
-  the NWChem build used for the release.
+  `nwchem-stress`, `nwchem-configured-nwpw-rtdb`, and the installed
+  CMake/pkg-config consumers pass against the NWChem build used for the
+  release.
+
+For a local package-only check:
+
+```sh
+meson test -C build --print-errorlogs
+```
+
+For a release build linked to NWChem:
+
+```sh
+meson test -C <builddir> --print-errorlogs --num-processes 1
+```
 
 See [docs/rgpot-integration.md](docs/rgpot-integration.md) for the exact data
 flow, units, operation matrix, and NWPW stress expectations.

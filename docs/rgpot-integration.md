@@ -29,6 +29,11 @@ Use `PotentialConfig.nwchem` for backend configuration and `ForceInput` for
 each geometry step. Allocate the output buffer from the step message, then ask
 nwchemc to write an unpacked flat `PotentialResult`.
 
+The rgpot adapter should keep one `NWChemCSession` per fixed atom count and
+species list. Coordinate changes, unit changes, cell-vector changes, charge,
+and multiplicity can vary by `ForceInput` step. A changed atom count or species
+list requires a separate session.
+
 Leave `NWChemParams.enginePath` empty for this ABI. The current build links the
 NWChem embed bridge in-process and rejects non-empty dynamic engine paths
 before any NWChem configuration is applied.
@@ -63,6 +68,18 @@ energy-plus-forces compatibility result:
 The session variants use the same `ForceInput` and `PotentialResult` messages.
 They are the preferred path for repeated geometry steps with fixed topology.
 
+## Periodic cells
+
+For rgpot periodic calculations, put the 3x3 cell vectors in `ForceInput.box`
+for every periodic step. That is the path used by the energy, forces, stress,
+Hessian, dipole, polarizability, quadrupole, optimization, and frequency
+result-carrier calls.
+
+`PotentialConfig.nwchem.inputStanzas[].simulationCell` remains useful for
+static NWChem/NWPW configuration such as grids, lattice names, and compact
+lattice directives. It does not replace `ForceInput.box` when rgpot needs a
+cell per geometry step.
+
 ## Units
 
 `NWChemCResult.energy_h` is always Hartree. `PotentialResult` follows the unit
@@ -96,7 +113,7 @@ above and these probes are green:
 | `PotentialConfig.nwchem + ForceInput -> PotentialResult` energy and forces | `tests/test_nwchem_rgpot_smoke.c` |
 | Session result carriers across repeated steps | `tests/test_nwchem_session_result.c` |
 | Hessian, dipole, polarizability, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
-| Periodic PSPW stress one-shot/session raw and result carriers | `tests/test_nwchem_stress.c` |
+| Periodic PSPW stress coordinate/session, ForceInput raw calls, and result carriers | `tests/test_nwchem_stress.c` |
 | PSPW pseudopotential energy and forces one-shot/session result carriers | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
 | `ForceInput.box` cell-vector RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
 | Structured pseudopotential RTDB storage from `PotentialConfig.nwchem` | `tests/test_nwchem_potential_config_pseudopotential.c` |
@@ -141,5 +158,5 @@ A rgpot-side merge/pr release is at the wiring stage when:
 
 Stress is on the same release surface when rgpot is paired with an NWPW-enabled
 NWChem build and `tests/test_nwchem_stress.c` passes in the real-NWChem suite.
-That probe covers one-shot and session stress calls plus `PotentialResult`
-stress serialization.
+That probe covers coordinate one-shot/session stress, ForceInput one-shot and
+session stress, plus `PotentialResult` stress serialization.
