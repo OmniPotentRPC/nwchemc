@@ -1655,6 +1655,7 @@ static const char *selected_theory(const struct NWChemParams *params,
                                    int *scf_len) {
   const char *theory = text_or_with_len(params->theory, "scf", theory_len);
   *scf_type = text_or_with_len(params->scfType, "rhf", scf_len);
+  /* theory arm is itself an XC name (legacy): promote to DFT. */
   if (span_starts_with(theory, *theory_len, "blyp") ||
       span_starts_with(theory, *theory_len, "b3lyp") ||
       span_starts_with(theory, *theory_len, "pbe")) {
@@ -1662,6 +1663,22 @@ static const char *selected_theory(const struct NWChemParams *params,
     *scf_len = *theory_len;
     *theory_len = 3;
     return "dft";
+  }
+  /* theory=dft with scfType carrying XC (b3lyp, blyp, pbe0, ...) — common
+   * potserv / RGPOT configure shape; without this, scfType was ignored for DFT. */
+  if (span_starts_with(theory, *theory_len, "dft") &&
+      (span_starts_with(*scf_type, *scf_len, "blyp") ||
+       span_starts_with(*scf_type, *scf_len, "b3lyp") ||
+       span_starts_with(*scf_type, *scf_len, "pbe") ||
+       span_starts_with(*scf_type, *scf_len, "pw91") ||
+       span_starts_with(*scf_type, *scf_len, "bp86") ||
+       span_starts_with(*scf_type, *scf_len, "hcth") ||
+       span_starts_with(*scf_type, *scf_len, "ft97") ||
+       span_starts_with(*scf_type, *scf_len, "xperpbe") ||
+       span_starts_with(*scf_type, *scf_len, "beckehandh") ||
+       span_starts_with(*scf_type, *scf_len, "hfexch"))) {
+    /* scf_type already points at the XC string; theory stays "dft". */
+    return theory;
   }
   return theory;
 }
