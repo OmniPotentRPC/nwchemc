@@ -151,6 +151,15 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.PotentialResult.heatCapacityCv", "PotentialResult.heatCapacityCv", "PotentialResult.heatCapacityCv Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 16, 1, 1},
     {"field.PotentialResult.projectedFrequencies", "PotentialResult.projectedFrequencies", "PotentialResult.projectedFrequencies Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 17, 1, 1},
     {"field.PotentialResult.projectedIntensities", "PotentialResult.projectedIntensities", "PotentialResult.projectedIntensities Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 18, 1, 1},
+    {"field.PotentialResult.energyComponents", "PotentialResult.energyComponents", "PotentialResult.energyComponents Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 19, 1, 1},
+    {"field.PotentialResult.componentsValid", "PotentialResult.componentsValid", "PotentialResult.componentsValid Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 20, 1, 1},
+    {"field.PotentialResult.chargeIntegrals", "PotentialResult.chargeIntegrals", "PotentialResult.chargeIntegrals Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 21, 1, 1},
+    {"field.PotentialResult.chargeValid", "PotentialResult.chargeValid", "PotentialResult.chargeValid Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 22, 1, 1},
+    {"field.PotentialResult.multiStateEnergies", "PotentialResult.multiStateEnergies", "PotentialResult.multiStateEnergies Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 23, 1, 1},
+    {"field.PotentialResult.multiStateValid", "PotentialResult.multiStateValid", "PotentialResult.multiStateValid Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 24, 1, 1},
+    {"field.PotentialResult.mdTrajectoryRow", "PotentialResult.mdTrajectoryRow", "PotentialResult.mdTrajectoryRow Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 25, 1, 1},
+    {"field.PotentialResult.mdTrajectoryValid", "PotentialResult.mdTrajectoryValid", "PotentialResult.mdTrajectoryValid Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 26, 1, 1},
+    {"field.PotentialResult.embedMdPropsSkipped", "PotentialResult.embedMdPropsSkipped", "PotentialResult.embedMdPropsSkipped Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 27, 1, 1},
     {"field.NWChemDirective.keyword", "NWChemDirective.keyword", "NWChemDirective.keyword Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
     {"field.NWChemDirective.args", "NWChemDirective.args", "NWChemDirective.args Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 1},
     {"field.NWChemGenericStanza.name", "NWChemGenericStanza.name", "NWChemGenericStanza.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 1},
@@ -707,7 +716,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 702;
+static const size_t k_feature_count = 711;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

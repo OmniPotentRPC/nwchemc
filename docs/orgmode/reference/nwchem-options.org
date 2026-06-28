@@ -76,7 +76,14 @@ When ~apply_config_to_embed~ runs (embed builds only), typed
 ~NWChemSetDirective~ fields are applied outside rendered text where the bridge
 has a direct RTDB/API path.
 
-1. ~nwchemc_params_extract_direct_dft~ reads ~xc~, ~direct~, smearing.
+1. ~nwchemc_params_extract_direct_dft~ reads ~xc~, ~direct~, smearing, and ~iterations~
+   (RTDB ~dft:iterations~ on embed; omitted from embed render text).
+   ~NWChemDftStanza.grid~ is typed but remains text-emitted on full and embed
+   (no stable multi-token RTDB key; complex grids stay in ~directives~).
+
+~nwchemc_params_extract_direct_scf~ reads ~maxiter~, ~thresh~, ~tol2e~,
+   ~wavefunctionType~ (RTDB ~scf:scftype~), and ~nopen~ (RTDB ~scf:nopen~);
+   those promoted fields are omitted from embed-rendered ~scf~ text.
 2. ~nwchemc_params_render_embed_input_blocks~ renders stanzas with promoted DFT
    fields omitted (extra ~directives~ inside ~dft~ still render as text).
 3. ~nwchemc_embed_set_dft_direct~ stores ~xc~ as the effective DFT functional
