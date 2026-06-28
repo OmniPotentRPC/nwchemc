@@ -1561,8 +1561,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-pspw-pseudopotential-forces',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_pspw_pseudopotential_forces_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pspw_pseudopotential_forces_test, nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin]
-        : [nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_pspw_pseudopotential_forces_test, nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin]
+        : [nwchem_pspw_pseudopotential_forces_params_bin, potential_config_pspw_pseudopotential_forces_bin, force_input_si_box_ang_bin, force_input_si_box_bohr_ev_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )

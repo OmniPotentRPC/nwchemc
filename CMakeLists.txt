@@ -1396,6 +1396,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       nwchem_params_pspw_pseudopotential_forces_bin
       potential_config_pspw_pseudopotential_forces_bin
       force_input_si_box_ang_bin
+      force_input_si_box_bohr_ev_bin
     )
     nwchemc_add_real_nwchem_test(
       nwchem-pspw-pseudopotential-forces
@@ -1403,6 +1404,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "${nwchem_params_pspw_pseudopotential_forces_BIN}"
       "${potential_config_pspw_pseudopotential_forces_BIN}"
       "${NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN}"
+      "${NWCHEMC_FORCE_INPUT_SI_BOX_BOHR_EV_BIN}"
     )
 
     add_executable(nwchem-energy-forces tests/test_nwchem_energy_forces.c)

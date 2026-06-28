@@ -355,6 +355,42 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
             ],
         )
 
+    def test_cmake_pspw_pseudopotential_forces_receives_unit_fixture(self):
+        dependencies = re.search(
+            r"add_dependencies\(\s*nwchem-pspw-pseudopotential-forces"
+            r"(?P<body>.*?)\n    \)",
+            self.text,
+            re.S,
+        )
+        self.assertIsNotNone(dependencies)
+        self.assert_contains_all(
+            dependencies.group("body"),
+            [
+                "nwchem_params_pspw_pseudopotential_forces_bin",
+                "potential_config_pspw_pseudopotential_forces_bin",
+                "force_input_si_box_ang_bin",
+                "force_input_si_box_bohr_ev_bin",
+            ],
+        )
+
+        command = re.search(
+            r"nwchemc_add_real_nwchem_test\(\s*"
+            r"nwchem-pspw-pseudopotential-forces\s+"
+            r"nwchem-pspw-pseudopotential-forces(?P<body>.*?)\n    \)",
+            self.text,
+            re.S,
+        )
+        self.assertIsNotNone(command)
+        self.assert_contains_all(
+            command.group("body"),
+            [
+                "nwchem_params_pspw_pseudopotential_forces_BIN",
+                "potential_config_pspw_pseudopotential_forces_BIN",
+                "NWCHEMC_FORCE_INPUT_SI_BOX_ANG_BIN",
+                "NWCHEMC_FORCE_INPUT_SI_BOX_BOHR_EV_BIN",
+            ],
+        )
+
     def test_static_install_export_includes_internal_link_closure(self):
         install_match = re.search(
             r"install\(\s*TARGETS\s+(?P<targets>.*?)\s+EXPORT\s+nwchemcTargets",
