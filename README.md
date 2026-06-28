@@ -59,8 +59,8 @@ The merge/pr release gate is:
   `nwchem-potential-config-pseudopotential`, `nwchem-pseudopotential-rtdb`,
   `nwchem-forceinput-cell-rtdb`, `nwchem-stress`,
   `nwchem-pspw-pseudopotential-forces`, `nwchem-configured-nwpw-rtdb`, and the
-  `nwchem-brillouin-dos-zones-rtdb`, and the installed CMake/pkg-config
-  consumers pass against the NWChem build used for the release.
+  `nwchem-brillouin-dos-zones-rtdb` probes pass against the NWChem build used
+  for the release.
 - The installed CMake/pkg-config consumers compile, link, and run
   invalid-input ABI checks for the rgpot result-carrier, raw ForceInput,
   session, and coordinate entry points.
@@ -696,8 +696,9 @@ NWChem. Execution controls for
 `np_dimensions`, `spin_orbit`, and `parallel_io` have structured fields and use
 direct RTDB writes in embed builds. NWPW output and motion filename fields are
 also structured and promoted to the paired `cpmd:*` / `nwpw:*` RTDB keys.
-Fractional orbital and NWPW smear controls expose the `nwpw:fractional_*`
-RTDB values directly while preserving structured full-deck rendering. Virtual
+Fractional orbital, fractional occupation, and NWPW smear controls expose the
+`nwpw:fractional_*` and `nwpw:frac_occ:*` RTDB values directly while
+preserving structured full-deck rendering. Virtual
 orbital counts and the NWPW `virtual` alias, LCAO skip/use mode, and Ewald
 grid dimensions are also structured and promoted to direct `nwpw:*` RTDB
 values. Nose-Hoover thermostat controls, including the NWPW `temperature`

@@ -409,6 +409,7 @@ module prefix:
 | ~orbitalMotionFilename~ | ~omotion_filename~ | ~cpmd~, ~nwpw~ |
 | ~eigenvalueMotionFilename~ | ~eigmotion_filename~ | ~cpmd~, ~nwpw~ |
 | ~fractionalOrbitalsStart~ / ~fractionalOrbitalsEnd~ | ~fractional_orbitals~ | ~nwpw~ |
+| ~occupations~ / ~occupationStates~ / ~extraOrbitals~ | ~frac_occ~ occupation state, values, and extra orbitals | ~nwpw~ |
 | ~mcStepStart~ / ~mcStepEnd~ | ~mc_steps~ | ~nwpw~ |
 | ~smearTemperature~ | ~fractional_temperature~ | ~nwpw~ |
 | ~smearAlpha~ | ~fractional_alpha~ | ~nwpw~ |
