@@ -8,6 +8,7 @@ project(
 cc = meson.get_compiler('c')
 fc = meson.get_compiler('fortran')
 python = find_program('python3')
+pkgconfig = import('pkgconfig')
 math_dep = cc.find_library('m', required: false)
 cmocka_dep = dependency('cmocka', required: get_option('with_tests'))
 
@@ -215,6 +216,16 @@ if has_nwchem
     link_with: nwchemc,
     dependencies: nwchemc_consumer_deps,
     link_args: nwchemc_consumer_link_args,
+  )
+  install_headers('include/nwchemc.h', subdir: 'nwchemc')
+  pkgconfig.generate(
+    name: 'nwchemc',
+    filebase: 'nwchemc',
+    libraries: nwchemc,
+    subdirs: 'nwchemc',
+    libraries_private: nwchemc_consumer_link_args,
+    version: meson.project_version(),
+    description: 'Stable C ABI for embedding NWChem',
   )
 endif
 
