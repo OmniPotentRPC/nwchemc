@@ -132,7 +132,7 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)fields, 14);
   assert_int_equal((int)schema_fields, 436);
   assert_int_equal((int)schema_methods, 12);
-  assert_int_equal((int)abis, 114);
+  assert_int_equal((int)abis, 117);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +
                          schema_methods + abis),
                    (int)nwchemc_feature_count());
@@ -268,7 +268,9 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_calculate_optimize_result",
       "abi.nwchemc_calculate_optimize_result_from_config",
       "abi.nwchemc_calculate_frequencies",
+      "abi.nwchemc_calculate_frequencies_detail",
       "abi.nwchemc_calculate_frequencies_from_config",
+      "abi.nwchemc_calculate_frequencies_detail_from_config",
       "abi.nwchemc_frequencies_result_size_for_force_input",
       "abi.nwchemc_session_calculate_frequencies_result",
       "abi.nwchemc_calculate_frequencies_result",
@@ -286,6 +288,7 @@ static void test_abi_entrypoints_interned(void **state) {
       "abi.nwchemc_session_calculate_quadrupole",
       "abi.nwchemc_session_calculate_optimize",
       "abi.nwchemc_session_calculate_frequencies",
+      "abi.nwchemc_session_calculate_frequencies_detail",
       "abi.nwchemc_session_calculate_stress",
       "abi.nwchemc_session_hessian",
       "abi.nwchemc_available",

@@ -23,8 +23,8 @@ The practical merge/pr trigger is:
   without a schema adapter.
 - rgpot consumes only stable `PotentialResult` fields for the release surface:
   energy, forces, gradient, Hessian, stress, dipole, polarizability,
-  quadrupole, optimized coordinates, frequencies, normal modes, and frequency
-  thermochemistry.
+  quadrupole, optimized coordinates, frequencies, projected frequencies,
+  normal modes, and frequency thermochemistry.
 - The real-NWChem gate below passes against the same NWChem build that the
   package was linked with.
 
@@ -493,11 +493,29 @@ NWChemCResult nwchemc_calculate_frequencies(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len,
     double *intensities_au, size_t intensities_len);
+NWChemCResult nwchemc_calculate_frequencies_detail(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len,
+    double *intensities_au, size_t intensities_len,
+    double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len);
 NWChemCResult nwchemc_calculate_frequencies_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len,
     double *intensities_au, size_t intensities_len);
+NWChemCResult nwchemc_calculate_frequencies_detail_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len,
+    double *intensities_au, size_t intensities_len,
+    double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len);
 size_t nwchemc_frequencies_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_frequencies_result(
@@ -549,6 +567,15 @@ NWChemCResult nwchemc_session_calculate_frequencies(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len,
     double *intensities_au, size_t intensities_len);
+NWChemCResult nwchemc_session_calculate_frequencies_detail(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len,
+    double *intensities_au, size_t intensities_len,
+    double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len);
 NWChemCResult nwchemc_session_stress(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *stress_au);

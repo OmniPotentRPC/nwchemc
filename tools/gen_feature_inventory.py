@@ -748,9 +748,19 @@ def main() -> int:
                 "embed": "runs one-shot ForceInput harmonic frequencies",
             },
             {
+                "name": "nwchemc_calculate_frequencies_detail",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot ForceInput detailed harmonic frequencies",
+            },
+            {
                 "name": "nwchemc_calculate_frequencies_from_config",
                 "stub": "fails ok==0",
                 "embed": "runs one-shot PotentialConfig harmonic frequencies",
+            },
+            {
+                "name": "nwchemc_calculate_frequencies_detail_from_config",
+                "stub": "fails ok==0",
+                "embed": "runs one-shot PotentialConfig detailed harmonic frequencies",
             },
             {
                 "name": "nwchemc_frequencies_result_size_for_force_input",
@@ -811,6 +821,11 @@ def main() -> int:
                 "name": "nwchemc_session_calculate_frequencies",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput harmonic frequencies",
+            },
+            {
+                "name": "nwchemc_session_calculate_frequencies_detail",
+                "stub": "fails ok==0",
+                "embed": "runs session ForceInput detailed harmonic frequencies",
             },
             {
                 "name": "nwchemc_session_hessian",

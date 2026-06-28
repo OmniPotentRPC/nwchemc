@@ -122,6 +122,8 @@ class ReadmeAbiSurfaceTest(unittest.TestCase):
             "nwchemc_calculate_stress_result_from_config",
             "nwchemc_calculate_optimize_result_from_config",
             "nwchemc_calculate_frequencies_result_from_config",
+            "nwchemc_session_calculate_frequencies_detail",
+            "nwchemc_calculate_frequencies_detail_from_config",
             "tests/test_nwchem_rgpot_smoke.c",
             "PSPW pseudopotential energy, forces, and gradient",
             "tests/test_nwchem_forceinput_cell_rtdb.c",

@@ -77,9 +77,13 @@ instead of the energy-plus-forces compatibility result:
 - `nwchemc_calculate_stress_result_from_config()`
 - `nwchemc_calculate_optimize_result_from_config()`
 - `nwchemc_calculate_frequencies_result_from_config()`
+- `nwchemc_calculate_frequencies_detail_from_config()`
 
 The session variants use the same `ForceInput` and `PotentialResult` messages.
 They are the preferred path for repeated geometry steps with fixed topology.
+`nwchemc_session_calculate_frequencies_detail()` is the raw-buffer session path
+for callers that want frequencies, intensities, normal modes, projected
+vibration lists, and thermochemistry without unpacking `PotentialResult`.
 
 ## Periodic cells
 

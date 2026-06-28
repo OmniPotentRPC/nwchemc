@@ -1269,6 +1269,33 @@ NWChemCResult nwchemc_calculate_frequencies(
   return stub_fail();
 }
 
+NWChemCResult nwchemc_calculate_frequencies_detail(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len, double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len) {
+  (void)params_capnp;
+  (void)params_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)frequencies_len;
+  (void)intensities_au;
+  (void)intensities_len;
+  (void)normal_modes;
+  (void)normal_modes_len;
+  (void)projected_frequencies_cm1;
+  (void)projected_frequencies_len;
+  (void)projected_intensities_au;
+  (void)projected_intensities_len;
+  (void)thermochemistry;
+  (void)thermochemistry_len;
+  return stub_fail();
+}
+
 NWChemCResult nwchemc_calculate_frequencies_from_config(
     const void *config_capnp, size_t config_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -1282,6 +1309,33 @@ NWChemCResult nwchemc_calculate_frequencies_from_config(
   (void)frequencies_len;
   (void)intensities_au;
   (void)intensities_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_calculate_frequencies_detail_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len, double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len) {
+  (void)config_capnp;
+  (void)config_capnp_size_bytes;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)frequencies_len;
+  (void)intensities_au;
+  (void)intensities_len;
+  (void)normal_modes;
+  (void)normal_modes_len;
+  (void)projected_frequencies_cm1;
+  (void)projected_frequencies_len;
+  (void)projected_intensities_au;
+  (void)projected_intensities_len;
+  (void)thermochemistry;
+  (void)thermochemistry_len;
   return stub_fail();
 }
 
@@ -1412,6 +1466,32 @@ NWChemCResult nwchemc_session_calculate_frequencies(
   (void)frequencies_len;
   (void)intensities_au;
   (void)intensities_len;
+  return stub_fail();
+}
+
+NWChemCResult nwchemc_session_calculate_frequencies_detail(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *frequencies_cm1,
+    size_t frequencies_len, double *intensities_au, size_t intensities_len,
+    double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len) {
+  (void)session;
+  (void)force_input_capnp;
+  (void)force_input_capnp_size_bytes;
+  (void)frequencies_cm1;
+  (void)frequencies_len;
+  (void)intensities_au;
+  (void)intensities_len;
+  (void)normal_modes;
+  (void)normal_modes_len;
+  (void)projected_frequencies_cm1;
+  (void)projected_frequencies_len;
+  (void)projected_intensities_au;
+  (void)projected_intensities_len;
+  (void)thermochemistry;
+  (void)thermochemistry_len;
   return stub_fail();
 }
 

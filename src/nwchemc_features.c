@@ -668,7 +668,9 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_calculate_optimize_result", "include/nwchemc.h::nwchemc_calculate_optimize_result", "stub=fails ok==0; embed=runs one-shot ForceInput optimization into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_optimize_result_from_config", "include/nwchemc.h::nwchemc_calculate_optimize_result_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig optimization into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_frequencies", "include/nwchemc.h::nwchemc_calculate_frequencies", "stub=fails ok==0; embed=runs one-shot ForceInput harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_frequencies_detail", "include/nwchemc.h::nwchemc_calculate_frequencies_detail", "stub=fails ok==0; embed=runs one-shot ForceInput detailed harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_frequencies_from_config", "include/nwchemc.h::nwchemc_calculate_frequencies_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_calculate_frequencies_detail_from_config", "include/nwchemc.h::nwchemc_calculate_frequencies_detail_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig detailed harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_frequencies_result_size_for_force_input", "include/nwchemc.h::nwchemc_frequencies_result_size_for_force_input", "stub=returns 0; embed=sizes ForceInput frequencies PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_frequencies_result", "include/nwchemc.h::nwchemc_session_calculate_frequencies_result", "stub=fails ok==0; embed=runs session ForceInput frequencies into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_frequencies_result", "include/nwchemc.h::nwchemc_calculate_frequencies_result", "stub=fails ok==0; embed=runs one-shot ForceInput frequencies into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -681,13 +683,14 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_session_calculate_stress", "include/nwchemc.h::nwchemc_session_calculate_stress", "stub=fails ok==0; embed=runs session ForceInput stress", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_optimize", "include/nwchemc.h::nwchemc_session_calculate_optimize", "stub=fails ok==0; embed=runs session ForceInput geometry optimization", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_frequencies", "include/nwchemc.h::nwchemc_session_calculate_frequencies", "stub=fails ok==0; embed=runs session ForceInput harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_session_calculate_frequencies_detail", "include/nwchemc.h::nwchemc_session_calculate_frequencies_detail", "stub=fails ok==0; embed=runs session ForceInput detailed harmonic frequencies", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_hessian", "include/nwchemc.h::nwchemc_session_hessian", "stub=fails ok==0; embed=runs session Cartesian Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_available", "include/nwchemc.h::nwchemc_available", "stub=returns 0; embed=returns 1", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_version", "include/nwchemc.h::nwchemc_version", "stub=contains stub; embed=library version", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 682;
+static const size_t k_feature_count = 685;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

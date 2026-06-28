@@ -661,7 +661,9 @@ spin-scaling rules.
 | ~nwchemc_calculate_optimize_result~ | ~abi.nwchemc_calculate_optimize_result~ | fails ok==0 | runs one-shot ForceInput optimization into PotentialResult |
 | ~nwchemc_calculate_optimize_result_from_config~ | ~abi.nwchemc_calculate_optimize_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig optimization into PotentialResult |
 | ~nwchemc_calculate_frequencies~ | ~abi.nwchemc_calculate_frequencies~ | fails ok==0 | runs one-shot ForceInput harmonic frequencies |
+| ~nwchemc_calculate_frequencies_detail~ | ~abi.nwchemc_calculate_frequencies_detail~ | fails ok==0 | runs one-shot ForceInput detailed harmonic frequencies |
 | ~nwchemc_calculate_frequencies_from_config~ | ~abi.nwchemc_calculate_frequencies_from_config~ | fails ok==0 | runs one-shot PotentialConfig harmonic frequencies |
+| ~nwchemc_calculate_frequencies_detail_from_config~ | ~abi.nwchemc_calculate_frequencies_detail_from_config~ | fails ok==0 | runs one-shot PotentialConfig detailed harmonic frequencies |
 | ~nwchemc_frequencies_result_size_for_force_input~ | ~abi.nwchemc_frequencies_result_size_for_force_input~ | returns 0 | sizes ForceInput frequencies PotentialResult |
 | ~nwchemc_session_calculate_frequencies_result~ | ~abi.nwchemc_session_calculate_frequencies_result~ | fails ok==0 | runs session ForceInput frequencies into PotentialResult |
 | ~nwchemc_calculate_frequencies_result~ | ~abi.nwchemc_calculate_frequencies_result~ | fails ok==0 | runs one-shot ForceInput frequencies into PotentialResult |
@@ -674,6 +676,7 @@ spin-scaling rules.
 | ~nwchemc_session_calculate_stress~ | ~abi.nwchemc_session_calculate_stress~ | fails ok==0 | runs session ForceInput stress |
 | ~nwchemc_session_calculate_optimize~ | ~abi.nwchemc_session_calculate_optimize~ | fails ok==0 | runs session ForceInput geometry optimization |
 | ~nwchemc_session_calculate_frequencies~ | ~abi.nwchemc_session_calculate_frequencies~ | fails ok==0 | runs session ForceInput harmonic frequencies |
+| ~nwchemc_session_calculate_frequencies_detail~ | ~abi.nwchemc_session_calculate_frequencies_detail~ | fails ok==0 | runs session ForceInput detailed harmonic frequencies |
 | ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails ok==0 | runs session Cartesian Hessian |
 | ~nwchemc_available~ | ~abi.nwchemc_available~ | returns 0 | returns 1 |
 | ~nwchemc_version~ | ~abi.nwchemc_version~ | contains stub | library version |

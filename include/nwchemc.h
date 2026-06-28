@@ -1009,6 +1009,24 @@ NWChemCResult nwchemc_calculate_frequencies(
     size_t intensities_len);
 
 /**
+ * @brief Compute one `ForceInput` step and write detailed vibrational outputs.
+ *
+ * Frequencies and projected frequencies are in cm^-1. Intensities and
+ * projected intensities are in atomic units. `normal_modes` stores the dense
+ * Cartesian normal-mode matrix with `(n_atoms * 3) * (n_atoms * 3)` entries.
+ * `thermochemistry` stores zero-point energy, thermal energy, thermal enthalpy,
+ * entropy, and constant-volume heat capacity in NWChem native units.
+ */
+NWChemCResult nwchemc_calculate_frequencies_detail(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len, double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len);
+
+/**
  * @brief One-shot `PotentialConfig + ForceInput -> raw harmonic frequencies`.
  */
 NWChemCResult nwchemc_calculate_frequencies_from_config(
@@ -1016,6 +1034,18 @@ NWChemCResult nwchemc_calculate_frequencies_from_config(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
     size_t intensities_len);
+
+/**
+ * @brief One-shot `PotentialConfig + ForceInput -> raw detailed frequencies`.
+ */
+NWChemCResult nwchemc_calculate_frequencies_detail_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *frequencies_cm1, size_t frequencies_len, double *intensities_au,
+    size_t intensities_len, double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len);
 
 /** @brief Return the byte count needed for a frequencies `PotentialResult`. */
 size_t nwchemc_frequencies_result_size_for_force_input(
@@ -1179,6 +1209,20 @@ NWChemCResult nwchemc_session_calculate_frequencies(
     NWChemCSession *session, const void *force_input_capnp,
     size_t force_input_capnp_size_bytes, double *frequencies_cm1,
     size_t frequencies_len, double *intensities_au, size_t intensities_len);
+
+/**
+ * @brief Compute detailed vibrational outputs for one `ForceInput` step.
+ *
+ * Buffer lengths match `nwchemc_calculate_frequencies_detail()`.
+ */
+NWChemCResult nwchemc_session_calculate_frequencies_detail(
+    NWChemCSession *session, const void *force_input_capnp,
+    size_t force_input_capnp_size_bytes, double *frequencies_cm1,
+    size_t frequencies_len, double *intensities_au, size_t intensities_len,
+    double *normal_modes, size_t normal_modes_len,
+    double *projected_frequencies_cm1, size_t projected_frequencies_len,
+    double *projected_intensities_au, size_t projected_intensities_len,
+    double *thermochemistry, size_t thermochemistry_len);
 
 /**
  * @brief Compute stress using a persistent session.
