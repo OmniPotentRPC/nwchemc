@@ -16,6 +16,22 @@ CONSUMER_MAIN = """\
 typedef size_t (*PotentialResultSizeFn)(const void *, size_t);
 typedef NWChemCResult (*PotentialResultConfigFn)(
     const void *, size_t, const void *, size_t, void *, size_t, size_t *);
+typedef NWChemCResult (*PotentialConfigEnergyFn)(
+    const void *, size_t, const void *, size_t);
+typedef NWChemCResult (*PotentialConfigBufferFn)(
+    const void *, size_t, const void *, size_t, double *, size_t);
+typedef NWChemCResult (*PotentialConfigFrequenciesFn)(
+    const void *, size_t, const void *, size_t, double *, size_t, double *,
+    size_t);
+typedef NWChemCResult (*SessionEnergyFn)(NWChemCSession *, const void *,
+                                         size_t);
+typedef NWChemCResult (*SessionBufferFn)(NWChemCSession *, const void *,
+                                         size_t, double *, size_t);
+typedef NWChemCResult (*SessionFrequenciesFn)(NWChemCSession *, const void *,
+                                              size_t, double *, size_t,
+                                              double *, size_t);
+typedef NWChemCResult (*SessionResultFn)(NWChemCSession *, const void *,
+                                         size_t, void *, size_t, size_t *);
 
 static int exercise_rgpot_result_abi(void) {
   PotentialResultSizeFn size_fns[] = {
@@ -57,8 +73,109 @@ static int exercise_rgpot_result_abi(void) {
   return 0;
 }
 
+static int exercise_rgpot_raw_and_session_abi(void) {
+  PotentialConfigEnergyFn config_energy_fns[] = {
+      nwchemc_calculate_energy_from_config,
+  };
+  PotentialConfigBufferFn config_buffer_fns[] = {
+      nwchemc_calculate_forces_from_config,
+      nwchemc_calculate_hessian_from_config,
+      nwchemc_calculate_dipole_from_config,
+      nwchemc_calculate_polarizability_from_config,
+      nwchemc_calculate_quadrupole_from_config,
+      nwchemc_calculate_stress_from_config,
+      nwchemc_calculate_optimize_from_config,
+  };
+  PotentialConfigFrequenciesFn config_frequency_fns[] = {
+      nwchemc_calculate_frequencies_from_config,
+  };
+  SessionEnergyFn session_energy_fns[] = {
+      nwchemc_session_calculate_energy,
+  };
+  SessionBufferFn session_buffer_fns[] = {
+      nwchemc_session_calculate_forces,
+      nwchemc_session_calculate_hessian,
+      nwchemc_session_calculate_dipole,
+      nwchemc_session_calculate_polarizability,
+      nwchemc_session_calculate_quadrupole,
+      nwchemc_session_calculate_stress,
+      nwchemc_session_calculate_optimize,
+  };
+  SessionFrequenciesFn session_frequency_fns[] = {
+      nwchemc_session_calculate_frequencies,
+  };
+  SessionResultFn session_result_fns[] = {
+      nwchemc_session_calculate_energy_result,
+      nwchemc_session_calculate_forces_result,
+      nwchemc_session_calculate_result,
+      nwchemc_session_calculate_hessian_result,
+      nwchemc_session_calculate_dipole_result,
+      nwchemc_session_calculate_polarizability_result,
+      nwchemc_session_calculate_quadrupole_result,
+      nwchemc_session_calculate_stress_result,
+      nwchemc_session_calculate_optimize_result,
+      nwchemc_session_calculate_frequencies_result,
+  };
+  size_t index;
+
+  for (index = 0;
+       index < sizeof(config_energy_fns) / sizeof(config_energy_fns[0]);
+       ++index) {
+    if (config_energy_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0;
+       index < sizeof(config_buffer_fns) / sizeof(config_buffer_fns[0]);
+       ++index) {
+    if (config_buffer_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0;
+       index < sizeof(config_frequency_fns) / sizeof(config_frequency_fns[0]);
+       ++index) {
+    if (config_frequency_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0;
+       index < sizeof(session_energy_fns) / sizeof(session_energy_fns[0]);
+       ++index) {
+    if (session_energy_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0;
+       index < sizeof(session_buffer_fns) / sizeof(session_buffer_fns[0]);
+       ++index) {
+    if (session_buffer_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0;
+       index < sizeof(session_frequency_fns) / sizeof(session_frequency_fns[0]);
+       ++index) {
+    if (session_frequency_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0;
+       index < sizeof(session_result_fns) / sizeof(session_result_fns[0]);
+       ++index) {
+    if (session_result_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  return 0;
+}
+
 int main(void) {
   int abi_status = exercise_rgpot_result_abi();
+  if (abi_status != 0) {
+    return abi_status;
+  }
+  abi_status = exercise_rgpot_raw_and_session_abi();
   if (abi_status != 0) {
     return abi_status;
   }
