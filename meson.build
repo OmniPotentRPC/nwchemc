@@ -1540,6 +1540,7 @@ nwchem_config_options_params_bin = custom_target(
         : [nwchem_hessian_params_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
+      timeout: 120,
     )
     nwchem_pseudopotential_rtdb_test = executable(
       'test_nwchem_pseudopotential_rtdb',
