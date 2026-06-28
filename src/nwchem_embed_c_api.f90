@@ -121,6 +121,39 @@ module nwchem_embed_c_api
       integer, intent(out) :: ok
     end subroutine nwchem_legacy_finalize
 
+    subroutine nwchemc_store_pseudopotentials(rtdb, psp_count, &
+        psp_elements, psp_types, psp_names, errmsg, ok)
+      integer, intent(in) :: rtdb
+      integer, intent(in) :: psp_count
+      character(len=16), intent(in) :: psp_elements(*)
+      integer, intent(in) :: psp_types(*)
+      character(len=256), intent(in) :: psp_names(*)
+      character(len=*), intent(out) :: errmsg
+      logical, intent(out) :: ok
+    end subroutine nwchemc_store_pseudopotentials
+
+    subroutine nwchemc_apply_direct_string_sets(rtdb, set_count, &
+        set_keys, set_values, errmsg, ok)
+      integer, intent(in) :: rtdb
+      integer, intent(in) :: set_count
+      character(len=128), intent(in) :: set_keys(*)
+      character(len=256), intent(in) :: set_values(*)
+      character(len=*), intent(out) :: errmsg
+      logical, intent(out) :: ok
+    end subroutine nwchemc_apply_direct_string_sets
+
+    subroutine nwchemc_apply_direct_typed_sets(rtdb, set_count, &
+        set_keys, set_types, set_value_counts, set_values, errmsg, ok)
+      integer, intent(in) :: rtdb
+      integer, intent(in) :: set_count
+      character(len=128), intent(in) :: set_keys(*)
+      integer, intent(in) :: set_types(*)
+      integer, intent(in) :: set_value_counts(*)
+      character(len=256), intent(in) :: set_values(64,*)
+      character(len=*), intent(out) :: errmsg
+      logical, intent(out) :: ok
+    end subroutine nwchemc_apply_direct_typed_sets
+
     subroutine nwchem_legacy_reset_rtdb(rtdb, ok)
       integer, intent(inout) :: rtdb
       integer, intent(out) :: ok
@@ -906,6 +939,8 @@ contains
     integer(c_int), intent(in), value :: count
     integer(c_int) :: rc
     integer :: i, n
+    character(len=256) :: errmsg
+    logical :: ok
 
     rc = -1_c_int
     n = int(count)
@@ -922,6 +957,11 @@ contains
           int(psp_name_len, c_int), cfg_psp_names(i))
       cfg_psp_types(i) = int(library_types(i))
     end do
+    if (rtdb_ready .and. n > 0) then
+      call nwchemc_store_pseudopotentials(rtdb_handle, n, &
+          cfg_psp_elements, cfg_psp_types, cfg_psp_names, errmsg, ok)
+      if (.not. ok) return
+    end if
     rc = 0_c_int
   end function nwchemc_embed_set_pseudopotentials
 
@@ -933,6 +973,8 @@ contains
     integer(c_int), intent(in), value :: count
     integer(c_int) :: rc
     integer :: i, n
+    character(len=256) :: errmsg
+    logical :: ok
 
     rc = -1_c_int
     n = int(count)
@@ -947,6 +989,11 @@ contains
       call c_chars_to_f(values((i - 1) * set_value_len + 1), &
           int(set_value_len, c_int), cfg_set_values(i))
     end do
+    if (rtdb_ready .and. n > 0) then
+      call nwchemc_apply_direct_string_sets(rtdb_handle, n, cfg_set_keys, &
+          cfg_set_values, errmsg, ok)
+      if (.not. ok) return
+    end if
     rc = 0_c_int
   end function nwchemc_embed_set_rtdb_strings
 
@@ -960,6 +1007,8 @@ contains
     integer(c_int), intent(in), value :: count
     integer(c_int) :: rc
     integer :: i, j, n, nvalues, offset
+    character(len=256) :: errmsg
+    logical :: ok
 
     rc = -1_c_int
     n = int(count)
@@ -984,6 +1033,12 @@ contains
             cfg_typed_set_values(j, i))
       end do
     end do
+    if (rtdb_ready .and. n > 0) then
+      call nwchemc_apply_direct_typed_sets(rtdb_handle, n, &
+          cfg_typed_set_keys, cfg_typed_set_types, &
+          cfg_typed_set_value_counts, cfg_typed_set_values, errmsg, ok)
+      if (.not. ok) return
+    end if
     rc = 0_c_int
   end function nwchemc_embed_set_rtdb_values
 
