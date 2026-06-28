@@ -76,6 +76,14 @@ static void assert_close(double actual, double expected, double tolerance) {
   assert_true(actual < expected + tolerance);
 }
 
+static void assert_close_relative(const char *label, int index, double actual,
+                                  double expected, double tolerance) {
+  double scale = fmax(1.0, fmax(fabs(actual), fabs(expected)));
+  if (fabs(actual - expected) > tolerance * scale)
+    fail_msg("%s[%d] mismatch: got %.17g expected %.17g", label, index,
+             actual, expected);
+}
+
 static double h2_bond_length(const double *positions_ang) {
   double dx = positions_ang[3] - positions_ang[0];
   double dy = positions_ang[4] - positions_ang[1];
@@ -178,7 +186,8 @@ static void assert_potential_result_hessian(const unsigned char *message,
 
 static void assert_potential_result_dipole(const unsigned char *message,
                                            size_t message_size,
-                                           double expected_energy) {
+                                           double expected_energy,
+                                           const double *expected_dipole) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -192,14 +201,19 @@ static void assert_potential_result_dipole(const unsigned char *message,
 
   double dipole[3];
   assert_f64_list("dipole", result.dipole, 3, dipole);
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i) {
     assert_true(fabs(dipole[i]) < 1.0e-7);
+    if (expected_dipole)
+      assert_close_relative("PotentialResult.dipole", i, dipole[i],
+                            expected_dipole[i], 1.0e-10);
+  }
 
   capn_free(&arena);
 }
 
 static void assert_potential_result_polarizability(
-    const unsigned char *message, size_t message_size, double expected_energy) {
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_polarizability) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -217,13 +231,19 @@ static void assert_potential_result_polarizability(
                       polarizability);
   assert_true(max_abs > 1.0e-6);
   assert_true(polarizability[10] > 0.0);
+  if (expected_polarizability) {
+    for (int i = 0; i < 12; ++i)
+      assert_close_relative("PotentialResult.polarizability", i,
+                            polarizability[i], expected_polarizability[i],
+                            1.0e-10);
+  }
 
   capn_free(&arena);
 }
 
-static void assert_potential_result_quadrupole(const unsigned char *message,
-                                               size_t message_size,
-                                               double expected_energy) {
+static void assert_potential_result_quadrupole(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_quadrupole) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -241,6 +261,11 @@ static void assert_potential_result_quadrupole(const unsigned char *message,
   assert_true(max_abs > 1.0e-6);
   double trace = quadrupole[0] + quadrupole[3] + quadrupole[5];
   assert_true(fabs(trace) < 1.0e-7 * fmax(1.0, max_abs));
+  if (expected_quadrupole) {
+    for (int i = 0; i < 6; ++i)
+      assert_close_relative("PotentialResult.quadrupole", i, quadrupole[i],
+                            expected_quadrupole[i], 1.0e-10);
+  }
 
   capn_free(&arena);
 }
@@ -416,6 +441,11 @@ static void test_rgpot_config_named_result_carriers(void **state) {
                                                  force_input_size);
   assert_result_capacity("nwchemc_dipole_result_size_for_force_input",
                          dipole_capacity);
+  double raw_dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult raw_dipole_status = nwchemc_calculate_dipole_from_config(
+      config, config_size, force_input, force_input_size, raw_dipole, 3);
+  assert_status_energy("nwchemc_calculate_dipole_from_config",
+                       raw_dipole_status);
   unsigned char *dipole_bytes = (unsigned char *)malloc(dipole_capacity);
   assert_non_null(dipole_bytes);
   size_t dipole_size = 0;
@@ -426,13 +456,20 @@ static void test_rgpot_config_named_result_carriers(void **state) {
                        dipole_status);
   assert_int_equal(dipole_size, dipole_capacity);
   assert_potential_result_dipole(dipole_bytes, dipole_size,
-                                 dipole_status.energy_h);
+                                 dipole_status.energy_h, raw_dipole);
 
   size_t polarizability_capacity =
       nwchemc_polarizability_result_size_for_force_input(force_input,
                                                          force_input_size);
   assert_result_capacity("nwchemc_polarizability_result_size_for_force_input",
                          polarizability_capacity);
+  double raw_polarizability[12] = {0.0};
+  NWChemCResult raw_polarizability_status =
+      nwchemc_calculate_polarizability_from_config(
+          config, config_size, force_input, force_input_size,
+          raw_polarizability, 12);
+  assert_status_energy("nwchemc_calculate_polarizability_from_config",
+                       raw_polarizability_status);
   unsigned char *polarizability_bytes =
       (unsigned char *)malloc(polarizability_capacity);
   assert_non_null(polarizability_bytes);
@@ -446,13 +483,20 @@ static void test_rgpot_config_named_result_carriers(void **state) {
   assert_int_equal(polarizability_size, polarizability_capacity);
   assert_potential_result_polarizability(
       polarizability_bytes, polarizability_size,
-      polarizability_status.energy_h);
+      polarizability_status.energy_h, raw_polarizability);
 
   size_t quadrupole_capacity =
       nwchemc_quadrupole_result_size_for_force_input(force_input,
                                                      force_input_size);
   assert_result_capacity("nwchemc_quadrupole_result_size_for_force_input",
                          quadrupole_capacity);
+  double raw_quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_quadrupole_status =
+      nwchemc_calculate_quadrupole_from_config(
+          config, config_size, force_input, force_input_size, raw_quadrupole,
+          6);
+  assert_status_energy("nwchemc_calculate_quadrupole_from_config",
+                       raw_quadrupole_status);
   unsigned char *quadrupole_bytes =
       (unsigned char *)malloc(quadrupole_capacity);
   assert_non_null(quadrupole_bytes);
@@ -465,7 +509,8 @@ static void test_rgpot_config_named_result_carriers(void **state) {
                        quadrupole_status);
   assert_int_equal(quadrupole_size, quadrupole_capacity);
   assert_potential_result_quadrupole(quadrupole_bytes, quadrupole_size,
-                                     quadrupole_status.energy_h);
+                                     quadrupole_status.energy_h,
+                                     raw_quadrupole);
 
   size_t optimize_capacity =
       nwchemc_optimize_result_size_for_force_input(force_input,
@@ -586,6 +631,10 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
                                                  force_input_size);
   assert_result_capacity("nwchemc_dipole_result_size_for_force_input",
                          dipole_capacity);
+  double raw_dipole[3] = {0.0, 0.0, 0.0};
+  NWChemCResult raw_dipole_status = nwchemc_session_calculate_dipole(
+      session, force_input, force_input_size, raw_dipole, 3);
+  assert_status_energy("nwchemc_session_calculate_dipole", raw_dipole_status);
   unsigned char *dipole_bytes = (unsigned char *)malloc(dipole_capacity);
   assert_non_null(dipole_bytes);
   size_t dipole_size = 0;
@@ -596,13 +645,19 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
                        dipole_status);
   assert_int_equal(dipole_size, dipole_capacity);
   assert_potential_result_dipole(dipole_bytes, dipole_size,
-                                 dipole_status.energy_h);
+                                 dipole_status.energy_h, raw_dipole);
 
   size_t polarizability_capacity =
       nwchemc_polarizability_result_size_for_force_input(force_input,
                                                          force_input_size);
   assert_result_capacity("nwchemc_polarizability_result_size_for_force_input",
                          polarizability_capacity);
+  double raw_polarizability[12] = {0.0};
+  NWChemCResult raw_polarizability_status =
+      nwchemc_session_calculate_polarizability(
+          session, force_input, force_input_size, raw_polarizability, 12);
+  assert_status_energy("nwchemc_session_calculate_polarizability",
+                       raw_polarizability_status);
   unsigned char *polarizability_bytes =
       (unsigned char *)malloc(polarizability_capacity);
   assert_non_null(polarizability_bytes);
@@ -616,13 +671,19 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
   assert_int_equal(polarizability_size, polarizability_capacity);
   assert_potential_result_polarizability(
       polarizability_bytes, polarizability_size,
-      polarizability_status.energy_h);
+      polarizability_status.energy_h, raw_polarizability);
 
   size_t quadrupole_capacity =
       nwchemc_quadrupole_result_size_for_force_input(force_input,
                                                      force_input_size);
   assert_result_capacity("nwchemc_quadrupole_result_size_for_force_input",
                          quadrupole_capacity);
+  double raw_quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_quadrupole_status =
+      nwchemc_session_calculate_quadrupole(
+          session, force_input, force_input_size, raw_quadrupole, 6);
+  assert_status_energy("nwchemc_session_calculate_quadrupole",
+                       raw_quadrupole_status);
   unsigned char *quadrupole_bytes =
       (unsigned char *)malloc(quadrupole_capacity);
   assert_non_null(quadrupole_bytes);
@@ -635,7 +696,8 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
                        quadrupole_status);
   assert_int_equal(quadrupole_size, quadrupole_capacity);
   assert_potential_result_quadrupole(quadrupole_bytes, quadrupole_size,
-                                     quadrupole_status.energy_h);
+                                     quadrupole_status.energy_h,
+                                     raw_quadrupole);
 
   size_t optimize_capacity =
       nwchemc_optimize_result_size_for_force_input(force_input,
