@@ -93,6 +93,11 @@ A rgpot-side merge/pr release is at the wiring stage when:
 
 - rgpot serializes `PotentialConfig.nwchem` and `ForceInput` directly, with no
   schema adapter between the two repositories.
+- rgpot consumes an installed nwchemc package instead of reaching into the
+  source tree. CMake integrations use `find_package(nwchemc CONFIG REQUIRED)`
+  and `target_link_libraries(consumer PRIVATE nwchemc::nwchemc)`;
+  pkg-config integrations set `PKG_CONFIG_PATH` and check
+  `pkg-config --cflags --libs nwchemc`.
 - rgpot allocates `PotentialResult` with
   `nwchemc_potential_result_size_for_force_input()` or the named sizing helper
   for the operation it calls.
@@ -102,6 +107,8 @@ A rgpot-side merge/pr release is at the wiring stage when:
   above.
 - The local stub/cmocka suite and a real-NWChem suite both pass for the probes
   in the supported merge scope table.
+- The installed package smoke `nwchem-installed-cmake-consumer` passes against
+  the same NWChem build used for the real probe suite.
 
 Stress can join the same release surface when rgpot is paired with an
 NWPW-enabled NWChem build and the periodic stress case is added to the

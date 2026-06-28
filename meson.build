@@ -1448,6 +1448,38 @@ if get_option('with_tests')
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
+    if cmake_prog.found()
+      installed_consumer_args = [
+        meson.current_source_dir() / 'tests/test_installed_cmake_consumer.py',
+        '--source-dir',
+        meson.current_source_dir(),
+        '--build-root',
+        meson.current_build_dir() / 'installed-cmake-consumer',
+        '--install-prefix',
+        meson.current_build_dir() / 'installed-cmake-consumer-prefix',
+        '--cmake',
+        cmake_prog.full_path(),
+        '--nwchem-root',
+        nwchem_root,
+        '--nwchem-target',
+        nwchem_target,
+        '--mpi-ranks',
+        nwchem_test_mpi_ranks.to_string(),
+        '--parallel',
+        '4',
+      ]
+      if nwchem_test_mpi_ranks > 1
+        installed_consumer_args += ['--mpirun', nwchem_test_mpirun.full_path()]
+      endif
+      test(
+        'nwchem-installed-cmake-consumer',
+        python,
+        args: installed_consumer_args,
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+        timeout: 240,
+      )
+    endif
     mpirun = find_program('mpirun', required: false)
     if mpirun.found() and nwchem_test_mpi_ranks == 1
       nwchem_mpi_test = executable(

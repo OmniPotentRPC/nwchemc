@@ -653,6 +653,32 @@ env OMPI_MCA_pml=ob1 OMPI_MCA_btl=self,tcp \
   meson test -C build-nwchem --print-errorlogs --num-processes 2
 ```
 
+#### Installed package smoke
+
+Real NWChem builds install a package surface for consumers instead of requiring
+them to include this repository as a subproject. CMake consumers use the
+exported target:
+
+```cmake
+find_package(nwchemc CONFIG REQUIRED)
+
+add_executable(consumer main.c)
+target_link_libraries(consumer PRIVATE nwchemc::nwchemc)
+```
+
+Pkg-config consumers use the installed `.pc` file:
+
+```bash
+export PKG_CONFIG_PATH="$prefix/lib64/pkgconfig:$prefix/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+pkg-config --cflags --libs nwchemc
+pkg-config --static --libs nwchemc
+```
+
+The real-NWChem Meson suite registers `nwchem-installed-cmake-consumer` when
+CMake is available. That test configures a CMake build of `nwchemc`, installs
+it to a scratch prefix, builds the separate `find_package(nwchemc CONFIG
+REQUIRED)` consumer above, and runs it with the configured MPI rank count.
+
 The build reads `NW_MODULE_LIBS` from `nwchem_config.h`, GA linker flags from
 `ga-config`, and optional support archives from the NWChem library directory.
 `libperfm` is always requested; `libpeigs` and `libpeigs_comm` are added only
