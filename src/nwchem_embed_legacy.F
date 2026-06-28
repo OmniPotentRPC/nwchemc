@@ -40,10 +40,8 @@ C        from environment / .nwchemrc / compiled-in limits.
          call memory_defaults(total, tsrc, heap, hsrc, stack,
      $        ssrc, global, gsrc)
 C        Match nwchem.F order: GA limited init, then MA (GA may use MA).
-C        Memory is a user option (same as NWChem CLI / SocketNWChem input):
-C          env NWCHEM_MEMORY_TOTAL / _HEAP / _STACK / _GLOBAL (words),
-C          or .nwchemrc memory stanza. Do not hard-code sizes here.
-C        Only fill zeros if nothing was configured (safety).
+C        Memory is user-controlled: NWCHEM_MEMORY_TOTAL/_HEAP/_STACK/_GLOBAL
+C        (words) or .nwchemrc. Only fill zeros if nothing configured.
          if (stack .le. 0) stack = 4000000
          if (heap .le. 0) heap = 4000000
          if (global .le. 0) global = 8000000
@@ -372,7 +370,7 @@ C     Single task_gradient (energy included); skip method/PSP/input re-apply.
          endif
       endif
       n3 = 3 * n_atoms
-C     Socket bead_list parity: one permanent movecs; atomic only if missing.
+C     Socket bead parity: one permanent movecs; atomic only if missing.
       call util_file_name('movecs', .false., .false., vectors_in)
       call util_file_name_resolve(vectors_in, .false.)
       status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
@@ -380,7 +378,10 @@ C     Socket bead_list parity: one permanent movecs; atomic only if missing.
          errmsg = 'rtdb_cput scf:output vectors failed'
          return
       endif
-      inquire(file=vectors_in(1:inp_strlen(vectors_in)), exist=status)
+C     GCC16: no substring in INQUIRE FILE=; blank-pad after length.
+      i = inp_strlen(vectors_in)
+      vectors_in(i+1:) = ' '
+      inquire(file=vectors_in, exist=status)
       if (status) then
          status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
       else
@@ -2108,23 +2109,14 @@ C     Prefer permanent movecs so multi-call forces reuse MOs (not atomic guess).
          ok = ok .and. status
          call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
          ok = ok .and. status
-C        Never set input==output when movecs file is missing (movecs_converged).
+         status = rtdb_cput(rtdb, 'dft:input vectors', 1, vectors_in)
+         ok = ok .and. status
          status = rtdb_cput(rtdb, 'dft:output vectors', 1, vectors_in)
+         ok = ok .and. status
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
          ok = ok .and. status
-         inquire(file=vectors_in(1:inp_strlen(vectors_in)), exist=status)
-         if (status) then
-            status = rtdb_cput(rtdb, 'dft:input vectors', 1, vectors_in)
-            ok = ok .and. status
-            status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-            ok = ok .and. status
-         else
-            status = rtdb_cput(rtdb, 'dft:input vectors', 1, 'atomic')
-            ok = ok .and. status
-            status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
-            ok = ok .and. status
-         endif
          nopen = mult - 1
          call nwchemc_rtdb_put_int(rtdb, 'dft:nopen', nopen, status)
          ok = ok .and. status
@@ -2731,7 +2723,6 @@ c     <zone>:number_kvectors, <zone>:kvectors (4*N), <zone>:dos-grid.
          return
       endif
 C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
-C     Same intent as socket coords_set_bead_list: update coords, keep basis/MOs.
       if (.not. rtdb_get(rtdb, 'nwchemc:geom_hold', mt_int, 1, geom))
      $     geom = -1
       if (geom .lt. 0) then
