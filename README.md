@@ -705,8 +705,8 @@ NWChemCResult status =
 One-shot callers can use `nwchemc_calculate_result_from_config()` with the same
 serialized messages. Method-specific calls such as
 `nwchemc_calculate_forces_result_from_config()` and
-`nwchemc_calculate_energy_result_from_config()` are available when rgpot wants a
-narrower result carrier. See `docs/rgpot-integration.md` for the merge/pr
+`nwchemc_calculate_gradient_result_from_config()` are available when rgpot wants
+a narrower result carrier. See `docs/rgpot-integration.md` for the merge/pr
 release gate, supported operation matrix, real-NWChem probes, and the NWPW
 stress probe.
 

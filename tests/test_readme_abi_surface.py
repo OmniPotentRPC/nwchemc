@@ -119,6 +119,7 @@ class ReadmeAbiSurfaceTest(unittest.TestCase):
             "nwchemc_calculate_optimize_result_from_config",
             "nwchemc_calculate_frequencies_result_from_config",
             "tests/test_nwchem_rgpot_smoke.c",
+            "PSPW pseudopotential energy, forces, and gradient",
             "tests/test_nwchem_forceinput_cell_rtdb.c",
             "tests/test_nwchem_potential_config_pseudopotential.c",
             "NWPW-enabled NWChem",
