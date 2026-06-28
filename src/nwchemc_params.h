@@ -45,7 +45,7 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
                                       int *direct_enabled,
                                       int *smearing_enabled,
                                       double *smear_sigma_hartree,
-                                      int *smearing_spinset);
+                                      int *smearing_spinset, int *iterations);
 
 int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       int *maxiter, double *thresh,

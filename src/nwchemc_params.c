@@ -346,10 +346,10 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(dft.directives);
   if (has_directives < 0)
     return -1;
-  /* iterations/grid are text-path fields (like SCF wavefunction/nopen): always
-   * emit so embed render (include_direct_promoted=0) still reaches NWChem. */
-  int has_text_controls = dft.iterations > 0 || dft.grid.len > 0;
-  if (!include_direct_promoted && !has_directives && !has_text_controls)
+  /* iterations promotes dft:iterations (RTDB); grid has no stable single RTDB
+   * key for multi-token grids — always emit grid text on both paths. */
+  int has_grid = dft.grid.len > 0;
+  if (!include_direct_promoted && !has_directives && !has_grid)
     return 0;
   if (append_format(block, sizeof(block), "dft\n") != 0)
     return -1;
@@ -373,11 +373,12 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
-  if (dft.iterations > 0 &&
+  if (include_direct_promoted && dft.iterations > 0 &&
       append_format(block, sizeof(block), "  iterations %d\n",
                     dft.iterations) != 0)
     return -1;
-  if (dft.grid.len > 0) {
+  /* grid: text on full and embed (no confirmed single-token RTDB key). */
+  if (has_grid) {
     if (append_format(block, sizeof(block), "  grid ") != 0 ||
         append_text(block, sizeof(block), dft.grid) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
@@ -1135,18 +1136,17 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
     return -1;
   int has_wf = scf.wavefunctionType.len > 0;
   int has_nopen = scf.nopen >= 0;
+  /* wavefunctionType -> scf:scftype, nopen -> scf:nopen (RTDB on embed). */
   int has_promoted = scf.maxiter > 0 || scf.thresh > 0.0 || scf.tol2e > 0.0 ||
                      has_wf || has_nopen;
   int has_remaining = scf.vectorsInput.len > 0 || scf.vectorsOutput.len > 0 ||
-                      scf.noprint || has_directives || has_wf || has_nopen ||
+                      scf.noprint || has_directives ||
                       (include_direct_promoted && has_promoted);
   if (!has_remaining)
     return 0;
   if (append_format(block, sizeof(block), "scf\n") != 0)
     return -1;
-  /* Always emit wavefunction / nopen in text so embed decks carry them even
-   * when maxiter/thresh/tol2e are stripped for RTDB promotion. */
-  if (has_wf) {
+  if (include_direct_promoted && has_wf) {
     if (append_format(block, sizeof(block), "  ") != 0 ||
         append_text(block, sizeof(block), scf.wavefunctionType) != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
@@ -1173,7 +1173,7 @@ static int render_scf_stanza(NWChemScfStanza_ptr ptr, char *dst,
   if (include_direct_promoted && scf.tol2e > 0.0 &&
       append_format(block, sizeof(block), "  tol2e %.12g\n", scf.tol2e) != 0)
     return -1;
-  if (has_nopen &&
+  if (include_direct_promoted && has_nopen &&
       append_format(block, sizeof(block), "  nopen %d\n", scf.nopen) != 0)
     return -1;
   if (scf.noprint && append_format(block, sizeof(block), "  noprint\n") != 0)
@@ -3219,9 +3219,10 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
                                       int *direct_enabled,
                                       int *smearing_enabled,
                                       double *smear_sigma_hartree,
-                                      int *smearing_spinset) {
+                                      int *smearing_spinset, int *iterations) {
   if (params.p.type == CAPN_NULL || !xc || !direct_enabled ||
-      !smearing_enabled || !smear_sigma_hartree || !smearing_spinset)
+      !smearing_enabled || !smear_sigma_hartree || !smearing_spinset ||
+      !iterations)
     return -1;
 
   *xc = empty_text;
@@ -3229,6 +3230,7 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
   *smearing_enabled = 0;
   *smear_sigma_hartree = 0.0;
   *smearing_spinset = 1;
+  *iterations = 0;
 
   struct NWChemParams view;
   read_NWChemParams(&view, params);
@@ -3246,6 +3248,8 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
     read_NWChemDftStanza(&dft, stanza.dft);
     if (dft.direct)
       *direct_enabled = 1;
+    if (dft.iterations > 0)
+      *iterations = dft.iterations;
     if (dft.xc.len > 0)
       *xc = dft.xc;
     if (dft.smearing.p.type != CAPN_NULL) {

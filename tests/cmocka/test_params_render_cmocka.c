@@ -226,18 +226,21 @@ static void test_render_structured_dft_full_and_embed(void **state) {
   assert_render_contains(full_blocks, "xc pbe0");
   assert_render_contains(full_blocks, "direct");
 
-  /* Embed render omits promoted fields when only those were set. */
-  assert_null(strstr(embed_blocks, "xc pbe0"));
-  assert_null(strstr(embed_blocks, "  direct"));
+  /* Embed render omits promoted xc/direct (typed-only DFT stanza may be empty). */
+  if (embed_blocks[0] != '\0') {
+    assert_null(strstr(embed_blocks, "xc pbe0"));
+    assert_null(strstr(embed_blocks, "  direct"));
+  }
 
   capn_text xc = {0};
   int direct_enabled = 0;
   int smearing_enabled = 0;
   double smear_sigma = 0.0;
   int spinset = 0;
+  int dft_iterations = 0;
   assert_int_equal(nwchemc_params_extract_direct_dft(
                        params_root, &xc, &direct_enabled, &smearing_enabled,
-                       &smear_sigma, &spinset),
+                       &smear_sigma, &spinset, &dft_iterations),
                    0);
   assert_true(xc.len > 0);
   assert_int_equal(direct_enabled, 1);
@@ -323,15 +326,15 @@ static void test_render_scf_wf_and_dft_text_controls_full_and_embed(
   assert_render_contains(full_blocks, "iterations 77");
   assert_render_contains(full_blocks, "grid xfine");
 
-  assert_render_contains(embed_blocks, "scf\n");
-  assert_render_contains(embed_blocks, "uhf");
-  assert_render_contains(embed_blocks, "nopen 1");
+  /* Embed omits RTDB-promoted SCF/DFT knobs; grid remains text-only. */
+  assert_null(strstr(embed_blocks, "uhf"));
+  assert_null(strstr(embed_blocks, "nopen 1"));
   assert_null(strstr(embed_blocks, "maxiter 40"));
-  assert_render_contains(embed_blocks, "dft\n");
-  assert_render_contains(embed_blocks, "iterations 77");
-  assert_render_contains(embed_blocks, "grid xfine");
+  assert_null(strstr(embed_blocks, "iterations 77"));
   assert_null(strstr(embed_blocks, "xc blyp"));
   assert_null(strstr(embed_blocks, "  direct"));
+  assert_render_contains(embed_blocks, "dft\n");
+  assert_render_contains(embed_blocks, "grid xfine");
 
   nwchemc_params_release(&arena);
 }

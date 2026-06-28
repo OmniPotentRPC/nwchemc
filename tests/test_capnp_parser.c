@@ -347,9 +347,10 @@ static void test_parser_extracts_direct_dft_options(void **state) {
   int smearing_enabled = 0;
   double smear_sigma_hartree = 0.0;
   int smearing_spinset = 0;
+  int dft_iterations = 0;
   assert_int_equal(nwchemc_params_extract_direct_dft(
                        params_root, &xc, &direct_enabled, &smearing_enabled,
-                       &smear_sigma_hartree, &smearing_spinset),
+                       &smear_sigma_hartree, &smearing_spinset, &dft_iterations),
                    0);
   assert_true(text_equals(xc, "pbe0"));
   assert_int_equal(direct_enabled, 1);

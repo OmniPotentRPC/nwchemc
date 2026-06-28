@@ -1658,9 +1658,11 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   int dft_smear_on = 0;
   double dft_smear_sigma = 0.0;
   int dft_smear_spinset = 1;
+  int dft_iterations = 0;
   if (nwchemc_params_extract_direct_dft(params_root, &dft_xc, &dft_direct,
                                         &dft_smear_on, &dft_smear_sigma,
-                                        &dft_smear_spinset) != 0)
+                                        &dft_smear_spinset,
+                                        &dft_iterations) != 0)
     return -1;
   int scf_has_options = 0;
   int scf_maxiter = 0;
@@ -4210,12 +4212,92 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_embed_set_scf_direct(scf_has_options, scf_maxiter, scf_thresh,
                                    scf_tol2e) != 0)
     return -1;
-  /* Wavefunction type / nopen are applied via rendered SCF text (see
-   * render_scf_stanza) so they remain C-ABI accessible without extending every
-   * legacy signature; RTDB promotion for maxiter/thresh/tol2e stays direct. */
-  (void)scf_wavefunction;
-  (void)scf_nopen;
-  (void)scf_has_nopen;
+  /* Promote SCF wavefunction/nopen and DFT iterations via RTDB (embed render
+   * omits those lines). Grid stays text-emitted on embed (no stable key). */
+  {
+    char promo_str_key_storage[4][NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_str_val_storage[4][NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char promo_key_storage[4][NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_value_storage[4][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                            [NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char promo_str_packed_keys[4 * NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_str_packed_values[4 * NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char promo_typed_packed_keys[4 * NWCHEMC_DIRECT_SET_KEY_LEN];
+    char promo_typed_packed_values[4 * NWCHEMC_DIRECT_SET_VALUE_MAX *
+                                   NWCHEMC_DIRECT_SET_VALUE_LEN];
+    capn_text promo_str_keys[4];
+    capn_text promo_str_vals[4];
+    size_t promo_str_count = 0;
+    capn_text promo_keys[4];
+    int promo_types[4];
+    int promo_counts[4];
+    capn_text promo_vals[4 * NWCHEMC_DIRECT_SET_VALUE_MAX];
+    size_t promo_count = 0;
+    memset(promo_str_packed_keys, 0, sizeof(promo_str_packed_keys));
+    memset(promo_str_packed_values, 0, sizeof(promo_str_packed_values));
+    memset(promo_typed_packed_keys, 0, sizeof(promo_typed_packed_keys));
+    memset(promo_typed_packed_values, 0, sizeof(promo_typed_packed_values));
+    if (scf_wavefunction.len > 0) {
+      char wf_buf[NWCHEMC_DIRECT_SET_VALUE_LEN];
+      size_t n = (size_t)scf_wavefunction.len;
+      if (n >= sizeof(wf_buf))
+        n = sizeof(wf_buf) - 1;
+      if (!scf_wavefunction.str)
+        return -1;
+      memcpy(wf_buf, scf_wavefunction.str, n);
+      wf_buf[n] = '\0';
+      if (append_owned_direct_string_value(
+              promo_str_keys, promo_str_vals, 4, &promo_str_count,
+              promo_str_key_storage, promo_str_val_storage, "scf:scftype",
+              wf_buf) != 0)
+        return -1;
+    }
+    if (scf_has_nopen) {
+      int nopen_vals[1] = {scf_nopen};
+      if (append_direct_integer_values(
+              promo_keys, promo_types, promo_counts, promo_vals, 4,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
+              promo_value_storage, "scf:nopen", nopen_vals, 1) != 0)
+        return -1;
+    }
+    if (dft_iterations > 0) {
+      int it_vals[1] = {dft_iterations};
+      if (append_direct_integer_values(
+              promo_keys, promo_types, promo_counts, promo_vals, 4,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
+              promo_value_storage, "dft:iterations", it_vals, 1) != 0)
+        return -1;
+    }
+    for (size_t i = 0; i < promo_str_count; ++i) {
+      copy_text_record(promo_str_packed_keys + i * NWCHEMC_DIRECT_SET_KEY_LEN,
+                       NWCHEMC_DIRECT_SET_KEY_LEN, promo_str_keys[i]);
+      copy_text_record(
+          promo_str_packed_values + i * NWCHEMC_DIRECT_SET_VALUE_LEN,
+          NWCHEMC_DIRECT_SET_VALUE_LEN, promo_str_vals[i]);
+    }
+    if (promo_str_count > 0 &&
+        nwchemc_embed_set_rtdb_strings(promo_str_packed_keys,
+                                       promo_str_packed_values,
+                                       (int)promo_str_count) != 0)
+      return -1;
+    for (size_t i = 0; i < promo_count; ++i) {
+      copy_text_record(promo_typed_packed_keys + i * NWCHEMC_DIRECT_SET_KEY_LEN,
+                       NWCHEMC_DIRECT_SET_KEY_LEN, promo_keys[i]);
+      for (int j = 0; j < promo_counts[i]; ++j) {
+        copy_text_record(promo_typed_packed_values +
+                             (i * NWCHEMC_DIRECT_SET_VALUE_MAX + (size_t)j) *
+                                 NWCHEMC_DIRECT_SET_VALUE_LEN,
+                         NWCHEMC_DIRECT_SET_VALUE_LEN,
+                         promo_vals[i * NWCHEMC_DIRECT_SET_VALUE_MAX +
+                                    (size_t)j]);
+      }
+    }
+    if (promo_count > 0 &&
+        nwchemc_embed_set_rtdb_values(promo_typed_packed_keys, promo_types,
+                                      promo_counts, promo_typed_packed_values,
+                                      (int)promo_count) != 0)
+      return -1;
+  }
   if (nwchemc_embed_set_driver_direct(driver_has_options, driver_maxiter,
                                       driver_tolerance_mode, driver_gmax_tol,
                                       driver_grms_tol, driver_xmax_tol,
