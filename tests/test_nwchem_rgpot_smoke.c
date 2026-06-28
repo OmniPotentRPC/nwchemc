@@ -1129,6 +1129,36 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
       hessian_bytes, hessian_size,
       raw_hessian_status.energy_h * HARTREE_TO_EV, expected_hessian, 1.0e-8);
 
+  double raw_frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double raw_intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_frequencies_status =
+      nwchemc_calculate_frequencies_from_config(
+          config, config_size, force_input, force_input_size, raw_frequencies,
+          6, raw_intensities, 6);
+  assert_status_energy("nwchemc_calculate_frequencies_from_config",
+                       raw_frequencies_status);
+
+  size_t frequencies_capacity =
+      nwchemc_frequencies_result_size_for_force_input(force_input,
+                                                      force_input_size);
+  assert_result_capacity("nwchemc_frequencies_result_size_for_force_input",
+                         frequencies_capacity);
+  unsigned char *frequencies_bytes =
+      (unsigned char *)malloc(frequencies_capacity);
+  assert_non_null(frequencies_bytes);
+  size_t frequencies_size = 0;
+  NWChemCResult frequencies_result =
+      nwchemc_calculate_frequencies_result_from_config(
+          config, config_size, force_input, force_input_size,
+          frequencies_bytes, frequencies_capacity, &frequencies_size);
+  assert_status_energy("nwchemc_calculate_frequencies_result_from_config",
+                       frequencies_result);
+  assert_int_equal(frequencies_size, frequencies_capacity);
+  assert_potential_result_frequencies(
+      frequencies_bytes, frequencies_size,
+      raw_frequencies_status.energy_h * HARTREE_TO_EV,
+      raw_frequencies, raw_intensities);
+
   size_t bohr_force_input_size = 0;
   unsigned char *bohr_force_input =
       read_file(g_bohr_unit_force_input_path, &bohr_force_input_size);
@@ -1170,6 +1200,7 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
 
   free(optimize_bytes);
   free(bohr_force_input);
+  free(frequencies_bytes);
   free(hessian_bytes);
   free(forces_bytes);
   free(energy_bytes);

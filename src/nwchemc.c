@@ -7462,6 +7462,13 @@ NWChemCResult nwchemc_session_calculate_frequencies_result(
     snprintf(r.message, sizeof(r.message), "invalid ForceInput geometry");
     return r;
   }
+  double energy_factor = 1.0;
+  if (force_input_result_energy_factor(force_input_capnp,
+                                       force_input_capnp_size_bytes,
+                                       &energy_factor) != 0) {
+    snprintf(r.message, sizeof(r.message), "invalid ForceInput result units");
+    return r;
+  }
   if (!potential_result_capnp ||
       potential_result_capnp_capacity_bytes < required_size) {
     snprintf(r.message, sizeof(r.message), "PotentialResult buffer too small");
@@ -7483,7 +7490,7 @@ NWChemCResult nwchemc_session_calculate_frequencies_result(
       frequency_count, intensities, frequency_count);
   if (r.ok &&
       nwchemc_potential_result_write_frequencies(
-          r.energy_h, frequencies, intensities, frequency_count,
+          r.energy_h * energy_factor, frequencies, intensities, frequency_count,
           potential_result_capnp, potential_result_capnp_capacity_bytes,
           potential_result_capnp_size_bytes) != 0) {
     r.ok = 0;
