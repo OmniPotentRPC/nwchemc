@@ -625,6 +625,9 @@ struct NWChemNwpwStanza {
   lcaoMask                    @170 :NWChemNwpwToggle = unspecified; # Emit/promote NWPW lcao_mask.
   lcaoMaskUpOrbitals          @171 :List(Int32); # NWPW lcao_mask up/alpha orbital indexes.
   lcaoMaskDownOrbitals        @172 :List(Int32); # NWPW lcao_mask down/beta orbital indexes.
+  occupations                 @173 :List(Float64); # Emit/promote NWPW occupations block occupation values.
+  occupationStates            @174 :List(Int32);   # State indexes paired with occupations; unset values default to state 1.
+  extraOrbitals               @175 :Int32 = 0;     # Emit/promote NWPW occupations extra_orbitals.
 }
 
 # @struct NWChemScfStanza

@@ -2352,6 +2352,36 @@ static int render_nwpw_stanza(NWChemNwpwStanza_ptr ptr, char *dst,
                       nwpw.fractionalOrbitalsStart, fractional_end) != 0)
       return -1;
   }
+  capn_list64 occupation_values = nwpw.occupations;
+  capn_list32 occupation_states = nwpw.occupationStates;
+  capn_resolve(&occupation_values.p);
+  capn_resolve(&occupation_states.p);
+  int n_occupation_values = list64_len(occupation_values);
+  int n_occupation_states = list32_len(occupation_states);
+  if (n_occupation_values < 0 || n_occupation_states < 0)
+    return -1;
+  if (include_direct_promoted && n_occupation_values > 0) {
+    if (append_format(block, sizeof(block), "  occupations\n") != 0)
+      return -1;
+    for (int i = 0; i < n_occupation_values; ++i) {
+      double occupation = capn_to_f64(capn_get64(occupation_values, i));
+      int state = 1;
+      if (i < n_occupation_states) {
+        int candidate = (int)(int32_t)capn_get32(occupation_states, i);
+        if (candidate > 0)
+          state = candidate;
+      }
+      if (append_format(block, sizeof(block), "    occupation %.15g %d\n",
+                        occupation, state) != 0)
+        return -1;
+    }
+    if (nwpw.extraOrbitals > 0 &&
+        append_format(block, sizeof(block), "    extra_orbitals %d\n",
+                      nwpw.extraOrbitals) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "    end\n") != 0)
+      return -1;
+  }
   if (include_direct_promoted &&
       (nwpw.smearTemperature > 0.0 || nwpw.smearAlpha > 0.0 ||
        nwpw.smearType != NWChemNwpwSmearType_unspecified)) {
@@ -3961,6 +3991,67 @@ int nwchemc_params_extract_direct_nwpw_lcao_mask(
       for (int j = 0; j < ndown; ++j)
         down_orbitals[j] =
             (int)(int32_t)capn_get32(lcao_mask_down_orbitals, j);
+    }
+  }
+
+  return 0;
+}
+
+int nwchemc_params_extract_direct_nwpw_occupations(
+    NWChemParams_ptr params, int *has_options, double *occupations,
+    int *states, size_t capacity, size_t *count, int *extra_orbitals) {
+  if (params.p.type == CAPN_NULL || !has_options || !count ||
+      !extra_orbitals)
+    return -1;
+
+  *has_options = 0;
+  *count = 0;
+  *extra_orbitals = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_nwpw ||
+        stanza.nwpw.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemNwpwStanza nwpw;
+    read_NWChemNwpwStanza(&nwpw, stanza.nwpw);
+    capn_list64 occupation_values = nwpw.occupations;
+    capn_list32 occupation_states = nwpw.occupationStates;
+    capn_resolve(&occupation_values.p);
+    capn_resolve(&occupation_states.p);
+    int nvalues = list64_len(occupation_values);
+    int nstates = list32_len(occupation_states);
+    if (nvalues < 0 || nstates < 0)
+      return -1;
+
+    if (nwpw.extraOrbitals > 0) {
+      *has_options = 1;
+      *extra_orbitals = nwpw.extraOrbitals;
+    }
+    if (nvalues <= 0)
+      continue;
+    if (!occupations || !states || (size_t)nvalues > capacity)
+      return -1;
+
+    *has_options = 1;
+    *count = (size_t)nvalues;
+    for (int j = 0; j < nvalues; ++j) {
+      int state = 1;
+      if (j < nstates) {
+        int candidate = (int)(int32_t)capn_get32(occupation_states, j);
+        if (candidate > 0)
+          state = candidate;
+      }
+      occupations[j] = capn_to_f64(capn_get64(occupation_values, j));
+      states[j] = state;
     }
   }
 

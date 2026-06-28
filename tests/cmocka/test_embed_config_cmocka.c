@@ -57,14 +57,14 @@ static char g_psp_elements[8][17];
 static char g_psp_names[8][257];
 static char g_set_keys[8][129];
 static char g_set_values[8][257];
-static char g_typed_set_keys[256][129];
-static char g_typed_set_values[256][64][257];
+static char g_typed_set_keys[512][129];
+static char g_typed_set_values[512][64][257];
 static char g_brillouin_zone_name[64];
 static char g_brillouin_dos_zone_names[256][65];
 static double g_brillouin_kvectors[8];
 static int g_psp_types[8];
-static int g_typed_set_types[256];
-static int g_typed_set_value_counts[256];
+static int g_typed_set_types[512];
+static int g_typed_set_value_counts[512];
 static int g_brillouin_dos_zone_grids[256][3];
 static int g_psp_count = 0;
 static int g_set_string_count = 0;
@@ -799,8 +799,8 @@ int nwchemc_embed_set_rtdb_values(const char *keys, const int *value_types,
                                   const char *values, int count) {
   ++g_set_rtdb_values_calls;
   g_typed_set_count = count;
-  if (count > 256)
-    count = 256;
+  if (count > 512)
+    count = 512;
   for (int i = 0; i < count; ++i) {
     copy_span(g_typed_set_keys[i], sizeof(g_typed_set_keys[i]),
               keys + i * 128, 128);
@@ -1371,7 +1371,7 @@ static void reset_embed_captures(void) {
     g_set_values[i][0] = '\0';
     g_psp_types[i] = -1;
   }
-  for (int i = 0; i < 256; ++i) {
+  for (int i = 0; i < 512; ++i) {
     g_typed_set_keys[i][0] = '\0';
     for (int j = 0; j < 64; ++j)
       g_typed_set_values[i][j][0] = '\0';
@@ -1767,7 +1767,7 @@ static void assert_potential_result_frequencies(
 }
 
 static int find_typed_set_key(const char *key) {
-  for (int i = 0; i < g_typed_set_count && i < 256; ++i) {
+  for (int i = 0; i < g_typed_set_count && i < 512; ++i) {
     if (strcmp(g_typed_set_keys[i], key) == 0)
       return i;
   }
@@ -1795,7 +1795,7 @@ static void assert_typed_set_scalar(const char *key, int value_type,
 
 static void assert_typed_set_scalar_entry(const char *key, int value_type,
                                           const char *value) {
-  for (int i = 0; i < g_typed_set_count && i < 256; ++i) {
+  for (int i = 0; i < g_typed_set_count && i < 512; ++i) {
     if (strcmp(g_typed_set_keys[i], key) != 0)
       continue;
     if (g_typed_set_types[i] == value_type &&

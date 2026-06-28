@@ -198,7 +198,7 @@ enum {
   NWCHEMC_DIRECT_PSP_MAX = 64,
   NWCHEMC_DIRECT_PSP_ELEMENT_LEN = 16,
   NWCHEMC_DIRECT_PSP_NAME_LEN = 256,
-  NWCHEMC_DIRECT_SET_MAX = 256,
+  NWCHEMC_DIRECT_SET_MAX = 512,
   NWCHEMC_DIRECT_SET_VALUE_MAX = 64,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
   NWCHEMC_DIRECT_SET_VALUE_LEN = 256,
@@ -1794,6 +1794,16 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &nwpw_has_smear, &nwpw_smear_temperature, &nwpw_smear_alpha,
           &nwpw_smear_type) != 0)
     return -1;
+  int nwpw_occupations_has_options = 0;
+  double nwpw_occupations[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0.0};
+  int nwpw_occupation_states[NWCHEMC_DIRECT_SET_VALUE_MAX] = {0};
+  size_t nwpw_occupation_count = 0;
+  int nwpw_extra_orbitals = 0;
+  if (nwchemc_params_extract_direct_nwpw_occupations(
+          params_root, &nwpw_occupations_has_options, nwpw_occupations,
+          nwpw_occupation_states, NWCHEMC_DIRECT_SET_VALUE_MAX,
+          &nwpw_occupation_count, &nwpw_extra_orbitals) != 0)
+    return -1;
   int nwpw_orbital_grid_has_options = 0;
   int nwpw_virtual_orbitals_start = 0;
   int nwpw_virtual_orbitals_end = 0;
@@ -2904,6 +2914,59 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
             NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
             nwpw_direct_values, "nwpw:fractional_orbitals",
             NWCHEMC_DIRECT_SET_VALUE_INTEGER, value_list, 2) != 0)
+      return -1;
+  }
+  if (nwpw_occupations_has_options && nwpw_occupation_count > 0) {
+    char count_value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(count_value, sizeof(count_value), "%zu", nwpw_occupation_count);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:frac_occ:number_states",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, count_value) != 0)
+      return -1;
+
+    char occupation_storage[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                           [NWCHEMC_DIRECT_SET_VALUE_LEN];
+    char state_storage[NWCHEMC_DIRECT_SET_VALUE_MAX]
+                      [NWCHEMC_DIRECT_SET_VALUE_LEN];
+    const char *occupation_values[NWCHEMC_DIRECT_SET_VALUE_MAX];
+    const char *state_values[NWCHEMC_DIRECT_SET_VALUE_MAX];
+    for (size_t i = 0; i < nwpw_occupation_count; ++i) {
+      snprintf(occupation_storage[i], sizeof(occupation_storage[i]), "%.15g",
+               nwpw_occupations[i]);
+      occupation_values[i] = occupation_storage[i];
+      snprintf(state_storage[i], sizeof(state_storage[i]), "%d",
+               nwpw_occupation_states[i] > 0 ? nwpw_occupation_states[i] : 1);
+      state_values[i] = state_storage[i];
+    }
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:frac_occ:occupations",
+            NWCHEMC_DIRECT_SET_VALUE_DOUBLE, occupation_values,
+            (int)nwpw_occupation_count) != 0)
+      return -1;
+    if (append_direct_typed_values(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:frac_occ:states",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, state_values,
+            (int)nwpw_occupation_count) != 0)
+      return -1;
+  }
+  if (nwpw_extra_orbitals > 0) {
+    char value[NWCHEMC_DIRECT_SET_VALUE_LEN];
+    snprintf(value, sizeof(value), "%d", nwpw_extra_orbitals);
+    if (append_direct_typed_value(
+            typed_set_keys, typed_set_types, typed_set_value_counts,
+            typed_set_values, NWCHEMC_DIRECT_SET_MAX,
+            NWCHEMC_DIRECT_SET_VALUE_MAX, &typed_set_count, nwpw_direct_keys,
+            nwpw_direct_values, "nwpw:frac_occ:extra_orbitals",
+            NWCHEMC_DIRECT_SET_VALUE_INTEGER, value) != 0)
       return -1;
   }
   if (nwpw_has_smear) {

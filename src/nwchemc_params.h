@@ -118,6 +118,10 @@ int nwchemc_params_extract_direct_nwpw_lcao_mask(
     int *up_orbitals, size_t up_capacity, size_t *up_count,
     int *down_orbitals, size_t down_capacity, size_t *down_count);
 
+int nwchemc_params_extract_direct_nwpw_occupations(
+    NWChemParams_ptr params, int *has_options, double *occupations,
+    int *states, size_t capacity, size_t *count, int *extra_orbitals);
+
 int nwchemc_params_extract_direct_nwpw_nose(
     NWChemParams_ptr params, int *has_options, int *nose_hoover,
     int *nose_restart, double *electron_period, double *electron_temperature,
