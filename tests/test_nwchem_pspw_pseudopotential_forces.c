@@ -16,6 +16,8 @@
 static const char *g_config_path = NULL;
 static const char *g_force_input_path = NULL;
 
+static const double BOHR_TO_ANGSTROM = 0.529177210903;
+
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
     return 0;
@@ -71,8 +73,17 @@ static int teardown_nwchem(void **state) {
   return 0;
 }
 
+static void assert_close_force(const char *label, int index, double actual,
+                               double expected) {
+  double scale = fmax(1.0, fmax(fabs(actual), fabs(expected)));
+  if (fabs(actual - expected) > 1.0e-5 * scale)
+    fail_msg("%s[%d] mismatch: got %.17g expected %.17g", label, index,
+             actual, expected);
+}
+
 static void assert_potential_result_forces(const unsigned char *message,
-                                           size_t message_size) {
+                                           size_t message_size,
+                                           const double *native_forces) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -91,6 +102,10 @@ static void assert_potential_result_forces(const unsigned char *message,
     double force = capn_to_f64(capn_get64(result.forces, i));
     if (!isfinite(force))
       fail_msg("non-finite force[%d]", i);
+    if (native_forces) {
+      double expected = native_forces[i] / BOHR_TO_ANGSTROM;
+      assert_close_force("PotentialResult.force", i, force, expected);
+    }
   }
 
   capn_free(&arena);
@@ -124,6 +139,13 @@ static void assert_force_buffer(const char *label, const double *forces,
     if (!isfinite(forces[i]))
       fail_msg("non-finite %s[%d]", label, i);
   }
+}
+
+static void assert_matching_native_forces(const double *actual,
+                                          const double *expected,
+                                          int force_count) {
+  for (int i = 0; i < force_count; ++i)
+    assert_close_force("native force", i, actual[i], expected[i]);
 }
 
 static void test_pspw_pseudopotential_forces_result(void **state) {
@@ -185,7 +207,7 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
              result_status.message);
   assert_true(isfinite(result_status.energy_h));
   assert_int_equal(result_size, result_capacity);
-  assert_potential_result_forces(result_bytes, result_size);
+  assert_potential_result_forces(result_bytes, result_size, raw_forces);
 
   size_t forces_capacity =
       nwchemc_forces_result_size_for_force_input(force_input,
@@ -203,7 +225,7 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
              one_shot_forces_status.message);
   assert_true(isfinite(one_shot_forces_status.energy_h));
   assert_int_equal(forces_size, forces_capacity);
-  assert_potential_result_forces(forces_bytes, forces_size);
+  assert_potential_result_forces(forces_bytes, forces_size, raw_forces);
 
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
@@ -224,6 +246,7 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
              session_raw_status.message);
   assert_true(isfinite(session_raw_status.energy_h));
   assert_force_buffer("session raw force", session_raw_forces, 6);
+  assert_matching_native_forces(session_raw_forces, raw_forces, 6);
 
   memset(energy_bytes, 0, energy_capacity);
   energy_size = 0;
@@ -248,7 +271,8 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
              session_result_status.message);
   assert_true(isfinite(session_result_status.energy_h));
   assert_int_equal(result_size, result_capacity);
-  assert_potential_result_forces(result_bytes, result_size);
+  assert_potential_result_forces(result_bytes, result_size,
+                                 session_raw_forces);
 
   memset(forces_bytes, 0, forces_capacity);
   forces_size = 0;
@@ -261,7 +285,8 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
              session_forces_status.message);
   assert_true(isfinite(session_forces_status.energy_h));
   assert_int_equal(forces_size, forces_capacity);
-  assert_potential_result_forces(forces_bytes, forces_size);
+  assert_potential_result_forces(forces_bytes, forces_size,
+                                 session_raw_forces);
 
   nwchemc_session_destroy(session);
   free(forces_bytes);
