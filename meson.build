@@ -1614,7 +1614,10 @@ nwchem_config_options_params_bin = custom_target(
       ],
       include_directories: inc,
       dependencies: [cmocka_dep, nwchemc_dep],
-      c_args: common_c_args,
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
       fortran_args: nwchem_legacy_args,
     )
     test(
