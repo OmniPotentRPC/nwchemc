@@ -2203,17 +2203,34 @@ c        TDDFT SP forces: persist CI vectors + util paths + grad root.
             status = rtdb_put(rtdb, 'tddft_grad:isinglet_roots',
      $         mt_int, 1, ival)
             ok = ok .and. status
+            ival = 0
             status = rtdb_put(rtdb, 'tddft_grad:itriplet_roots',
      $         mt_int, 1, ival)
             ok = ok .and. status
+            ival = 1
             status = rtdb_put(rtdb, 'tddft_grad:iroots',
      $         mt_int, 1, ival)
             ok = ok .and. status
+            status = rtdb_put(rtdb, 'tddft_grad:isroots',
+     $         mt_int, 1, ival)
+            ok = ok .and. status
+            lval = .true.
+            status = rtdb_put(rtdb, 'tddft:singlet', mt_log, 1, lval)
+            ok = ok .and. status
+            lval = .false.
+            status = rtdb_put(rtdb, 'tddft:triplet', mt_log, 1, lval)
+            ok = ok .and. status
          endif
       else
-         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-         ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
+         ok = ok .and. status
+         inquire(file=vectors_in(1:inp_strlen(vectors_in)),
+     $        exist=have_movecs)
+         if (have_movecs) then
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+         else
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
+         endif
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
          ok = ok .and. status
