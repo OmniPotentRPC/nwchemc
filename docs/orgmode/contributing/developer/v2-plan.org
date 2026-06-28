@@ -13,6 +13,7 @@ configuration. The public calculation entry points are:
 - ~nwchemc_energy_forces~
 - ~nwchemc_hessian~
 - ~nwchemc_dipole~
+- ~nwchemc_polarizability~
 - ~nwchemc_quadrupole~
 - ~nwchemc_stress~
 - ~nwchemc_optimize~
@@ -22,6 +23,7 @@ configuration. The public calculation entry points are:
 - ~nwchemc_energy_forces_from_config~
 - ~nwchemc_hessian_from_config~
 - ~nwchemc_dipole_from_config~
+- ~nwchemc_polarizability_from_config~
 - ~nwchemc_quadrupole_from_config~
 - ~nwchemc_stress_from_config~
 - ~nwchemc_optimize_from_config~
@@ -35,6 +37,7 @@ configuration. The public calculation entry points are:
 - ~nwchemc_session_energy~
 - ~nwchemc_session_energy_forces~
 - ~nwchemc_session_dipole~
+- ~nwchemc_session_polarizability~
 - ~nwchemc_session_quadrupole~
 - ~nwchemc_session_optimize~
 - ~nwchemc_session_frequencies~
@@ -67,6 +70,12 @@ configuration. The public calculation entry points are:
 - ~nwchemc_session_calculate_dipole_result~
 - ~nwchemc_calculate_dipole_result~
 - ~nwchemc_calculate_dipole_result_from_config~
+- ~nwchemc_calculate_polarizability~
+- ~nwchemc_calculate_polarizability_from_config~
+- ~nwchemc_polarizability_result_size_for_force_input~
+- ~nwchemc_session_calculate_polarizability_result~
+- ~nwchemc_calculate_polarizability_result~
+- ~nwchemc_calculate_polarizability_result_from_config~
 - ~nwchemc_calculate_quadrupole~
 - ~nwchemc_calculate_quadrupole_from_config~
 - ~nwchemc_quadrupole_result_size_for_force_input~
@@ -94,6 +103,7 @@ configuration. The public calculation entry points are:
 - ~nwchemc_potential_result_size_for_force_input~
 - ~nwchemc_session_calculate_hessian~
 - ~nwchemc_session_calculate_dipole~
+- ~nwchemc_session_calculate_polarizability~
 - ~nwchemc_session_calculate_quadrupole~
 - ~nwchemc_session_calculate_stress~
 - ~nwchemc_session_calculate_optimize~
@@ -129,6 +139,11 @@ stores charge, multiplicity, method, and task state through RTDB-facing calls
 before calling ~task_energy~, ~task_gradient~, or ~task_hessian~. The dipole
 ABI calls use ~task_energy~ and then read ~task:dipole~ from RTDB, falling back
 to method-specific dipole keys where NWChem stores them.
+The polarizability ABI calls use the same numeric geometry and basis setup, run
+the energy task, set AO response property defaults where the caller has not
+provided them, run the property task, and read the 12-value ~aoresponse:alpha~
+vector from RTDB. The vector order is frequency, Cartesian components, three
+eigenvalues, isotropic average, and anisotropy.
 The quadrupole ABI calls use the same numeric geometry and basis setup, run
 ~task_energy~, load NWChem geometry and AO basis handles from RTDB, initialize
 the integral package, and call ~hnd_mtpole2~ directly. The returned buffer holds
@@ -244,7 +259,8 @@ The schema contains typed stanzas for:
 - per-step ~ForceInput~ messages with atoms, coordinates, length units, and
   optional row-major 3x3 cells, charge, and spin multiplicity
 - the ~PotentialService.calculate~ RPC shape around ~ForceInput~ and
-  ~PotentialResult~
+  ~PotentialResult~, plus operation-specific methods including
+  ~calculatePolarizability~
 
 The feature inventory in ~schema/inventory/nwchem_features.json~ interns every
 schema field, stanza kind, module enum value, and ABI entry point. The cmocka
@@ -256,6 +272,7 @@ feature tests verify the generated inventory lookup table and ABI coverage.
 ~nwchemc_session_calculate_result~,
 ~nwchemc_session_calculate_hessian~,
 ~nwchemc_session_calculate_dipole~,
+~nwchemc_session_calculate_polarizability~,
 ~nwchemc_session_calculate_quadrupole~, and
 ~nwchemc_session_calculate_stress~ are C ABI entry points for socket-style,
 optimizer-style, property, stress, and vibrational callers. They take the
@@ -272,9 +289,9 @@ NWChem.
 reuse a session so configuration is applied once and per-step calls only carry
 coordinates, cell data, atom numbers, and requested units.
 ~nwchemc_calculate_hessian~, ~nwchemc_calculate_dipole~,
-~nwchemc_calculate_quadrupole~, and ~nwchemc_calculate_stress~ are one-shot
-wrappers around the same session ForceInput validation and direct numeric
-geometry path.
+~nwchemc_calculate_polarizability~, ~nwchemc_calculate_quadrupole~, and
+~nwchemc_calculate_stress~ are one-shot wrappers around the same session
+ForceInput validation and direct numeric geometry path.
 The session owns the topology invariant. A caller that changes atom count or
 species ordering is rejected before NWChem evaluation. Resetting or replacing
 that topology is explicit: create a separate session, or add a dedicated reset
@@ -467,6 +484,9 @@ keeps ~task theory operation~ lines, but C ABI evaluation writes
 before calling the corresponding NWChem task routine.
 The dipole entry points set ~task:operation~ to ~energy~ and extract the dipole
 from RTDB instead of rendering a text property task.
+The polarizability entry points set ~task:operation~ to ~property~ after the
+energy task, install AO response defaults only for unset RTDB keys, and extract
+~aoresponse:alpha~ from RTDB.
 The quadrupole entry points set ~task:operation~ to ~energy~ and call
 ~hnd_mtpole2~ through loaded RTDB geometry and basis handles instead of
 rendering a text property task.

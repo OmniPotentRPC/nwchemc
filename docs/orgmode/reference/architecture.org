@@ -42,7 +42,8 @@ grammar is intentionally upstream NWChem input text.
 NWChem runtime state inside the session.
 ~nwchemc_session_calculate_forces()~,
 ~nwchemc_session_calculate_result()~,
-~nwchemc_session_calculate_hessian()~, and
+~nwchemc_session_calculate_hessian()~,
+~nwchemc_session_calculate_polarizability()~, and
 ~nwchemc_session_calculate_stress()~ accept serialized ~ForceInput~ messages,
 so molecular dynamics, optimizers, stress probes, vibrational workflows, and
 socket-style drivers can update coordinates and the periodic cell without
@@ -60,8 +61,9 @@ callers and writes native Hartree/Bohr force buffers.
 ~nwchemc_calculate_energy()~ provides the matching one-shot energy-only path.
 ~nwchemc_hessian_result_size_for_force_input()~ does the same for
 ~PotentialResult.hessian~.
-Dipole and quadrupole result-size helpers validate the same ~ForceInput~ carrier
-and return the fixed property result sizes for ~PotentialResult.dipole~ and
+Dipole, polarizability, and quadrupole result-size helpers validate the same
+~ForceInput~ carrier and return the fixed property result sizes for
+~PotentialResult.dipole~, ~PotentialResult.polarizability~, and
 ~PotentialResult.quadrupole~.
 ~nwchemc_stress_result_size_for_force_input()~ validates the same carrier and
 returns the fixed stress result size for ~PotentialResult.stress~.
@@ -94,8 +96,11 @@ for the bridge call, so the session defaults remain available to other calls.
 ~PotentialResult.energy~ and ~PotentialResult.forces~ are converted to the
 caller units named by ~ForceInput.energyUnit~ and ~ForceInput.lengthUnit~.
 ~PotentialResult.hessian~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
-~PotentialResult.dipole~ and ~PotentialResult.quadrupole~ use NWChem atomic
-units. ~PotentialResult.stress~ uses
+~PotentialResult.dipole~, ~PotentialResult.polarizability~, and
+~PotentialResult.quadrupole~ use NWChem atomic units. The polarizability list
+stores NWChem's 12-value ~aoresponse:alpha~ vector: frequency, Cartesian
+components, three eigenvalues, isotropic average, and anisotropy.
+~PotentialResult.stress~ uses
 ~ForceInput.energyUnit / ForceInput.lengthUnit^3~.
 ~PotentialResult.optimizedPos~ uses ~ForceInput.lengthUnit~,
 ~PotentialResult.frequencies~ uses cm^-1, and ~PotentialResult.intensities~
@@ -112,8 +117,8 @@ families as the C ABI:
 - ~calculateForces~ writes ~PotentialResult.energy~ and
   ~PotentialResult.forces~.
 - ~calculateHessian~ writes ~PotentialResult.hessian~.
-- ~calculateDipole~ and ~calculateQuadrupole~ write the corresponding
-  multipole result fields.
+- ~calculateDipole~, ~calculatePolarizability~, and ~calculateQuadrupole~ write
+  the corresponding property result fields.
 - ~calculateStress~ writes ~PotentialResult.stress~.
 - ~calculateOptimize~ writes ~PotentialResult.optimizedPos~ and energy.
 - ~calculateFrequencies~ writes ~PotentialResult.frequencies~ and

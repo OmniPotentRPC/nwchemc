@@ -110,6 +110,7 @@ EXPECTED_POTENTIAL_METHODS = {
     "calculateStress": 7,
     "calculateOptimize": 8,
     "calculateFrequencies": 9,
+    "calculatePolarizability": 10,
 }
 
 

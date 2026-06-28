@@ -20,6 +20,10 @@ double dipole_au[3];
 NWChemCResult dipole = nwchemc_dipole(
     n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
     dipole_au);
+double polarizability_au[12];
+NWChemCResult polarizability = nwchemc_polarizability(
+    n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
+    polarizability_au);
 double quadrupole_au[6];
 NWChemCResult quadrupole = nwchemc_quadrupole(
     n_atoms, positions_ang, atomic_numbers, params_bytes, params_size,
@@ -121,8 +125,8 @@ captures the embedded energy and gradient vector.
 * Session Step Calls
 Callers that drive multiple geometry steps can keep the NWChem configuration in
 a session and pass a serialized ~ForceInput~ message for each step. The same
-step carrier works for force, serialized result, Hessian, dipole, and
-quadrupole, and stress entry points.
+step carrier works for force, serialized result, Hessian, dipole,
+polarizability, quadrupole, and stress entry points.
 
 #+begin_src c
 NWChemCSession *session = nwchemc_session_create(params_bytes, params_size);
@@ -149,6 +153,9 @@ if (session != NULL) {
   double dipole_au[3];
   NWChemCResult property = nwchemc_session_calculate_dipole(
       session, force_input_bytes, force_input_size, dipole_au, 3);
+  double polarizability_au[12];
+  NWChemCResult response = nwchemc_session_calculate_polarizability(
+      session, force_input_bytes, force_input_size, polarizability_au, 12);
   double quadrupole_au[6];
   NWChemCResult multipole = nwchemc_session_calculate_quadrupole(
       session, force_input_bytes, force_input_size, quadrupole_au, 6);
@@ -176,9 +183,11 @@ and ~forces~ uses ~ForceInput.energyUnit / ForceInput.lengthUnit~.
 ~nwchemc_session_calculate_hessian_result~ fills ~PotentialResult.hessian~ with
 the dense row-major Cartesian Hessian in
 ~ForceInput.energyUnit / ForceInput.lengthUnit^2~.
-~nwchemc_session_calculate_dipole_result~ and
-~nwchemc_session_calculate_quadrupole_result~ fill ~PotentialResult.dipole~ and
-~PotentialResult.quadrupole~ in atomic units.
+~nwchemc_session_calculate_dipole_result~,
+~nwchemc_session_calculate_polarizability_result~, and
+~nwchemc_session_calculate_quadrupole_result~ fill ~PotentialResult.dipole~,
+~PotentialResult.polarizability~, and ~PotentialResult.quadrupole~ in atomic
+units.
 ~nwchemc_session_calculate_stress_result~ fills ~PotentialResult.stress~ with
 the row-major 3x3 stress tensor in
 ~ForceInput.energyUnit / ForceInput.lengthUnit^3~.
@@ -202,7 +211,8 @@ returns the result byte count without evaluating NWChem. If the output buffer is
 too small, ~nwchemc_session_calculate_result~ reports the required byte count
 through ~potential_result_size~ and does not evaluate NWChem.
 ~nwchemc_hessian_result_size_for_force_input~ provides the same preflight size
-for Hessian result messages. ~nwchemc_dipole_result_size_for_force_input~ and
+for Hessian result messages. ~nwchemc_dipole_result_size_for_force_input~,
+~nwchemc_polarizability_result_size_for_force_input~, and
 ~nwchemc_quadrupole_result_size_for_force_input~ provide the fixed-size
 property result preflight. ~nwchemc_stress_result_size_for_force_input~
 provides the fixed-size stress result preflight.
@@ -210,9 +220,11 @@ provides the fixed-size stress result preflight.
 ~nwchemc_frequencies_result_size_for_force_input~ provide the same preflight
 contract for optimized coordinates and frequency/intensity result messages.
 ~hessian_h_bohr2~ is filled in Hartree per Bohr squared. ~dipole_au~ is filled
-with a three-element total dipole vector in atomic units. ~quadrupole_au~ is
-filled with six total traceless quadrupole tensor components in atomic units,
-ordered ~xx, xy, xz, yy, yz, zz~.
+with a three-element total dipole vector in atomic units.
+~polarizability_au~ is filled with the 12-value ~aoresponse:alpha~ vector:
+frequency, ~xx~, ~xy~, ~xz~, ~yy~, ~yz~, ~zz~, three eigenvalues, isotropic
+average, and anisotropy. ~quadrupole_au~ is filled with six total traceless
+quadrupole tensor components in atomic units, ordered ~xx, xy, xz, yy, yz, zz~.
 ~stress_au~ is filled with nine row-major 3x3 stress tensor components in
 NWChem atomic stress units.
 
@@ -224,15 +236,17 @@ without initializing NWChem when the buffer is too small.
 ~nwchemc_session_calculate_energy~ and ~nwchemc_calculate_energy~ return only
 the native Hartree scalar for serialized ~ForceInput~ callers that do not need
 forces or a ~PotentialResult~ message.
-~nwchemc_calculate_hessian~ and ~nwchemc_calculate_dipole~ provide the same
-one-shot ~NWChemParams~ + ~ForceInput~ carrier for native Hessian and dipole
-buffers. ~nwchemc_calculate_forces~ provides the same carrier for native force
-buffers. ~nwchemc_calculate_quadrupole~ provides the same carrier for the
-six-component quadrupole buffer. ~nwchemc_calculate_stress~ provides the same
-carrier for the nine-component stress buffer.
+~nwchemc_calculate_hessian~, ~nwchemc_calculate_dipole~, and
+~nwchemc_calculate_polarizability~ provide the same one-shot ~NWChemParams~ +
+~ForceInput~ carrier for native Hessian, dipole, and polarizability buffers.
+~nwchemc_calculate_forces~ provides the same carrier for native force buffers.
+~nwchemc_calculate_quadrupole~ provides the same carrier for the six-component
+quadrupole buffer. ~nwchemc_calculate_stress~ provides the same carrier for the
+nine-component stress buffer.
 ~nwchemc_calculate_hessian_result~ uses the same one-shot carrier and writes
 the Hessian to ~PotentialResult.hessian~.
-~nwchemc_calculate_dipole_result~ and
+~nwchemc_calculate_dipole_result~,
+~nwchemc_calculate_polarizability_result~, and
 ~nwchemc_calculate_quadrupole_result~ write the corresponding property lists to
 ~PotentialResult~. ~nwchemc_calculate_stress_result~ writes
 ~PotentialResult.stress~. ~nwchemc_calculate_optimize_result~ and
@@ -273,6 +287,15 @@ three-element total dipole vector in atomic units and keep
 ~nwchemc_session_calculate_dipole_result()~ and
 ~nwchemc_calculate_dipole_result()~ write the same vector to
 ~PotentialResult.dipole~.
+~nwchemc_polarizability()~, ~nwchemc_session_polarizability()~,
+~nwchemc_session_calculate_polarizability()~, and
+~nwchemc_calculate_polarizability()~ fill the 12-value ~aoresponse:alpha~
+vector in atomic units and keep ~NWChemCResult.energy_h~ in Hartree. The vector
+order is frequency, ~xx~, ~xy~, ~xz~, ~yy~, ~yz~, ~zz~, three eigenvalues,
+isotropic average, and anisotropy.
+~nwchemc_session_calculate_polarizability_result()~ and
+~nwchemc_calculate_polarizability_result()~ write the same vector to
+~PotentialResult.polarizability~.
 ~nwchemc_quadrupole()~, ~nwchemc_session_quadrupole()~,
 ~nwchemc_session_calculate_quadrupole()~, and ~nwchemc_calculate_quadrupole()~
 fill six total traceless quadrupole components in atomic units as

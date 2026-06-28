@@ -111,6 +111,7 @@ class ReadmeAbiSurfaceTest(unittest.TestCase):
             "nwchemc_calculate_result_from_config",
             "nwchemc_calculate_hessian_result_from_config",
             "nwchemc_calculate_dipole_result_from_config",
+            "nwchemc_calculate_polarizability_result_from_config",
             "nwchemc_calculate_quadrupole_result_from_config",
             "nwchemc_calculate_stress_result_from_config",
             "nwchemc_calculate_optimize_result_from_config",

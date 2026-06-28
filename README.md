@@ -6,8 +6,8 @@ messages.
 
 `nwchemc` builds `libnwchemc.so` from a C ABI layer, modern Fortran
 `iso_c_binding` / `iso_fortran_env` bridge code, and the legacy NWChem embed
-entry points required for RTDB, geometry, basis, energy, gradient, Hessian, and
-dipole, quadrupole, stress, optimization, and frequency calls.
+entry points required for RTDB, geometry, basis, energy, gradient, Hessian,
+dipole, polarizability, quadrupole, stress, optimization, and frequency calls.
 
 The public ABI does not expose C++ or Rust types:
 
@@ -33,6 +33,10 @@ NWChemCResult nwchemc_dipole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
     double *dipole_au);
+NWChemCResult nwchemc_polarizability(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    double *polarizability_au);
 NWChemCResult nwchemc_quadrupole(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *params_capnp, size_t params_capnp_size_bytes,
@@ -68,6 +72,10 @@ NWChemCResult nwchemc_dipole_from_config(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *config_capnp, size_t config_capnp_size_bytes,
     double *dipole_au);
+NWChemCResult nwchemc_polarizability_from_config(
+    int n_atoms, const double *positions_ang, const int *atomic_numbers,
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    double *polarizability_au);
 NWChemCResult nwchemc_quadrupole_from_config(
     int n_atoms, const double *positions_ang, const int *atomic_numbers,
     const void *config_capnp, size_t config_capnp_size_bytes,
@@ -107,6 +115,9 @@ NWChemCResult nwchemc_session_energy_forces(
 NWChemCResult nwchemc_session_dipole(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *dipole_au);
+NWChemCResult nwchemc_session_polarizability(
+    NWChemCSession *session, int n_atoms, const double *positions_ang,
+    const int *atomic_numbers, double *polarizability_au);
 NWChemCResult nwchemc_session_quadrupole(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *quadrupole_au);
@@ -252,6 +263,34 @@ NWChemCResult nwchemc_calculate_dipole_result_from_config(
     void *potential_result_capnp,
     size_t potential_result_capnp_capacity_bytes,
     size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_polarizability(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len);
+NWChemCResult nwchemc_calculate_polarizability_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len);
+size_t nwchemc_polarizability_result_size_for_force_input(
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+NWChemCResult nwchemc_session_calculate_polarizability_result(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_polarizability_result(
+    const void *params_capnp, size_t params_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
+NWChemCResult nwchemc_calculate_polarizability_result_from_config(
+    const void *config_capnp, size_t config_capnp_size_bytes,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    void *potential_result_capnp,
+    size_t potential_result_capnp_capacity_bytes,
+    size_t *potential_result_capnp_size_bytes);
 NWChemCResult nwchemc_calculate_quadrupole(
     const void *params_capnp, size_t params_capnp_size_bytes,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -376,6 +415,10 @@ NWChemCResult nwchemc_session_calculate_dipole(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
     double *dipole_au, size_t dipole_len);
+NWChemCResult nwchemc_session_calculate_polarizability(
+    NWChemCSession *session,
+    const void *force_input_capnp, size_t force_input_capnp_size_bytes,
+    double *polarizability_au, size_t polarizability_len);
 NWChemCResult nwchemc_session_calculate_quadrupole(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
@@ -449,13 +492,16 @@ for `PotentialResult` carriers, reading the `nwchem` union arm before
 evaluation.
 `nwchemc_session_calculate_hessian_result()` and
 `nwchemc_calculate_hessian_result()` populate `PotentialResult.hessian` in
-`ForceInput.energyUnit / ForceInput.lengthUnit^2`. Dipole and quadrupole
-result-carrier wrappers populate `PotentialResult.dipole` and
-`PotentialResult.quadrupole` in atomic units. Stress result-carrier wrappers
-populate `PotentialResult.stress` in
-`ForceInput.energyUnit / ForceInput.lengthUnit^3`. Raw force, Hessian, dipole,
-quadrupole, and stress wrappers use the same `NWChemParams + ForceInput`
-carrier for callers that want native C buffers. Optimization result-carrier wrappers
+`ForceInput.energyUnit / ForceInput.lengthUnit^2`. Dipole, polarizability, and
+quadrupole result-carrier wrappers populate `PotentialResult.dipole`,
+`PotentialResult.polarizability`, and `PotentialResult.quadrupole` in atomic
+units. `PotentialResult.polarizability` stores NWChem `aoresponse:alpha` as
+frequency, xx, xy, xz, yy, yz, zz, three eigenvalues, isotropic, and
+anisotropic entries. Stress result-carrier wrappers populate
+`PotentialResult.stress` in `ForceInput.energyUnit / ForceInput.lengthUnit^3`.
+Raw force, Hessian, dipole, polarizability, quadrupole, and stress wrappers use
+the same `NWChemParams + ForceInput` carrier for callers that want native C
+buffers. Optimization result-carrier wrappers
 populate `PotentialResult.optimizedPos` in `ForceInput.lengthUnit` and
 `PotentialResult.energy` in `ForceInput.energyUnit`; frequency result-carrier
 wrappers populate `PotentialResult.frequencies` in cm^-1 and
@@ -463,11 +509,11 @@ wrappers populate `PotentialResult.frequencies` in cm^-1 and
 
 The Cap'n Proto `Potential` RPC interface mirrors the operation surface with
 explicit `calculateEnergy`, `calculateForces`, `calculateHessian`,
-`calculateDipole`, `calculateQuadrupole`, `calculateStress`,
-`calculateOptimize`, and `calculateFrequencies` methods. `Potential.configure`
-maps to `nwchemc_configure()` and `nwchemc_session_configure()` for C ABI
-callers. The original `calculate` method remains the compatibility
-energy/forces call.
+`calculateDipole`, `calculatePolarizability`, `calculateQuadrupole`,
+`calculateStress`, `calculateOptimize`, and `calculateFrequencies` methods.
+`Potential.configure` maps to `nwchemc_configure()` and
+`nwchemc_session_configure()` for C ABI callers. The original `calculate`
+method remains the compatibility energy/forces call.
 
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,
@@ -765,6 +811,9 @@ Hartree/Bohr^2. It accepts the same `NWChemParams` Cap'n Proto message as the
 energy/gradient call.
 `nwchemc_dipole()` fills a three-element total dipole vector in atomic units and
 returns the associated total energy in `NWChemCResult.energy_h`.
+`nwchemc_polarizability()` fills the 12-element NWChem `aoresponse:alpha`
+vector in atomic units and returns the associated total energy in
+`NWChemCResult.energy_h`.
 `nwchemc_stress()` fills a row-major 3x3 stress tensor in NWChem atomic stress
 units and returns the associated total energy in `NWChemCResult.energy_h` when
 available.
