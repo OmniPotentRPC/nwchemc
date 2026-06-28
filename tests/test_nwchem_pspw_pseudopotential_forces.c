@@ -81,8 +81,16 @@ static void assert_close_force(const char *label, int index, double actual,
              actual, expected);
 }
 
+static void assert_close_energy(const char *label, double actual,
+                                double expected) {
+  double scale = fmax(1.0, fmax(fabs(actual), fabs(expected)));
+  if (fabs(actual - expected) > 1.0e-5 * scale)
+    fail_msg("%s mismatch: got %.17g expected %.17g", label, actual, expected);
+}
+
 static void assert_potential_result_forces(const unsigned char *message,
                                            size_t message_size,
+                                           double native_energy_h,
                                            const double *native_forces) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
@@ -93,6 +101,8 @@ static void assert_potential_result_forces(const unsigned char *message,
   struct PotentialResult result;
   read_PotentialResult(&result, root);
   assert_true(isfinite(result.energy));
+  assert_close_energy("PotentialResult.energy", result.energy,
+                      native_energy_h);
 
   capn_resolve(&result.forces.p);
   assert_int_equal(result.forces.p.type, CAPN_LIST);
@@ -112,7 +122,8 @@ static void assert_potential_result_forces(const unsigned char *message,
 }
 
 static void assert_potential_result_energy_only(const unsigned char *message,
-                                                size_t message_size) {
+                                                size_t message_size,
+                                                double native_energy_h) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -122,6 +133,8 @@ static void assert_potential_result_energy_only(const unsigned char *message,
   struct PotentialResult result;
   read_PotentialResult(&result, root);
   assert_true(isfinite(result.energy));
+  assert_close_energy("PotentialResult.energy", result.energy,
+                      native_energy_h);
 
   capn_resolve(&result.forces.p);
   if (result.forces.p.type != CAPN_NULL) {
@@ -173,6 +186,8 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_calculate_forces_from_config failed: %s",
              raw_status.message);
   assert_true(isfinite(raw_status.energy_h));
+  assert_close_energy("raw forces energy", raw_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_force_buffer("raw force", raw_forces, 6);
 
   size_t energy_capacity =
@@ -189,8 +204,11 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_calculate_energy_result_from_config failed: %s",
              energy_status.message);
   assert_true(isfinite(energy_status.energy_h));
+  assert_close_energy("energy result status", energy_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_int_equal(energy_size, energy_capacity);
-  assert_potential_result_energy_only(energy_bytes, energy_size);
+  assert_potential_result_energy_only(energy_bytes, energy_size,
+                                      energy_status.energy_h);
 
   size_t result_capacity =
       nwchemc_potential_result_size_for_force_input(force_input,
@@ -206,8 +224,11 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_calculate_result_from_config failed: %s",
              result_status.message);
   assert_true(isfinite(result_status.energy_h));
+  assert_close_energy("compatibility result status", result_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_int_equal(result_size, result_capacity);
-  assert_potential_result_forces(result_bytes, result_size, raw_forces);
+  assert_potential_result_forces(result_bytes, result_size,
+                                 result_status.energy_h, raw_forces);
 
   size_t forces_capacity =
       nwchemc_forces_result_size_for_force_input(force_input,
@@ -224,8 +245,13 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_calculate_forces_result_from_config failed: %s",
              one_shot_forces_status.message);
   assert_true(isfinite(one_shot_forces_status.energy_h));
+  assert_close_energy("forces result status",
+                      one_shot_forces_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_int_equal(forces_size, forces_capacity);
-  assert_potential_result_forces(forces_bytes, forces_size, raw_forces);
+  assert_potential_result_forces(forces_bytes, forces_size,
+                                 one_shot_forces_status.energy_h,
+                                 raw_forces);
 
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
@@ -237,6 +263,8 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_session_calculate_energy failed: %s",
              session_raw_energy_status.message);
   assert_true(isfinite(session_raw_energy_status.energy_h));
+  assert_close_energy("session raw energy", session_raw_energy_status.energy_h,
+                      raw_energy_status.energy_h);
 
   double session_raw_forces[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult session_raw_status = nwchemc_session_calculate_forces(
@@ -245,6 +273,8 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_session_calculate_forces failed: %s",
              session_raw_status.message);
   assert_true(isfinite(session_raw_status.energy_h));
+  assert_close_energy("session raw forces energy", session_raw_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_force_buffer("session raw force", session_raw_forces, 6);
   assert_matching_native_forces(session_raw_forces, raw_forces, 6);
 
@@ -258,8 +288,12 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_session_calculate_energy_result failed: %s",
              session_energy_status.message);
   assert_true(isfinite(session_energy_status.energy_h));
+  assert_close_energy("session energy result status",
+                      session_energy_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_int_equal(energy_size, energy_capacity);
-  assert_potential_result_energy_only(energy_bytes, energy_size);
+  assert_potential_result_energy_only(energy_bytes, energy_size,
+                                      session_energy_status.energy_h);
 
   memset(result_bytes, 0, result_capacity);
   result_size = 0;
@@ -270,8 +304,12 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_session_calculate_result failed: %s",
              session_result_status.message);
   assert_true(isfinite(session_result_status.energy_h));
+  assert_close_energy("session compatibility result status",
+                      session_result_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_int_equal(result_size, result_capacity);
   assert_potential_result_forces(result_bytes, result_size,
+                                 session_result_status.energy_h,
                                  session_raw_forces);
 
   memset(forces_bytes, 0, forces_capacity);
@@ -284,8 +322,12 @@ static void test_pspw_pseudopotential_forces_result(void **state) {
     fail_msg("nwchemc_session_calculate_forces_result failed: %s",
              session_forces_status.message);
   assert_true(isfinite(session_forces_status.energy_h));
+  assert_close_energy("session forces result status",
+                      session_forces_status.energy_h,
+                      raw_energy_status.energy_h);
   assert_int_equal(forces_size, forces_capacity);
   assert_potential_result_forces(forces_bytes, forces_size,
+                                 session_forces_status.energy_h,
                                  session_raw_forces);
 
   nwchemc_session_destroy(session);
