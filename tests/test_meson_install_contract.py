@@ -191,6 +191,42 @@ class MesonInstallContractTest(unittest.TestCase):
                 missing = [term for term in required_terms if term not in consumer]
                 self.assertEqual(missing, [])
 
+    def test_installed_consumers_compile_params_forceinput_abi(self):
+        required_symbols = [
+            "nwchemc_calculate_energy",
+            "nwchemc_calculate_forces",
+            "nwchemc_calculate_hessian",
+            "nwchemc_calculate_dipole",
+            "nwchemc_calculate_polarizability",
+            "nwchemc_calculate_quadrupole",
+            "nwchemc_calculate_stress",
+            "nwchemc_calculate_optimize",
+            "nwchemc_calculate_frequencies",
+            "nwchemc_calculate_result",
+            "nwchemc_calculate_energy_result",
+            "nwchemc_calculate_forces_result",
+            "nwchemc_calculate_hessian_result",
+            "nwchemc_calculate_dipole_result",
+            "nwchemc_calculate_polarizability_result",
+            "nwchemc_calculate_quadrupole_result",
+            "nwchemc_calculate_stress_result",
+            "nwchemc_calculate_optimize_result",
+            "nwchemc_calculate_frequencies_result",
+        ]
+        consumer_scripts = [
+            ROOT / "tests" / "test_installed_cmake_consumer.py",
+            ROOT / "tests" / "test_installed_pkgconfig_consumer.py",
+        ]
+        for script in consumer_scripts:
+            with self.subTest(script=script.name):
+                consumer = script.read_text(encoding="utf-8")
+                missing = [
+                    symbol
+                    for symbol in required_symbols
+                    if not re.search(rf"\b{re.escape(symbol)}\b", consumer)
+                ]
+                self.assertEqual(missing, [])
+
     def test_docs_explain_installed_consumer_release_gate(self):
         docs = README.read_text(encoding="utf-8") + "\n" + RGPOT_GUIDE.read_text(
             encoding="utf-8"

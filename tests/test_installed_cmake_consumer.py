@@ -101,6 +101,33 @@ static int exercise_rgpot_result_abi(void) {
 }
 
 static int exercise_rgpot_raw_and_session_abi(void) {
+  PotentialConfigEnergyFn params_energy_fns[] = {
+      nwchemc_calculate_energy,
+  };
+  PotentialConfigBufferFn params_buffer_fns[] = {
+      nwchemc_calculate_forces,
+      nwchemc_calculate_hessian,
+      nwchemc_calculate_dipole,
+      nwchemc_calculate_polarizability,
+      nwchemc_calculate_quadrupole,
+      nwchemc_calculate_stress,
+      nwchemc_calculate_optimize,
+  };
+  PotentialConfigFrequenciesFn params_frequency_fns[] = {
+      nwchemc_calculate_frequencies,
+  };
+  PotentialResultConfigFn params_result_fns[] = {
+      nwchemc_calculate_result,
+      nwchemc_calculate_energy_result,
+      nwchemc_calculate_forces_result,
+      nwchemc_calculate_hessian_result,
+      nwchemc_calculate_dipole_result,
+      nwchemc_calculate_polarizability_result,
+      nwchemc_calculate_quadrupole_result,
+      nwchemc_calculate_stress_result,
+      nwchemc_calculate_optimize_result,
+      nwchemc_calculate_frequencies_result,
+  };
   PotentialConfigEnergyFn config_energy_fns[] = {
       nwchemc_calculate_energy_from_config,
   };
@@ -145,6 +172,31 @@ static int exercise_rgpot_raw_and_session_abi(void) {
   };
   size_t index;
 
+  for (index = 0; index < sizeof(params_energy_fns) / sizeof(params_energy_fns[0]);
+       ++index) {
+    if (params_energy_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0; index < sizeof(params_buffer_fns) / sizeof(params_buffer_fns[0]);
+       ++index) {
+    if (params_buffer_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0;
+       index < sizeof(params_frequency_fns) / sizeof(params_frequency_fns[0]);
+       ++index) {
+    if (params_frequency_fns[index] == NULL) {
+      return 4;
+    }
+  }
+  for (index = 0; index < sizeof(params_result_fns) / sizeof(params_result_fns[0]);
+       ++index) {
+    if (params_result_fns[index] == NULL) {
+      return 4;
+    }
+  }
   for (index = 0;
        index < sizeof(config_energy_fns) / sizeof(config_energy_fns[0]);
        ++index) {
