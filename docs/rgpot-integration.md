@@ -53,10 +53,11 @@ NWChemCResult status =
 ```
 
 `nwchemc_calculate_result_from_config()` is the matching one-shot path for
-callers that do not want to keep an `NWChemCSession`. The named result-carrier
-entry points are available when rgpot wants one operation instead of the
-energy-plus-forces compatibility result:
+callers that do not want to keep an `NWChemCSession`. The named sizing helper
+and result-carrier entry points are available when rgpot wants one operation
+instead of the energy-plus-forces compatibility result:
 
+- `nwchemc_gradient_result_size_for_force_input()`
 - `nwchemc_calculate_hessian_result_from_config()`
 - `nwchemc_calculate_gradient_result_from_config()`
 - `nwchemc_calculate_dipole_result_from_config()`
