@@ -270,9 +270,9 @@ static void assert_potential_result_quadrupole(
   capn_free(&arena);
 }
 
-static void assert_potential_result_optimized(const unsigned char *message,
-                                              size_t message_size,
-                                              double expected_energy) {
+static void assert_potential_result_optimized(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_positions) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -287,6 +287,12 @@ static void assert_potential_result_optimized(const unsigned char *message,
   double optimized_positions[6];
   assert_f64_list("optimized position", result.optimizedPos, 6,
                   optimized_positions);
+  if (expected_positions) {
+    for (int i = 0; i < 6; ++i)
+      assert_close_relative("PotentialResult.optimizedPos", i,
+                            optimized_positions[i], expected_positions[i],
+                            1.0e-10);
+  }
   double bond = h2_bond_length(optimized_positions);
   assert_true(bond > 0.5);
   assert_true(bond < 1.0);
@@ -294,9 +300,9 @@ static void assert_potential_result_optimized(const unsigned char *message,
   capn_free(&arena);
 }
 
-static void assert_potential_result_frequencies(const unsigned char *message,
-                                                size_t message_size,
-                                                double expected_energy) {
+static void assert_potential_result_frequencies(
+    const unsigned char *message, size_t message_size, double expected_energy,
+    const double *expected_frequencies, const double *expected_intensities) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
   PotentialResult_ptr root;
@@ -308,10 +314,22 @@ static void assert_potential_result_frequencies(const unsigned char *message,
   assert_true(isfinite(result.energy));
   assert_close(result.energy, expected_energy, 1.0e-12);
 
+  double frequencies[6];
+  double intensities[6];
   double max_frequency_abs =
-      assert_f64_list("frequency", result.frequencies, 6, NULL);
-  assert_f64_list("intensity", result.intensities, 6, NULL);
+      assert_f64_list("frequency", result.frequencies, 6, frequencies);
+  assert_f64_list("intensity", result.intensities, 6, intensities);
   assert_true(max_frequency_abs > 1.0);
+  if (expected_frequencies) {
+    for (int i = 0; i < 6; ++i)
+      assert_close_relative("PotentialResult.frequencies", i, frequencies[i],
+                            expected_frequencies[i], 1.0e-10);
+  }
+  if (expected_intensities) {
+    for (int i = 0; i < 6; ++i)
+      assert_close_relative("PotentialResult.intensities", i, intensities[i],
+                            expected_intensities[i], 1.0e-10);
+  }
 
   capn_free(&arena);
 }
@@ -517,6 +535,13 @@ static void test_rgpot_config_named_result_carriers(void **state) {
                                                    force_input_size);
   assert_result_capacity("nwchemc_optimize_result_size_for_force_input",
                          optimize_capacity);
+  double raw_optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_optimize_status =
+      nwchemc_calculate_optimize_from_config(
+          config, config_size, force_input, force_input_size,
+          raw_optimized_positions, 6);
+  assert_status_energy("nwchemc_calculate_optimize_from_config",
+                       raw_optimize_status);
   unsigned char *optimize_bytes = (unsigned char *)malloc(optimize_capacity);
   assert_non_null(optimize_bytes);
   size_t optimize_size = 0;
@@ -527,13 +552,22 @@ static void test_rgpot_config_named_result_carriers(void **state) {
                        optimize_status);
   assert_int_equal(optimize_size, optimize_capacity);
   assert_potential_result_optimized(optimize_bytes, optimize_size,
-                                    optimize_status.energy_h);
+                                    optimize_status.energy_h,
+                                    raw_optimized_positions);
 
   size_t frequencies_capacity =
       nwchemc_frequencies_result_size_for_force_input(force_input,
                                                       force_input_size);
   assert_result_capacity("nwchemc_frequencies_result_size_for_force_input",
                          frequencies_capacity);
+  double raw_frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double raw_intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_frequencies_status =
+      nwchemc_calculate_frequencies_from_config(
+          config, config_size, force_input, force_input_size, raw_frequencies,
+          6, raw_intensities, 6);
+  assert_status_energy("nwchemc_calculate_frequencies_from_config",
+                       raw_frequencies_status);
   unsigned char *frequencies_bytes =
       (unsigned char *)malloc(frequencies_capacity);
   assert_non_null(frequencies_bytes);
@@ -546,7 +580,8 @@ static void test_rgpot_config_named_result_carriers(void **state) {
                        frequencies_status);
   assert_int_equal(frequencies_size, frequencies_capacity);
   assert_potential_result_frequencies(frequencies_bytes, frequencies_size,
-                                      frequencies_status.energy_h);
+                                      frequencies_status.energy_h,
+                                      raw_frequencies, raw_intensities);
 
   free(frequencies_bytes);
   free(optimize_bytes);
@@ -704,6 +739,11 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
                                                    force_input_size);
   assert_result_capacity("nwchemc_optimize_result_size_for_force_input",
                          optimize_capacity);
+  double raw_optimized_positions[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_optimize_status = nwchemc_session_calculate_optimize(
+      session, force_input, force_input_size, raw_optimized_positions, 6);
+  assert_status_energy("nwchemc_session_calculate_optimize",
+                       raw_optimize_status);
   unsigned char *optimize_bytes = (unsigned char *)malloc(optimize_capacity);
   assert_non_null(optimize_bytes);
   size_t optimize_size = 0;
@@ -714,13 +754,22 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
                        optimize_status);
   assert_int_equal(optimize_size, optimize_capacity);
   assert_potential_result_optimized(optimize_bytes, optimize_size,
-                                    optimize_status.energy_h);
+                                    optimize_status.energy_h,
+                                    raw_optimized_positions);
 
   size_t frequencies_capacity =
       nwchemc_frequencies_result_size_for_force_input(force_input,
                                                       force_input_size);
   assert_result_capacity("nwchemc_frequencies_result_size_for_force_input",
                          frequencies_capacity);
+  double raw_frequencies[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double raw_intensities[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult raw_frequencies_status =
+      nwchemc_session_calculate_frequencies(
+          session, force_input, force_input_size, raw_frequencies, 6,
+          raw_intensities, 6);
+  assert_status_energy("nwchemc_session_calculate_frequencies",
+                       raw_frequencies_status);
   unsigned char *frequencies_bytes =
       (unsigned char *)malloc(frequencies_capacity);
   assert_non_null(frequencies_bytes);
@@ -733,7 +782,8 @@ static void test_rgpot_config_session_named_result_carriers(void **state) {
                        frequencies_status);
   assert_int_equal(frequencies_size, frequencies_capacity);
   assert_potential_result_frequencies(frequencies_bytes, frequencies_size,
-                                      frequencies_status.energy_h);
+                                      frequencies_status.energy_h,
+                                      raw_frequencies, raw_intensities);
 
   free(frequencies_bytes);
   free(optimize_bytes);
