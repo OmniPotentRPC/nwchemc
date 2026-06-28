@@ -1190,6 +1190,20 @@ nwchem_config_options_params_bin = custom_target(
       ],
     )
 
+    nwchem_params_h2_scf_bin = custom_target(
+      'nwchem_params_h2_scf_bin',
+      input: 'tests/nwchem_params_h2_scf.capnp.txt',
+      output: 'nwchem_params_h2_scf.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
     nwchem_params_h2_ccsd_bin = custom_target(
       'nwchem_params_h2_ccsd_bin',
       input: 'tests/nwchem_params_h2_ccsd.capnp.txt',
@@ -1265,6 +1279,20 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem_params_h2_tce_ccsdt_bin',
       input: 'tests/nwchem_params_h2_tce_ccsdt.capnp.txt',
       output: 'nwchem_params_h2_tce_ccsdt.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_params_h2_tddft_bin = custom_target(
+      'nwchem_params_h2_tddft_bin',
+      input: 'tests/nwchem_params_h2_tddft.capnp.txt',
+      output: 'nwchem_params_h2_tddft.bin',
       command: [
         python,
         meson.current_source_dir() / 'tests/encode_capnp.py',
@@ -1720,12 +1748,33 @@ nwchem_config_options_params_bin = custom_target(
         '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
       ],
     )
+    foreach forces_case : [
+      ['scf', nwchem_params_h2_scf_bin],
+      ['dft', nwchem_params_h2_dft_bin],
+      ['mp2', nwchem_params_h2_mp2_bin],
+      ['rimp2', nwchem_params_h2_rimp2_bin],
+      ['ccsd', nwchem_params_h2_ccsd_bin],
+      ['tce', nwchem_params_h2_tce_bin],
+      ['tddft', nwchem_params_h2_tddft_bin],
+    ]
+      test(
+        'nwchem-energy-forces-' + forces_case[0],
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_forces_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, forces_case[0], forces_case[1]]
+          : [forces_case[0], forces_case[1]],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+        timeout: 600,
+      )
+    endforeach
+    # Backward-compatible alias for prior SCF-only target name.
     test(
       'nwchem-energy-forces',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_forces_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, nwchem_params_bin]
-        : [nwchem_params_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, 'scf', nwchem_params_h2_scf_bin]
+        : ['scf', nwchem_params_h2_scf_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
@@ -1747,6 +1796,7 @@ nwchem_config_options_params_bin = custom_target(
       ['dft', nwchem_params_h2_dft_bin],
       ['rimp2', nwchem_params_h2_rimp2_bin],
       ['tce-ccsdt', nwchem_params_h2_tce_ccsdt_bin],
+      ['tddft', nwchem_params_h2_tddft_bin],
     ]
       test(
         'nwchem-postscf-energy-' + postscf[0],

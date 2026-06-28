@@ -1,0 +1,10 @@
+(
+  basis = "sto-3g",
+  theory = "scf",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "H2 SCF energy",
+  memoryMb = 512,
+)

@@ -106,6 +106,93 @@
       "embed_compare": false,
       "embed_meson_test": "nwchem-postscf-energy-tce-ccsdt",
       "notes": "CLI tce; embed TCE model ccsd + perturbative (t)"
+    },
+    {
+      "id": "h2_tddft_energy",
+      "nw_input": "tests/integration/nw/h2_tddft_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-postscf-energy-tddft",
+      "notes": "CLI task tddft energy; embed theory=tddft + typed dft/tddft stanzas"
+    },
+    {
+      "id": "h2_dft_forces",
+      "nw_input": "tests/integration/nw/h2_dft_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-dft",
+      "notes": "embed nwchemc_energy_forces theory=dft"
+    },
+    {
+      "id": "h2_scf_forces",
+      "nw_input": "tests/integration/nw/h2_scf_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-scf",
+      "notes": "embed nwchemc_energy_forces theory=scf"
+    },
+    {
+      "id": "h2_mp2_forces",
+      "nw_input": "tests/integration/nw/h2_mp2_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-mp2",
+      "notes": "embed SP forces theory=mp2"
+    },
+    {
+      "id": "h2_rimp2_forces",
+      "nw_input": "tests/integration/nw/h2_rimp2_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-rimp2",
+      "notes": "embed SP forces theory=rimp2"
+    },
+    {
+      "id": "h2_ccsd_forces",
+      "nw_input": "tests/integration/nw/h2_ccsd_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-ccsd",
+      "notes": "embed SP forces theory=ccsd"
+    },
+    {
+      "id": "h2_tce_forces",
+      "nw_input": "tests/integration/nw/h2_tce_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-tce",
+      "notes": "embed SP forces theory=tce"
+    },
+    {
+      "id": "h2_tddft_forces",
+      "nw_input": "tests/integration/nw/h2_tddft_energy.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": false,
+      "embed_meson_test": "nwchem-energy-forces-tddft",
+      "notes": "embed SP forces theory=tddft (ground/reference DFT gradient path)"
     }
   ]
 }

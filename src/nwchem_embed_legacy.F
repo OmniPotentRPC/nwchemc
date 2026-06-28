@@ -2086,7 +2086,8 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          endif
       endif
       vectors_in = 'atomic'
-      if (theory_name(1:3) .eq. 'dft') then
+      if (theory_name(1:3) .eq. 'dft' .or.
+     $    theory_name(1:5) .eq. 'tddft') then
          status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
          ok = ok .and. status
          call nwchemc_apply_named_dft_xc(rtdb, scf_type, status)
@@ -2219,6 +2220,16 @@ c     Fetch total energy after task_energy for SCF/DFT and post-SCF theories.
       endif
       if (theory_name(1:3) .eq. 'tce') then
          if (rtdb_get(rtdb, 'tce:energy', mt_dbl, 1, energy_h)) then
+            ok = .true.
+            return
+         endif
+      endif
+      if (theory_name(1:5) .eq. 'tddft') then
+         if (rtdb_get(rtdb, 'tddft:energy', mt_dbl, 1, energy_h)) then
+            ok = .true.
+            return
+         endif
+         if (rtdb_get(rtdb, 'dft:energy', mt_dbl, 1, energy_h)) then
             ok = .true.
             return
          endif

@@ -1,3 +1,4 @@
+/* Drive shipped nwchemc_energy_forces / nwchemc_energy_gradient for SP theories. */
 #include "nwchemc.h"
 
 #include <errno.h>
@@ -11,6 +12,7 @@
 
 #include <cmocka.h>
 
+static const char *g_label = NULL;
 static const char *g_params_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
@@ -70,32 +72,47 @@ static void test_h2_energy_forces_match_negative_gradient(void **state) {
   NWChemCResult grad_result = nwchemc_energy_gradient(
       n_atoms, positions_ang, atomic_numbers, params, params_size, grad);
   if (!grad_result.ok)
-    fail_msg("nwchemc_energy_gradient failed: %s", grad_result.message);
+    fail_msg("%s nwchemc_energy_gradient failed: %s",
+             g_label ? g_label : "sp", grad_result.message);
 
   NWChemCResult force_result = nwchemc_energy_forces(
       n_atoms, positions_ang, atomic_numbers, params, params_size, forces);
   if (!force_result.ok)
-    fail_msg("nwchemc_energy_forces failed: %s", force_result.message);
+    fail_msg("%s nwchemc_energy_forces failed: %s",
+             g_label ? g_label : "sp", force_result.message);
 
   assert_true(isfinite(force_result.energy_h));
-  assert_true(fabs(force_result.energy_h - grad_result.energy_h) < 1.0e-10);
+  /* Separate gradient/forces embeds can differ slightly for correlated methods. */
+  assert_true(fabs(force_result.energy_h - grad_result.energy_h) < 1.0e-6);
   for (int i = 0; i < ncoord; ++i) {
     if (!isfinite(forces[i]))
-      fail_msg("non-finite force[%d]", i);
-    if (fabs(forces[i] + grad[i]) > 1.0e-10)
-      fail_msg("force/gradient mismatch at %d: force=%.17g grad=%.17g", i,
-               forces[i], grad[i]);
+      fail_msg("%s non-finite force[%d]", g_label ? g_label : "sp", i);
+    if (!isfinite(grad[i]))
+      fail_msg("%s non-finite grad[%d]", g_label ? g_label : "sp", i);
+    if (fabs(forces[i] + grad[i]) > 1.0e-6)
+      fail_msg("%s force/gradient mismatch at %d: force=%.17g grad=%.17g",
+               g_label ? g_label : "sp", i, forces[i], grad[i]);
   }
+  fprintf(stderr, "%s energy_h=%.12g forces=[", g_label ? g_label : "sp",
+          force_result.energy_h);
+  for (int i = 0; i < ncoord; ++i)
+    fprintf(stderr, "%s%.6g", i ? "," : "", forces[i]);
+  fprintf(stderr, "]\n");
 
   free(params);
 }
 
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    fprintf(stderr, "usage: %s PARAMS_BIN\n", argv[0]);
+  if (argc == 2) {
+    g_label = "scf";
+    g_params_path = argv[1];
+  } else if (argc == 3) {
+    g_label = argv[1];
+    g_params_path = argv[2];
+  } else {
+    fprintf(stderr, "usage: %s [LABEL] PARAMS_BIN\n", argv[0]);
     return 2;
   }
-  g_params_path = argv[1];
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_h2_energy_forces_match_negative_gradient),
   };

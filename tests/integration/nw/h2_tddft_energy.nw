@@ -1,0 +1,19 @@
+echo
+start h2_tddft
+geometry units angstrom
+  H 0 0 -0.3707
+  H 0 0  0.3707
+end
+basis
+  * library sto-3g
+end
+dft
+  xc b3lyp
+  direct
+end
+tddft
+  nroots 1
+  singlet
+  tda
+end
+task tddft energy
