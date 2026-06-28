@@ -1,4 +1,5 @@
 #include "nwchemc.h"
+#include "nwchemc_params.h"
 #include "Potentials.capnp.h"
 
 #include <errno.h>
@@ -15,6 +16,16 @@
 
 static const char *g_config_path = NULL;
 static const char *g_force_input_path = NULL;
+
+enum { MAX_FORCE_INPUT_ATOMS = 16 };
+
+typedef struct ParsedForceInput {
+  int n_atoms;
+  double positions_ang[MAX_FORCE_INPUT_ATOMS * 3];
+  int atomic_numbers[MAX_FORCE_INPUT_ATOMS];
+  double cell_ang[9];
+  int has_cell;
+} ParsedForceInput;
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -71,6 +82,39 @@ static int teardown_nwchem(void **state) {
   return 0;
 }
 
+static void parse_force_input_geometry(const unsigned char *force_input,
+                                       size_t force_input_size,
+                                       ParsedForceInput *parsed) {
+  assert_non_null(force_input);
+  assert_non_null(parsed);
+
+  struct capn arena;
+  ForceInput_ptr root;
+  if (nwchemc_force_input_root(force_input, force_input_size, &arena, &root) !=
+      0)
+    fail_msg("ForceInput parse failed");
+
+  size_t n_atoms = 0;
+  int has_cell = 0;
+  if (nwchemc_force_input_atom_count(root, &n_atoms, &has_cell) != 0 ||
+      n_atoms > MAX_FORCE_INPUT_ATOMS) {
+    nwchemc_params_release(&arena);
+    fail_msg("ForceInput atom count failed");
+  }
+
+  if (nwchemc_force_input_copy_geometry(
+          root, parsed->positions_ang, parsed->atomic_numbers,
+          MAX_FORCE_INPUT_ATOMS, parsed->cell_ang, &has_cell) != 0) {
+    nwchemc_params_release(&arena);
+    fail_msg("ForceInput geometry copy failed");
+  }
+  nwchemc_params_release(&arena);
+
+  parsed->n_atoms = (int)n_atoms;
+  parsed->has_cell = has_cell;
+  assert_int_equal(parsed->has_cell, 1);
+}
+
 static void assert_potential_result_stress(const unsigned char *message,
                                            size_t message_size) {
   struct capn arena;
@@ -107,6 +151,9 @@ static void test_pspw_stress_from_config(void **state) {
   assert_non_null(config);
   assert_non_null(force_input);
 
+  ParsedForceInput geometry;
+  parse_force_input_geometry(force_input, force_input_size, &geometry);
+
   double stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult raw_status = nwchemc_calculate_stress_from_config(
       config, config_size, force_input, force_input_size, stress, 9);
@@ -117,6 +164,20 @@ static void test_pspw_stress_from_config(void **state) {
   for (int i = 0; i < 9; ++i) {
     if (!isfinite(stress[i]))
       fail_msg("non-finite stress[%d]", i);
+  }
+
+  double coordinate_stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                                 0.0, 0.0, 0.0, 0.0};
+  NWChemCResult coordinate_status = nwchemc_stress_from_config(
+      geometry.n_atoms, geometry.positions_ang, geometry.atomic_numbers,
+      config, config_size, coordinate_stress);
+  if (!coordinate_status.ok)
+    fail_msg("nwchemc_stress_from_config failed: %s",
+             coordinate_status.message);
+  assert_true(isfinite(coordinate_status.energy_h));
+  for (int i = 0; i < 9; ++i) {
+    if (!isfinite(coordinate_stress[i]))
+      fail_msg("non-finite coordinate_stress[%d]", i);
   }
 
   size_t result_capacity =
@@ -138,6 +199,20 @@ static void test_pspw_stress_from_config(void **state) {
   NWChemCSession *session =
       nwchemc_session_create_from_config(config, config_size);
   assert_non_null(session);
+
+  double session_coordinate_stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
+                                         0.0, 0.0, 0.0, 0.0};
+  NWChemCResult session_coordinate_status = nwchemc_session_stress(
+      session, geometry.n_atoms, geometry.positions_ang,
+      geometry.atomic_numbers, session_coordinate_stress);
+  if (!session_coordinate_status.ok)
+    fail_msg("nwchemc_session_stress failed: %s",
+             session_coordinate_status.message);
+  assert_true(isfinite(session_coordinate_status.energy_h));
+  for (int i = 0; i < 9; ++i) {
+    if (!isfinite(session_coordinate_stress[i]))
+      fail_msg("non-finite session_coordinate_stress[%d]", i);
+  }
 
   double session_stress[9] = {0.0, 0.0, 0.0, 0.0, 0.0,
                               0.0, 0.0, 0.0, 0.0};
