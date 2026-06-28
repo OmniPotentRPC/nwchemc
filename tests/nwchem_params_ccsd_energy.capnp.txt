@@ -1,0 +1,37 @@
+(
+  basis = "sto-3g",
+  theory = "ccsd",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  inputStanzas = [
+    (
+      kind = scf,
+      scf = (
+        maxiter = 30,
+        thresh = 1.0e-6,
+        directives = [ (keyword = "rhf", args = []) ]
+      )
+    ),
+    (
+      kind = ccsd,
+      ccsd = (
+        maxiter = 20,
+        thresh = 1.0e-7,
+        tol2e = 1.0e-9,
+        iprt = 2,
+        maxDiis = 6,
+        frozenCore = 0,
+        frozenVirtual = 0,
+        useDisk = disabled,
+        sameSpinScale = 1.0,
+        oppositeSpinScale = 1.0,
+        useTriplesDriverNonblocking = enabled,
+        useCcsdOpenmp = enabled,
+        useTriplesDriverOpenmp = disabled,
+        useTriplesDriverOffload = enabled
+      )
+    )
+  ]
+)

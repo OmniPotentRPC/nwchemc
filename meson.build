@@ -1114,6 +1114,20 @@ nwchem_config_options_params_bin = custom_target(
     ],
     suite: ['cmocka', 'parser'],
   )
+
+  calculator_result_writers_exe = executable(
+    'test_calculator_result_writers',
+    ['tests/test_calculator_result_writers.c'] + nwchemc_params_sources,
+    include_directories: [inc] + nwchemc_params_includes,
+    dependencies: nwchemc_params_deps + [cmocka_dep],
+    c_args: common_c_args,
+  )
+  test(
+    'calculator-result-writers',
+    calculator_result_writers_exe,
+    suite: ['cmocka', 'parser', 'coverage'],
+  )
+
   test(
     'params-render-cmocka',
     executable(
@@ -1148,6 +1162,49 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem_params_bin',
       input: nwchem_params_text,
       output: 'nwchem_params.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+
+    nwchem_params_h2_ccsd_bin = custom_target(
+      'nwchem_params_h2_ccsd_bin',
+      input: 'tests/nwchem_params_h2_ccsd.capnp.txt',
+      output: 'nwchem_params_h2_ccsd.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_params_h2_mp2_bin = custom_target(
+      'nwchem_params_h2_mp2_bin',
+      input: 'tests/nwchem_params_h2_mp2.capnp.txt',
+      output: 'nwchem_params_h2_mp2.bin',
+      command: [
+        python,
+        meson.current_source_dir() / 'tests/encode_capnp.py',
+        capnp,
+        meson.current_source_dir() / 'schema/Potentials.capnp',
+        'NWChemParams',
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+    nwchem_params_h2_tce_bin = custom_target(
+      'nwchem_params_h2_tce_bin',
+      input: 'tests/nwchem_params_h2_tce.capnp.txt',
+      output: 'nwchem_params_h2_tce.bin',
       command: [
         python,
         meson.current_source_dir() / 'tests/encode_capnp.py',
@@ -1612,6 +1669,33 @@ nwchem_config_options_params_bin = custom_target(
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
+
+    nwchem_postscf_energy_test = executable(
+      'test_nwchem_postscf_energy',
+      'tests/test_nwchem_postscf_energy.c',
+      include_directories: inc,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+    )
+    foreach postscf : [
+      ['ccsd', nwchem_params_h2_ccsd_bin],
+      ['mp2', nwchem_params_h2_mp2_bin],
+      ['tce', nwchem_params_h2_tce_bin],
+    ]
+      test(
+        'nwchem-postscf-energy-' + postscf[0],
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_postscf_energy_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_postscf_energy_test, postscf[0], postscf[1]]
+          : [postscf[0], postscf[1]],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+        timeout: 600,
+      )
+    endforeach
     nwchem_session_result_test = executable(
       'test_nwchem_session_result',
       'tests/test_nwchem_session_result.c',

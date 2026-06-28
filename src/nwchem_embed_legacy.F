@@ -259,12 +259,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'task_energy/scf failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
-         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
-     $        energy_h)) then
-            errmsg = 'rtdb_get task/scf energy failed'
-            return
-         endif
+      call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
+     $     status)
+      if (.not. status) then
+         errmsg = 'rtdb_get task/postscf energy failed'
+         return
       endif
 
       errmsg = 'ok'
@@ -392,12 +391,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'task_energy/scf failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
-         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
-     $        energy_h)) then
-            errmsg = 'rtdb_get task/scf energy failed'
-            return
-         endif
+      call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
+     $     status)
+      if (.not. status) then
+         errmsg = 'rtdb_get task/postscf energy failed'
+         return
       endif
 
       n3 = 3 * n_atoms
@@ -550,12 +548,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'task_energy/scf failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
-         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
-     $        energy_h)) then
-            errmsg = 'rtdb_get task/scf energy failed'
-            return
-         endif
+      call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
+     $     status)
+      if (.not. status) then
+         errmsg = 'rtdb_get task/postscf energy failed'
+         return
       endif
 
       if (.not. rtdb_get(rtdb, 'task:dipole', mt_dbl, 3,
@@ -700,15 +697,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'task_energy/scf failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
-         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
-     $        energy_h)) then
-            if (.not. rtdb_get(rtdb, 'dft:energy', mt_dbl, 1,
-     $         energy_h)) then
-               errmsg = 'rtdb_get task/scf/dft energy failed'
-               return
-            endif
-         endif
+      call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
+     $     status)
+      if (.not. status) then
+         errmsg = 'rtdb_get task/postscf energy failed'
+         return
       endif
 
       vectors_in = ' '
@@ -794,15 +787,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
       call task(rtdb)
 
-      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
-         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
-     $        energy_h)) then
-            if (.not. rtdb_get(rtdb, 'dft:energy', mt_dbl, 1,
-     $         energy_h)) then
-               errmsg = 'rtdb_get task/scf/dft energy failed'
-               return
-            endif
-         endif
+      call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
+     $     status)
+      if (.not. status) then
+         errmsg = 'rtdb_get task/postscf energy failed'
+         return
       endif
       if (.not. rtdb_get(rtdb, 'aoresponse:alpha', mt_dbl, 12,
      $     polarizability_au(1))) then
@@ -945,12 +934,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'task_energy/scf failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
-         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
-     $        energy_h)) then
-            errmsg = 'rtdb_get task/scf energy failed'
-            return
-         endif
+      call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
+     $     status)
+      if (.not. status) then
+         errmsg = 'rtdb_get task/postscf energy failed'
+         return
       endif
 
       vectors_in = ' '
@@ -1716,15 +1704,11 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'task_optimize failed'
          return
       endif
-      if (.not. rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
-         if (.not. rtdb_get(rtdb, 'scf:energy', mt_dbl, 1,
-     $        energy_h)) then
-            if (.not. rtdb_get(rtdb, 'dft:energy', mt_dbl, 1,
-     $         energy_h)) then
-               errmsg = 'rtdb_get task/scf/dft energy failed'
-               return
-            endif
-         endif
+      call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
+     $     status)
+      if (.not. status) then
+         errmsg = 'rtdb_get task/postscf energy failed'
+         return
       endif
 
       if (.not. geom_create(geom, 'geometry')) then
@@ -2155,6 +2139,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
          ok = ok .and. status
+c        Post-SCF theories (ccsd/mp2/tce/...) need HF reference scftype too.
+         status = rtdb_cput(rtdb, 'scf:scftype', 1, scf_type)
+         ok = ok .and. status
          if (scf_has_options .ne. 0) then
             if (scf_maxiter .gt. 0) then
                call nwchemc_rtdb_put_int(rtdb, 'scf:maxiter',
@@ -2173,6 +2160,54 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
             endif
          endif
       endif
+      return
+      end
+
+c     Fetch total energy after task_energy for SCF/DFT and post-SCF theories.
+      subroutine nwchemc_fetch_task_energy(rtdb, theory_name,
+     $     energy_h, ok)
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+      integer rtdb
+      character*64 theory_name
+      double precision energy_h
+      logical ok
+      logical status
+
+      ok = .false.
+      if (rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
+         ok = .true.
+         return
+      endif
+      if (theory_name(1:4) .eq. 'ccsd') then
+         if (rtdb_get(rtdb, 'ccsd:energy', mt_dbl, 1, energy_h)) then
+            ok = .true.
+            return
+         endif
+      endif
+      if (theory_name(1:3) .eq. 'mp2' .or.
+     $    theory_name(1:5) .eq. 'rimp2') then
+         if (rtdb_get(rtdb, 'mp2:energy', mt_dbl, 1, energy_h)) then
+            ok = .true.
+            return
+         endif
+      endif
+      if (theory_name(1:3) .eq. 'tce') then
+         if (rtdb_get(rtdb, 'tce:energy', mt_dbl, 1, energy_h)) then
+            ok = .true.
+            return
+         endif
+      endif
+      if (rtdb_get(rtdb, 'scf:energy', mt_dbl, 1, energy_h)) then
+         ok = .true.
+         return
+      endif
+      if (rtdb_get(rtdb, 'dft:energy', mt_dbl, 1, energy_h)) then
+         ok = .true.
+         return
+      endif
+      status = .false.
       return
       end
 

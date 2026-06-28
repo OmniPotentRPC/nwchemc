@@ -7065,6 +7065,7 @@ static void test_calculate_config_raw_one_shot_accepts_force_input(
   free(message);
 }
 
+/* Classic CCSD: promote ccsd:* RTDB keys; params.theory=ccsd is not rewritten to dft. */
 int main(int argc, char **argv) {
   if (argc != 38) {
     fprintf(stderr,
@@ -7134,6 +7135,7 @@ int main(int argc, char **argv) {
   g_nwpw_translate_vector_default_path = argv[35];
   g_brillouin_monkhorst_default_path = argv[36];
   g_brillouin_dos_grid_default_path = argv[37];
+
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(
           test_embed_promotes_typed_scf_wf_nopen_and_dft_iterations),
