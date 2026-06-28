@@ -132,6 +132,8 @@ EXPECTED_POTENTIAL_RESULT_FIELDS = {
     "thermalEnthalpy": 14,
     "entropy": 15,
     "heatCapacityCv": 16,
+    "projectedFrequencies": 17,
+    "projectedIntensities": 18,
 }
 
 
