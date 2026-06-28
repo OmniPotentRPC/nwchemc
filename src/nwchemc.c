@@ -4626,11 +4626,11 @@ NWChemCResult nwchemc_energy_gradient(
     return r;
   }
 
-  /* Gradient always re-applies config (energy-only may leave RTDB incomplete
-   * for task_gradient / method-specific keys). */
-  int ch = 0;
-  int mult = 1;
-  {
+  /* Skip apply_config when method blob unchanged so Fortran warm path can
+   * update geometry in place (parity with SocketNWChem POSDATA). */
+  int ch = g_cached_charge;
+  int mult = g_cached_mult;
+  if (!params_blob_matches_applied(params_capnp, params_capnp_size_bytes)) {
     struct capn arena;
     NWChemParams_ptr params_root;
     if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
