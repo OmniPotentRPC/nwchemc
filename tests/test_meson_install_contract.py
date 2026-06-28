@@ -54,6 +54,19 @@ class MesonInstallContractTest(unittest.TestCase):
         missing = [term for term in required_terms if term not in self.text]
         self.assertEqual(missing, [])
 
+    def test_real_nwchem_registers_installed_pkgconfig_consumer_smoke(self):
+        required_terms = [
+            "nwchem-installed-pkgconfig-consumer",
+            "tests/test_installed_pkgconfig_consumer.py",
+            "--build-root",
+            "--install-prefix",
+            "--cc",
+            "--pkg-config",
+            "--mpi-ranks",
+        ]
+        missing = [term for term in required_terms if term not in self.text]
+        self.assertEqual(missing, [])
+
     def test_docs_explain_installed_consumer_release_gate(self):
         docs = README.read_text(encoding="utf-8") + "\n" + RGPOT_GUIDE.read_text(
             encoding="utf-8"
@@ -64,6 +77,7 @@ class MesonInstallContractTest(unittest.TestCase):
             "target_link_libraries(consumer PRIVATE nwchemc::nwchemc)",
             "PKG_CONFIG_PATH",
             "pkg-config --cflags --libs nwchemc",
+            "nwchem-installed-pkgconfig-consumer",
             "nwchem-installed-cmake-consumer",
         ]
         missing = [term for term in required_terms if term not in docs]
