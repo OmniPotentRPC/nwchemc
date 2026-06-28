@@ -4340,29 +4340,41 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   /* Promote maximally-typed stanza knobs via RTDB (embed render omits them).
    * DFT grid and SCF noprint stay text-only where no stable RTDB key exists. */
   {
-    enum { PROMO_CAP = 48 };
-    char promo_str_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_str_val_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_VALUE_LEN];
-    char promo_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_value_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_VALUE_MAX]
-                            [NWCHEMC_DIRECT_SET_VALUE_LEN];
-    char promo_str_packed_keys[PROMO_CAP * NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_str_packed_values[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_LEN];
-    char promo_typed_packed_keys[PROMO_CAP * NWCHEMC_DIRECT_SET_KEY_LEN];
-    char promo_typed_packed_values[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_MAX *
-                                   NWCHEMC_DIRECT_SET_VALUE_LEN];
-    capn_text promo_str_keys[PROMO_CAP];
-    capn_text promo_str_vals[PROMO_CAP];
+    /* NWPW suites push 200+ keys; static storage avoids stack overflow. */
+    enum { PROMO_CAP = 320 };
+    static char promo_str_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
+    static char promo_str_val_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_VALUE_LEN];
+    static char promo_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
+    static char promo_value_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_VALUE_MAX]
+                                   [NWCHEMC_DIRECT_SET_VALUE_LEN];
+    static char promo_str_packed_keys[PROMO_CAP * NWCHEMC_DIRECT_SET_KEY_LEN];
+    static char promo_str_packed_values[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_LEN];
+    static char promo_typed_packed_keys[PROMO_CAP * NWCHEMC_DIRECT_SET_KEY_LEN];
+    static char promo_typed_packed_values[PROMO_CAP *
+                                          NWCHEMC_DIRECT_SET_VALUE_MAX *
+                                          NWCHEMC_DIRECT_SET_VALUE_LEN];
+    static capn_text promo_str_keys[PROMO_CAP];
+    static capn_text promo_str_vals[PROMO_CAP];
+    static capn_text promo_keys[PROMO_CAP];
+    static int promo_types[PROMO_CAP];
+    static int promo_counts[PROMO_CAP];
+    static capn_text promo_vals[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_MAX];
     size_t promo_str_count = 0;
-    capn_text promo_keys[PROMO_CAP];
-    int promo_types[PROMO_CAP];
-    int promo_counts[PROMO_CAP];
-    capn_text promo_vals[PROMO_CAP * NWCHEMC_DIRECT_SET_VALUE_MAX];
     size_t promo_count = 0;
+    memset(promo_str_key_storage, 0, sizeof(promo_str_key_storage));
+    memset(promo_str_val_storage, 0, sizeof(promo_str_val_storage));
+    memset(promo_key_storage, 0, sizeof(promo_key_storage));
+    memset(promo_value_storage, 0, sizeof(promo_value_storage));
     memset(promo_str_packed_keys, 0, sizeof(promo_str_packed_keys));
     memset(promo_str_packed_values, 0, sizeof(promo_str_packed_values));
     memset(promo_typed_packed_keys, 0, sizeof(promo_typed_packed_keys));
     memset(promo_typed_packed_values, 0, sizeof(promo_typed_packed_values));
+    memset(promo_str_keys, 0, sizeof(promo_str_keys));
+    memset(promo_str_vals, 0, sizeof(promo_str_vals));
+    memset(promo_keys, 0, sizeof(promo_keys));
+    memset(promo_types, 0, sizeof(promo_types));
+    memset(promo_counts, 0, sizeof(promo_counts));
+    memset(promo_vals, 0, sizeof(promo_vals));
 #define PROMO_STR(key, text_val)                                               \
   do {                                                                         \
     if ((text_val).len > 0) {                                                  \
