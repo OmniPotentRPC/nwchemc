@@ -253,6 +253,12 @@ if get_option('with_tests')
     suite: ['inventory', 'packaging'],
   )
   test(
+    'cmake-real-nwchem-contract',
+    python,
+    args: [meson.current_source_dir() / 'tests/test_cmake_real_nwchem_contract.py'],
+    suite: ['inventory', 'packaging'],
+  )
+  test(
     'features-cmocka',
     executable(
       'test_features_cmocka',
