@@ -45,9 +45,9 @@ The merge/pr release gate is:
   result-carrier function.
 - `nwchem-rgpot-smoke`, `nwchem-session-result`,
   `nwchem-potential-config-pseudopotential`, `nwchem-pseudopotential-rtdb`,
-  `nwchem-stress`, `nwchem-configured-nwpw-rtdb`, and the installed
-  CMake/pkg-config consumers pass against the NWChem build used for the
-  release.
+  `nwchem-forceinput-cell-rtdb`, `nwchem-stress`,
+  `nwchem-configured-nwpw-rtdb`, and the installed CMake/pkg-config consumers
+  pass against the NWChem build used for the release.
 
 For a local package-only check:
 

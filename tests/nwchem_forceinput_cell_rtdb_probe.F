@@ -1,13 +1,14 @@
       subroutine nwchemc_test_forceinput_cell_rtdb(n_atoms_a,
      $     pos_ang_a, atmnrs_a, cell_ang_a, has_cell_a, expected_a,
      $     n_atoms_b, pos_ang_b, atmnrs_b, cell_ang_b, has_cell_b,
-     $     expected_b, result) bind(C,
+     $     expected_b, state_charge_c, state_mult_c, result) bind(C,
      $     name='nwchemc_test_forceinput_cell_rtdb')
       use, intrinsic :: iso_c_binding, only: c_double, c_int
       implicit none
       integer(c_int), intent(in) :: n_atoms_a, n_atoms_b
       integer(c_int), intent(in) :: atmnrs_a(*), atmnrs_b(*)
       integer(c_int), intent(in) :: has_cell_a, has_cell_b
+      integer(c_int), intent(in) :: state_charge_c, state_mult_c
       real(c_double), intent(in) :: pos_ang_a(*), pos_ang_b(*)
       real(c_double), intent(in) :: cell_ang_a(9), cell_ang_b(9)
       real(c_double), intent(in) :: expected_a(9), expected_b(9)
@@ -45,11 +46,83 @@
      $     pos_ang_b, atmnrs_b, cell_ang_b, has_cell_b, expected_b,
      $     case_result)
       if (case_result .ne. 0) result = int(1000 + case_result, c_int)
+      if (result .ne. 0) goto 900
+
+      reset_ok = 0
+      call nwchem_legacy_reset_rtdb(rtdb, reset_ok)
+      if (reset_ok .ne. 0) then
+         result = 6
+         goto 900
+      endif
+
+      case_result = 0
+      call nwchemc_check_forceinput_state_rtdb(rtdb, state_charge_c,
+     $     state_mult_c, case_result)
+      if (case_result .ne. 0) result = int(2000 + case_result, c_int)
 
  900  continue
       finish_ok = 0
       call nwchem_legacy_finalize(rtdb, owns_mpi, finish_ok)
       if ((finish_ok .ne. 0) .and. (result .eq. 0)) result = 91
+      return
+      end
+
+      subroutine nwchemc_check_forceinput_state_rtdb(rtdb, charge_c,
+     $     multiplicity_c, result)
+      use, intrinsic :: iso_c_binding, only: c_double, c_int
+      implicit none
+#include "mafdecls.fh"
+#include "rtdb.fh"
+      integer rtdb
+      integer(c_int), intent(in) :: charge_c, multiplicity_c
+      integer(c_int), intent(out) :: result
+      integer charge, mult, stored_mult
+      double precision stored_charge(1)
+      logical ok
+      logical nwchemc_probe_get_int, nwchemc_probe_get_dbl_array
+      external nwchemc_probe_get_int, nwchemc_probe_get_dbl_array
+      character*64 theory_name, scf_type
+
+      result = 0
+      charge = int(charge_c)
+      mult = int(multiplicity_c)
+      if (mult .le. 0) then
+         result = 2
+         return
+      endif
+
+      theory_name = 'scf'
+      scf_type = 'uhf'
+      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, 0, 0, 0.0d0, 0, 0, 0, 0.0d0, 0.0d0,
+     $     0, 0, 0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, ok)
+      if (.not. ok) then
+         result = 4
+         return
+      endif
+
+      if (.not. nwchemc_probe_get_dbl_array(rtdb, 'charge', 1,
+     $     stored_charge)) then
+         result = 10
+         return
+      endif
+      if (dabs(stored_charge(1) - dble(charge)) .gt. 1.0d-12) then
+         write(*,*) 'forceinput charge mismatch', stored_charge(1),
+     $      dble(charge)
+         result = 11
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'spin mult',
+     $     stored_mult)) then
+         result = 20
+         return
+      endif
+      if (stored_mult .ne. mult) then
+         write(*,*) 'forceinput spin mult mismatch', stored_mult, mult
+         result = 21
+         return
+      endif
+
       return
       end
 

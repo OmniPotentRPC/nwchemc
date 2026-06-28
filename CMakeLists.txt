@@ -1282,6 +1282,8 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     add_executable(nwchem-forceinput-cell-rtdb
       tests/test_nwchem_forceinput_cell_rtdb.c
       tests/nwchem_forceinput_cell_rtdb_probe.F
+      tests/nwchem_rtdb_probe_get_int.F
+      tests/nwchem_rtdb_probe_get_dbl_array.F
     )
     target_link_libraries(nwchem-forceinput-cell-rtdb PRIVATE
       nwchemc
@@ -1306,12 +1308,14 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     add_dependencies(nwchem-forceinput-cell-rtdb
       force_input_h2_box_ang_bin
       force_input_h2_box_bohr_bin
+      force_input_step_state_bin
     )
     nwchemc_add_real_nwchem_test(
       nwchem-forceinput-cell-rtdb
       nwchem-forceinput-cell-rtdb
       "${NWCHEMC_FORCE_INPUT_H2_BOX_ANG_BIN}"
       "${NWCHEMC_FORCE_INPUT_H2_BOX_BOHR_BIN}"
+      "${NWCHEMC_FORCE_INPUT_STEP_STATE_BIN}"
     )
 
     add_executable(nwchem-stress tests/test_nwchem_stress.c)

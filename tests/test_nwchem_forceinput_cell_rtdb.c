@@ -16,6 +16,10 @@ enum { MAX_FORCE_INPUT_ATOMS = 16 };
 typedef struct ParsedForceInput {
   int n_atoms;
   int has_cell;
+  int has_charge;
+  int charge;
+  int has_multiplicity;
+  int multiplicity;
   double positions_ang[MAX_FORCE_INPUT_ATOMS * 3];
   int atomic_numbers[MAX_FORCE_INPUT_ATOMS];
   double cell_ang[9];
@@ -23,6 +27,7 @@ typedef struct ParsedForceInput {
 
 static const char *g_force_input_ang_path = NULL;
 static const char *g_force_input_bohr_path = NULL;
+static const char *g_force_input_state_path = NULL;
 
 extern void nwchemc_test_forceinput_cell_rtdb(
     const int *n_atoms_a, const double *positions_ang_a,
@@ -30,7 +35,8 @@ extern void nwchemc_test_forceinput_cell_rtdb(
     const int *has_cell_a, const double *expected_amatrix_a,
     const int *n_atoms_b, const double *positions_ang_b,
     const int *atomic_numbers_b, const double *cell_ang_b,
-    const int *has_cell_b, const double *expected_amatrix_b, int *result);
+    const int *has_cell_b, const double *expected_amatrix_b,
+    const int *state_charge, const int *state_multiplicity, int *result);
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -94,14 +100,20 @@ static void parse_force_input_cell(const char *label,
     free(force_input);
     fail_msg("%s ForceInput geometry copy failed", label);
   }
+  struct ForceInput view;
+  read_ForceInput(&view, root);
   nwchemc_params_release(&arena);
   free(force_input);
   assert_int_equal(has_cell, 1);
   parsed->n_atoms = (int)n_atoms_size;
   parsed->has_cell = has_cell;
+  parsed->has_charge = view.hasCharge ? 1 : 0;
+  parsed->charge = view.charge;
+  parsed->has_multiplicity = view.hasMultiplicity ? 1 : 0;
+  parsed->multiplicity = view.multiplicity;
 }
 
-static void test_forceinput_box_reaches_geometry_rtdb(void **state) {
+static void test_forceinput_box_and_state_reach_rtdb(void **state) {
   (void)state;
 
   const double ang_to_bohr = 1.0 / 0.529177210903;
@@ -123,27 +135,37 @@ static void test_forceinput_box_reaches_geometry_rtdb(void **state) {
   parse_force_input_cell("bohr ForceInput.box", g_force_input_bohr_path,
                          &bohr);
 
+  ParsedForceInput state_input;
+  parse_force_input_cell("state ForceInput", g_force_input_state_path,
+                         &state_input);
+  assert_int_equal(state_input.has_charge, 1);
+  assert_int_equal(state_input.charge, -2);
+  assert_int_equal(state_input.has_multiplicity, 1);
+  assert_int_equal(state_input.multiplicity, 5);
+
   int probe_result = -1;
   nwchemc_test_forceinput_cell_rtdb(
       &ang.n_atoms, ang.positions_ang, ang.atomic_numbers, ang.cell_ang,
       &ang.has_cell, expected_ang, &bohr.n_atoms, bohr.positions_ang,
       bohr.atomic_numbers, bohr.cell_ang, &bohr.has_cell, expected_bohr,
-      &probe_result);
+      &state_input.charge, &state_input.multiplicity, &probe_result);
   assert_int_equal(probe_result, 0);
 }
 
 int main(int argc, char **argv) {
-  if (argc != 3) {
+  if (argc != 4) {
     fprintf(stderr,
-            "usage: %s force-input-ang.bin force-input-bohr.bin\n",
+            "usage: %s force-input-ang.bin force-input-bohr.bin "
+            "force-input-state.bin\n",
             argv[0]);
     return 2;
   }
   g_force_input_ang_path = argv[1];
   g_force_input_bohr_path = argv[2];
+  g_force_input_state_path = argv[3];
 
   const struct CMUnitTest tests[] = {
-      cmocka_unit_test(test_forceinput_box_reaches_geometry_rtdb),
+      cmocka_unit_test(test_forceinput_box_and_state_reach_rtdb),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -116,7 +116,7 @@ above and these probes are green:
 | Hessian, dipole, polarizability, quadrupole, optimize, and frequencies result carriers | `tests/test_nwchem_rgpot_smoke.c` |
 | Periodic PSPW stress coordinate/session, ForceInput raw calls, and result carriers | `tests/test_nwchem_stress.c` |
 | PSPW pseudopotential energy and forces one-shot/session result carriers | `tests/test_nwchem_pspw_pseudopotential_forces.c` |
-| `ForceInput.box` cell-vector RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
+| `ForceInput.box`, `ForceInput.charge`, and `ForceInput.multiplicity` RTDB storage | `tests/test_nwchem_forceinput_cell_rtdb.c` |
 | Structured pseudopotential RTDB storage from `PotentialConfig.nwchem` | `tests/test_nwchem_potential_config_pseudopotential.c` |
 | Configured NWPW periodic controls reaching embedded RTDB | `tests/test_nwchem_nwpw_rtdb.c` |
 | Direct pseudopotential RTDB storage | `tests/test_nwchem_pseudopotential_rtdb.c` |
@@ -127,8 +127,8 @@ optimization, and frequencies are covered by real-NWChem smoke tests. Periodic
 stress is covered by the PSPW stress smoke when rgpot is paired with an
 NWPW-enabled NWChem build. Molecular NWChem modules reject periodic
 geometries, so periodic coverage uses that NWPW-enabled path. The ABI, Cap'n
-Proto result shape, unit conversion path, and direct RTDB cell storage are
-still covered without a periodic-capable NWChem build.
+Proto result shape, unit conversion path, and direct RTDB cell/state storage
+are still covered without a periodic-capable NWChem build.
 
 ## Release gate
 

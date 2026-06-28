@@ -1480,6 +1480,8 @@ nwchem_config_options_params_bin = custom_target(
       [
         'tests/test_nwchem_forceinput_cell_rtdb.c',
         'tests/nwchem_forceinput_cell_rtdb_probe.F',
+        'tests/nwchem_rtdb_probe_get_int.F',
+        'tests/nwchem_rtdb_probe_get_dbl_array.F',
       ],
       include_directories: [inc] + nwchemc_params_includes,
       dependencies: [cmocka_dep, nwchemc_dep] + nwchemc_params_deps,
@@ -1493,8 +1495,8 @@ nwchem_config_options_params_bin = custom_target(
       'nwchem-forceinput-cell-rtdb',
       nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_forceinput_cell_rtdb_test,
       args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_forceinput_cell_rtdb_test, force_input_h2_box_ang_bin, force_input_h2_box_bohr_bin]
-        : [force_input_h2_box_ang_bin, force_input_h2_box_bohr_bin],
+        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_forceinput_cell_rtdb_test, force_input_h2_box_ang_bin, force_input_h2_box_bohr_bin, force_input_step_state_bin]
+        : [force_input_h2_box_ang_bin, force_input_h2_box_bohr_bin, force_input_step_state_bin],
       env: nwchem_test_mpi_env,
       is_parallel: false,
     )
