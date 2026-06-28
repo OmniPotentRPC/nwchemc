@@ -141,6 +141,56 @@ class MesonInstallContractTest(unittest.TestCase):
                 missing = [term for term in required_terms if term not in consumer]
                 self.assertEqual(missing, [])
 
+    def test_installed_consumers_compile_coordinate_session_abi(self):
+        required_terms = [
+            "nwchemc_set_params",
+            "nwchemc_configure",
+            "nwchemc_energy_gradient",
+            "nwchemc_energy",
+            "nwchemc_energy_forces",
+            "nwchemc_hessian",
+            "nwchemc_dipole",
+            "nwchemc_polarizability",
+            "nwchemc_quadrupole",
+            "nwchemc_stress",
+            "nwchemc_optimize",
+            "nwchemc_frequencies",
+            "nwchemc_energy_gradient_from_config",
+            "nwchemc_energy_from_config",
+            "nwchemc_energy_forces_from_config",
+            "nwchemc_hessian_from_config",
+            "nwchemc_dipole_from_config",
+            "nwchemc_polarizability_from_config",
+            "nwchemc_quadrupole_from_config",
+            "nwchemc_stress_from_config",
+            "nwchemc_optimize_from_config",
+            "nwchemc_frequencies_from_config",
+            "nwchemc_session_create",
+            "nwchemc_session_create_from_config",
+            "nwchemc_session_set_params",
+            "nwchemc_session_configure",
+            "nwchemc_session_destroy",
+            "nwchemc_session_energy_gradient",
+            "nwchemc_session_energy",
+            "nwchemc_session_energy_forces",
+            "nwchemc_session_dipole",
+            "nwchemc_session_polarizability",
+            "nwchemc_session_quadrupole",
+            "nwchemc_session_optimize",
+            "nwchemc_session_frequencies",
+            "nwchemc_session_stress",
+            "nwchemc_session_hessian",
+        ]
+        consumer_scripts = [
+            ROOT / "tests" / "test_installed_cmake_consumer.py",
+            ROOT / "tests" / "test_installed_pkgconfig_consumer.py",
+        ]
+        for script in consumer_scripts:
+            with self.subTest(script=script.name):
+                consumer = script.read_text(encoding="utf-8")
+                missing = [term for term in required_terms if term not in consumer]
+                self.assertEqual(missing, [])
+
     def test_docs_explain_installed_consumer_release_gate(self):
         docs = README.read_text(encoding="utf-8") + "\n" + RGPOT_GUIDE.read_text(
             encoding="utf-8"
