@@ -2197,19 +2197,7 @@ c           fragment=-1 selects non-fragment tce_energy path
             status = rtdb_cput(rtdb, 'tce:module', 1, 'tce')
             ok = ok .and. status
          endif
-c        MCSCF minima: full-valence CAS(2,2) for H2 STO-3G unless input set.
-         if (theory_name(1:5) .eq. 'mcscf') then
-            ival = 2
-            status = rtdb_put(rtdb, 'mcscf:nact', mt_int, 1, ival)
-            ok = ok .and. status
-            ival = 2
-            status = rtdb_put(rtdb, 'mcscf:nactelec', mt_int, 1, ival)
-            ok = ok .and. status
-            ival = mult
-            status = rtdb_put(rtdb, 'mcscf:multiplicity', mt_int, 1,
-     $         ival)
-            ok = ok .and. status
-         endif
+c        MCSCF active space comes from inputBlocks / typed sets, not defaults.
          if (scf_has_options .ne. 0) then
             if (scf_maxiter .gt. 0) then
                call nwchemc_rtdb_put_int(rtdb, 'scf:maxiter',
@@ -2231,63 +2219,47 @@ c        MCSCF minima: full-valence CAS(2,2) for H2 STO-3G unless input set.
       return
       end
 
-c     Fetch total energy after task_energy for SCF/DFT and post-SCF theories.
+c     Fetch total energy after task_energy. Prefer task:energy, then
+c     theory-prefixed key (theory_name//':energy'), then scf/dft fallbacks.
       subroutine nwchemc_fetch_task_energy(rtdb, theory_name,
      $     energy_h, ok)
       implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
+#include "inp.fh"
       integer rtdb
       character*64 theory_name
       double precision energy_h
       logical ok
-      logical status
+      character*80 theory_key
+      integer lt
 
       ok = .false.
       if (rtdb_get(rtdb, 'task:energy', mt_dbl, 1, energy_h)) then
          ok = .true.
          return
       endif
-      if (theory_name(1:4) .eq. 'ccsd') then
-         if (rtdb_get(rtdb, 'ccsd:energy', mt_dbl, 1, energy_h)) then
+      lt = inp_strlen(theory_name)
+      if (lt .gt. 0) then
+         theory_key = theory_name(1:lt)//':energy'
+         if (rtdb_get(rtdb, theory_key, mt_dbl, 1, energy_h)) then
             ok = .true.
             return
          endif
-      endif
-      if (theory_name(1:3) .eq. 'mp2' .or.
-     $    theory_name(1:5) .eq. 'rimp2' .or.
-     $    theory_name(1:10) .eq. 'direct_mp2') then
-         if (rtdb_get(rtdb, 'mp2:energy', mt_dbl, 1, energy_h)) then
-            ok = .true.
-            return
+c        Aliases: RI/direct MP2 store under mp2:energy; sodft under dft:energy.
+         if (theory_name(1:5) .eq. 'rimp2' .or.
+     $       theory_name(1:10) .eq. 'direct_mp2') then
+            if (rtdb_get(rtdb, 'mp2:energy', mt_dbl, 1, energy_h)) then
+               ok = .true.
+               return
+            endif
          endif
-      endif
-      if (theory_name(1:3) .eq. 'tce') then
-         if (rtdb_get(rtdb, 'tce:energy', mt_dbl, 1, energy_h)) then
-            ok = .true.
-            return
-         endif
-      endif
-      if (theory_name(1:5) .eq. 'tddft') then
-         if (rtdb_get(rtdb, 'tddft:energy', mt_dbl, 1, energy_h)) then
-            ok = .true.
-            return
-         endif
-         if (rtdb_get(rtdb, 'dft:energy', mt_dbl, 1, energy_h)) then
-            ok = .true.
-            return
-         endif
-      endif
-      if (theory_name(1:5) .eq. 'mcscf') then
-         if (rtdb_get(rtdb, 'mcscf:energy', mt_dbl, 1, energy_h)) then
-            ok = .true.
-            return
-         endif
-      endif
-      if (theory_name(1:5) .eq. 'sodft') then
-         if (rtdb_get(rtdb, 'dft:energy', mt_dbl, 1, energy_h)) then
-            ok = .true.
-            return
+         if (theory_name(1:5) .eq. 'sodft' .or.
+     $       theory_name(1:5) .eq. 'tddft') then
+            if (rtdb_get(rtdb, 'dft:energy', mt_dbl, 1, energy_h)) then
+               ok = .true.
+               return
+            endif
          endif
       endif
       if (rtdb_get(rtdb, 'scf:energy', mt_dbl, 1, energy_h)) then
@@ -2298,7 +2270,6 @@ c     Fetch total energy after task_energy for SCF/DFT and post-SCF theories.
          ok = .true.
          return
       endif
-      status = .false.
       return
       end
 

@@ -4248,18 +4248,21 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (dft_xc.len > 0 && dft_xc.str) {
     scf_type = dft_xc.str;
     scf_len = (int)dft_xc.len;
-    /* Typed DFT XC is a reference functional, not a theory override.
-     * Preserve tddft / sodft / etc.; only promote legacy XC-as-theory names. */
-    if (!span_starts_with(theory, theory_len, "dft") &&
-        !span_starts_with(theory, theory_len, "tddft") &&
-        !span_starts_with(theory, theory_len, "sodft") &&
-        !span_starts_with(theory, theory_len, "rt_tddft") &&
-        !span_starts_with(theory, theory_len, "mcscf") &&
-        !span_starts_with(theory, theory_len, "selci") &&
-        !span_starts_with(theory, theory_len, "tce") &&
-        !span_starts_with(theory, theory_len, "blyp") &&
-        !span_starts_with(theory, theory_len, "b3lyp") &&
-        !span_starts_with(theory, theory_len, "pbe")) {
+    /* Typed DFT XC is only a functional label. Rewrite task:theory to "dft"
+     * solely when theory is still a legacy XC-as-theory alias (blyp/b3lyp/pbe…);
+     * never clobber an explicit method name (tddft, mcscf, sodft, tce, …). */
+    int theory_is_xc_alias =
+        span_starts_with(theory, theory_len, "blyp") ||
+        span_starts_with(theory, theory_len, "b3lyp") ||
+        span_starts_with(theory, theory_len, "pbe") ||
+        span_starts_with(theory, theory_len, "pw91") ||
+        span_starts_with(theory, theory_len, "bp86") ||
+        span_starts_with(theory, theory_len, "hcth") ||
+        span_starts_with(theory, theory_len, "ft97") ||
+        span_starts_with(theory, theory_len, "xperpbe") ||
+        span_starts_with(theory, theory_len, "beckehandh") ||
+        span_starts_with(theory, theory_len, "hfexch");
+    if (theory_is_xc_alias) {
       theory = "dft";
       theory_len = 3;
     }
@@ -4338,10 +4341,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                    scf_tol2e) != 0)
     return -1;
   /* Promote maximally-typed stanza knobs via RTDB (embed render omits them).
-   * DFT grid and SCF noprint stay text-only where no stable RTDB key exists. */
+   * DFT grid and SCF noprint stay text-only where no stable RTDB key exists.
+   * Capacity shares NWCHEMC_DIRECT_SET_MAX with the main typed-set path. */
   {
-    /* NWPW suites push 200+ keys; static storage avoids stack overflow. */
-    enum { PROMO_CAP = 320 };
+    enum { PROMO_CAP = NWCHEMC_DIRECT_SET_MAX };
     static char promo_str_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
     static char promo_str_val_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_VALUE_LEN];
     static char promo_key_storage[PROMO_CAP][NWCHEMC_DIRECT_SET_KEY_LEN];
@@ -4524,8 +4527,9 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
       PROMO_DBL("tddft:ecut", tddft_ecut);
       PROMO_LOG("tddft:lecut", 1);
     }
-    /* Persist CI vectors for analysis/gradients; set gradient root indices. */
-    {
+    /* Excited-state gradient needs CI vectors on disk + a target root.
+     * Seed only when the TDDFT stanza actually requested work (nroots/target). */
+    if (tddft_nroots > 0 || tddft_target > 0) {
       int grad_root = tddft_target > 0 ? tddft_target : 1;
       PROMO_LOG("tddft:lcivecs", 1);
       PROMO_INT("tddft_grad:isinglet_roots", grad_root);

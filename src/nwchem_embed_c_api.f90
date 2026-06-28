@@ -848,9 +848,10 @@ contains
     if (len_trim(xcstr) > 0) then
       cfg_dft_xc = xcstr
       cfg_scf = xcstr
-      ! DFT XC is the reference functional; do not clobber tddft/sodft theory.
-      if (cfg_theory(1:3) /= 'dft' .and. cfg_theory(1:5) /= 'tddft' .and. &
-          cfg_theory(1:5) /= 'sodft' .and. cfg_theory(1:8) /= 'rt_tddft') then
+      ! XC label only rewrites theory when it is still a legacy XC-as-theory alias.
+      if (cfg_theory(1:4) == 'blyp' .or. cfg_theory(1:5) == 'b3lyp' .or. &
+          cfg_theory(1:3) == 'pbe' .or. cfg_theory(1:4) == 'pw91' .or. &
+          cfg_theory(1:4) == 'bp86' .or. cfg_theory(1:4) == 'hcth') then
         cfg_theory = 'dft'
       end if
     end if
