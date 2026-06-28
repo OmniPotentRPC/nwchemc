@@ -889,14 +889,17 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
                       zone.monkhorstPackZ != 0;
   int has_dos_grid =
       zone.dosGridX > 0 || zone.dosGridY > 0 || zone.dosGridZ > 0;
+  int has_dos_fft_grid = zone.dosFftGridX > 0 || zone.dosFftGridY > 0 ||
+                         zone.dosFftGridZ > 0;
   int has_tetrahedron = zone.tetrahedronGridX > 0 ||
                         zone.tetrahedronGridY > 0 ||
                         zone.tetrahedronGridZ > 0;
   int has_directives = directives_have_keywords(zone.directives);
   if (has_directives < 0)
     return -1;
-  if (!has_monkhorst && !has_dos_grid && !has_tetrahedron && nk == 0 &&
-      zone.maxKpointsPrint <= 0 && !has_directives && zone.zoneName.len <= 0 &&
+  if (!has_monkhorst && !has_dos_grid && !has_dos_fft_grid &&
+      !has_tetrahedron && nk == 0 && zone.maxKpointsPrint <= 0 &&
+      !has_directives && zone.zoneName.len <= 0 &&
       zone.zoneStructureName.len <= 0 && zone.zoneFftName.len <= 0)
     return 0;
 
@@ -920,6 +923,17 @@ static int render_brillouin_zone_stanza(NWChemBrillouinZoneStanza_ptr ptr,
                       dz) != 0 ||
         append_text_or_default(block, sizeof(block), zone.dosGridZoneName,
                                "structure_default") != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (has_dos_fft_grid) {
+    int dx = zone.dosFftGridX > 0 ? zone.dosFftGridX : 2;
+    int dy = zone.dosFftGridY > 0 ? zone.dosFftGridY : 2;
+    int dz = zone.dosFftGridZ > 0 ? zone.dosFftGridZ : 2;
+    if (append_format(block, sizeof(block), "  dos-fft-grid %d %d %d ", dx,
+                      dy, dz) != 0 ||
+        append_text_or_default(block, sizeof(block), zone.dosFftGridZoneName,
+                               "zone_fft_default") != 0 ||
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
@@ -5661,6 +5675,81 @@ int nwchemc_params_extract_direct_brillouin_dos_grid(
       dos_grid[1] = zone.dosGridY > 0 ? zone.dosGridY : 2;
       dos_grid[2] = zone.dosGridZ > 0 ? zone.dosGridZ : 2;
     }
+  }
+
+  return 0;
+}
+
+static capn_text params_literal_text(const char *value) {
+  capn_text text;
+  text.seg = 0;
+  text.str = value;
+  text.len = value ? strlen(value) : 0;
+  return text;
+}
+
+static int append_brillouin_dos_zone(capn_text *zone_names, int *zone_grids,
+                                     size_t capacity, size_t *count,
+                                     capn_text zone_name,
+                                     const char *default_zone_name, int x,
+                                     int y, int z) {
+  if (*count >= capacity)
+    return -1;
+  zone_names[*count] =
+      zone_name.len > 0 ? zone_name : params_literal_text(default_zone_name);
+  zone_grids[3 * *count] = x > 0 ? x : 2;
+  zone_grids[3 * *count + 1] = y > 0 ? y : 2;
+  zone_grids[3 * *count + 2] = z > 0 ? z : 2;
+  ++*count;
+  return 0;
+}
+
+int nwchemc_params_extract_direct_brillouin_dos_zones(
+    NWChemParams_ptr params, capn_text *zone_names, int *zone_grids,
+    size_t capacity, size_t *count) {
+  if (params.p.type == CAPN_NULL || !count)
+    return -1;
+
+  *count = 0;
+  if (capacity > 0 && (!zone_names || !zone_grids))
+    return -1;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_brillouinZone ||
+        stanza.brillouinZone.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemBrillouinZoneStanza zone;
+    read_NWChemBrillouinZoneStanza(&zone, stanza.brillouinZone);
+    if ((zone.dosGridX > 0 || zone.dosGridY > 0 || zone.dosGridZ > 0) &&
+        append_brillouin_dos_zone(zone_names, zone_grids, capacity, count,
+                                  zone.dosGridZoneName, "structure_default",
+                                  zone.dosGridX, zone.dosGridY,
+                                  zone.dosGridZ) != 0)
+      return -1;
+    if ((zone.tetrahedronGridX > 0 || zone.tetrahedronGridY > 0 ||
+         zone.tetrahedronGridZ > 0) &&
+        append_brillouin_dos_zone(zone_names, zone_grids, capacity, count,
+                                  zone.tetrahedronZoneName, "zone_default",
+                                  zone.tetrahedronGridX,
+                                  zone.tetrahedronGridY,
+                                  zone.tetrahedronGridZ) != 0)
+      return -1;
+    if ((zone.dosFftGridX > 0 || zone.dosFftGridY > 0 ||
+         zone.dosFftGridZ > 0) &&
+        append_brillouin_dos_zone(zone_names, zone_grids, capacity, count,
+                                  zone.dosFftGridZoneName,
+                                  "zone_fft_default", zone.dosFftGridX,
+                                  zone.dosFftGridY, zone.dosFftGridZ) != 0)
+      return -1;
   }
 
   return 0;

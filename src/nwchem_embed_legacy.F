@@ -2477,6 +2477,41 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       return
       end
 
+      subroutine nwchemc_store_brillouin_dos_zones(rtdb, zone_count,
+     $     zone_names, zone_grids, errmsg, ok)
+      implicit none
+#include "inp.fh"
+      integer rtdb, zone_count
+      integer zone_grids(3,*)
+      character*64 zone_names(*)
+      character*(*) errmsg
+      logical ok
+      integer i, l
+
+      ok = .false.
+      if (zone_count .lt. 0) then
+         errmsg = 'invalid Brillouin DOS zone count'
+         return
+      endif
+      do i = 1, zone_count
+         l = inp_strlen(zone_names(i))
+         if (l .le. 0) then
+            errmsg = 'empty Brillouin DOS zone name'
+            return
+         endif
+         if (zone_grids(1,i) .le. 0 .or.
+     $       zone_grids(2,i) .le. 0 .or.
+     $       zone_grids(3,i) .le. 0) then
+            errmsg = 'invalid Brillouin DOS grid'
+            return
+         endif
+         call dos_states_set(rtdb, zone_names(i), zone_grids(1,i),
+     $      zone_grids(2,i), zone_grids(3,i))
+      enddo
+      ok = .true.
+      return
+      end
+
       subroutine nwchemc_store_geometry(rtdb, n_atoms, pos_ang,
      $     atmnrs, errmsg, ok)
       implicit none

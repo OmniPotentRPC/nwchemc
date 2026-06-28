@@ -2331,6 +2331,54 @@
       "driver_class": "schema_field"
     },
     {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridX",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridX",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosFftGridX",
+      "field_id": 17,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.dosFftGridX Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridY",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridY",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosFftGridY",
+      "field_id": 18,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.dosFftGridY Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridZ",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridZ",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosFftGridZ",
+      "field_id": 19,
+      "type": "Int32 = 0",
+      "role": "NWChemBrillouinZoneStanza.dosFftGridZ Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridZoneName",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridZoneName",
+      "struct": "NWChemBrillouinZoneStanza",
+      "name": "dosFftGridZoneName",
+      "field_id": 20,
+      "type": "Text = \"\"",
+      "role": "NWChemBrillouinZoneStanza.dosFftGridZoneName Cap'n Proto field",
+      "stub_applicable": true,
+      "embed_applicable": true,
+      "driver_class": "schema_field"
+    },
+    {
       "feature_id": "field.NWChemSimulationCellStanza.cellName",
       "schema_path": "NWChemSimulationCellStanza.cellName",
       "struct": "NWChemSimulationCellStanza",

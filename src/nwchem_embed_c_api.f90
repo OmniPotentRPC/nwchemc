@@ -27,6 +27,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_set_driver_direct
   public :: nwchemc_embed_set_nwpw_direct
   public :: nwchemc_embed_set_brillouin_zone
+  public :: nwchemc_embed_set_brillouin_dos_zones
   public :: nwchemc_embed_set_pseudopotentials
   public :: nwchemc_embed_set_rtdb_strings
   public :: nwchemc_embed_set_rtdb_values
@@ -109,6 +110,11 @@ module nwchem_embed_c_api
   integer, save :: cfg_brillouin_max_kpoints_print = 0
   integer, save :: cfg_brillouin_kvector_count = 0
   real(real64), allocatable, save :: cfg_brillouin_kvectors(:)
+  integer, save :: cfg_brillouin_dos_zone_count = 0
+  character(len=64), save :: &
+      cfg_brillouin_dos_zone_names(max_embed_set_strings) = ' '
+  integer, save :: &
+      cfg_brillouin_dos_zone_grids(3, max_embed_set_strings) = 0
 
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
@@ -156,6 +162,16 @@ module nwchem_embed_c_api
       character(len=*), intent(out) :: errmsg
       logical, intent(out) :: ok
     end subroutine nwchemc_apply_direct_typed_sets
+
+    subroutine nwchemc_store_brillouin_dos_zones(rtdb, zone_count, &
+        zone_names, zone_grids, errmsg, ok)
+      integer, intent(in) :: rtdb
+      integer, intent(in) :: zone_count
+      character(len=64), intent(in) :: zone_names(*)
+      integer, intent(in) :: zone_grids(3,*)
+      character(len=*), intent(out) :: errmsg
+      logical, intent(out) :: ok
+    end subroutine nwchemc_store_brillouin_dos_zones
 
     subroutine nwchem_legacy_reset_rtdb(rtdb, ok)
       integer, intent(inout) :: rtdb
@@ -940,6 +956,40 @@ contains
     cfg_brillouin_kvector_count = int(kvector_count)
     rc = 0_c_int
   end function nwchemc_embed_set_brillouin_zone
+
+  !> Store generated DOS-style Brillouin zones extracted from Cap'n Proto.
+  function nwchemc_embed_set_brillouin_dos_zones(zone_names, zone_grids, &
+      count) result(rc) bind(C, name='nwchemc_embed_set_brillouin_dos_zones')
+    character(kind=c_char), intent(in) :: zone_names(*)
+    integer(c_int), intent(in) :: zone_grids(*)
+    integer(c_int), intent(in), value :: count
+    integer(c_int) :: rc
+    integer :: i, n
+    character(len=256) :: errmsg
+    logical :: ok
+
+    rc = -1_c_int
+    n = int(count)
+    if (n < 0 .or. n > max_embed_set_strings) return
+
+    cfg_brillouin_dos_zone_count = n
+    cfg_brillouin_dos_zone_names = ' '
+    cfg_brillouin_dos_zone_grids = 0
+    do i = 1, n
+      call c_chars_to_f(zone_names((i - 1) * 64 + 1), 64_c_int, &
+          cfg_brillouin_dos_zone_names(i))
+      cfg_brillouin_dos_zone_grids(1, i) = int(zone_grids(3 * (i - 1) + 1))
+      cfg_brillouin_dos_zone_grids(2, i) = int(zone_grids(3 * (i - 1) + 2))
+      cfg_brillouin_dos_zone_grids(3, i) = int(zone_grids(3 * (i - 1) + 3))
+    end do
+    if (rtdb_ready .and. n > 0) then
+      call nwchemc_store_brillouin_dos_zones(rtdb_handle, n, &
+          cfg_brillouin_dos_zone_names, cfg_brillouin_dos_zone_grids, &
+          errmsg, ok)
+      if (.not. ok) return
+    end if
+    rc = 0_c_int
+  end function nwchemc_embed_set_brillouin_dos_zones
 
   !> Store direct NWPW pseudopotential library entries extracted from Cap'n Proto.
   function nwchemc_embed_set_pseudopotentials(elements, library_types, &

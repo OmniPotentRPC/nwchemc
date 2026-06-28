@@ -462,8 +462,9 @@ Simple ~exchangeCorrelation~ names use the direct RTDB path. Use
 |-------+-------------+-------------------|
 | ~zoneName~ | trailing zone token in ~monkhorst-pack~ and nested ~zone_name~ | ~band:zone_name~ and key prefix ~<zone>:*~ |
 | ~monkhorstPackX~, ~monkhorstPackY~, ~monkhorstPackZ~ | ~monkhorst-pack <x> <y> <z> [zone]~; omitted grid values default to ~1~ | ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:monkhorst-pack~ |
-| ~dosGridX~, ~dosGridY~, ~dosGridZ~, ~dosGridZoneName~ | ~dos-grid <x> <y> <z> [zone]~; omitted grid values default to ~2~, omitted zone defaults to ~structure_default~ | ~band:dos-grid~ |
-| ~tetrahedronGridX~, ~tetrahedronGridY~, ~tetrahedronGridZ~, ~tetrahedronZoneName~ | ~tetrahedron <x> <y> <z> [zone]~ | ~band:tetrahedron-grid~ |
+| ~dosGridX~, ~dosGridY~, ~dosGridZ~, ~dosGridZoneName~ | ~dos-grid <x> <y> <z> [zone]~; omitted grid values default to ~2~, omitted zone defaults to ~structure_default~ | ~band:dos-grid~, ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:dos-grid~ |
+| ~dosFftGridX~, ~dosFftGridY~, ~dosFftGridZ~, ~dosFftGridZoneName~ | ~dos-fft-grid <x> <y> <z> [zone]~; omitted grid values default to ~2~, omitted zone defaults to ~zone_fft_default~ | ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:dos-grid~ |
+| ~tetrahedronGridX~, ~tetrahedronGridY~, ~tetrahedronGridZ~, ~tetrahedronZoneName~ | ~tetrahedron <x> <y> <z> [zone]~ | ~band:tetrahedron-grid~, ~<zone>:number_kvectors~, ~<zone>:kvectors~, ~<zone>:dos-grid~ |
 | ~kVectors[]~ | nested ~brillouin_zone~ / ~kvector x y z weight~ entries | ~<zone>:number_kvectors~, ~<zone>:kvectors~ |
 | ~maxKpointsPrint~ | nested ~max_kpoints_print <n>~ | ~<zone>:number_kvectors_print~ |
 | ~zoneStructureName~ | top-level ~zone_structure_name <name>~ | ~band_structure:zone_name~ |

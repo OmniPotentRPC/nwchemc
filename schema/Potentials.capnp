@@ -292,6 +292,10 @@ struct NWChemBrillouinZoneStanza {
   dosGridY          @14 :Int32 = 0; # Second NWPW dos-grid value.
   dosGridZ          @15 :Int32 = 0; # Third NWPW dos-grid value.
   dosGridZoneName   @16 :Text = ""; # Optional trailing NWPW dos-grid zone token.
+  dosFftGridX       @17 :Int32 = 0; # First NWPW dos-fft-grid value.
+  dosFftGridY       @18 :Int32 = 0; # Second NWPW dos-fft-grid value.
+  dosFftGridZ       @19 :Int32 = 0; # Third NWPW dos-fft-grid value.
+  dosFftGridZoneName @20 :Text = ""; # Optional trailing NWPW dos-fft-grid zone token.
 }
 
 enum NWChemSimulationCellLatticeKind {

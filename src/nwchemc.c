@@ -41,6 +41,9 @@ extern int nwchemc_embed_set_brillouin_zone(
     int has_options, const char *zone_name, int zone_name_len,
     int monkhorst_pack_x, int monkhorst_pack_y, int monkhorst_pack_z,
     int max_kpoints_print, const double *kvectors, int kvector_count);
+extern int nwchemc_embed_set_brillouin_dos_zones(const char *zone_names,
+                                                const int *zone_grids,
+                                                int count);
 extern int nwchemc_embed_set_pseudopotentials(const char *elements,
                                               const int *library_types,
                                               const char *library_names,
@@ -199,6 +202,7 @@ enum {
   NWCHEMC_DIRECT_SET_VALUE_MAX = 64,
   NWCHEMC_DIRECT_SET_KEY_LEN = 128,
   NWCHEMC_DIRECT_SET_VALUE_LEN = 256,
+  NWCHEMC_DIRECT_DOS_ZONE_NAME_LEN = 64,
 };
 
 static int cstr_len(const char *s) { return s ? (int)strlen(s) : 0; }
@@ -2111,6 +2115,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &brillouin_dos_grid_has_options,
           brillouin_dos_grid) != 0)
     return -1;
+  capn_text brillouin_dos_zone_names[NWCHEMC_DIRECT_SET_MAX];
+  int brillouin_dos_zone_grids[3 * NWCHEMC_DIRECT_SET_MAX];
+  size_t brillouin_dos_zone_count = 0;
+  if (nwchemc_params_extract_direct_brillouin_dos_zones(
+          params_root, brillouin_dos_zone_names, brillouin_dos_zone_grids,
+          NWCHEMC_DIRECT_SET_MAX, &brillouin_dos_zone_count) != 0 ||
+      brillouin_dos_zone_count > (size_t)INT_MAX)
+    return -1;
   int psp_types[NWCHEMC_DIRECT_PSP_MAX];
   size_t psp_count = 0;
   int psp_spin_has_options = 0;
@@ -2146,6 +2158,8 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   static char packed_typed_set_values[NWCHEMC_DIRECT_SET_MAX *
                                       NWCHEMC_DIRECT_SET_VALUE_MAX *
                                       NWCHEMC_DIRECT_SET_VALUE_LEN];
+  char packed_brillouin_dos_zone_names[NWCHEMC_DIRECT_SET_MAX *
+                                       NWCHEMC_DIRECT_DOS_ZONE_NAME_LEN];
   memset(packed_psp_elements, 0, sizeof(packed_psp_elements));
   memset(packed_psp_names, 0, sizeof(packed_psp_names));
   memset(psp_types, 0, sizeof(psp_types));
@@ -3988,6 +4002,8 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   memset(packed_set_values, 0, sizeof(packed_set_values));
   memset(packed_typed_set_keys, 0, sizeof(packed_typed_set_keys));
   memset(packed_typed_set_values, 0, sizeof(packed_typed_set_values));
+  memset(packed_brillouin_dos_zone_names, 0,
+         sizeof(packed_brillouin_dos_zone_names));
   for (size_t i = 0; i < set_count; ++i) {
     copy_text_record(packed_set_keys + i * NWCHEMC_DIRECT_SET_KEY_LEN,
                      NWCHEMC_DIRECT_SET_KEY_LEN, set_keys[i]);
@@ -4005,6 +4021,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                        typed_set_values[i * NWCHEMC_DIRECT_SET_VALUE_MAX +
                                         (size_t)j]);
     }
+  }
+  for (size_t i = 0; i < brillouin_dos_zone_count; ++i) {
+    copy_text_record(
+        packed_brillouin_dos_zone_names +
+            i * NWCHEMC_DIRECT_DOS_ZONE_NAME_LEN,
+        NWCHEMC_DIRECT_DOS_ZONE_NAME_LEN, brillouin_dos_zone_names[i]);
   }
   if (dft_xc.len > 0 && dft_xc.str) {
     scf_type = dft_xc.str;
@@ -4079,6 +4101,10 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     return -1;
   }
   free(brillouin_kvectors);
+  if (nwchemc_embed_set_brillouin_dos_zones(
+          packed_brillouin_dos_zone_names, brillouin_dos_zone_grids,
+          (int)brillouin_dos_zone_count) != 0)
+    return -1;
   if (nwchemc_embed_set_nwpw_direct(nwpw_has_options, nwpw_energy_cutoff,
                                     nwpw_wavefunction_cutoff,
                                     nwpw_ewald_rcut, nwpw_ewald_ncut) != 0)
