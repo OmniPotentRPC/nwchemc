@@ -1650,6 +1650,8 @@ static void assert_potential_result_optimized(
 static void assert_potential_result_frequencies(
     const unsigned char *message, size_t message_size, double expected_energy,
     const double *expected_frequencies, const double *expected_intensities,
+    const double *expected_projected_frequencies,
+    const double *expected_projected_intensities,
     size_t expected_count, double tolerance) {
   struct capn arena;
   assert_int_equal(capn_init_mem(&arena, message, message_size, 0), 0);
@@ -1677,6 +1679,14 @@ static void assert_potential_result_frequencies(
   assert_int_equal(result.normalModes.p.datasz, 8);
   assert_int_equal(result.normalModes.p.len,
                    (int)(expected_count * expected_count));
+  capn_resolve(&result.projectedFrequencies.p);
+  assert_int_equal(result.projectedFrequencies.p.type, CAPN_LIST);
+  assert_int_equal(result.projectedFrequencies.p.datasz, 8);
+  assert_int_equal(result.projectedFrequencies.p.len, (int)expected_count);
+  capn_resolve(&result.projectedIntensities.p);
+  assert_int_equal(result.projectedIntensities.p.type, CAPN_LIST);
+  assert_int_equal(result.projectedIntensities.p.datasz, 8);
+  assert_int_equal(result.projectedIntensities.p.len, (int)expected_count);
   for (size_t i = 0; i < expected_count; ++i) {
     double actual_frequency =
         capn_to_f64(capn_get64(result.frequencies, (int)i));
@@ -1684,6 +1694,14 @@ static void assert_potential_result_frequencies(
         capn_to_f64(capn_get64(result.intensities, (int)i));
     assert_close(actual_frequency, expected_frequencies[i], tolerance);
     assert_close(actual_intensity, expected_intensities[i], tolerance);
+    double actual_projected_frequency =
+        capn_to_f64(capn_get64(result.projectedFrequencies, (int)i));
+    double actual_projected_intensity =
+        capn_to_f64(capn_get64(result.projectedIntensities, (int)i));
+    assert_close(actual_projected_frequency,
+                 expected_projected_frequencies[i], tolerance);
+    assert_close(actual_projected_intensity,
+                 expected_projected_intensities[i], tolerance);
   }
   for (size_t i = 0; i < expected_count * expected_count; ++i) {
     double actual_mode = capn_to_f64(capn_get64(result.normalModes, (int)i));
@@ -5584,9 +5602,16 @@ static void test_session_calculate_structural_results_write_potential_result(
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
                                           0.04, 0.05, 0.06};
+  const double expected_projected_frequencies[6] = {90.0, 91.0, 92.0,
+                                                    93.0, 94.0, 95.0};
+  const double expected_projected_intensities[6] = {0.02, 0.04, 0.06,
+                                                    0.08, 0.10, 0.12};
   assert_potential_result_frequencies(result_bytes, result_size, -1.625,
                                       expected_frequencies,
-                                      expected_intensities, 6, 1.0e-12);
+                                      expected_intensities,
+                                      expected_projected_frequencies,
+                                      expected_projected_intensities, 6,
+                                      1.0e-12);
 
   size_t changed_frequencies_size = 0;
   NWChemCResult changed_frequencies =
@@ -5964,9 +5989,16 @@ static void test_calculate_structural_results_one_shot_write_potential_result(
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
                                           0.04, 0.05, 0.06};
+  const double expected_projected_frequencies[6] = {90.0, 91.0, 92.0,
+                                                    93.0, 94.0, 95.0};
+  const double expected_projected_intensities[6] = {0.02, 0.04, 0.06,
+                                                    0.08, 0.10, 0.12};
   assert_potential_result_frequencies(result_bytes, result_size, -1.625,
                                       expected_frequencies,
-                                      expected_intensities, 6, 1.0e-12);
+                                      expected_intensities,
+                                      expected_projected_frequencies,
+                                      expected_projected_intensities, 6,
+                                      1.0e-12);
 
   free(step_a);
   free(message);
@@ -6168,9 +6200,16 @@ static void test_calculate_config_results_one_shot_write_potential_results(
                                           103.0, 104.0, 105.0};
   const double expected_intensities[6] = {0.01, 0.02, 0.03,
                                           0.04, 0.05, 0.06};
+  const double expected_projected_frequencies[6] = {90.0, 91.0, 92.0,
+                                                    93.0, 94.0, 95.0};
+  const double expected_projected_intensities[6] = {0.02, 0.04, 0.06,
+                                                    0.08, 0.10, 0.12};
   assert_potential_result_frequencies(result_bytes, result_size, -1.625,
                                       expected_frequencies,
-                                      expected_intensities, 6, 1.0e-12);
+                                      expected_intensities,
+                                      expected_projected_frequencies,
+                                      expected_projected_intensities, 6,
+                                      1.0e-12);
 
   free(config);
   free(step_a);
