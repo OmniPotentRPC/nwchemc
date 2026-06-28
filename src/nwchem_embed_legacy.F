@@ -1726,7 +1726,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*(*) errmsg
       logical ok
       integer i, j, l_key, l_value, nvalues, maxsets, maxvalues
-      parameter (maxsets = 64)
+      parameter (maxsets = 256)
       parameter (maxvalues = 64)
       integer ivals(maxvalues)
       double precision dvals(maxvalues)
@@ -1841,7 +1841,7 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*(*) errmsg
       logical ok
       integer i, l_key, l_value, maxsets
-      parameter (maxsets = 64)
+      parameter (maxsets = 256)
 
       ok = .false.
       if (set_count .lt. 0 .or. set_count .gt. maxsets) then

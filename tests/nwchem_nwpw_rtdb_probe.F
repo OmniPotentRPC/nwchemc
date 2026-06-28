@@ -795,6 +795,34 @@
          result = 235
          return
       endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:use_grid_cmp', lval)) then
+         result = 338
+         return
+      endif
+      if (lval) then
+         result = 339
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:use_director', lval)) then
+         result = 340
+         return
+      endif
+      if (.not. lval) then
+         result = 341
+         return
+      endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'nwpw:director_filename',
+     $     1, text_value)) then
+         result = 342
+         return
+      endif
+      if (text_value(1:12) .ne. 'director.dat') then
+         result = 343
+         return
+      endif
       if (.not. nwchemc_probe_get_int_array(rtdb,
      $     'nwpw:cell_expand', 3, ivals)) then
          result = 236
@@ -832,6 +860,44 @@
          result = 243
          return
       endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'cpmd:fei_filename',
+     $     1, text_value)) then
+         result = 344
+         return
+      endif
+      if (text_value(1:7) .ne. 'fei.dat') then
+         result = 345
+         return
+      endif
+      text_value = ' '
+      if (.not. btdb_cget(rtdb, 'nwpw:fei_filename',
+     $     1, text_value)) then
+         result = 346
+         return
+      endif
+      if (text_value(1:7) .ne. 'fei.dat') then
+         result = 347
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'cpmd:fei', lval)) then
+         result = 348
+         return
+      endif
+      if (.not. lval) then
+         result = 349
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'nwpw:fei', lval)) then
+         result = 350
+         return
+      endif
+      if (.not. lval) then
+         result = 351
+         return
+      endif
       if (.not. nwchemc_probe_get_log(rtdb,
      $     'pspw:HFX_single_precision', lval)) then
          result = 244
@@ -848,6 +914,123 @@
       endif
       if (.not. lval) then
          result = 247
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'cpsd:geometry_optimize', lval)) then
+         result = 312
+         return
+      endif
+      if (.not. lval) then
+         result = 313
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'band:geometry_optimize', lval)) then
+         result = 314
+         return
+      endif
+      if (.not. lval) then
+         result = 315
+         return
+      endif
+      if (.not. nwchemc_probe_get_log(rtdb,
+     $     'pspw_qmmm_auxon', lval)) then
+         result = 316
+         return
+      endif
+      if (.not. lval) then
+         result = 317
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'cgsd:ispin',
+     $     ival)) then
+         result = 318
+         return
+      endif
+      if (ival .ne. 2) then
+         result = 319
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'band:ispin',
+     $     ival)) then
+         result = 320
+         return
+      endif
+      if (ival .ne. 2) then
+         result = 321
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'cpsd:ispin',
+     $     ival)) then
+         result = 322
+         return
+      endif
+      if (ival .ne. 2) then
+         result = 323
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'cgsd:mult',
+     $     ival)) then
+         result = 324
+         return
+      endif
+      if (ival .ne. 3) then
+         result = 325
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'band:mult',
+     $     ival)) then
+         result = 326
+         return
+      endif
+      if (ival .ne. 3) then
+         result = 327
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb, 'cpsd:mult',
+     $     ival)) then
+         result = 328
+         return
+      endif
+      if (ival .ne. 3) then
+         result = 329
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'dos:alpha', 1, dvals)) then
+         result = 330
+         return
+      endif
+      if (dabs(dvals(1) - 0.0025d0) .gt. 1.0d-12) then
+         result = 331
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'dos:npoints', ival)) then
+         result = 332
+         return
+      endif
+      if (ival .ne. 120) then
+         result = 333
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'dos:emin', 1, dvals)) then
+         result = 334
+         return
+      endif
+      if (dabs(dvals(1) + 0.5d0) .gt. 1.0d-12) then
+         result = 335
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'dos:emax', 1, dvals)) then
+         result = 336
+         return
+      endif
+      if (dabs(dvals(1) - 1.5d0) .gt. 1.0d-12) then
+         result = 337
          return
       endif
       if (.not. nwchemc_probe_get_dbl_array(rtdb,

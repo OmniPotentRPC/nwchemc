@@ -579,7 +579,8 @@ verifies finite ~PotentialResult.energy~ and ~PotentialResult.forces~ values.
 The ~nwchem-nwpw-rtdb~ probe also installs a configured
 ~PotentialConfig.nwchem~ fixture and verifies the same NWPW control families
 against the embedded RTDB handle, including string-valued ~vfieldFilenames~
-and ~dosFilename~ controls.
+and ~dosFilename~ controls, DOS scalars, director/FEI state, auxiliary
+potentials, and NWPW multiplicity fan-out.
 
 ** Atom And Geometry Limits
 Direct geometry and library-basis setup use ~n_atoms~-sized storage instead of

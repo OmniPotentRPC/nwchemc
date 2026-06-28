@@ -84,7 +84,7 @@ module nwchem_embed_c_api
   integer, parameter :: max_embed_pseudopotentials = 64
   integer, parameter :: psp_element_len = 16
   integer, parameter :: psp_name_len = 256
-  integer, parameter :: max_embed_set_strings = 64
+  integer, parameter :: max_embed_set_strings = 256
   integer, parameter :: max_embed_set_values = 64
   integer, parameter :: set_key_len = 128
   integer, parameter :: set_value_len = 256
