@@ -334,9 +334,9 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*255 vectors_in
       integer n3, i
       integer l_grad, k_grad
-      logical status
-      external task_energy, task_gradient
-      logical task_energy, task_gradient
+      logical status, have_movecs
+      external task_gradient
+      logical task_gradient
       external nw_inp_from_character, util_file_name, util_file_name_resolve
       logical nw_inp_from_character
 
@@ -347,30 +347,46 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
-C     Warm multi-call: update coords in existing geometry (keep basis/SCF).
-C     Single task_gradient (energy included); skip method/PSP/input re-apply.
-      call nwchemc_update_geometry_coords(rtdb, n_atoms, pos_ang,
-     $     errmsg, status)
-      if (.not. status) then
-         call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
-     $        atmnrs, cell_ang, has_cell, errmsg, status)
-         if (.not. status) return
-         call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
-     $        basis_name, errmsg, status)
-         if (.not. status) return
-         call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
-     $        charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
-     $        dft_smear_spinset, scf_has_options, scf_maxiter,
-     $        scf_thresh, scf_tol2e, driver_has_options,
-     $        driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
-     $        driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
-         if (.not. status) then
-            errmsg = 'method RTDB setup failed'
+C     Full method setup (same as energy_only), including inputBlocks.
+      call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
+     $     atmnrs, cell_ang, has_cell, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
+     $     basis_name, errmsg, status)
+      if (.not. status) return
+      call nwchemc_store_pseudopotentials(rtdb, psp_count, psp_elements,
+     $     psp_types, psp_names, errmsg, status)
+      if (.not. status) return
+      if (inp_strlen(input_blocks) .gt. 0) then
+         if (.not. nw_inp_from_character(rtdb,
+     $        input_blocks(1:inp_strlen(input_blocks)))) then
+            errmsg = 'nw_inp_from_character inputBlocks failed'
             return
          endif
       endif
+      call nwchemc_store_brillouin_zone(rtdb, brillouin_has_options,
+     $     brillouin_zone_name, brillouin_monkhorst_pack,
+     $     brillouin_max_kpoints_print, brillouin_kvector_count,
+     $     brillouin_kvectors, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_string_sets(rtdb, set_string_count,
+     $     set_keys, set_values, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_direct_typed_sets(rtdb, typed_set_count,
+     $     typed_set_keys, typed_set_types, typed_set_value_counts,
+     $     typed_set_values, errmsg, status)
+      if (.not. status) return
+      call nwchemc_apply_method_state(rtdb, theory_name, scf_type,
+     $     charge, mult, dft_direct, dft_smear_on, dft_smear_sigma,
+     $     dft_smear_spinset, scf_has_options, scf_maxiter,
+     $     scf_thresh, scf_tol2e, driver_has_options,
+     $     driver_maxiter, driver_tolerance_mode, driver_gmax_tol,
+     $     driver_grms_tol, driver_xmax_tol, driver_xrms_tol, status)
+      if (.not. status) then
+         errmsg = 'method RTDB setup failed'
+         return
+      endif
       n3 = 3 * n_atoms
-C     Socket bead parity: one permanent movecs; atomic only if missing.
       call util_file_name('movecs', .false., .false., vectors_in)
       call util_file_name_resolve(vectors_in, .false.)
       status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
@@ -378,14 +394,14 @@ C     Socket bead parity: one permanent movecs; atomic only if missing.
          errmsg = 'rtdb_cput scf:output vectors failed'
          return
       endif
-C     Existence via open/err with trimmed path.
       i = inp_strlen(vectors_in)
-      open(unit=98, file=vectors_in(1:i), status='old', err=98)
-      close(unit=98)
-      status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-      go to 99
-   98 status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
-   99 continue
+      vectors_in(i+1:) = ' '
+      inquire(file=vectors_in, exist=have_movecs)
+      if (have_movecs) then
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+      else
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
+      endif
       if (.not. status) then
          errmsg = 'rtdb_cput scf:input vectors failed'
          return
@@ -396,28 +412,38 @@ C     Existence via open/err with trimmed path.
          errmsg = 'task_gradient failed'
          return
       endif
-
       call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
      $     status)
       if (.not. status) then
          errmsg = 'rtdb_get task/postscf energy failed'
          return
       endif
-C     Prefer task:gradient; write directly into output (avoid MA copy issues).
+      if (.not. ma_push_get(mt_dbl, n3, 'nwchemc_g', l_grad,
+     $     k_grad)) then
+         errmsg = 'ma_push_get grad failed'
+         return
+      endif
       if (.not. rtdb_get(rtdb, 'task:gradient', mt_dbl, n3,
-     $     grad_h_bohr)) then
+     $        dbl_mb(k_grad))) then
          if (.not. rtdb_get(rtdb, 'scf:gradient', mt_dbl, n3,
-     $        grad_h_bohr)) then
+     $           dbl_mb(k_grad))) then
             do i = 1, n3
                grad_h_bohr(i) = 0.0d0
             enddo
-            errmsg = 'rtdb_get task/scf:gradient failed; grad zeroed'
+            errmsg = 'rtdb_get gradient failed; grad zeroed'
          else
+            do i = 1, n3
+               grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
+            enddo
             errmsg = 'ok'
          endif
       else
+         do i = 1, n3
+            grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
+         enddo
          errmsg = 'ok'
       endif
+      status = ma_pop_stack(l_grad)
       ok = 0
       return
       end
@@ -2092,10 +2118,16 @@ C     Prefer permanent movecs so multi-call forces reuse MOs (not atomic guess).
       if (theory_name(1:3) .eq. 'dft' .or.
      $    theory_name(1:5) .eq. 'tddft' .or.
      $    theory_name(1:5) .eq. 'sodft') then
-         status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
-         ok = ok .and. status
-         call nwchemc_apply_named_dft_xc(rtdb, scf_type, status)
-         ok = ok .and. status
+C        scfType is RHF/UHF/ROHF wavefunction, not XC. Only promote named XC
+C        functionals (e.g. pbe0); leave inputBlocks XC (e.g. b3lyp) intact.
+         if (.not. (inp_compare(.false., scf_type, 'rhf') .or.
+     $        inp_compare(.false., scf_type, 'uhf') .or.
+     $        inp_compare(.false., scf_type, 'rohf'))) then
+            status = rtdb_cput(rtdb, 'dft:xc', 1, scf_type)
+            ok = ok .and. status
+            call nwchemc_apply_named_dft_xc(rtdb, scf_type, status)
+            ok = ok .and. status
+         endif
          call nwchemc_rtdb_put_int(rtdb, 'dft:mult', mult, status)
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'dft:output vectors', 1, vectors_in)
@@ -2178,17 +2210,35 @@ c        TDDFT SP forces: persist CI vectors + util paths + grad root.
             status = rtdb_put(rtdb, 'tddft_grad:isinglet_roots',
      $         mt_int, 1, ival)
             ok = ok .and. status
+            ival = 0
             status = rtdb_put(rtdb, 'tddft_grad:itriplet_roots',
      $         mt_int, 1, ival)
             ok = ok .and. status
+            ival = 1
             status = rtdb_put(rtdb, 'tddft_grad:iroots',
      $         mt_int, 1, ival)
             ok = ok .and. status
+            status = rtdb_put(rtdb, 'tddft_grad:isroots',
+     $         mt_int, 1, ival)
+            ok = ok .and. status
+            lval = .true.
+            status = rtdb_put(rtdb, 'tddft:singlet', mt_log, 1, lval)
+            ok = ok .and. status
+            lval = .false.
+            status = rtdb_put(rtdb, 'tddft:triplet', mt_log, 1, lval)
+            ok = ok .and. status
          endif
       else
-         status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
-         ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
+         ok = ok .and. status
+         i = inp_strlen(vectors_in)
+         vectors_in(i+1:) = ' '
+         inquire(file=vectors_in, exist=have_movecs)
+         if (have_movecs) then
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, vectors_in)
+         else
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
+         endif
          ok = ok .and. status
          status = rtdb_cput(rtdb, 'scf:type', 1, scf_type)
          ok = ok .and. status
@@ -2205,7 +2255,8 @@ c        TCE: promote/input should set keys; ensure non-fragment path.
             call nwchemc_rtdb_put_int(rtdb, 'tce:fragment',
      $         ival, status)
             ok = ok .and. status
-            ival = 0
+C           tce:reference 1 = RHF (default); 0 = DFT/RKS — must not force DFT.
+            ival = 1
             call nwchemc_rtdb_put_int(rtdb, 'tce:reference',
      $         ival, status)
             ok = ok .and. status
@@ -2825,12 +2876,10 @@ C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
       external geom_get_user_scale, geom_cart_set, geom_masses_set
       external geom_rtdb_store, geom_atn_to_default_mass
       external geom_amatrix_set, geom_isystype_set, geom_P1_set
-      external geom_strip_sym
       logical geom_create, geom_destroy, geom_set_user_units
       logical geom_get_user_scale, geom_cart_set, geom_masses_set
       logical geom_rtdb_store, geom_atn_to_default_mass
       logical geom_amatrix_set, geom_isystype_set, geom_P1_set
-      logical geom_strip_sym
 
       ok = .false.
       if (n_atoms .le. 0) then
@@ -2908,12 +2957,6 @@ C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
       endif
       deallocate(coords, charge, mass, tags)
       call geom_compute_values(geom)
-C     C1 matches CLI fixtures (TCE/MCSCF/TDDFT need abelian symmetry).
-      if (.not. geom_strip_sym(geom)) then
-         errmsg = 'geom_strip_sym failed'
-         status = geom_destroy(geom)
-         return
-      endif
       if (.not. geom_rtdb_store(rtdb, geom, 'geometry')) then
          errmsg = 'geom_rtdb_store failed'
          status = geom_destroy(geom)

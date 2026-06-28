@@ -8,6 +8,9 @@ end
 basis
   * library sto-3g
 end
+scf
+  rhf
+end
 tce
   ccsd
 end

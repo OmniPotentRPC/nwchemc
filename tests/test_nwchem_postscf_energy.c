@@ -72,6 +72,23 @@ static void test_h2_postscf_energy_finite(void **state) {
   fprintf(stderr, "%s energy_h=%.12g\n", g_label ? g_label : "postscf",
           result.energy_h);
 
+  /* Machine-readable embed leg for tools/compare_nwchem_cli.py */
+  {
+    const char *path = getenv("NWCHEMC_COMPARE_JSON");
+    if (path && path[0]) {
+      FILE *fp = fopen(path, "w");
+      if (fp) {
+        fprintf(fp, "{\n  \"source\": \"nwchemc_energy\",\n");
+        fprintf(fp, "  \"label\": \"%s\",\n", g_label ? g_label : "postscf");
+        fprintf(fp, "  \"n_atoms\": 2,\n");
+        fprintf(fp, "  \"energy_ha\": %.17g,\n", result.energy_h);
+        fprintf(fp, "  \"gradient_ha_bohr\": null,\n");
+        fprintf(fp, "  \"n_gradient\": 0\n}\n");
+        fclose(fp);
+      }
+    }
+  }
+
   free(params);
 }
 

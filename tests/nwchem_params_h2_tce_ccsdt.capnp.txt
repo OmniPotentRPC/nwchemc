@@ -7,16 +7,8 @@
   task = "energy",
   title = "H2 TCE CCSD(T) energy",
   memoryMb = 512,
-  inputStanzas = [
-    (
-      kind = tce,
-      tce = (
-        method = "ccsd(t)",
-        model = "ccsd",
-        perturbative = "(t)",
-        thresh = 1.0e-6,
-        maxiter = 50,
-      )
-    )
+  inputBlocks = [
+    "scf\n  rhf\nend",
+    "tce\n  ccsd(t)\nend"
   ],
 )

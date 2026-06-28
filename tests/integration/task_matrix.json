@@ -53,7 +53,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-ccsd",
       "notes": "CLI task ccsd energy; embed nwchemc_energy theory=ccsd finite energy"
     },
@@ -63,7 +63,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-mp2",
       "notes": "CLI task mp2 energy; embed nwchemc_energy theory=mp2 finite energy"
     },
@@ -73,7 +73,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-tce",
       "notes": "CLI task tce energy; embed nwchemc_energy theory=tce + tce:model ccsd"
     },
@@ -83,7 +83,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-dft",
       "notes": "CLI task dft energy; embed theory=dft B3LYP"
     },
@@ -93,7 +93,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-rimp2",
       "notes": "CLI task rimp2 energy; embed theory=rimp2"
     },
@@ -103,7 +103,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-tce-ccsdt",
       "notes": "CLI tce; embed TCE model ccsd + perturbative (t)"
     },
@@ -113,7 +113,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-tddft",
       "notes": "CLI task tddft energy; embed theory=tddft + typed dft/tddft stanzas"
     },
@@ -124,7 +124,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-dft",
       "notes": "embed nwchemc_energy_forces theory=dft"
     },
@@ -135,7 +135,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-scf",
       "notes": "embed nwchemc_energy_forces theory=scf"
     },
@@ -146,7 +146,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-mp2",
       "notes": "embed SP forces theory=mp2"
     },
@@ -157,7 +157,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-rimp2",
       "notes": "embed SP forces theory=rimp2"
     },
@@ -168,7 +168,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-ccsd",
       "notes": "embed SP forces theory=ccsd"
     },
@@ -179,7 +179,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-tce",
       "notes": "embed SP forces theory=tce"
     },
@@ -190,7 +190,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-tddft",
       "notes": "embed SP forces theory=tddft (ground/reference DFT gradient path)"
     },
@@ -200,7 +200,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-mcscf",
       "notes": "CLI+embed mcscf"
     },
@@ -210,7 +210,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-sodft",
       "notes": "CLI+embed sodft"
     },
@@ -221,7 +221,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-mcscf",
       "notes": "MCSCF SP forces"
     },
@@ -232,7 +232,7 @@
         "energy",
         "forces"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-sodft",
       "notes": "SODFT SP forces"
     },
@@ -242,7 +242,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-selci",
       "notes": "CLI+embed theory=selci"
     },
@@ -252,7 +252,7 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
+      "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-direct-mp2",
       "notes": "CLI direct_mp2"
     }
