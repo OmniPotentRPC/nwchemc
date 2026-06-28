@@ -1914,6 +1914,8 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_null(strstr(g_input_blocks, "omotion_filename orb.mov"));
   assert_null(strstr(g_input_blocks, "eigmotion_filename eig.mov"));
   assert_null(strstr(g_input_blocks, "fractional_orbitals 5 6"));
+  assert_null(strstr(g_input_blocks, "occupation 1.75 2"));
+  assert_null(strstr(g_input_blocks, "extra_orbitals 3"));
   assert_null(strstr(g_input_blocks,
                      "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
   assert_null(strstr(g_input_blocks, "virtual 7 8"));
@@ -2049,7 +2051,7 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
   assert_set_string("nwpw:vfield_filenames", "vf_a.ascii vf_b.ascii");
   assert_set_string("nwpw:dos:filename", "dos.dat");
   assert_int_equal(g_set_rtdb_values_calls, 1);
-  assert_int_equal(g_typed_set_count, 253);
+  assert_int_equal(g_typed_set_count, 257);
   assert_typed_set_scalar("cgsd:ecut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
                           "12.5");
   assert_typed_set_scalar("band:wcut", NWCHEMC_DIRECT_SET_VALUE_DOUBLE,
@@ -2156,6 +2158,18 @@ static void test_embed_config_uses_direct_dft_values(void **state) {
                           NWCHEMC_DIRECT_SET_VALUE_TEXT, "eig.mov");
   assert_typed_set_pair("nwpw:fractional_orbitals",
                         NWCHEMC_DIRECT_SET_VALUE_INTEGER, "5", "6");
+  assert_typed_set_scalar("nwpw:frac_occ:number_states",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3");
+  const char *occupation_values[3] = {"1.75", "0.5", "0.25"};
+  assert_typed_set_values("nwpw:frac_occ:occupations",
+                          NWCHEMC_DIRECT_SET_VALUE_DOUBLE, 3,
+                          occupation_values);
+  const char *occupation_states[3] = {"2", "4", "7"};
+  assert_typed_set_values("nwpw:frac_occ:states",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, 3,
+                          occupation_states);
+  assert_typed_set_scalar("nwpw:frac_occ:extra_orbitals",
+                          NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3");
   assert_typed_set_scalar("nwpw:fractional_temperature",
                           NWCHEMC_DIRECT_SET_VALUE_DOUBLE, "0.02");
   assert_typed_set_scalar("nwpw:fractional_alpha",

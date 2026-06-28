@@ -159,6 +159,11 @@ static void test_parser_renders_structured_input(void **state) {
   assert_non_null(strstr(input_blocks, "omotion_filename orb.mov"));
   assert_non_null(strstr(input_blocks, "eigmotion_filename eig.mov"));
   assert_non_null(strstr(input_blocks, "fractional_orbitals 5 6"));
+  assert_non_null(strstr(input_blocks, "occupations"));
+  assert_non_null(strstr(input_blocks, "occupation 1.75 2"));
+  assert_non_null(strstr(input_blocks, "occupation 0.5 4"));
+  assert_non_null(strstr(input_blocks, "occupation 0.25 7"));
+  assert_non_null(strstr(input_blocks, "extra_orbitals 3"));
   assert_non_null(strstr(input_blocks,
                          "smear temperature 0.02 alpha 0.7 fermi orbitals 5 6"));
   assert_non_null(strstr(input_blocks, "virtual 7 8"));

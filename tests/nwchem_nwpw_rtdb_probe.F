@@ -8,12 +8,12 @@
       integer rtdb, init_ok, finish_ok, owns_mpi
       integer i, j
       integer typed_count
-      integer typed_types(44)
-      integer typed_value_counts(44)
+      integer typed_types(48)
+      integer typed_value_counts(48)
       integer ivals(3)
       integer ival
-      character*128 typed_keys(44)
-      character*256 typed_values(64,44)
+      character*128 typed_keys(48)
+      character*256 typed_values(64,48)
       save typed_values
       character*256 text_value
       character*256 errmsg
@@ -34,7 +34,7 @@
          return
       endif
 
-      do i = 1, 44
+      do i = 1, 48
          typed_keys(i) = ' '
          typed_types(i) = 0
          typed_value_counts(i) = 0
@@ -42,7 +42,7 @@
             typed_values(j,i) = ' '
          enddo
       enddo
-      typed_count = 44
+      typed_count = 48
       typed_keys(1) = 'nwpw:balance'
       typed_types(1) = 4
       typed_value_counts(1) = 1
@@ -235,6 +235,26 @@
       typed_value_counts(44) = 2
       typed_values(1,44) = '2'
       typed_values(2,44) = '4'
+      typed_keys(45) = 'nwpw:frac_occ:number_states'
+      typed_types(45) = 3
+      typed_value_counts(45) = 1
+      typed_values(1,45) = '3'
+      typed_keys(46) = 'nwpw:frac_occ:occupations'
+      typed_types(46) = 2
+      typed_value_counts(46) = 3
+      typed_values(1,46) = '1.5'
+      typed_values(2,46) = '0.25'
+      typed_values(3,46) = '0.75'
+      typed_keys(47) = 'nwpw:frac_occ:states'
+      typed_types(47) = 3
+      typed_value_counts(47) = 3
+      typed_values(1,47) = '2'
+      typed_values(2,47) = '5'
+      typed_values(3,47) = '8'
+      typed_keys(48) = 'nwpw:frac_occ:extra_orbitals'
+      typed_types(48) = 3
+      typed_value_counts(48) = 1
+      typed_values(1,48) = '4'
 
       call nwchemc_apply_direct_typed_sets(rtdb, typed_count,
      $     typed_keys, typed_types, typed_value_counts, typed_values,
@@ -325,6 +345,45 @@
       endif
       if (ival .ne. 4) then
          result = 27
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:frac_occ:number_states', ival)) then
+         result = 102
+         goto 900
+      endif
+      if (ival .ne. 3) then
+         result = 103
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:frac_occ:occupations', 3, dvals)) then
+         result = 104
+         goto 900
+      endif
+      if (dabs(dvals(1) - 1.5d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(2) - 0.25d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(3) - 0.75d0) .gt. 1.0d-12) then
+         result = 105
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:frac_occ:states', 3, ivals)) then
+         result = 106
+         goto 900
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 5 .or.
+     $     ivals(3) .ne. 8) then
+         result = 107
+         goto 900
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:frac_occ:extra_orbitals', ival)) then
+         result = 108
+         goto 900
+      endif
+      if (ival .ne. 4) then
+         result = 109
          goto 900
       endif
       if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:born',
@@ -860,6 +919,45 @@
       endif
       if (ival .ne. 4) then
          result = 227
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:frac_occ:number_states', ival)) then
+         result = 410
+         return
+      endif
+      if (ival .ne. 3) then
+         result = 411
+         return
+      endif
+      if (.not. nwchemc_probe_get_dbl_array(rtdb,
+     $     'nwpw:frac_occ:occupations', 3, dvals)) then
+         result = 412
+         return
+      endif
+      if (dabs(dvals(1) - 1.5d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(2) - 0.25d0) .gt. 1.0d-12 .or.
+     $    dabs(dvals(3) - 0.75d0) .gt. 1.0d-12) then
+         result = 413
+         return
+      endif
+      if (.not. nwchemc_probe_get_int_array(rtdb,
+     $     'nwpw:frac_occ:states', 3, ivals)) then
+         result = 414
+         return
+      endif
+      if (ivals(1) .ne. 2 .or. ivals(2) .ne. 5 .or.
+     $     ivals(3) .ne. 8) then
+         result = 415
+         return
+      endif
+      if (.not. nwchemc_probe_get_int(rtdb,
+     $     'nwpw:frac_occ:extra_orbitals', ival)) then
+         result = 416
+         return
+      endif
+      if (ival .ne. 4) then
+         result = 417
          return
       endif
       if (.not. nwchemc_probe_get_log(rtdb, 'nwpw:born',
