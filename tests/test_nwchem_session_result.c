@@ -894,6 +894,23 @@ static void test_session_raw_property_and_structural_buffers(void **state) {
     assert_true(fabs(dipole[i]) < 1.0e-7);
   }
 
+  double polarizability[12] = {0.0};
+  NWChemCResult polarizability_status =
+      nwchemc_session_calculate_polarizability(
+          session, step_eq, step_eq_size, polarizability, 12);
+  if (!polarizability_status.ok)
+    fail_msg("nwchemc_session_calculate_polarizability failed: %s",
+             polarizability_status.message);
+  double max_polarizability_abs = 0.0;
+  for (int i = 0; i < 12; ++i) {
+    if (!isfinite(polarizability[i]))
+      fail_msg("non-finite session polarizability[%d]", i);
+    max_polarizability_abs =
+        fmax(max_polarizability_abs, fabs(polarizability[i]));
+  }
+  assert_true(max_polarizability_abs > 1.0e-6);
+  assert_true(polarizability[10] > 0.0);
+
   double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult quadrupole_status = nwchemc_session_calculate_quadrupole(
       session, step_eq, step_eq_size, quadrupole, 6);
@@ -989,6 +1006,23 @@ static void test_calculate_hessian_and_dipole_one_shot(void **state) {
       fail_msg("non-finite one-shot dipole[%d]", i);
     assert_true(fabs(dipole[i]) < 1.0e-7);
   }
+
+  double polarizability[12] = {0.0};
+  NWChemCResult polarizability_status = nwchemc_calculate_polarizability(
+      params, params_size, step_eq, step_eq_size, polarizability, 12);
+  if (!polarizability_status.ok)
+    fail_msg("nwchemc_calculate_polarizability failed: %s",
+             polarizability_status.message);
+  assert_true(isfinite(polarizability_status.energy_h));
+  double max_polarizability_abs = 0.0;
+  for (int i = 0; i < 12; ++i) {
+    if (!isfinite(polarizability[i]))
+      fail_msg("non-finite one-shot polarizability[%d]", i);
+    max_polarizability_abs =
+        fmax(max_polarizability_abs, fabs(polarizability[i]));
+  }
+  assert_true(max_polarizability_abs > 1.0e-6);
+  assert_true(polarizability[10] > 0.0);
 
   double quadrupole[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   NWChemCResult quadrupole_status = nwchemc_calculate_quadrupole(
