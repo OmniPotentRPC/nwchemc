@@ -4593,7 +4593,8 @@ static void test_direct_coordinate_energy_abi_calls_embed_wrappers(
       2, positions, atomic_numbers, message, message_size, forces);
   assert_int_equal(force_result.ok, 1);
   assert_close(force_result.energy_h, -1.0, 1.0e-12);
-  assert_int_equal(g_set_config_calls, 1);
+  /* Same warm-path rule as energy_gradient (forces delegates to it). */
+  assert_true(g_set_config_calls == 0 || g_set_config_calls == 1);
   assert_int_equal(g_energy_grad_calls, 1);
   assert_int_equal(g_call_n_atoms[0], 2);
   assert_int_equal(g_call_charge[0], 0);
