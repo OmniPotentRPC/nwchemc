@@ -1862,6 +1862,32 @@ nwchem_config_options_params_bin = custom_target(
       is_parallel: false,
     )
 
+    nwchem_optimize_freq_test = executable(
+      'test_nwchem_optimize_freq',
+      'tests/test_nwchem_optimize_freq.c',
+      include_directories: inc,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+    )
+    foreach optfreq_case : [
+      ['optimize', nwchem_params_h2_scf_bin],
+      ['frequencies', nwchem_params_h2_scf_bin],
+    ]
+      test(
+        'nwchem-' + optfreq_case[0] + '-scf',
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_optimize_freq_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_optimize_freq_test, optfreq_case[0], optfreq_case[1]]
+          : [optfreq_case[0], optfreq_case[1]],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+        timeout: 600,
+      )
+    endforeach
+
     nwchem_postscf_energy_test = executable(
       'test_nwchem_postscf_energy',
       'tests/test_nwchem_postscf_energy.c',

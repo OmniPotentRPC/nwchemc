@@ -72,6 +72,25 @@ GRAD_LINE_RE = re.compile(
     re.MULTILINE,
 )
 
+# Final optimized geometry table under "Output coordinates in angstroms".
+OUTPUT_COORDS_BANNER_RE = re.compile(
+    r"Output\s+coordinates\s+in\s+angstroms", re.IGNORECASE
+)
+ATOM_XYZ_LINE_RE = re.compile(
+    r"^\s*\d+\s+\S+\s+[-+0-9.Ee]+\s+([-+0-9.Ee]+)\s+([-+0-9.Ee]+)\s+([-+0-9.Ee]+)\s*$",
+    re.MULTILINE,
+)
+# Harmonic frequencies line (cm-1); take chronologically last match.
+# Use [ \t] not \s so values cannot spill into following mode-table lines.
+FREQUENCY_LINE_RE = re.compile(
+    r"^\s*Frequency[ \t]+((?:[-+0-9.Ee]+[ \t]*)+)$",
+    re.MULTILINE | re.IGNORECASE,
+)
+PFREQUENCY_LINE_RE = re.compile(
+    r"^\s*P\.Frequency[ \t]+((?:[-+0-9.Ee]+[ \t]*)+)$",
+    re.MULTILINE | re.IGNORECASE,
+)
+
 EMBED_BIN_CANDIDATES = [
     "test_nwchem_energy_gradient",
     "tests/test_nwchem_energy_gradient",
@@ -156,12 +175,73 @@ def max_abs_delta(a: list[float], b: list[float]) -> float:
     return max(abs(x - y) for x, y in zip(a, b)) if a else 0.0
 
 
+def parse_optimized_positions(text: str) -> list[float] | None:
+    """Return flat 3*N optimized Cartesian positions (Angstrom).
+
+    Uses the last ``Output coordinates in angstroms`` atom table (after
+    driver convergence when present). Does not invent coords from prose.
+    """
+    banners = list(OUTPUT_COORDS_BANNER_RE.finditer(text))
+    if not banners:
+        return None
+    # Prefer the table after the last banner (final optimized geometry).
+    start = banners[-1].end()
+    window = text[start : start + 2000]
+    # Require the Tag/Charge header then only consecutive atom rows.
+    header = re.search(
+        r"No\.\s+Tag\s+Charge\s+X\s+Y\s+Z\s*\n\s*----[^\n]*\n",
+        window,
+        re.IGNORECASE,
+    )
+    if not header:
+        return None
+    pos: list[float] = []
+    for line in window[header.end() :].splitlines():
+        line_m = ATOM_XYZ_LINE_RE.match(line)
+        if not line_m:
+            if pos:
+                break
+            continue
+        pos.extend(float(line_m.group(i)) for i in (1, 2, 3))
+    return pos if pos else None
+
+
+def parse_frequencies(text: str) -> list[float] | None:
+    """Return frequency magnitudes (cm^-1) from the last Frequency line.
+
+    Prefers unprojected ``Frequency`` (full 3N modes). Does not invent
+    modes from thermochemistry prose. Stops at 3N values when N is known
+    from a prior geometry table; otherwise takes the first numeric run
+    on the Frequency line only (not mode eigenvector tables).
+    """
+    matches = list(FREQUENCY_LINE_RE.finditer(text))
+    if not matches:
+        matches = list(PFREQUENCY_LINE_RE.finditer(text))
+    if not matches:
+        return None
+    # Frequency line is space-separated floats only on that line.
+    line = matches[-1].group(0)
+    # Strip label
+    nums = re.findall(r"[-+0-9.Ee]+", line.split(None, 1)[-1] if line.strip() else "")
+    # The banner line itself is "Frequency   v1 v2 ..." — take floats from group 1
+    vals: list[float] = []
+    for tok in matches[-1].group(1).split():
+        try:
+            vals.append(float(tok))
+        except ValueError:
+            break
+    # Cap at reasonable 3N for small molecules if we over-read (should not)
+    if len(vals) > 30:
+        vals = vals[:30]
+    return vals if vals else None
+
+
 def run_nwchem_cli(
     nw_path: Path, work: Path, nwchem_command: list[str]
-) -> tuple[int, str, float | None, list[float] | None]:
+) -> tuple[int, str, float | None, list[float] | None, list[float] | None, list[float] | None]:
     src = (ROOT / nw_path).resolve()
     if not src.is_file():
-        return 2, f"missing input {src}", None, None
+        return 2, f"missing input {src}", None, None, None, None
     work.mkdir(parents=True, exist_ok=True)
     local_nw = work / src.name
     local_nw.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
@@ -178,7 +258,9 @@ def run_nwchem_cli(
     log_path.write_text(combined, encoding="utf-8")
     energy = parse_energy(combined)
     grad = parse_gradient(combined)
-    return proc.returncode, combined, energy, grad
+    positions = parse_optimized_positions(combined)
+    frequencies = parse_frequencies(combined)
+    return proc.returncode, combined, energy, grad, positions, frequencies
 
 
 def find_build_exe(build_dir: Path, name: str) -> Path | None:
@@ -194,7 +276,12 @@ def find_build_exe(build_dir: Path, name: str) -> Path | None:
 def find_params_for_meson_test(build_dir: Path, meson_test: str) -> Path | None:
     """Map embed_meson_test name to params blob under the Meson build dir."""
     # Defaults / SCF energy-gradient
-    if meson_test in ("nwchem-energy-gradient", "nwchem-rgpot-smoke"):
+    if meson_test in (
+        "nwchem-energy-gradient",
+        "nwchem-rgpot-smoke",
+        "nwchem-optimize-scf",
+        "nwchem-frequencies-scf",
+    ):
         for name in ("nwchem_params.bin", "nwchem_params_h2_scf.bin"):
             p = build_dir / name
             if p.is_file():
@@ -240,6 +327,10 @@ def embed_launch_for_task(
     elif meson_test.startswith("nwchem-energy-forces-"):
         label = meson_test[len("nwchem-energy-forces-") :]
         launch.extend([label, str(params)])
+    elif meson_test == "nwchem-optimize-scf":
+        launch.extend(["optimize", str(params)])
+    elif meson_test == "nwchem-frequencies-scf":
+        launch.extend(["frequencies", str(params)])
     else:
         # test_nwchem_energy_gradient PARAMS_BIN
         launch.append(str(params))
@@ -265,6 +356,8 @@ def run_embed_compare_task(
         bin_name = "test_nwchem_postscf_energy"
     elif effective_test.startswith("nwchem-energy-forces-"):
         bin_name = "test_nwchem_energy_forces"
+    elif effective_test in ("nwchem-optimize-scf", "nwchem-frequencies-scf"):
+        bin_name = "test_nwchem_optimize_freq"
     else:
         bin_name = "test_nwchem_energy_gradient"
 
@@ -338,8 +431,12 @@ def compare_task(
     embed: dict | None,
     tol_e: float,
     tol_g: float,
+    cli_positions: list[float] | None = None,
+    cli_frequencies: list[float] | None = None,
+    tol_pos: float = 1.0e-3,
+    tol_freq: float = 50.0,
 ) -> tuple[bool, list[str]]:
-    """Return (pass, notes). Energy always required from CLI; embed/grad optional per task."""
+    """Return (pass, notes). Energy always required from CLI; embed extras optional."""
     notes: list[str] = []
     ok = True
     quantities = set(task.get("quantities", ["energy"]))
@@ -349,14 +446,15 @@ def compare_task(
 
     # Forces are shipped as -gradient; CLI prints gradients under gradient banners.
     want_grad = "gradient" in quantities or "forces" in quantities
+    want_pos = "optimized_positions" in quantities
+    want_freq = "frequencies" in quantities
+    multi_qty = want_grad or want_pos or want_freq
 
     if embed and embed.get("energy_ha") is not None:
         de = abs(float(embed["energy_ha"]) - cli_energy)
-        # Gradient/forces CLI jobs may report a slightly different method total
-        # than a pure energy embed on the same geometry (e.g. RI-MP2/CCSD).
-        # Gate energy strictly for energy-only tasks; for forces/gradient tasks
-        # require gradient agreement and allow a looser energy window.
-        e_tol = tol_e if not want_grad else max(tol_e, 1.0e-3)
+        # Gradient/forces/opt/freq jobs may print a slightly different total
+        # than a pure energy embed; allow a looser energy window then.
+        e_tol = tol_e if not multi_qty else max(tol_e, 1.0e-3)
         notes.append(f"delta_energy_ha={de:.3e} (tol={e_tol:.1e})")
         if de > e_tol:
             ok = False
@@ -376,6 +474,51 @@ def compare_task(
             notes.append("cli gradient not parsed (CLI leg energy-only still valid)")
         elif eg is None and embed is not None:
             notes.append("embed gradient missing")
+
+    if want_pos:
+        ep = embed.get("optimized_positions_ang") if embed else None
+        if cli_positions is not None and ep is not None:
+            # Allow rigid translation/reflection of H2: compare bond length and
+            # sorted |z| components for diatomic along z; fall back to max abs.
+            dp = max_abs_delta(cli_positions, [float(x) for x in ep])
+            # For H2 optimize, positions may differ by overall sign flip on z.
+            ep_f = [float(x) for x in ep]
+            if len(cli_positions) == len(ep_f) == 6:
+                # Try sign flip on all coords (reflection through origin).
+                dp_flip = max_abs_delta(cli_positions, [-x for x in ep_f])
+                dp = min(dp, dp_flip)
+            notes.append(f"delta_pos_max_abs_ang={dp:.3e} (tol={tol_pos:.1e})")
+            if dp > tol_pos:
+                ok = False
+                notes.append("FAIL optimized positions delta")
+        elif cli_positions is None:
+            notes.append("cli optimized positions not parsed")
+            ok = False
+        elif ep is None and embed is not None:
+            notes.append("embed optimized_positions_ang missing")
+            ok = False
+
+    if want_freq:
+        ef = embed.get("frequencies_cm1") if embed else None
+        if cli_frequencies is not None and ef is not None:
+            # Compare sorted absolute magnitudes (mode order may differ).
+            cli_s = sorted(abs(float(x)) for x in cli_frequencies)
+            emb_s = sorted(abs(float(x)) for x in ef)
+            # Pad shorter list with zeros if lengths differ (e.g. projected).
+            n = max(len(cli_s), len(emb_s))
+            cli_s = cli_s + [0.0] * (n - len(cli_s))
+            emb_s = emb_s + [0.0] * (n - len(emb_s))
+            df = max_abs_delta(cli_s, emb_s)
+            notes.append(f"delta_freq_max_abs_cm1={df:.3e} (tol={tol_freq:.1e})")
+            if df > tol_freq:
+                ok = False
+                notes.append("FAIL frequency magnitudes delta")
+        elif cli_frequencies is None:
+            notes.append("cli frequencies not parsed")
+            ok = False
+        elif ef is None and embed is not None:
+            notes.append("embed frequencies_cm1 missing")
+            ok = False
 
     return ok, notes
 
@@ -430,6 +573,8 @@ def main() -> int:
     matrix = json.loads(MATRIX.read_text(encoding="utf-8"))
     tol_e = float(matrix["tolerances"]["energy_ha_abs"])
     tol_g = float(matrix["tolerances"]["gradient_ha_bohr_abs"])
+    tol_pos = float(matrix["tolerances"].get("position_ang_abs", 1.0e-3))
+    tol_freq = float(matrix["tolerances"].get("frequency_cm1_abs", 50.0))
     out_dir: Path = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -473,6 +618,8 @@ def main() -> int:
         f"nwchem_cli={report['nwchem']}",
         f"tol_energy_ha={tol_e}",
         f"tol_gradient_ha_bohr={tol_g}",
+        f"tol_position_ang={tol_pos}",
+        f"tol_frequency_cm1={tol_freq}",
         f"embed_build={report['embed_build'] or '(none — CLI only)'}",
         f"embed_command={report['embed_command'] or '(direct)'}",
     ]
@@ -482,7 +629,7 @@ def main() -> int:
     for task in matrix["tasks"]:
         tid = task["id"]
         work = out_dir / tid
-        rc, _text, energy, grad = run_nwchem_cli(
+        rc, _text, energy, grad, positions, frequencies = run_nwchem_cli(
             Path(task["nw_input"]), work, nwchem_command
         )
         entry: dict = {
@@ -492,6 +639,10 @@ def main() -> int:
             "cli_energy_ha": energy,
             "cli_gradient_ha_bohr": grad,
             "cli_gradient_n": len(grad) if grad else 0,
+            "cli_optimized_positions_ang": positions,
+            "cli_positions_n": len(positions) if positions else 0,
+            "cli_frequencies_cm1": frequencies,
+            "cli_frequencies_n": len(frequencies) if frequencies else 0,
             "embed_status": "not-requested",
             "embed_energy_ha": None,
             "embed_gradient_ha_bohr": None,
@@ -508,6 +659,14 @@ def main() -> int:
         lines.append(f"{tid}: CLI energy={energy:.12f} Ha")
         if grad is not None:
             lines.append(f"{tid}: CLI gradient n={len(grad)} parsed")
+        if positions is not None:
+            lines.append(
+                f"{tid}: CLI optimized positions n={len(positions)} parsed"
+            )
+        if frequencies is not None:
+            lines.append(
+                f"{tid}: CLI frequencies n={len(frequencies)} parsed"
+            )
 
         task_wants_embed = bool(task.get("embed_compare", True))
         meson_test = task.get("embed_meson_test") or "nwchem-energy-gradient"
@@ -530,8 +689,25 @@ def main() -> int:
                     entry["embed_forces_ha_bohr"] = embed_payload.get(
                         "forces_ha_bohr"
                     )
+                if embed_payload.get("optimized_positions_ang") is not None:
+                    entry["embed_optimized_positions_ang"] = embed_payload.get(
+                        "optimized_positions_ang"
+                    )
+                if embed_payload.get("frequencies_cm1") is not None:
+                    entry["embed_frequencies_cm1"] = embed_payload.get(
+                        "frequencies_cm1"
+                    )
                 cmp_ok, notes = compare_task(
-                    task, energy, grad, embed_payload, tol_e, tol_g
+                    task,
+                    energy,
+                    grad,
+                    embed_payload,
+                    tol_e,
+                    tol_g,
+                    cli_positions=positions,
+                    cli_frequencies=frequencies,
+                    tol_pos=tol_pos,
+                    tol_freq=tol_freq,
                 )
                 entry["compare_notes"] = notes
                 entry["pass"] = cmp_ok

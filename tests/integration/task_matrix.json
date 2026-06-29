@@ -3,7 +3,9 @@
   "description": "Integration / CLI compare task matrix for nwchemc vs NWChem CLI",
   "tolerances": {
     "energy_ha_abs": 1e-05,
-    "gradient_ha_bohr_abs": 0.0001
+    "gradient_ha_bohr_abs": 0.0001,
+    "position_ang_abs": 0.001,
+    "frequency_cm1_abs": 50.0
   },
   "tasks": [
     {
@@ -31,21 +33,23 @@
       "id": "h2_scf_optimize",
       "nw_input": "tests/integration/nw/h2_scf_optimize.nw",
       "quantities": [
-        "energy"
+        "energy",
+        "optimized_positions"
       ],
-      "embed_compare": false,
-      "embed_meson_test": "nwchem-rgpot-smoke",
-      "notes": "CLI task scf optimize finite energy; embed optimize via Meson/rgpot smoke not this JSON leg"
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-optimize-scf",
+      "notes": "CLI task scf optimize; embed nwchemc_optimize energy + optimized positions Angstrom"
     },
     {
       "id": "h2_scf_frequencies",
       "nw_input": "tests/integration/nw/h2_scf_frequencies.nw",
       "quantities": [
-        "energy"
+        "energy",
+        "frequencies"
       ],
-      "embed_compare": false,
-      "embed_meson_test": "nwchem-rgpot-smoke",
-      "notes": "CLI task scf freq finite energy; frequencies spectrum Meson-tested, not CLI-embed JSON"
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-frequencies-scf",
+      "notes": "CLI task scf freq; embed nwchemc_frequencies energy + frequency magnitudes cm^-1"
     },
     {
       "id": "h2_ccsd_energy",
