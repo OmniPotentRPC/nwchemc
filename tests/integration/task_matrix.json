@@ -5,7 +5,10 @@
     "energy_ha_abs": 1e-05,
     "gradient_ha_bohr_abs": 0.0001,
     "position_ang_abs": 0.001,
-    "frequency_cm1_abs": 50.0
+    "frequency_cm1_abs": 50.0,
+    "dipole_au_abs": 0.0001,
+    "quadrupole_au_abs": 0.001,
+    "hessian_ha_bohr2_abs": 0.001
   },
   "tasks": [
     {
@@ -259,6 +262,39 @@
       "embed_compare": true,
       "embed_meson_test": "nwchem-postscf-energy-direct-mp2",
       "notes": "CLI direct_mp2"
+    },
+    {
+      "id": "h2_scf_property_dipole",
+      "nw_input": "tests/integration/nw/h2_scf_property.nw",
+      "quantities": [
+        "energy",
+        "dipole"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-dipole-scf",
+      "notes": "CLI task scf property dipole; embed nwchemc_dipole"
+    },
+    {
+      "id": "h2_scf_property_quadrupole",
+      "nw_input": "tests/integration/nw/h2_scf_property.nw",
+      "quantities": [
+        "energy",
+        "quadrupole"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-quadrupole-scf",
+      "notes": "CLI task scf property quadrupole; embed nwchemc_quadrupole"
+    },
+    {
+      "id": "h2_scf_hessian",
+      "nw_input": "tests/integration/nw/h2_scf_hessian.nw",
+      "quantities": [
+        "energy",
+        "hessian"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-hessian-scf",
+      "notes": "CLI task scf hessian; embed nwchemc_hessian vs .hess / eigenvalues"
     }
   ]
 }

@@ -1888,6 +1888,34 @@ nwchem_config_options_params_bin = custom_target(
       )
     endforeach
 
+    nwchem_primary_props_test = executable(
+      'test_nwchem_primary_props',
+      'tests/test_nwchem_primary_props.c',
+      include_directories: inc,
+      dependencies: [math_dep, cmocka_dep, nwchemc_dep],
+      c_args: common_c_args + [
+        '-DNWCHEMC_TEST_SCRATCH_DIR="' + test_scratch_dir + '"',
+        '-DNWCHEMC_TEST_PERMANENT_DIR="' + test_permanent_dir + '"',
+      ],
+    )
+    foreach props_case : [
+      ['dipole', nwchem_params_h2_scf_bin],
+      ['polarizability', nwchem_params_h2_scf_bin],
+      ['quadrupole', nwchem_params_h2_scf_bin],
+      ['hessian', nwchem_params_h2_scf_bin],
+    ]
+      test(
+        'nwchem-' + props_case[0] + '-scf',
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_primary_props_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_primary_props_test, props_case[0], props_case[1]]
+          : [props_case[0], props_case[1]],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+        timeout: 600,
+      )
+    endforeach
+
     nwchem_postscf_energy_test = executable(
       'test_nwchem_postscf_energy',
       'tests/test_nwchem_postscf_energy.c',

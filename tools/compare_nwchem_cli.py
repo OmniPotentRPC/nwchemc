@@ -90,6 +90,20 @@ PFREQUENCY_LINE_RE = re.compile(
     r"^\s*P\.Frequency[ \t]+((?:[-+0-9.Ee]+[ \t]*)+)$",
     re.MULTILINE | re.IGNORECASE,
 )
+DMX_RE = re.compile(r"^\s*DMX\s+([-+0-9.Ee]+)\s+DMXEFC", re.MULTILINE)
+DMY_RE = re.compile(r"^\s*DMY\s+([-+0-9.Ee]+)\s+DMYEFC", re.MULTILINE)
+DMZ_RE = re.compile(r"^\s*DMZ\s+([-+0-9.Ee]+)\s+DMZEFC", re.MULTILINE)
+QUAD_BANNER_RE = re.compile(
+    r"Quadrupole\s+moments\s+in\s+atomic\s+units", re.IGNORECASE
+)
+QUAD_COMP_RE = re.compile(
+    r"^\s*(XX|YY|ZZ|XY|XZ|YZ)\s+([-+0-9.Ee]+)\s+([-+0-9.Ee]+)\s+([-+0-9.Ee]+)\s*$",
+    re.MULTILINE,
+)
+HESS_EIGEN_BANNER_RE = re.compile(r"Final\s+eigenvalues", re.IGNORECASE)
+HESS_EIGEN_VAL_RE = re.compile(
+    r"^\s*([-+0-9.]+(?:[DdEe][-+]?[0-9]+)?)\s*$", re.MULTILINE
+)
 
 EMBED_BIN_CANDIDATES = [
     "test_nwchem_energy_gradient",
@@ -236,12 +250,118 @@ def parse_frequencies(text: str) -> list[float] | None:
     return vals if vals else None
 
 
+def _fortran_float(tok: str) -> float:
+    return float(tok.replace("D", "E").replace("d", "e"))
+
+
+def parse_dipole(text: str) -> list[float] | None:
+    """Return DMX,DMY,DMZ in a.u. from the first Dipole Moment A.U. block."""
+    # Prefer values under the A.U. section (before Debye).
+    au = re.search(
+        r"Dipole\s+Moment.*?Dipole\s+moment\s+([-+0-9.Ee]+)\s+A\.U\.(.*?)(?:Debye|-----)",
+        text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if not au:
+        return None
+    block = au.group(0)
+    mx = DMX_RE.search(block)
+    my = DMY_RE.search(block)
+    mz = DMZ_RE.search(block)
+    if not (mx and my and mz):
+        return None
+    return [float(mx.group(1)), float(my.group(1)), float(mz.group(1))]
+
+
+def parse_quadrupole(text: str) -> list[float] | None:
+    """Return xx,xy,xz,yy,yz,zz from Quadrupole moments in atomic units Total."""
+    banners = list(QUAD_BANNER_RE.finditer(text))
+    if not banners:
+        return None
+    window = text[banners[0].end() : banners[0].end() + 2500]
+    comps: dict[str, float] = {}
+    for m in QUAD_COMP_RE.finditer(window):
+        # Total column is group 4
+        comps[m.group(1).upper()] = float(m.group(4))
+        if len(comps) >= 6:
+            break
+    order = ["XX", "XY", "XZ", "YY", "YZ", "ZZ"]
+    if not all(k in comps for k in order):
+        return None
+    return [comps[k] for k in order]
+
+
+def parse_hessian_eigenvalues(text: str) -> list[float] | None:
+    """Return Final eigenvalues from analytic Hessian output (D-float lines)."""
+    m = HESS_EIGEN_BANNER_RE.search(text)
+    if not m:
+        return None
+    window = text[m.end() : m.end() + 4000]
+    vals: list[float] = []
+    for line in window.splitlines():
+        line = line.strip()
+        if not line:
+            if vals:
+                break
+            continue
+        if HESS_EIGEN_VAL_RE.match(line):
+            try:
+                vals.append(_fortran_float(line))
+            except ValueError:
+                break
+        elif vals:
+            break
+    return vals if vals else None
+
+
+def parse_hessian_file(work: Path) -> list[float] | None:
+    """Parse NWChem .hess lower-triangle file into full row-major n*n matrix.
+
+    For H2 (n=6) the file has 21 lower-triangular entries.
+    """
+    candidates = list(work.glob("*.hess"))
+    if not candidates:
+        return None
+    path = candidates[0]
+    toks: list[float] = []
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        for tok in line.split():
+            try:
+                toks.append(_fortran_float(tok))
+            except ValueError:
+                continue
+    if not toks:
+        return None
+    # Infer n from n(n+1)/2 == len(toks)
+    n = int(round((-1 + (1 + 8 * len(toks)) ** 0.5) / 2))
+    if n * (n + 1) // 2 != len(toks):
+        # Treat as full matrix already
+        return toks
+    mat = [0.0] * (n * n)
+    k = 0
+    for i in range(n):
+        for j in range(i + 1):
+            mat[i * n + j] = toks[k]
+            mat[j * n + i] = toks[k]
+            k += 1
+    return mat
+
+
 def run_nwchem_cli(
     nw_path: Path, work: Path, nwchem_command: list[str]
-) -> tuple[int, str, float | None, list[float] | None, list[float] | None, list[float] | None]:
+) -> tuple[
+    int,
+    str,
+    float | None,
+    list[float] | None,
+    list[float] | None,
+    list[float] | None,
+    dict,
+]:
     src = (ROOT / nw_path).resolve()
+    extras: dict = {}
     if not src.is_file():
-        return 2, f"missing input {src}", None, None, None, None
+        return 2, f"missing input {src}", None, None, None, None, extras
     work.mkdir(parents=True, exist_ok=True)
     local_nw = work / src.name
     local_nw.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
@@ -260,7 +380,19 @@ def run_nwchem_cli(
     grad = parse_gradient(combined)
     positions = parse_optimized_positions(combined)
     frequencies = parse_frequencies(combined)
-    return proc.returncode, combined, energy, grad, positions, frequencies
+    extras["dipole_au"] = parse_dipole(combined)
+    extras["quadrupole_au"] = parse_quadrupole(combined)
+    extras["hessian_eigenvalues"] = parse_hessian_eigenvalues(combined)
+    extras["hessian_ha_bohr2"] = parse_hessian_file(work)
+    return (
+        proc.returncode,
+        combined,
+        energy,
+        grad,
+        positions,
+        frequencies,
+        extras,
+    )
 
 
 def find_build_exe(build_dir: Path, name: str) -> Path | None:
@@ -281,6 +413,10 @@ def find_params_for_meson_test(build_dir: Path, meson_test: str) -> Path | None:
         "nwchem-rgpot-smoke",
         "nwchem-optimize-scf",
         "nwchem-frequencies-scf",
+        "nwchem-dipole-scf",
+        "nwchem-polarizability-scf",
+        "nwchem-quadrupole-scf",
+        "nwchem-hessian-scf",
     ):
         for name in ("nwchem_params.bin", "nwchem_params_h2_scf.bin"):
             p = build_dir / name
@@ -331,6 +467,14 @@ def embed_launch_for_task(
         launch.extend(["optimize", str(params)])
     elif meson_test == "nwchem-frequencies-scf":
         launch.extend(["frequencies", str(params)])
+    elif meson_test == "nwchem-dipole-scf":
+        launch.extend(["dipole", str(params)])
+    elif meson_test == "nwchem-polarizability-scf":
+        launch.extend(["polarizability", str(params)])
+    elif meson_test == "nwchem-quadrupole-scf":
+        launch.extend(["quadrupole", str(params)])
+    elif meson_test == "nwchem-hessian-scf":
+        launch.extend(["hessian", str(params)])
     else:
         # test_nwchem_energy_gradient PARAMS_BIN
         launch.append(str(params))
@@ -358,6 +502,13 @@ def run_embed_compare_task(
         bin_name = "test_nwchem_energy_forces"
     elif effective_test in ("nwchem-optimize-scf", "nwchem-frequencies-scf"):
         bin_name = "test_nwchem_optimize_freq"
+    elif effective_test in (
+        "nwchem-dipole-scf",
+        "nwchem-polarizability-scf",
+        "nwchem-quadrupole-scf",
+        "nwchem-hessian-scf",
+    ):
+        bin_name = "test_nwchem_primary_props"
     else:
         bin_name = "test_nwchem_energy_gradient"
 
@@ -433,13 +584,18 @@ def compare_task(
     tol_g: float,
     cli_positions: list[float] | None = None,
     cli_frequencies: list[float] | None = None,
+    cli_extras: dict | None = None,
     tol_pos: float = 1.0e-3,
     tol_freq: float = 50.0,
+    tol_dipole: float = 1.0e-4,
+    tol_quad: float = 1.0e-3,
+    tol_hess: float = 1.0e-3,
 ) -> tuple[bool, list[str]]:
     """Return (pass, notes). Energy always required from CLI; embed extras optional."""
     notes: list[str] = []
     ok = True
     quantities = set(task.get("quantities", ["energy"]))
+    extras = cli_extras or {}
 
     if cli_energy is None:
         return False, ["cli energy missing"]
@@ -448,7 +604,12 @@ def compare_task(
     want_grad = "gradient" in quantities or "forces" in quantities
     want_pos = "optimized_positions" in quantities
     want_freq = "frequencies" in quantities
-    multi_qty = want_grad or want_pos or want_freq
+    want_dipole = "dipole" in quantities
+    want_quad = "quadrupole" in quantities
+    want_hess = "hessian" in quantities
+    multi_qty = (
+        want_grad or want_pos or want_freq or want_dipole or want_quad or want_hess
+    )
 
     if embed and embed.get("energy_ha") is not None:
         de = abs(float(embed["energy_ha"]) - cli_energy)
@@ -520,6 +681,60 @@ def compare_task(
             notes.append("embed frequencies_cm1 missing")
             ok = False
 
+    if want_dipole:
+        cd = extras.get("dipole_au")
+        ed = embed.get("dipole_au") if embed else None
+        if cd is not None and ed is not None:
+            dd = max_abs_delta(cd, [float(x) for x in ed])
+            notes.append(f"delta_dipole_max_abs_au={dd:.3e} (tol={tol_dipole:.1e})")
+            if dd > tol_dipole:
+                ok = False
+                notes.append("FAIL dipole delta")
+        elif cd is None:
+            notes.append("cli dipole not parsed")
+            ok = False
+        elif ed is None and embed is not None:
+            notes.append("embed dipole_au missing")
+            ok = False
+
+    if want_quad:
+        cq = extras.get("quadrupole_au")
+        eq = embed.get("quadrupole_au") if embed else None
+        if cq is not None and eq is not None:
+            dq = max_abs_delta(cq, [float(x) for x in eq])
+            notes.append(f"delta_quad_max_abs_au={dq:.3e} (tol={tol_quad:.1e})")
+            if dq > tol_quad:
+                ok = False
+                notes.append("FAIL quadrupole delta")
+        elif cq is None:
+            notes.append("cli quadrupole not parsed")
+            ok = False
+        elif eq is None and embed is not None:
+            notes.append("embed quadrupole_au missing")
+            ok = False
+
+    if want_hess:
+        ch = extras.get("hessian_ha_bohr2")
+        eh = embed.get("hessian_ha_bohr2") if embed else None
+        if ch is not None and eh is not None:
+            # Compare sorted |elements| to tolerate storage order differences.
+            cs = sorted(abs(float(x)) for x in ch)
+            es = sorted(abs(float(x)) for x in eh)
+            n = max(len(cs), len(es))
+            cs = cs + [0.0] * (n - len(cs))
+            es = es + [0.0] * (n - len(es))
+            dh = max_abs_delta(cs, es)
+            notes.append(f"delta_hess_max_abs={dh:.3e} (tol={tol_hess:.1e})")
+            if dh > tol_hess:
+                ok = False
+                notes.append("FAIL hessian delta")
+        elif ch is None:
+            notes.append("cli hessian (.hess / eigenvalues) not parsed")
+            ok = False
+        elif eh is None and embed is not None:
+            notes.append("embed hessian_ha_bohr2 missing")
+            ok = False
+
     return ok, notes
 
 
@@ -575,6 +790,9 @@ def main() -> int:
     tol_g = float(matrix["tolerances"]["gradient_ha_bohr_abs"])
     tol_pos = float(matrix["tolerances"].get("position_ang_abs", 1.0e-3))
     tol_freq = float(matrix["tolerances"].get("frequency_cm1_abs", 50.0))
+    tol_dipole = float(matrix["tolerances"].get("dipole_au_abs", 1.0e-4))
+    tol_quad = float(matrix["tolerances"].get("quadrupole_au_abs", 1.0e-3))
+    tol_hess = float(matrix["tolerances"].get("hessian_ha_bohr2_abs", 1.0e-3))
     out_dir: Path = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -629,7 +847,7 @@ def main() -> int:
     for task in matrix["tasks"]:
         tid = task["id"]
         work = out_dir / tid
-        rc, _text, energy, grad, positions, frequencies = run_nwchem_cli(
+        rc, _text, energy, grad, positions, frequencies, extras = run_nwchem_cli(
             Path(task["nw_input"]), work, nwchem_command
         )
         entry: dict = {
@@ -643,6 +861,13 @@ def main() -> int:
             "cli_positions_n": len(positions) if positions else 0,
             "cli_frequencies_cm1": frequencies,
             "cli_frequencies_n": len(frequencies) if frequencies else 0,
+            "cli_dipole_au": extras.get("dipole_au"),
+            "cli_quadrupole_au": extras.get("quadrupole_au"),
+            "cli_hessian_n": (
+                len(extras["hessian_ha_bohr2"])
+                if extras.get("hessian_ha_bohr2")
+                else 0
+            ),
             "embed_status": "not-requested",
             "embed_energy_ha": None,
             "embed_gradient_ha_bohr": None,
@@ -697,6 +922,14 @@ def main() -> int:
                     entry["embed_frequencies_cm1"] = embed_payload.get(
                         "frequencies_cm1"
                     )
+                for k in (
+                    "dipole_au",
+                    "quadrupole_au",
+                    "polarizability_au",
+                    "hessian_ha_bohr2",
+                ):
+                    if embed_payload.get(k) is not None:
+                        entry[f"embed_{k}"] = embed_payload.get(k)
                 cmp_ok, notes = compare_task(
                     task,
                     energy,
@@ -706,8 +939,12 @@ def main() -> int:
                     tol_g,
                     cli_positions=positions,
                     cli_frequencies=frequencies,
+                    cli_extras=extras,
                     tol_pos=tol_pos,
                     tol_freq=tol_freq,
+                    tol_dipole=tol_dipole,
+                    tol_quad=tol_quad,
+                    tol_hess=tol_hess,
                 )
                 entry["compare_notes"] = notes
                 entry["pass"] = cmp_ok
