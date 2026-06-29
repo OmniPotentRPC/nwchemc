@@ -106,8 +106,8 @@ static void test_primary(void **state) {
       assert_true(isfinite(alpha[i]));
       max_abs = fmax(max_abs, fabs(alpha[i]));
     }
-    /* Non-trivial response vector for H2. */
-    assert_true(max_abs > 1.0e-6 || isfinite(r.energy_h));
+    /* Non-trivial polarizability response for H2 (not energy-only theater). */
+    assert_true(max_abs > 1.0e-3);
     fprintf(stderr, "polarizability energy_h=%.12g max_abs=%.6g\n", r.energy_h,
             max_abs);
     if (jpath && jpath[0]) {
