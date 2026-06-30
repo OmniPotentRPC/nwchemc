@@ -3165,8 +3165,6 @@ C     nvir=1 under embed. Irregular maps place the full array on process 0.
       integer dims(2), nblock1, nblock2
       integer map1(1), map2(1)
       logical status
-      integer nga_create_irreg
-      external nga_create_irreg
       if (noper .lt. 1) noper = 1
       if (n1 .lt. 1) n1 = 1
       if (n2 .lt. 1) n2 = 1
