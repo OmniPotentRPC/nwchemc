@@ -3162,20 +3162,19 @@ C     nvir=1 under embed. Irregular maps place the full array on process 0.
       integer noper, n1, n2
       character*(*) label
       integer g_a
-      integer dims(2), nblock1, nblock2
-      integer map1(1), map2(1)
+      integer dims(2), nblock(2), map(2)
       logical status
       if (noper .lt. 1) noper = 1
       if (n1 .lt. 1) n1 = 1
       if (n2 .lt. 1) n2 = 1
       dims(1) = n1 * n2
       dims(2) = noper
-      nblock1 = 1
-      nblock2 = 1
-      map1(1) = 1
-      map2(1) = 1
-      status = nga_create_irreg(MT_DBL, 2, dims, label, map1, nblock1,
-     $     map2, nblock2, g_a)
+      nblock(1) = 1
+      nblock(2) = 1
+      map(1) = 1
+      map(2) = 1
+      status = nga_create_irreg(MT_DBL, 2, dims, label, map, nblock,
+     $     g_a)
       if (.not. status) then
          write(6, *) ' ga_create_JKblocked(embed): ', label
          call util_flush(6)
