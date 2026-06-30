@@ -228,7 +228,10 @@ if has_nwchem
   nwchemc_consumer_link_args = []
   if not builds_shared_nwchemc
     nwchemc_consumer_deps += nwchemc_params_deps
-    nwchemc_consumer_link_args += nwchem_link_args
+    # allow-multiple so embed ga_create_JKblocked wins over NWChem moints.
+    nwchemc_consumer_link_args += nwchem_link_args + [
+      '-Wl,--allow-multiple-definition',
+    ]
   endif
   nwchemc_dep = declare_dependency(
     link_with: nwchemc,
