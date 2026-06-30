@@ -1,0 +1,18 @@
+echo
+start h2_tce_mbpt2_energy
+title "H2 TCE MBPT(2) energy"
+geometry units angstrom noautosym
+  H 0.0 0.0 -0.3707
+  H 0.0 0.0  0.3707
+end
+basis spherical
+  H library sto-3g
+end
+scf
+  rhf
+  thresh 1e-8
+end
+tce
+  mbpt2
+end
+task tce energy

@@ -1,0 +1,10 @@
+(
+  basis = "sto-3g",
+  theory = "ccsd(t)",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "H2 classic CCSD(T) energy",
+  memoryMb = 512,
+)

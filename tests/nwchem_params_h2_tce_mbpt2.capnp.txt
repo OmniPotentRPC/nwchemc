@@ -1,0 +1,14 @@
+(
+  basis = "sto-3g",
+  theory = "tce",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "H2 TCE MBPT(2) energy",
+  memoryMb = 512,
+  inputBlocks = [
+    "scf\n  rhf\nend",
+    "tce\n  mbpt2\nend"
+  ],
+)

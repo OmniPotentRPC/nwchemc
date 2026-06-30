@@ -1384,6 +1384,48 @@ nwchem_config_options_params_bin = custom_target(
       ],
     )
 
+    # Extra SP / multi-reference TCE and classic CCSD(T) params (H2 STO-3G).
+    nwchem_params_h2_extra = {}
+    foreach _extra : [
+      'ccsd_t',
+      'tce_ccd',
+      'tce_cisd',
+      'tce_mbpt2',
+      'tce_ccsdt_iter',
+      'tce_cc2',
+      'tce_cr_ccsdt',
+      'tce_lccsd',
+      'tce_mbpt4',
+      'tce_lambda',
+    ]
+      nwchem_params_h2_extra += {
+        _extra: custom_target(
+          'nwchem_params_h2_' + _extra + '_bin',
+          input: 'tests/nwchem_params_h2_' + _extra + '.capnp.txt',
+          output: 'nwchem_params_h2_' + _extra + '.bin',
+          command: [
+            python,
+            meson.current_source_dir() / 'tests/encode_capnp.py',
+            capnp,
+            meson.current_source_dir() / 'schema/Potentials.capnp',
+            'NWChemParams',
+            '@INPUT@',
+            '@OUTPUT@',
+          ],
+        ),
+      }
+    endforeach
+    nwchem_params_h2_ccsd_t_bin = nwchem_params_h2_extra['ccsd_t']
+    nwchem_params_h2_tce_ccd_bin = nwchem_params_h2_extra['tce_ccd']
+    nwchem_params_h2_tce_cisd_bin = nwchem_params_h2_extra['tce_cisd']
+    nwchem_params_h2_tce_mbpt2_bin = nwchem_params_h2_extra['tce_mbpt2']
+    nwchem_params_h2_tce_ccsdt_iter_bin = nwchem_params_h2_extra['tce_ccsdt_iter']
+    nwchem_params_h2_tce_cc2_bin = nwchem_params_h2_extra['tce_cc2']
+    nwchem_params_h2_tce_cr_ccsdt_bin = nwchem_params_h2_extra['tce_cr_ccsdt']
+    nwchem_params_h2_tce_lccsd_bin = nwchem_params_h2_extra['tce_lccsd']
+    nwchem_params_h2_tce_mbpt4_bin = nwchem_params_h2_extra['tce_mbpt4']
+    nwchem_params_h2_tce_lambda_bin = nwchem_params_h2_extra['tce_lambda']
+
     nwchem_input_blocks_params_text = configure_file(
       input: 'tests/nwchem_params_input_blocks.capnp.txt.in',
       output: 'nwchem_params_input_blocks.capnp.txt',
@@ -1841,6 +1883,8 @@ nwchem_config_options_params_bin = custom_target(
       ['sodft', nwchem_params_h2_sodft_bin],
       ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
       ['selci', nwchem_params_h2_selci_bin],
+      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
+      ['tce-cisd', nwchem_params_h2_tce_cisd_bin],
     ]
       test(
         'nwchem-energy-forces-' + forces_case[0],
@@ -1942,6 +1986,16 @@ nwchem_config_options_params_bin = custom_target(
       ['sodft', nwchem_params_h2_sodft_bin],
       ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
       ['selci', nwchem_params_h2_selci_bin],
+      ['ccsd-t', nwchem_params_h2_ccsd_t_bin],
+      ['tce-ccd', nwchem_params_h2_tce_ccd_bin],
+      ['tce-cisd', nwchem_params_h2_tce_cisd_bin],
+      ['tce-mbpt2', nwchem_params_h2_tce_mbpt2_bin],
+      ['tce-ccsdt-iter', nwchem_params_h2_tce_ccsdt_iter_bin],
+      ['tce-cc2', nwchem_params_h2_tce_cc2_bin],
+      ['tce-cr-ccsdt', nwchem_params_h2_tce_cr_ccsdt_bin],
+      ['tce-lccsd', nwchem_params_h2_tce_lccsd_bin],
+      ['tce-mbpt4', nwchem_params_h2_tce_mbpt4_bin],
+      ['tce-lambda', nwchem_params_h2_tce_lambda_bin],
     ]
       test(
         'nwchem-postscf-energy-' + postscf[0],

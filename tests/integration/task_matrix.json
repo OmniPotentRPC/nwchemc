@@ -338,6 +338,128 @@
       "embed_compare": true,
       "embed_meson_test": "nwchem-dipole-dft",
       "notes": "non-SCF SP property: DFT dipole"
+    },
+    {
+      "id": "h2_ccsd_t_energy",
+      "nw_input": "tests/integration/nw/h2_ccsd_t_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-ccsd-t",
+      "notes": "classic module task ccsd(t) energy (not TCE)"
+    },
+    {
+      "id": "h2_tce_ccd_energy",
+      "nw_input": "tests/integration/nw/h2_tce_ccd_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-ccd",
+      "notes": "TCE CCD single-point"
+    },
+    {
+      "id": "h2_tce_cisd_energy",
+      "nw_input": "tests/integration/nw/h2_tce_cisd_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-cisd",
+      "notes": "TCE CISD (CI / multi-config SP)"
+    },
+    {
+      "id": "h2_tce_mbpt2_energy",
+      "nw_input": "tests/integration/nw/h2_tce_mbpt2_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-mbpt2",
+      "notes": "TCE MBPT(2) path distinct from classic mp2"
+    },
+    {
+      "id": "h2_tce_ccsdt_iter_energy",
+      "nw_input": "tests/integration/nw/h2_tce_ccsdt_iter_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-ccsdt-iter",
+      "notes": "full iterative TCE CCSDT (vs perturbative ccsd(t) fixture)"
+    },
+    {
+      "id": "h2_tce_cc2_energy",
+      "nw_input": "tests/integration/nw/h2_tce_cc2_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-cc2",
+      "notes": "TCE CC2"
+    },
+    {
+      "id": "h2_tce_cr_ccsdt_energy",
+      "nw_input": "tests/integration/nw/h2_tce_cr_ccsdt_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-cr-ccsdt",
+      "notes": "TCE CR-CCSD(T)"
+    },
+    {
+      "id": "h2_tce_lccsd_energy",
+      "nw_input": "tests/integration/nw/h2_tce_lccsd_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-lccsd",
+      "notes": "TCE linearized CCSD"
+    },
+    {
+      "id": "h2_tce_mbpt4_energy",
+      "nw_input": "tests/integration/nw/h2_tce_mbpt4_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-mbpt4",
+      "notes": "TCE MBPT(4) (includes MBPT2/3 intermediates)"
+    },
+    {
+      "id": "h2_tce_lambda_energy",
+      "nw_input": "tests/integration/nw/h2_tce_lambda_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-lambda",
+      "notes": "TCE lambda-CCSD(T)"
+    },
+    {
+      "id": "h2_tce_mrcc_forces",
+      "nw_input": "tests/integration/nw/h2_tce_mrcc_forces.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-energy-forces-tce-mrcc",
+      "notes": "TCE MRCC multi-ref numerical gradient"
+    },
+    {
+      "id": "h2_tce_cisd_forces",
+      "nw_input": "tests/integration/nw/h2_tce_cisd_forces.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-energy-forces-tce-cisd",
+      "notes": "TCE CISD gradient"
     }
   ]
 }

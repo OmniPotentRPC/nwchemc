@@ -1,0 +1,18 @@
+echo
+start h2_tce_lccsd_energy
+title "H2 TCE LCCSD energy"
+geometry units angstrom noautosym
+  H 0.0 0.0 -0.3707
+  H 0.0 0.0  0.3707
+end
+basis spherical
+  H library sto-3g
+end
+scf
+  rhf
+  thresh 1e-8
+end
+tce
+  lccsd
+end
+task tce energy
