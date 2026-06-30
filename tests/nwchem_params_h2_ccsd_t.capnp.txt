@@ -1,5 +1,5 @@
 (
-  basis = "6-31g",
+  basis = "sto-3g",
   theory = "ccsd(t)",
   scfType = "rhf",
   charge = 0,

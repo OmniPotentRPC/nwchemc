@@ -42,9 +42,12 @@ C        from environment / .nwchemrc / compiled-in limits.
 C        Match nwchem.F order: GA limited init, then MA (GA may use MA).
 C        Memory is user-controlled: NWCHEM_MEMORY_TOTAL/_HEAP/_STACK/_GLOBAL
 C        (words) or .nwchemrc. Only fill zeros if nothing configured.
+C        Defaults must match typical CLI NWChem (not tiny test stubs): classic
+C        CCSD(T) triples on H2/STO-3G aborts in ga_get on X oper when global
+C        is only ~8e6 doubles; CLI default is ~5.2e7 global / ~2.6e7 heap.
          if (stack .le. 0) stack = 4000000
-         if (heap .le. 0) heap = 4000000
-         if (global .le. 0) global = 8000000
+         if (heap .le. 0) heap = 26214394
+         if (global .le. 0) global = 52428800
 C        Match NWChemWrap / geninterface embed path (not full nwchem.F).
          call ga_initialize()
          if (ga_uses_ma()) then

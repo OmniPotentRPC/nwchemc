@@ -6,7 +6,7 @@ geometry units angstrom noautosym
   H 0.0 0.0  0.3707
 end
 basis spherical
-  H library 6-31g
+  H library sto-3g
 end
 scf
   rhf
