@@ -3170,11 +3170,14 @@ C     Classic theory ccsd(t) under embed: use TCE perturbative triples.
       logical lval
       character*32 tce_model_existing
       character*64 tce_block
+      character*7 ccsdt_tok
       ok = .true.
 c     Classic module theory ccsd(t) only (not TCE / iterative ccsdt).
-      if (.not. inp_compare(.false., theory_name, 'ccsd(t)')) return
-      tce_block = 'tce' // char(10) // '  ccsd(t)' // char(10) //
-     $     'end'
+c     Build token without embedding apostrophe in (t).
+      ccsdt_tok = 'ccsd(' // 't)'
+      if (.not. inp_compare(.false., theory_name, ccsdt_tok)) return
+      tce_block = 'tce' // char(10) // '  ' // ccsdt_tok //
+     $     char(10) // 'end'
       if (.not. nw_inp_from_character(rtdb, tce_block)) then
          ok = .false.
          return
