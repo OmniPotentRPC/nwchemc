@@ -23,6 +23,7 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_reset_rtdb
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_set_dft_direct
+  public :: nwchemc_embed_set_basis_direct
   public :: nwchemc_embed_set_scf_direct
   public :: nwchemc_embed_set_driver_direct
   public :: nwchemc_embed_set_nwpw_direct
@@ -822,6 +823,63 @@ contains
     ! Evaluation calls write method state after numeric geometry setup.
     rc = 0_c_int
   end function nwchemc_embed_set_config
+
+  !> Store basis stanza options (enums + optional ECP / per-element libraries).
+  function nwchemc_embed_set_basis_direct(library_root, angular_kind, &
+      segment_mode, legacy_spherical, ecp_name, ecp_len, elem_n, &
+      elem_tags, elem_libs) result(rc) &
+      bind(C, name='nwchemc_embed_set_basis_direct')
+    integer(c_int) :: rc
+    integer(c_int), intent(in), value :: library_root
+    integer(c_int), intent(in), value :: angular_kind
+    integer(c_int), intent(in), value :: segment_mode
+    integer(c_int), intent(in), value :: legacy_spherical
+    character(kind=c_char), intent(in) :: ecp_name(*)
+    integer(c_int), intent(in), value :: ecp_len
+    integer(c_int), intent(in), value :: elem_n
+    character(kind=c_char), intent(in) :: elem_tags(*)
+    character(kind=c_char), intent(in) :: elem_libs(*)
+    character(len=64) :: ecp_f
+    character(len=16) :: tags_f(64)
+    character(len=64) :: libs_f(64)
+    integer :: i, n, tlen, llen
+    interface
+      subroutine nwchemc_set_basis_options(library_root, angular_kind, &
+          segment_mode, legacy_spherical, ecp_name, ecp_len, elem_n, &
+          elem_tags, elem_libs)
+        integer, intent(in) :: library_root, angular_kind, segment_mode
+        integer, intent(in) :: legacy_spherical, ecp_len, elem_n
+        character(len=*), intent(in) :: ecp_name
+        character(len=16), intent(in) :: elem_tags(*)
+        character(len=64), intent(in) :: elem_libs(*)
+      end subroutine nwchemc_set_basis_options
+    end interface
+    ecp_f = ' '
+    if (ecp_len > 0) then
+      n = min(int(ecp_len), 64)
+      do i = 1, n
+        if (ecp_name(i) == c_null_char) exit
+        ecp_f(i:i) = ecp_name(i)
+      end do
+    end if
+    tags_f = ' '
+    libs_f = ' '
+    n = min(max(int(elem_n), 0), 64)
+    do i = 1, n
+      do tlen = 1, 16
+        if (elem_tags((i - 1) * 16 + tlen) == c_null_char) exit
+        tags_f(i)(tlen:tlen) = elem_tags((i - 1) * 16 + tlen)
+      end do
+      do llen = 1, 64
+        if (elem_libs((i - 1) * 64 + llen) == c_null_char) exit
+        libs_f(i)(llen:llen) = elem_libs((i - 1) * 64 + llen)
+      end do
+    end do
+    call nwchemc_set_basis_options(int(library_root), int(angular_kind), &
+        int(segment_mode), int(legacy_spherical), ecp_f, len_trim(ecp_f), &
+        n, tags_f, libs_f)
+    rc = 0_c_int
+  end function nwchemc_embed_set_basis_direct
 
   !> Store direct DFT options extracted from Cap'n Proto (xc/direct/smear).
   !> Promoted xc updates cfg_scf; numeric DFT knobs are applied through RTDB.

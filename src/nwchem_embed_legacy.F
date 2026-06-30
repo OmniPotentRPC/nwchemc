@@ -2983,6 +2983,179 @@ C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
       return
       end
 
+c     Embed basis options (set from Cap'n Proto NWChemBasisStanza via C ABI).
+c     library_root: 0=unspecified, 1=classic libraries/, 2=libraries.bse/
+c     angular_kind: 0=unspecified, 1=cartesian, 2=spherical
+c     segment_mode: 0=unspecified, 1=segment, 2=nosegment
+      block data nwchemc_basis_opts_bd
+      integer nwchemc_basis_library_root
+      integer nwchemc_basis_angular_kind
+      integer nwchemc_basis_segment_mode
+      integer nwchemc_basis_legacy_spherical
+      character*64 nwchemc_basis_ecp_name
+      integer nwchemc_basis_elem_n
+      character*16 nwchemc_basis_elem_tags(64)
+      character*64 nwchemc_basis_elem_libs(64)
+      common /nwchemc_basis_opts/ nwchemc_basis_library_root,
+     $     nwchemc_basis_angular_kind, nwchemc_basis_segment_mode,
+     $     nwchemc_basis_legacy_spherical, nwchemc_basis_ecp_name,
+     $     nwchemc_basis_elem_n, nwchemc_basis_elem_tags,
+     $     nwchemc_basis_elem_libs
+      data nwchemc_basis_library_root /0/
+      data nwchemc_basis_angular_kind /0/
+      data nwchemc_basis_segment_mode /0/
+      data nwchemc_basis_legacy_spherical /0/
+      data nwchemc_basis_ecp_name /' '/
+      data nwchemc_basis_elem_n /0/
+      end
+
+      subroutine nwchemc_set_basis_options(library_root, angular_kind,
+     $     segment_mode, legacy_spherical, ecp_name, ecp_len,
+     $     elem_n, elem_tags, elem_libs)
+      implicit none
+      integer library_root, angular_kind, segment_mode, legacy_spherical
+      integer ecp_len, elem_n
+      character*(*) ecp_name
+      character*16 elem_tags(*)
+      character*64 elem_libs(*)
+      integer i, ncopy
+      integer nwchemc_basis_library_root
+      integer nwchemc_basis_angular_kind
+      integer nwchemc_basis_segment_mode
+      integer nwchemc_basis_legacy_spherical
+      character*64 nwchemc_basis_ecp_name
+      integer nwchemc_basis_elem_n
+      character*16 nwchemc_basis_elem_tags(64)
+      character*64 nwchemc_basis_elem_libs(64)
+      common /nwchemc_basis_opts/ nwchemc_basis_library_root,
+     $     nwchemc_basis_angular_kind, nwchemc_basis_segment_mode,
+     $     nwchemc_basis_legacy_spherical, nwchemc_basis_ecp_name,
+     $     nwchemc_basis_elem_n, nwchemc_basis_elem_tags,
+     $     nwchemc_basis_elem_libs
+      save /nwchemc_basis_opts/
+
+      nwchemc_basis_library_root = library_root
+      nwchemc_basis_angular_kind = angular_kind
+      nwchemc_basis_segment_mode = segment_mode
+      nwchemc_basis_legacy_spherical = legacy_spherical
+      nwchemc_basis_ecp_name = ' '
+      if (ecp_len .gt. 0) then
+         ncopy = min(ecp_len, 64)
+         nwchemc_basis_ecp_name(1:ncopy) = ecp_name(1:ncopy)
+      endif
+      nwchemc_basis_elem_n = 0
+      if (elem_n .gt. 0) then
+         ncopy = min(elem_n, 64)
+         nwchemc_basis_elem_n = ncopy
+         do i = 1, ncopy
+            nwchemc_basis_elem_tags(i) = elem_tags(i)
+            nwchemc_basis_elem_libs(i) = elem_libs(i)
+         enddo
+      endif
+      return
+      end
+
+c     Map on-disk library filename form to NWChem in-file standard name.
+c     NWChem bas_tag_lib builds filenames by replacing * with s; file keys
+c     keep stars (e.g. basis "H_6-31G*"). Accept either form by peeking the
+c     library file for the first basis "TAG_STANDARD" matching TAG.
+      subroutine nwchemc_resolve_library_standard(basis_in, tag,
+     $     standard)
+      implicit none
+#include "baslibraryP.fh"
+#include "inp.fh"
+#include "stdio.fh"
+      character*(*) basis_in
+      character*16 tag
+      character*(*) standard
+      character*255 filestring, field, key, want
+      character*255 std_try, basis_lc
+      integer i, lenn, lena, ind, ios
+      logical file_exists, found
+      character*1 ch
+
+      standard = basis_in
+      basis_lc = basis_in
+      call inp_lcase(basis_lc)
+c     Build filename the same way bas_tag_lib does from the given name.
+      filestring = user_library_name
+      lenn = inp_strlen(filestring)
+      if (lenn .gt. 0) then
+#ifdef WIN32
+         if (filestring(lenn:lenn) .eq. '\') then
+#else
+         if (filestring(lenn:lenn) .eq. '/') then
+#endif
+            lena = lenn
+            do 31 ind = 1, inp_strlen(basis_lc)
+               ch = basis_lc(ind:ind)
+               if (ch .eq. '(' .or. ch .eq. ')' .or.
+     $              ch .eq. '[' .or. ch .eq. ']') goto 31
+               lena = lena + 1
+               if (ch .eq. ',' .or. ch .eq. '/' .or. ch .eq. ' ') then
+                  filestring(lena:lena) = '_'
+               elseif (ch .eq. '*') then
+                  filestring(lena:lena) = 's'
+               else
+                  filestring(lena:lena) = ch
+               endif
+ 31         continue
+            call inp_lcase(filestring(lenn+1:))
+         else
+            filestring = basis_lc
+         endif
+      else
+         filestring = basis_lc
+      endif
+      inquire(file=filestring, exist=file_exists)
+      if (.not. file_exists) return
+c     Prefer standard already containing * (star form) when given.
+      do i = 1, inp_strlen(basis_lc)
+         if (basis_lc(i:i) .eq. '*') return
+      enddo
+c     Peek file for basis "tag_standard" entries (same search key layout).
+      open(unit=98, file=filestring, status='old', iostat=ios)
+      if (ios .ne. 0) return
+      want = tag
+      call inp_lcase(want)
+      lenn = inp_strlen(want)
+      want(lenn+1:lenn+1) = '_'
+      found = .false.
+ 40   read(98, '(a)', end=50, err=50) field
+      call inp_lcase(field)
+      if (field(1:5) .ne. 'basis') goto 40
+c     Find quoted key after basis
+      i = index(field, '"')
+      if (i .le. 0) goto 40
+      key = field(i+1:)
+      i = index(key, '"')
+      if (i .le. 0) goto 40
+      key = key(1:i-1)
+      call inp_lcase(key)
+      if (key(1:lenn+1) .ne. want(1:lenn+1)) goto 40
+c     Remainder after tag_ is the standard name (underscores -> spaces later
+c     handled by bas_tag_lib; keep as-is from file but restore * from filename
+c     when the key uses stars).
+      std_try = key(lenn+2:)
+      if (inp_strlen(std_try) .gt. 0) then
+         standard = std_try
+         found = .true.
+      endif
+      if (found) goto 50
+      goto 40
+ 50   close(98)
+c     Heuristic fallback if peek failed: trailing gss -> g**, gs -> g*
+      if (.not. found) then
+         lenn = inp_strlen(basis_lc)
+         if (lenn .ge. 3 .and. basis_lc(lenn-2:lenn) .eq. 'gss') then
+            standard = basis_lc(1:lenn-2)//'**'
+         elseif (lenn .ge. 2 .and. basis_lc(lenn-1:lenn) .eq. 'gs') then
+            standard = basis_lc(1:lenn-1)//'*'
+         endif
+      endif
+      return
+      end
+
       subroutine nwchemc_store_library_basis(rtdb, n_atoms, atmnrs,
      $     basis_name, errmsg, ok)
       implicit none
@@ -2992,6 +3165,21 @@ C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
       character*(*) errmsg
       logical ok
       logical status
+      character*64 ecp_name
+      integer nwchemc_basis_library_root
+      integer nwchemc_basis_angular_kind
+      integer nwchemc_basis_segment_mode
+      integer nwchemc_basis_legacy_spherical
+      character*64 nwchemc_basis_ecp_name
+      integer nwchemc_basis_elem_n
+      character*16 nwchemc_basis_elem_tags(64)
+      character*64 nwchemc_basis_elem_libs(64)
+      common /nwchemc_basis_opts/ nwchemc_basis_library_root,
+     $     nwchemc_basis_angular_kind, nwchemc_basis_segment_mode,
+     $     nwchemc_basis_legacy_spherical, nwchemc_basis_ecp_name,
+     $     nwchemc_basis_elem_n, nwchemc_basis_elem_tags,
+     $     nwchemc_basis_elem_libs
+      save /nwchemc_basis_opts/
 
       ok = .false.
       if (n_atoms .le. 0) then
@@ -3000,18 +3188,24 @@ C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
       endif
 c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
       call nwchemc_store_one_library_basis(rtdb, n_atoms, atmnrs,
-     $     basis_name, 'ao basis', errmsg, status)
+     $     basis_name, 'ao basis', .false., errmsg, status)
       if (.not. status) return
       call nwchemc_store_one_library_basis(rtdb, n_atoms, atmnrs,
-     $     basis_name, 'ri-mp2 basis', errmsg, status)
+     $     basis_name, 'ri-mp2 basis', .false., errmsg, status)
       if (.not. status) return
+      ecp_name = nwchemc_basis_ecp_name
+      if (ecp_name .ne. ' ') then
+         call nwchemc_store_one_library_basis(rtdb, n_atoms, atmnrs,
+     $        ecp_name, 'ecp basis', .true., errmsg, status)
+         if (.not. status) return
+      endif
       ok = .true.
       errmsg = 'ok'
       return
       end
 
       subroutine nwchemc_store_one_library_basis(rtdb, n_atoms, atmnrs,
-     $     basis_name, rtdb_key, errmsg, ok)
+     $     basis_name, rtdb_key, is_ecp, errmsg, ok)
       implicit none
 #include "mafdecls.fh"
 #include "rtdb.fh"
@@ -3022,17 +3216,33 @@ c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
       integer atmnrs(*)
       character*(*) basis_name
       character*(*) rtdb_key
+      logical is_ecp
       character*(*) errmsg
       logical ok
-      integer iat, j, nlib, ntags, basis, alloc_status
+      integer iat, j, nlib, ntags, basis, alloc_status, ie
       character*16, allocatable :: tags(:)
       character*16 tag
       character*255 mydir
       character*255 standard
       character*256 filename
+      character*64 lib_for_tag
       logical seen
       logical status
-      logical osegment, oshell_is_rel, read_sphere
+      logical osegment, oshell_is_rel, read_sphere, want_sph
+      integer nwchemc_basis_library_root
+      integer nwchemc_basis_angular_kind
+      integer nwchemc_basis_segment_mode
+      integer nwchemc_basis_legacy_spherical
+      character*64 nwchemc_basis_ecp_name
+      integer nwchemc_basis_elem_n
+      character*16 nwchemc_basis_elem_tags(64)
+      character*64 nwchemc_basis_elem_libs(64)
+      common /nwchemc_basis_opts/ nwchemc_basis_library_root,
+     $     nwchemc_basis_angular_kind, nwchemc_basis_segment_mode,
+     $     nwchemc_basis_legacy_spherical, nwchemc_basis_ecp_name,
+     $     nwchemc_basis_elem_n, nwchemc_basis_elem_tags,
+     $     nwchemc_basis_elem_libs
+      save /nwchemc_basis_opts/
       external bas_create, bas_tag_lib, bas_rtdb_store
       external bas_do_destroy, bas_set_library_name
       external bas_add_ucnt_init, bas_add_ucnt_tidy
@@ -3048,6 +3258,9 @@ c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
          return
       endif
       mydir = ' '
+c     classic/unspecified: empty mydir => NWCHEM_BASIS_LIBRARY / nwchemrc /
+c     compiled basis/libraries/. bse => bas_set_library_name('libraries.bse').
+      if (nwchemc_basis_library_root .eq. 2) mydir = 'libraries.bse'
       call bas_set_library_name(mydir)
       if (.not. bas_create(basis, rtdb_key)) then
          errmsg = 'bas_create failed'
@@ -3060,6 +3273,16 @@ c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
          status = bas_do_destroy(basis)
          return
       endif
+      want_sph = .false.
+      if (nwchemc_basis_angular_kind .eq. 2) then
+         want_sph = .true.
+      elseif (nwchemc_basis_angular_kind .eq. 1) then
+         want_sph = .false.
+      elseif (nwchemc_basis_legacy_spherical .ne. 0) then
+         want_sph = .true.
+      endif
+c     Default cartesian until library shells are loaded; apply angularKind
+c     after bas_tag_lib so classic library parsers are unchanged.
       if (.not. bas_set_spherical(basis, .false.)) then
          errmsg = 'bas_set_spherical failed'
          deallocate(tags)
@@ -3068,6 +3291,8 @@ c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
       endif
       ntags = 0
       osegment = .true.
+      if (nwchemc_basis_segment_mode .eq. 2) osegment = .false.
+      if (nwchemc_basis_segment_mode .eq. 1) osegment = .true.
       oshell_is_rel = .false.
       read_sphere = .false.
       nlib = inp_strlen(user_library_name)
@@ -3075,6 +3300,9 @@ c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
          if (user_library_name(nlib - 14:nlib) .eq.
      $      '/libraries.bse/') read_sphere = .true.
       endif
+c     Do not force read_sphere for classic libraries/; those files often
+c     include a SPHERICAL token that bas_tag_lib only consumes when
+c     read_sphere is set for BSE. Angular kind uses bas_set_spherical after.
       do iat = 1, n_atoms
          call nwchemc_z_to_elem(atmnrs(iat), tag)
          seen = .false.
@@ -3084,12 +3312,28 @@ c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
          if (.not. seen) then
             ntags = ntags + 1
             tags(ntags) = tag
-            standard = basis_name
+            lib_for_tag = basis_name
+            do ie = 1, nwchemc_basis_elem_n
+               if (inp_compare(.false., nwchemc_basis_elem_tags(ie),
+     $              tag)) then
+                  lib_for_tag = nwchemc_basis_elem_libs(ie)
+               endif
+            enddo
+            call nwchemc_resolve_library_standard(lib_for_tag, tag,
+     $           standard)
             filename = user_library_name
             call bas_tag_lib(basis, osegment, tag, tag, standard,
      $           filename, oshell_is_rel, read_sphere)
          endif
       enddo
+      if (want_sph) then
+         if (.not. bas_set_spherical(basis, .true.)) then
+            errmsg = 'bas_set_spherical failed'
+            deallocate(tags)
+            status = bas_do_destroy(basis)
+            return
+         endif
+      endif
       deallocate(tags)
       if (.not. bas_rtdb_store(rtdb, rtdb_key, basis)) then
          errmsg = 'bas_rtdb_store failed'

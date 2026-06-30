@@ -2512,8 +2512,15 @@ static int render_basis_stanza(NWChemBasisStanza_ptr ptr, char *dst,
   read_NWChemBasisStanza(&basis, ptr);
   if (append_format(block, sizeof(block), "basis") != 0)
     return -1;
-  if (basis.spherical && append_format(block, sizeof(block), " spherical") != 0)
-    return -1;
+  {
+    int spherical = basis.spherical;
+    if (basis.angularKind == NWChemBasisAngularKind_spherical)
+      spherical = 1;
+    else if (basis.angularKind == NWChemBasisAngularKind_cartesian)
+      spherical = 0;
+    if (spherical && append_format(block, sizeof(block), " spherical") != 0)
+      return -1;
+  }
   if (append_format(block, sizeof(block), "\n") != 0)
     return -1;
   if (basis.segment.len > 0) {
@@ -3493,7 +3500,8 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
                                 int include_direct_promoted_nwpw,
                                 int include_direct_promoted_tce,
                                 int include_direct_set_strings,
-                                int include_task_stanzas) {
+                                int include_task_stanzas,
+                                int include_basis_stanzas) {
   int n = struct_list_len(&stanzas.p);
   if (n < 0)
     return -1;
@@ -3581,7 +3589,10 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
         return -1;
       break;
     case NWChemInputStanza_Kind_basis:
-      if (render_basis_stanza(stanza.basisStanza, dst, dst_size) != 0)
+      /* Embed promotes basis options via RTDB; skip text basis block there so
+       * an empty "basis spherical / end" does not wipe library AO functions. */
+      if (include_basis_stanzas &&
+          render_basis_stanza(stanza.basisStanza, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_geometry:
@@ -3624,7 +3635,7 @@ int nwchemc_params_render_input_blocks(NWChemParams_ptr params, char *dst,
   read_NWChemParams(&view, params);
   dst[0] = '\0';
   if (render_input_stanzas(view.inputStanzas, dst, dst_size, 1, 1, 1, 1, 1, 1,
-                           1, 1) != 0)
+                           1, 1, 1) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -3637,7 +3648,7 @@ int nwchemc_params_render_embed_input_blocks(NWChemParams_ptr params, char *dst,
   read_NWChemParams(&view, params);
   dst[0] = '\0';
   if (render_input_stanzas(view.inputStanzas, dst, dst_size, 0, 0, 0, 0, 0, 0,
-                           0, 0) != 0)
+                           0, 0, 0) != 0)
     return -1;
   return render_input_blocks(view.inputBlocks, dst, dst_size);
 }
@@ -3687,6 +3698,88 @@ int nwchemc_params_extract_direct_dft(NWChemParams_ptr params, capn_text *xc,
         *smear_sigma_hartree = smearing.sigmaHartree;
         *smearing_spinset =
             smearing.mode == NWChemDftSmearing_Mode_nofixsz ? 0 : 1;
+      }
+    }
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_basis(NWChemParams_ptr params,
+                                        int *library_root, int *angular_kind,
+                                        int *segment_mode,
+                                        int *legacy_spherical, capn_text *ecp,
+                                        char *element_tags, size_t tag_stride,
+                                        char *element_libs, size_t lib_stride,
+                                        size_t element_capacity,
+                                        size_t *element_count) {
+  if (params.p.type == CAPN_NULL || !library_root || !angular_kind ||
+      !segment_mode || !legacy_spherical || !ecp || !element_count)
+    return -1;
+
+  *library_root = NWChemBasisLibraryRoot_unspecified;
+  *angular_kind = NWChemBasisAngularKind_unspecified;
+  *segment_mode = NWChemBasisSegmentMode_unspecified;
+  *legacy_spherical = 0;
+  ecp->str = NULL;
+  ecp->len = 0;
+  *element_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_basis ||
+        stanza.basisStanza.p.type == CAPN_NULL)
+      continue;
+
+    struct NWChemBasisStanza basis;
+    read_NWChemBasisStanza(&basis, stanza.basisStanza);
+    *library_root = (int)basis.libraryRoot;
+    *angular_kind = (int)basis.angularKind;
+    *segment_mode = (int)basis.segmentMode;
+    *legacy_spherical = basis.spherical ? 1 : 0;
+    if (basis.ecp.len > 0)
+      *ecp = basis.ecp;
+
+    if (element_tags && element_libs && element_capacity > 0 &&
+        tag_stride > 0 && lib_stride > 0) {
+      int nd = struct_list_len(&basis.directives.p);
+      if (nd < 0)
+        return -1;
+      for (int d = 0; d < nd && *element_count < element_capacity; ++d) {
+        struct NWChemDirective dir;
+        get_NWChemDirective(&dir, basis.directives, d);
+        /* "H library 6-31g*" => keyword=H, args=[library, 6-31g*] */
+        if (dir.keyword.len <= 0)
+          continue;
+        int na = pointer_list_len(&dir.args);
+        if (na < 2)
+          continue;
+        {
+          capn_text empty_text = {0};
+          capn_text a0 = capn_get_text(dir.args, 0, empty_text);
+          capn_text a1 = capn_get_text(dir.args, 1, empty_text);
+        if (a0.len != 7 || !a0.str || strncmp(a0.str, "library", 7) != 0)
+          continue;
+        if (a1.len <= 0 || !a1.str)
+          continue;
+        size_t idx = *element_count;
+        memset(element_tags + idx * tag_stride, 0, tag_stride);
+        memset(element_libs + idx * lib_stride, 0, lib_stride);
+        size_t tcopy = (size_t)dir.keyword.len < tag_stride - 1
+                           ? (size_t)dir.keyword.len
+                           : tag_stride - 1;
+        memcpy(element_tags + idx * tag_stride, dir.keyword.str, tcopy);
+        size_t lcopy =
+            (size_t)a1.len < lib_stride - 1 ? (size_t)a1.len : lib_stride - 1;
+        memcpy(element_libs + idx * lib_stride, a1.str, lcopy);
+        (*element_count)++;
+        }
       }
     }
   }

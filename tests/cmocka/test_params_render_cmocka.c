@@ -15,6 +15,7 @@
 
 static const char *g_config_options_path = NULL;
 static const char *g_structured_path = NULL;
+static const char *g_basis_options_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -508,6 +509,55 @@ static void test_render_rejects_null_dst(void **state) {
   free(message);
 }
 
+
+static void test_extract_basis_options_enums_and_directives(void **state) {
+  (void)state;
+  assert_non_null(g_basis_options_path);
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_basis_options_path, &message_size);
+  assert_non_null(message);
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  int library_root = -1;
+  int angular_kind = -1;
+  int segment_mode = -1;
+  int legacy_spherical = -1;
+  capn_text ecp = {0};
+  char tags[64 * 16];
+  char libs[64 * 64];
+  size_t n_elem = 0;
+  memset(tags, 0, sizeof(tags));
+  memset(libs, 0, sizeof(libs));
+  assert_int_equal(nwchemc_params_extract_direct_basis(
+                       params_root, &library_root, &angular_kind, &segment_mode,
+                       &legacy_spherical, &ecp, tags, 16, libs, 64, 64,
+                       &n_elem),
+                   0);
+  assert_int_equal(library_root, NWChemBasisLibraryRoot_classic);
+  assert_int_equal(angular_kind, NWChemBasisAngularKind_spherical);
+  assert_int_equal(segment_mode, NWChemBasisSegmentMode_segment);
+  assert_int_equal(legacy_spherical, 0);
+  assert_true(ecp.len > 0);
+  assert_non_null(ecp.str);
+  assert_true(strncmp(ecp.str, "lanl2dz_ecp", (size_t)ecp.len) == 0 ||
+              (ecp.len >= 11 && strncmp(ecp.str, "lanl2dz_ecp", 11) == 0));
+  assert_int_equal((int)n_elem, 1);
+  assert_string_equal(tags, "H");
+  assert_string_equal(libs, "6-31g**");
+
+  char blocks[8192];
+  assert_int_equal(
+      nwchemc_params_render_input_blocks(params_root, blocks, sizeof(blocks)),
+      0);
+  assert_render_contains(blocks, "basis spherical");
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 static void test_params_root_rejects_empty(void **state) {
   (void)state;
   struct capn arena;
@@ -519,11 +569,14 @@ static void test_params_root_rejects_empty(void **state) {
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    fprintf(stderr, "usage: %s CONFIG_OPTIONS_BIN [STRUCTURED_BIN]\n", argv[0]);
+    fprintf(stderr,
+            "usage: %s CONFIG_OPTIONS_BIN [STRUCTURED_BIN] [BASIS_OPTIONS_BIN]\n",
+            argv[0]);
     return 2;
   }
   g_config_options_path = argv[1];
   g_structured_path = argc >= 3 ? argv[2] : NULL;
+  g_basis_options_path = argc >= 4 ? argv[3] : NULL;
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_render_config_options_stanzas),
@@ -534,6 +587,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_render_semidirect_enabled_alone_full_and_embed),
       cmocka_unit_test(test_render_rejects_null_dst),
       cmocka_unit_test(test_params_root_rejects_empty),
+      cmocka_unit_test(test_extract_basis_options_enums_and_directives),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

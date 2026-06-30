@@ -1,0 +1,22 @@
+(
+  basis = "6-31gs",
+  theory = "scf",
+  scfType = "rhf",
+  charge = 0,
+  multiplicity = 1,
+  task = "energy",
+  title = "basis options fixture",
+  memoryMb = 512,
+  inputStanzas = [
+    (kind = basis, basisStanza = (
+      spherical = false,
+      ecp = "lanl2dz_ecp",
+      libraryRoot = classic,
+      angularKind = spherical,
+      segmentMode = segment,
+      directives = [
+        (keyword = "H", args = ["library", "6-31g**"])
+      ]
+    ))
+  ]
+)

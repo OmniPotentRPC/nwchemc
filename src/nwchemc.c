@@ -27,6 +27,12 @@ extern int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
                                         int smearing_enabled,
                                         double smear_sigma_hartree,
                                         int smearing_spinset);
+extern int nwchemc_embed_set_basis_direct(int library_root, int angular_kind,
+                                          int segment_mode,
+                                          int legacy_spherical,
+                                          const char *ecp_name, int ecp_len,
+                                          int elem_n, const char *elem_tags,
+                                          const char *elem_libs);
 extern int nwchemc_embed_set_scf_direct(int has_options, int maxiter,
                                         double thresh, double tol2e);
 extern int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
@@ -4585,9 +4591,34 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                       driver_grms_tol, driver_xmax_tol,
                                       driver_xrms_tol) != 0)
     return -1;
-  return nwchemc_embed_set_dft_direct(
-      dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,
-      dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset);
+  if (nwchemc_embed_set_dft_direct(
+          dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,
+          dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset) != 0)
+    return -1;
+  {
+    int library_root = 0;
+    int angular_kind = 0;
+    int segment_mode = 0;
+    int legacy_spherical = 0;
+    capn_text ecp = {0};
+    enum { BASIS_ELEM_MAX = 64, BASIS_TAG_LEN = 16, BASIS_LIB_LEN = 64 };
+    char elem_tags[BASIS_ELEM_MAX * BASIS_TAG_LEN];
+    char elem_libs[BASIS_ELEM_MAX * BASIS_LIB_LEN];
+    size_t elem_count = 0;
+    memset(elem_tags, 0, sizeof(elem_tags));
+    memset(elem_libs, 0, sizeof(elem_libs));
+    if (nwchemc_params_extract_direct_basis(
+            params_root, &library_root, &angular_kind, &segment_mode,
+            &legacy_spherical, &ecp, elem_tags, BASIS_TAG_LEN, elem_libs,
+            BASIS_LIB_LEN, BASIS_ELEM_MAX, &elem_count) != 0)
+      return -1;
+    if (nwchemc_embed_set_basis_direct(
+            library_root, angular_kind, segment_mode, legacy_spherical,
+            ecp.str ? ecp.str : "", ecp.str ? (int)ecp.len : 0, (int)elem_count,
+            elem_tags, elem_libs) != 0)
+      return -1;
+  }
+  return 0;
 }
 
 int nwchemc_set_params(const void *params_capnp,

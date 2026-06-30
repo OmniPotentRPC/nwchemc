@@ -52,6 +52,18 @@ int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       double *tol2e, capn_text *wavefunction_type,
                                       int *nopen, int *has_nopen);
 
+/* NWChemBasisStanza closed options + optional ECP / per-element library lines.
+ * library_root/angular_kind/segment_mode use NWChemBasis* enum integer values.
+ * element_tags/libs are packed records of tag_stride / lib_stride bytes. */
+int nwchemc_params_extract_direct_basis(NWChemParams_ptr params,
+                                        int *library_root, int *angular_kind,
+                                        int *segment_mode,
+                                        int *legacy_spherical, capn_text *ecp,
+                                        char *element_tags, size_t tag_stride,
+                                        char *element_libs, size_t lib_stride,
+                                        size_t element_capacity,
+                                        size_t *element_count);
+
 int nwchemc_params_extract_direct_ccsd(
     NWChemParams_ptr params, int *has_options, int *maxiter, double *thresh,
     double *tol2e, int *iprt, int *max_diis, int *frozen_core,

@@ -424,6 +424,26 @@ enum NWChemToggle {
   disabled    @2; # Emit/promote the option as disabled.
 }
 
+# Closed choices for Gaussian basis library loads (embed + render).
+# Open-ended library *names* stay Text on NWChemParams.basis / directives.
+enum NWChemBasisLibraryRoot {
+  unspecified @0; # Default classic libraries/ resolution (NWCHEM_BASIS_LIBRARY / nwchemrc / compiled).
+  classic     @1; # Force basis/libraries/ (not libraries.bse).
+  bse         @2; # Force basis/libraries.bse/ (spherical details from BSE files when present).
+}
+
+enum NWChemBasisAngularKind {
+  unspecified @0; # Default cartesian on embed unless libraries.bse enables read_sphere.
+  cartesian   @1; # Force cartesian shells.
+  spherical   @2; # Force spherical shells (basis spherical).
+}
+
+enum NWChemBasisSegmentMode {
+  unspecified @0; # Default segment contractions (NWChem library default).
+  segment     @1; # Segment general contractions.
+  nosegment   @2; # Do not segment (osegment = false).
+}
+
 enum NWChemPrintLevel {
   unspecified @0; # Do not emit a print directive.
   none        @1; # Emit "print none".
@@ -917,12 +937,16 @@ struct NWChemTddftStanza {
 
 # @struct NWChemBasisStanza
 # @brief Structured Gaussian basis / ECP block (complements top-level basis name).
-# Use when callers need spherical/cartesian, segment, or per-element library lines.
+# Use when callers need spherical/cartesian, segment, library root, or per-element lines.
+# Named enums are preferred for closed options; legacy spherical Bool remains for compatibility.
 struct NWChemBasisStanza {
-  spherical  @0 :Bool = false; # Emit "* library ... spherical" style when true.
-  segment    @1 :Text = "";    # Optional segment label for "* library <segment>".
-  ecp        @2 :Text = "";    # Optional ECP library/block name emitted as extra line.
-  directives @3 :List(NWChemDirective); # Per-element "H library 6-31g" etc.
+  spherical   @0 :Bool = false; # Legacy: true => spherical when angularKind is unspecified.
+  segment     @1 :Text = "";    # Optional segment *label* for "* library <segment>" text render.
+  ecp         @2 :Text = "";    # Optional ECP library name (embed stores ecp basis when non-empty).
+  directives  @3 :List(NWChemDirective); # Per-element "H library 6-31g" etc.
+  libraryRoot @4 :NWChemBasisLibraryRoot = unspecified; # classic vs BSE library tree.
+  angularKind @5 :NWChemBasisAngularKind = unspecified; # cartesian vs spherical (overrides spherical bool).
+  segmentMode @6 :NWChemBasisSegmentMode = unspecified; # segment vs nosegment for bas_tag_lib.
 }
 
 # @struct NWChemGeometryStanza

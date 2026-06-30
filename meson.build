@@ -598,6 +598,20 @@ if get_option('with_tests')
       '@OUTPUT@',
     ],
   )
+  nwchem_basis_options_params_bin = custom_target(
+    'nwchem_basis_options_params_bin',
+    input: 'tests/nwchem_params_basis_options.capnp.txt',
+    output: 'nwchem_params_basis_options.bin',
+    command: [
+      python,
+      meson.current_source_dir() / 'tests/encode_capnp.py',
+      capnp,
+      meson.current_source_dir() / 'schema/Potentials.capnp',
+      'NWChemParams',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
   nwchem_nwpw_dos_default_params_bin = custom_target(
     'nwchem_nwpw_dos_default_params_bin',
     input: 'tests/nwchem_params_nwpw_dos_default.capnp.txt',
@@ -1165,7 +1179,11 @@ nwchem_config_options_params_bin = custom_target(
       dependencies: nwchemc_params_deps + [cmocka_dep],
       c_args: common_c_args,
     ),
-    args: [nwchem_config_options_params_bin, nwchem_direct_dft_params_bin],
+    args: [
+      nwchem_config_options_params_bin,
+      nwchem_direct_dft_params_bin,
+      nwchem_basis_options_params_bin,
+    ],
     suite: ['cmocka', 'parser', 'coverage'],
   )
   if has_nwchem
