@@ -3167,7 +3167,8 @@ C     Linked via link_whole on nwchemc_legacy before NWChem archives.
       col_dist = 1
       row_dist = 1
       write(6, *) ' embed ga_create_JKblocked: ', label, ' noper=',
-     $     noper, ' n1=', n1, ' n2=', n2
+     $     noper, ' n1=', n1, ' n2=', n2, ' nnodes=', ga_nnodes(),
+     $     ' me=', ga_nodeid()
       call util_flush(6)
       if (.not. ga_create(MT_DBL, (n1 * n2), noper, label, row_dist,
      $     col_dist, g_a)) then
@@ -3175,6 +3176,11 @@ C     Linked via link_whole on nwchemc_legacy before NWChem archives.
          call util_flush(6)
          call errquit('ga_create_JKblocked: cannot allocate', 0, GA_ERR)
       endif
+c     Verify distribution is non-empty on this rank (debug STO-3G CCSD(T)).
+      call ga_distribution(g_a, ga_nodeid(), irlo, irhi, iclo, ichi)
+      write(6, *) ' embed JKblocked dist: ', irlo, irhi, iclo, ichi,
+     $     ' handle=', g_a
+      call util_flush(6)
       ga_create_JKblocked = g_a
       return
       end
