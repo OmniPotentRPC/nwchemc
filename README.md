@@ -942,9 +942,21 @@ python3 tools/compare_nwchem_cli.py \
 ```
 
 The comparison report is written as `nwchem_compare_report.txt` and
-`nwchem_compare_report.json` in the selected output directory. The embed test
-leg writes `NWCHEMC_COMPARE_JSON` with the energy and gradient vector captured
-from the C ABI test binary.
+`nwchem_compare_report.json` in the selected output directory. The embed leg
+writes `NWCHEMC_COMPARE_JSON` through real C ABI probes (`test_nwchem_energy_forces`,
+`test_nwchem_postscf_energy`, `test_nwchem_optimize_freq`,
+`test_nwchem_primary_props`) so the report captures embedded primary observables
+(energy, gradient/forces, optimize positions, frequency magnitudes, dipole,
+quadrupole, Hessian via the CLI `.hess` file)—not a reimplementation.
+
+`tests/integration/task_matrix.json` declares `embed_compare` rows, Meson probe
+names, and tolerances. Polarizability is embed-proven with a non-trivial
+magnitude gate (`nwchemc_polarizability`) but is not inventively parsed from
+energy-only CLI logs. Authoritative embed-vs-CLI runs use a real NWChem embed
+build and CLI on the same host (project practice: `rg.terra`); laptop-only CLI
+is not a substitute when claiming embed parity. Conda-forge `nwchem` is a
+runtime executable prefix and is not interchangeable with `-Dnwchem_root` embed
+trees. Stress requires an NWChem tree linked with NWPW/PSPW.
 
 Integration/CI: `.github/workflows/ci.yml` runs the stub/cmocka/debug smoke
 path and optional CLI comparison. CI does not provide an NWChem embed build
