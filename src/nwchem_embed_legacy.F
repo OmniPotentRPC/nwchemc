@@ -3166,6 +3166,9 @@ C     Linked via link_whole on nwchemc_legacy before NWChem archives.
       integer row_dist, col_dist
       col_dist = 1
       row_dist = 1
+      write(6, *) ' embed ga_create_JKblocked: ', label, ' noper=',
+     $     noper, ' n1=', n1, ' n2=', n2
+      call util_flush(6)
       if (.not. ga_create(MT_DBL, (n1 * n2), noper, label, row_dist,
      $     col_dist, g_a)) then
          write(6, *) ' ga_create_JKblocked(embed): ', label
