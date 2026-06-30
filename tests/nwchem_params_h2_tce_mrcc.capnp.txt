@@ -20,6 +20,7 @@
     )
   ],
   inputBlocks = [
+    "scf\n  rhf\nend",
     "set tce:mrcc 1\nset bwcc:nref 1\nset bwcc:nact 2\nset bwcc:nactel 2"
   ],
 )

@@ -295,6 +295,49 @@
       "embed_compare": true,
       "embed_meson_test": "nwchem-hessian-scf",
       "notes": "CLI task scf hessian; embed nwchemc_hessian vs .hess / eigenvalues"
+    },
+    {
+      "id": "h2_tce_mrcc_energy",
+      "nw_input": "tests/integration/nw/h2_tce_mrcc_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-mrcc",
+      "notes": "TCE MRCC via tce:mrcc RTDB; multi-ref path on H2"
+    },
+    {
+      "id": "h2_direct_mp2_forces",
+      "nw_input": "tests/integration/nw/h2_direct_mp2_forces.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-energy-forces-direct-mp2",
+      "notes": "direct_mp2 numerical gradient"
+    },
+    {
+      "id": "h2_selci_forces",
+      "nw_input": "tests/integration/nw/h2_selci_forces.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-energy-forces-selci",
+      "notes": "SELCI multi-ref numerical gradient"
+    },
+    {
+      "id": "h2_dft_property_dipole",
+      "nw_input": "tests/integration/nw/h2_dft_property.nw",
+      "quantities": [
+        "energy",
+        "dipole"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-dipole-dft",
+      "notes": "non-SCF SP property: DFT dipole"
     }
   ]
 }

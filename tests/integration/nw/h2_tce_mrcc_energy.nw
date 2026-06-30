@@ -1,0 +1,22 @@
+echo
+start h2_tce_mrcc_energy
+title "H2 TCE MRCC energy (set tce:mrcc)"
+geometry units angstrom noautosym
+  H 0.0 0.0 -0.3707
+  H 0.0 0.0  0.3707
+end
+basis spherical
+  H library sto-3g
+end
+scf
+  rhf
+  thresh 1e-8
+end
+tce
+  ccsd
+end
+set tce:mrcc 1
+set bwcc:nref 1
+set bwcc:nact 2
+set bwcc:nactel 2
+task tce energy

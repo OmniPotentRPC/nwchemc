@@ -1839,6 +1839,8 @@ nwchem_config_options_params_bin = custom_target(
       ['tddft', nwchem_params_h2_tddft_bin],
       ['mcscf', nwchem_params_h2_mcscf_bin],
       ['sodft', nwchem_params_h2_sodft_bin],
+      ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
+      ['selci', nwchem_params_h2_selci_bin],
     ]
       test(
         'nwchem-energy-forces-' + forces_case[0],
@@ -1899,17 +1901,18 @@ nwchem_config_options_params_bin = custom_target(
       ],
     )
     foreach props_case : [
-      ['dipole', nwchem_params_h2_scf_bin],
-      ['polarizability', nwchem_params_h2_scf_bin],
-      ['quadrupole', nwchem_params_h2_scf_bin],
-      ['hessian', nwchem_params_h2_scf_bin],
+      ['dipole', 'scf', nwchem_params_h2_scf_bin],
+      ['polarizability', 'scf', nwchem_params_h2_scf_bin],
+      ['quadrupole', 'scf', nwchem_params_h2_scf_bin],
+      ['hessian', 'scf', nwchem_params_h2_scf_bin],
+      ['dipole', 'dft', nwchem_params_h2_dft_bin],
     ]
       test(
-        'nwchem-' + props_case[0] + '-scf',
+        'nwchem-' + props_case[0] + '-' + props_case[1],
         nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_primary_props_test,
         args: nwchem_test_mpi_ranks > 1
-          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_primary_props_test, props_case[0], props_case[1]]
-          : [props_case[0], props_case[1]],
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_primary_props_test, props_case[0], props_case[2]]
+          : [props_case[0], props_case[2]],
         env: nwchem_test_mpi_env,
         is_parallel: false,
         timeout: 600,
@@ -1933,6 +1936,7 @@ nwchem_config_options_params_bin = custom_target(
       ['dft', nwchem_params_h2_dft_bin],
       ['rimp2', nwchem_params_h2_rimp2_bin],
       ['tce-ccsdt', nwchem_params_h2_tce_ccsdt_bin],
+      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
       ['tddft', nwchem_params_h2_tddft_bin],
       ['mcscf', nwchem_params_h2_mcscf_bin],
       ['sodft', nwchem_params_h2_sodft_bin],

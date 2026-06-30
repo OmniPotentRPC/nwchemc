@@ -1,0 +1,14 @@
+echo
+start h2_direct_mp2_forces
+title "H2 direct_mp2 gradient"
+geometry units angstrom noautosym
+  H 0.0 0.0 -0.3707
+  H 0.0 0.0  0.3707
+end
+basis spherical
+  H library sto-3g
+end
+scf
+  thresh 1e-8
+end
+task direct_mp2 gradient

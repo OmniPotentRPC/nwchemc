@@ -413,10 +413,6 @@ def find_params_for_meson_test(build_dir: Path, meson_test: str) -> Path | None:
         "nwchem-rgpot-smoke",
         "nwchem-optimize-scf",
         "nwchem-frequencies-scf",
-        "nwchem-dipole-scf",
-        "nwchem-polarizability-scf",
-        "nwchem-quadrupole-scf",
-        "nwchem-hessian-scf",
     ):
         for name in ("nwchem_params.bin", "nwchem_params_h2_scf.bin"):
             p = build_dir / name
@@ -435,6 +431,14 @@ def find_params_for_meson_test(build_dir: Path, meson_test: str) -> Path | None:
         label = meson_test[len("nwchem-postscf-energy-") :]
     elif meson_test.startswith("nwchem-energy-forces-"):
         label = meson_test[len("nwchem-energy-forces-") :]
+    elif meson_test.startswith("nwchem-dipole-"):
+        label = meson_test[len("nwchem-dipole-") :]
+    elif meson_test.startswith("nwchem-polarizability-"):
+        label = meson_test[len("nwchem-polarizability-") :]
+    elif meson_test.startswith("nwchem-quadrupole-"):
+        label = meson_test[len("nwchem-quadrupole-") :]
+    elif meson_test.startswith("nwchem-hessian-"):
+        label = meson_test[len("nwchem-hessian-") :]
     if not label:
         return None
     # Meson output: nwchem_params_h2_<label with - -> _>.bin
@@ -467,13 +471,13 @@ def embed_launch_for_task(
         launch.extend(["optimize", str(params)])
     elif meson_test == "nwchem-frequencies-scf":
         launch.extend(["frequencies", str(params)])
-    elif meson_test == "nwchem-dipole-scf":
+    elif meson_test.startswith("nwchem-dipole-"):
         launch.extend(["dipole", str(params)])
-    elif meson_test == "nwchem-polarizability-scf":
+    elif meson_test.startswith("nwchem-polarizability-"):
         launch.extend(["polarizability", str(params)])
-    elif meson_test == "nwchem-quadrupole-scf":
+    elif meson_test.startswith("nwchem-quadrupole-"):
         launch.extend(["quadrupole", str(params)])
-    elif meson_test == "nwchem-hessian-scf":
+    elif meson_test.startswith("nwchem-hessian-"):
         launch.extend(["hessian", str(params)])
     else:
         # test_nwchem_energy_gradient PARAMS_BIN
@@ -502,11 +506,11 @@ def run_embed_compare_task(
         bin_name = "test_nwchem_energy_forces"
     elif effective_test in ("nwchem-optimize-scf", "nwchem-frequencies-scf"):
         bin_name = "test_nwchem_optimize_freq"
-    elif effective_test in (
-        "nwchem-dipole-scf",
-        "nwchem-polarizability-scf",
-        "nwchem-quadrupole-scf",
-        "nwchem-hessian-scf",
+    elif (
+        effective_test.startswith("nwchem-dipole-")
+        or effective_test.startswith("nwchem-polarizability-")
+        or effective_test.startswith("nwchem-quadrupole-")
+        or effective_test.startswith("nwchem-hessian-")
     ):
         bin_name = "test_nwchem_primary_props"
     else:
