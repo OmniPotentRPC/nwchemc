@@ -212,6 +212,7 @@ if has_nwchem
       error('NWChem archives and link dependencies cannot form libnwchemc.so for ' + nwchem_target)
     endif
   endif
+  # Whole-archive legacy so embed ga_create_JKblocked overrides NWChem moints.
   nwchemc = library(
     'nwchemc',
     ['src/nwchemc.c', 'src/nwchem_embed_c_api.f90'] + nwchemc_params_sources,
@@ -219,8 +220,8 @@ if has_nwchem
     dependencies: nwchemc_params_deps,
     c_args: nwchem_c_args,
     fortran_args: nwchem_f90_args,
-    link_with: nwchemc_legacy,
-    link_args: nwchem_link_args,
+    link_whole: nwchemc_legacy,
+    link_args: nwchem_link_args + ['-Wl,--allow-multiple-definition'],
     install: true,
   )
   nwchemc_consumer_deps = []

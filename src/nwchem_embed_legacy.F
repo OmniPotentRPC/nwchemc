@@ -3149,3 +3149,29 @@ C     -fdefault-integer-8); force integer*4 for mpi_initialized args.
       call pbeginf()
       return
       end
+
+C     Override NWChem ga_create_JKblocked (moints_aux2.F). Stock uses
+C     row_dist = n1*n2 which for classic CCSD(T) X oper (nbf*nvir, noper)
+C     with nvir=1 yields ga_distribution/access [1:0,...] under embed and
+C     aborts. Use unit row blocking (same as a working col_dist=1 layout).
+C     Linked via link_whole on nwchemc_legacy before NWChem archives.
+      integer function ga_create_JKblocked(noper, n1, n2, label)
+      implicit none
+#include "errquit.fh"
+#include "global.fh"
+#include "mafdecls.fh"
+      integer noper, n1, n2
+      character*(*) label
+      integer g_a
+      integer row_dist, col_dist
+      col_dist = 1
+      row_dist = 1
+      if (.not. ga_create(MT_DBL, (n1 * n2), noper, label, row_dist,
+     $     col_dist, g_a)) then
+         write(6, *) ' ga_create_JKblocked(embed): ', label
+         call util_flush(6)
+         call errquit('ga_create_JKblocked: cannot allocate', 0, GA_ERR)
+      endif
+      ga_create_JKblocked = g_a
+      return
+      end
