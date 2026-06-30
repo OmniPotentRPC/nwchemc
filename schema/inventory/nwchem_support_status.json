@@ -1,0 +1,6244 @@
+{
+  "version": 1,
+  "tiers": [
+    "absent",
+    "schema",
+    "text",
+    "embed",
+    "tested"
+  ],
+  "tier_meanings": {
+    "schema": "Cap'n Proto / inventory only",
+    "text": "Text render and/or inputBlocks / module stanza body",
+    "embed": "extract_direct / embed_set / legacy RTDB promotion",
+    "tested": "In-repo test or integration matrix exercises the path",
+    "absent": "Not present (unused for interned inventory rows)"
+  },
+  "inventory": "schema/inventory/nwchem_features.json",
+  "row_count": 777,
+  "counts_by_tier": {
+    "text": 273,
+    "tested": 497,
+    "embed": 7
+  },
+  "done_count": 504,
+  "not_done_count": 273,
+  "features": [
+    {
+      "feature_id": "module.custom",
+      "class": "module",
+      "schema_path": "NWChemModuleName.custom",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.basis",
+      "class": "module",
+      "schema_path": "NWChemModuleName.basis",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.bq",
+      "class": "module",
+      "schema_path": "NWChemModuleName.bq",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.ccsd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.ccsd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.cosmo",
+      "class": "module",
+      "schema_path": "NWChemModuleName.cosmo",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.dft",
+      "class": "module",
+      "schema_path": "NWChemModuleName.dft",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.dplot",
+      "class": "module",
+      "schema_path": "NWChemModuleName.dplot",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.drdy",
+      "class": "module",
+      "schema_path": "NWChemModuleName.drdy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.driver",
+      "class": "module",
+      "schema_path": "NWChemModuleName.driver",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.esp",
+      "class": "module",
+      "schema_path": "NWChemModuleName.esp",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.etrans",
+      "class": "module",
+      "schema_path": "NWChemModuleName.etrans",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.geometry",
+      "class": "module",
+      "schema_path": "NWChemModuleName.geometry",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.gw",
+      "class": "module",
+      "schema_path": "NWChemModuleName.gw",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.hessian",
+      "class": "module",
+      "schema_path": "NWChemModuleName.hessian",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.mcscf",
+      "class": "module",
+      "schema_path": "NWChemModuleName.mcscf",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.md",
+      "class": "module",
+      "schema_path": "NWChemModuleName.md",
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.mm",
+      "class": "module",
+      "schema_path": "NWChemModuleName.mm",
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.mp2",
+      "class": "module",
+      "schema_path": "NWChemModuleName.mp2",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.ncc",
+      "class": "module",
+      "schema_path": "NWChemModuleName.ncc",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.nwpw",
+      "class": "module",
+      "schema_path": "NWChemModuleName.nwpw",
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.property",
+      "class": "module",
+      "schema_path": "NWChemModuleName.property",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.python",
+      "class": "module",
+      "schema_path": "NWChemModuleName.python",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.qmd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.qmd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.qmmm",
+      "class": "module",
+      "schema_path": "NWChemModuleName.qmmm",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.rimp2",
+      "class": "module",
+      "schema_path": "NWChemModuleName.rimp2",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.rism",
+      "class": "module",
+      "schema_path": "NWChemModuleName.rism",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.scf",
+      "class": "module",
+      "schema_path": "NWChemModuleName.scf",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.selci",
+      "class": "module",
+      "schema_path": "NWChemModuleName.selci",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.smd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.smd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.tce",
+      "class": "module",
+      "schema_path": "NWChemModuleName.tce",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.vib",
+      "class": "module",
+      "schema_path": "NWChemModuleName.vib",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.vscf",
+      "class": "module",
+      "schema_path": "NWChemModuleName.vscf",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.xtb",
+      "class": "module",
+      "schema_path": "NWChemModuleName.xtb",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.analysis",
+      "class": "module",
+      "schema_path": "NWChemModuleName.analysis",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.argos",
+      "class": "module",
+      "schema_path": "NWChemModuleName.argos",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.argosDiana",
+      "class": "module",
+      "schema_path": "NWChemModuleName.argosDiana",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.argosPrep",
+      "class": "module",
+      "schema_path": "NWChemModuleName.argosPrep",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.argosPrepare",
+      "class": "module",
+      "schema_path": "NWChemModuleName.argosPrepare",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.band",
+      "class": "module",
+      "schema_path": "NWChemModuleName.band",
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.bandDplot",
+      "class": "module",
+      "schema_path": "NWChemModuleName.bandDplot",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.brillouinZone",
+      "class": "module",
+      "schema_path": "NWChemModuleName.brillouinZone",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.bsemol",
+      "class": "module",
+      "schema_path": "NWChemModuleName.bsemol",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.cckohn",
+      "class": "module",
+      "schema_path": "NWChemModuleName.cckohn",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.cellOptimize",
+      "class": "module",
+      "schema_path": "NWChemModuleName.cellOptimize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.cgsd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.cgsd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.constraints",
+      "class": "module",
+      "schema_path": "NWChemModuleName.constraints",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.cpmd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.cpmd",
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.cpsd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.cpsd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.ddscf",
+      "class": "module",
+      "schema_path": "NWChemModuleName.ddscf",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.diana",
+      "class": "module",
+      "schema_path": "NWChemModuleName.diana",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.dimpar",
+      "class": "module",
+      "schema_path": "NWChemModuleName.dimpar",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.dimqm",
+      "class": "module",
+      "schema_path": "NWChemModuleName.dimqm",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.dk",
+      "class": "module",
+      "schema_path": "NWChemModuleName.dk",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.dmd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.dmd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.dntmc",
+      "class": "module",
+      "schema_path": "NWChemModuleName.dntmc",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.fractionalOccupations",
+      "class": "module",
+      "schema_path": "NWChemModuleName.fractionalOccupations",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.freeze",
+      "class": "module",
+      "schema_path": "NWChemModuleName.freeze",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.intgrl",
+      "class": "module",
+      "schema_path": "NWChemModuleName.intgrl",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.mdXs",
+      "class": "module",
+      "schema_path": "NWChemModuleName.mdXs",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.mepgs",
+      "class": "module",
+      "schema_path": "NWChemModuleName.mepgs",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.metadynamics",
+      "class": "module",
+      "schema_path": "NWChemModuleName.metadynamics",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.modelpotential",
+      "class": "module",
+      "schema_path": "NWChemModuleName.modelpotential",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.neb",
+      "class": "module",
+      "schema_path": "NWChemModuleName.neb",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.occup",
+      "class": "module",
+      "schema_path": "NWChemModuleName.occup",
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.prepare",
+      "class": "module",
+      "schema_path": "NWChemModuleName.prepare",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.pspFormatter",
+      "class": "module",
+      "schema_path": "NWChemModuleName.pspFormatter",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.pspGenerator",
+      "class": "module",
+      "schema_path": "NWChemModuleName.pspGenerator",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.pspw",
+      "class": "module",
+      "schema_path": "NWChemModuleName.pspw",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.pspwDplot",
+      "class": "module",
+      "schema_path": "NWChemModuleName.pspwDplot",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.pspwQmmm",
+      "class": "module",
+      "schema_path": "NWChemModuleName.pspwQmmm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.pspwWannier",
+      "class": "module",
+      "schema_path": "NWChemModuleName.pspwWannier",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.qmdNamd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.qmdNamd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.raman",
+      "class": "module",
+      "schema_path": "NWChemModuleName.raman",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.rel",
+      "class": "module",
+      "schema_path": "NWChemModuleName.rel",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.rtTddft",
+      "class": "module",
+      "schema_path": "NWChemModuleName.rtTddft",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.simulationCell",
+      "class": "module",
+      "schema_path": "NWChemModuleName.simulationCell",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.string",
+      "class": "module",
+      "schema_path": "NWChemModuleName.string",
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.tamd",
+      "class": "module",
+      "schema_path": "NWChemModuleName.tamd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.task",
+      "class": "module",
+      "schema_path": "NWChemModuleName.task",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.taskShell",
+      "class": "module",
+      "schema_path": "NWChemModuleName.taskShell",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.tceMrcc",
+      "class": "module",
+      "schema_path": "NWChemModuleName.tceMrcc",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.tddft",
+      "class": "module",
+      "schema_path": "NWChemModuleName.tddft",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.tddftGradient",
+      "class": "module",
+      "schema_path": "NWChemModuleName.tddftGradient",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "module.tropt",
+      "class": "module",
+      "schema_path": "NWChemModuleName.tropt",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.vibZone",
+      "class": "module",
+      "schema_path": "NWChemModuleName.vibZone",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.waterPseudopotential",
+      "class": "module",
+      "schema_path": "NWChemModuleName.waterPseudopotential",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.x2c",
+      "class": "module",
+      "schema_path": "NWChemModuleName.x2c",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "module.zora",
+      "class": "module",
+      "schema_path": "NWChemModuleName.zora",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "stanza.generic",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.generic",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.dft",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.dft",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.set",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.set",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.raw",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.raw",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.module",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.module",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.pseudopotential",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.pseudopotential",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.scf",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.scf",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.task",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.taskStanza",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "stanza.driver",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.driver",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.property",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.property",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.basis",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.basisStanza",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.geometry",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.geometry",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.nwpw",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.nwpw",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.ccsd",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.ccsd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.tce",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.tce",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.mrccData",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.mrccData",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "stanza.brillouinZone",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.brillouinZone",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.simulationCell",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.simulationCell",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "stanza.mp2",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.mp2",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.tddft",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.tddft",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.basis",
+      "class": "params_field",
+      "schema_path": "NWChemParams.basis",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.theory",
+      "class": "params_field",
+      "schema_path": "NWChemParams.theory",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.scfType",
+      "class": "params_field",
+      "schema_path": "NWChemParams.scfType",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.charge",
+      "class": "params_field",
+      "schema_path": "NWChemParams.charge",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.multiplicity",
+      "class": "params_field",
+      "schema_path": "NWChemParams.multiplicity",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.enginePath",
+      "class": "params_field",
+      "schema_path": "NWChemParams.enginePath",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "params.nwchemRoot",
+      "class": "params_field",
+      "schema_path": "NWChemParams.nwchemRoot",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.task",
+      "class": "params_field",
+      "schema_path": "NWChemParams.task",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.title",
+      "class": "params_field",
+      "schema_path": "NWChemParams.title",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.memoryMb",
+      "class": "params_field",
+      "schema_path": "NWChemParams.memoryMb",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.scratchDir",
+      "class": "params_field",
+      "schema_path": "NWChemParams.scratchDir",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.permanentDir",
+      "class": "params_field",
+      "schema_path": "NWChemParams.permanentDir",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.inputBlocks",
+      "class": "params_field",
+      "schema_path": "NWChemParams.inputBlocks",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "params.inputStanzas",
+      "class": "params_field",
+      "schema_path": "NWChemParams.inputStanzas",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.ForceInput.pos",
+      "class": "schema_field",
+      "schema_path": "ForceInput.pos",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.atmnrs",
+      "class": "schema_field",
+      "schema_path": "ForceInput.atmnrs",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.box",
+      "class": "schema_field",
+      "schema_path": "ForceInput.box",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.lengthUnit",
+      "class": "schema_field",
+      "schema_path": "ForceInput.lengthUnit",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.energyUnit",
+      "class": "schema_field",
+      "schema_path": "ForceInput.energyUnit",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.hasCharge",
+      "class": "schema_field",
+      "schema_path": "ForceInput.hasCharge",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.charge",
+      "class": "schema_field",
+      "schema_path": "ForceInput.charge",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.hasMultiplicity",
+      "class": "schema_field",
+      "schema_path": "ForceInput.hasMultiplicity",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.ForceInput.multiplicity",
+      "class": "schema_field",
+      "schema_path": "ForceInput.multiplicity",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.energy",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.energy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.forces",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.forces",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.hessian",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.hessian",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.dipole",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.dipole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.quadrupole",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.quadrupole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.optimizedPos",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.optimizedPos",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.frequencies",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.frequencies",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.intensities",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.intensities",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.stress",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.stress",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.polarizability",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.polarizability",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.gradient",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.gradient",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.normalModes",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.normalModes",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.zeroPointEnergy",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.zeroPointEnergy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.thermalEnergy",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.thermalEnergy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.thermalEnthalpy",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.thermalEnthalpy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.entropy",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.entropy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.heatCapacityCv",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.heatCapacityCv",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.projectedFrequencies",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.projectedFrequencies",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.projectedIntensities",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.projectedIntensities",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.energyComponents",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.energyComponents",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.componentsValid",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.componentsValid",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.chargeIntegrals",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.chargeIntegrals",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.chargeValid",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.chargeValid",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.multiStateEnergies",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.multiStateEnergies",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.multiStateValid",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.multiStateValid",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.mdTrajectoryRow",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.mdTrajectoryRow",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.mdTrajectoryValid",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.mdTrajectoryValid",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialResult.embedMdPropsSkipped",
+      "class": "schema_field",
+      "schema_path": "PotentialResult.embedMdPropsSkipped",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDirective.keyword",
+      "class": "schema_field",
+      "schema_path": "NWChemDirective.keyword",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDirective.args",
+      "class": "schema_field",
+      "schema_path": "NWChemDirective.args",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGenericStanza.name",
+      "class": "schema_field",
+      "schema_path": "NWChemGenericStanza.name",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGenericStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemGenericStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSetDirective.key",
+      "class": "schema_field",
+      "schema_path": "NWChemSetDirective.key",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSetDirective.value",
+      "class": "schema_field",
+      "schema_path": "NWChemSetDirective.value",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSetDirective.valueType",
+      "class": "schema_field",
+      "schema_path": "NWChemSetDirective.valueType",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSetDirective.values",
+      "class": "schema_field",
+      "schema_path": "NWChemSetDirective.values",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDftSmearing.sigmaHartree",
+      "class": "schema_field",
+      "schema_path": "NWChemDftSmearing.sigmaHartree",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDftSmearing.mode",
+      "class": "schema_field",
+      "schema_path": "NWChemDftSmearing.mode",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDftGridSpec.quality",
+      "class": "schema_field",
+      "schema_path": "NWChemDftGridSpec.quality",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDftGridSpec.radial",
+      "class": "schema_field",
+      "schema_path": "NWChemDftGridSpec.radial",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDftGridSpec.angular",
+      "class": "schema_field",
+      "schema_path": "NWChemDftGridSpec.angular",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.xc",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.xc",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.direct",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.direct",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.smearing",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.smearing",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.iterations",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.iterations",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.grid",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.grid",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.energyConv",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.energyConv",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.densityConv",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.densityConv",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.gradientConv",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.gradientConv",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.odft",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.odft",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.diis",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.diis",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.nfock",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.nfock",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.levelShift",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.levelShift",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.vectorsInput",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.vectorsInput",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.vectorsOutput",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.vectorsOutput",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDftStanza.gridSpec",
+      "class": "schema_field",
+      "schema_path": "NWChemDftStanza.gridSpec",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemModuleStanza.name",
+      "class": "schema_field",
+      "schema_path": "NWChemModuleStanza.name",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemModuleStanza.customName",
+      "class": "schema_field",
+      "schema_path": "NWChemModuleStanza.customName",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemModuleStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemModuleStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialEntry.element",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialEntry.element",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialEntry.libraryType",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialEntry.libraryType",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialEntry.libraryName",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialEntry.libraryName",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialEntry.allElements",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialEntry.allElements",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialSpinRule.channel",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialSpinRule.channel",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialSpinRule.angularMomentum",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialSpinRule.angularMomentum",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialSpinRule.scale",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialSpinRule.scale",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialSpinRule.ionIndices",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialSpinRule.ionIndices",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialSpinRule.hasMagneticQuantumNumber",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialSpinRule.hasMagneticQuantumNumber",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialSpinRule.magneticQuantumNumber",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialSpinRule.magneticQuantumNumber",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.angularMomentum",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialUtermRule.angularMomentum",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.uScale",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialUtermRule.uScale",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.jScale",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialUtermRule.jScale",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialUtermRule.ionIndices",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialUtermRule.ionIndices",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.entries",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.entries",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.pspSpin",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.pspSpin",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.spinRules",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.spinRules",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.semicoreSmall",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.semicoreSmall",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.uterm",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.uterm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.utermRules",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.utermRules",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPseudopotentialStanza.blockName",
+      "class": "schema_field",
+      "schema_path": "NWChemPseudopotentialStanza.blockName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemKVector.x",
+      "class": "schema_field",
+      "schema_path": "NWChemKVector.x",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemKVector.y",
+      "class": "schema_field",
+      "schema_path": "NWChemKVector.y",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemKVector.z",
+      "class": "schema_field",
+      "schema_path": "NWChemKVector.z",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemKVector.weight",
+      "class": "schema_field",
+      "schema_path": "NWChemKVector.weight",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.zoneName",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.zoneName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.kVectors",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.kVectors",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.maxKpointsPrint",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.maxKpointsPrint",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.monkhorstPackX",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.monkhorstPackX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.monkhorstPackY",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.monkhorstPackY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.monkhorstPackZ",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.monkhorstPackZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.zoneStructureName",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.zoneStructureName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.zoneFftName",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.zoneFftName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronGridX",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronGridX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronGridY",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronGridY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronGridZ",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronGridZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.tetrahedronZoneName",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.tetrahedronZoneName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridX",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridY",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridZ",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosGridZoneName",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosGridZoneName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridX",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridY",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridZ",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBrillouinZoneStanza.dosFftGridZoneName",
+      "class": "schema_field",
+      "schema_path": "NWChemBrillouinZoneStanza.dosFftGridZoneName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.cellName",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.cellName",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.boundaryConditions",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.boundaryConditions",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.latticeVectorsBohr",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.latticeVectorsBohr",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.ngridX",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.ngridX",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.ngridY",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.ngridY",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.ngridZ",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.ngridZ",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.ngridSmallX",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.ngridSmallX",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.ngridSmallY",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.ngridSmallY",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.ngridSmallZ",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.ngridSmallZ",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.boxDeltaBohr",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.boxDeltaBohr",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.boxOrient",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.boxOrient",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.boxDifferentLengths",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.boxDifferentLengths",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.latticeKind",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.latticeKind",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.latticeLengthBohr",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.latticeLengthBohr",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemSimulationCellStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemSimulationCellStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.energyCutoff",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.energyCutoff",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.wavefunctionCutoff",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.wavefunctionCutoff",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ewaldRcut",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ewaldRcut",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ewaldNcut",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ewaldNcut",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cellName",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cellName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.inputWavefunctionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.inputWavefunctionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.outputWavefunctionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.outputWavefunctionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fakeMass",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fakeMass",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.timeStep",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.timeStep",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.loopStart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.loopStart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.loopEnd",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.loopEnd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.toleranceEnergy",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.toleranceEnergy",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.toleranceDensity",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.toleranceDensity",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.toleranceGradient",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.toleranceGradient",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.exchangeCorrelation",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.exchangeCorrelation",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.balanceMode",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.balanceMode",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.boStepStart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.boStepStart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.boStepEnd",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.boStepEnd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.boTimeStep",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.boTimeStep",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.boAlgorithm",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.boAlgorithm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.boFakeMass",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.boFakeMass",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.scalingFirst",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.scalingFirst",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.scalingSecond",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.scalingSecond",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.npFftProcesses",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.npFftProcesses",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.npOrbitalProcesses",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.npOrbitalProcesses",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.npKspaceProcesses",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.npKspaceProcesses",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.spinOrbit",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.spinOrbit",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.parallelIo",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.parallelIo",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.xyzFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.xyzFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ionMotionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ionMotionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electronMotionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electronMotionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.hamiltonianMotionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.hamiltonianMotionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.orbitalMotionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.orbitalMotionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.eigenvalueMotionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.eigenvalueMotionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fractionalOrbitalsStart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fractionalOrbitalsStart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fractionalOrbitalsEnd",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fractionalOrbitalsEnd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smearTemperature",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.smearTemperature",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smearAlpha",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.smearAlpha",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smearType",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.smearType",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.virtualOrbitalsStart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.virtualOrbitalsStart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.virtualOrbitalsEnd",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.virtualOrbitalsEnd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lcaoMode",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.lcaoMode",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ewaldGridX",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ewaldGridX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ewaldGridY",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ewaldGridY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ewaldGridZ",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ewaldGridZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseHoover",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseHoover",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseRestart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseRestart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseElectronPeriod",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseElectronPeriod",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseElectronTemperature",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseElectronTemperature",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseIonPeriod",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseIonPeriod",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseIonTemperature",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseIonTemperature",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseElectronChainLength",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseElectronChainLength",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.noseIonChainLength",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.noseIonChainLength",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.atomEfield",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.atomEfield",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.atomEfieldGradient",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.atomEfieldGradient",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mulliken",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.mulliken",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mullikenKawai",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.mullikenKawai",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.periodicDipole",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.periodicDipole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricField",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricField",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldX",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldY",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldZ",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldCenterSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldCenterSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldCenterX",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldCenterX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldCenterY",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldCenterY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldCenterZ",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldCenterZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.electricFieldType",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.electricFieldType",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smoothCutoff",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.smoothCutoff",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smoothCutoffAfac",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.smoothCutoffAfac",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.smoothCutoffSigma",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.smoothCutoffSigma",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cutoffBootWavefunction",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cutoffBootWavefunction",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fastErf",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fastErf",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dipoleMotion",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dipoleMotion",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dipoleMotionFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dipoleMotionFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.rhoUseSymmetry",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.rhoUseSymmetry",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fmm",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fmm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fmmLmax",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fmmLmax",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fmmLongRange",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fmmLongRange",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.born",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.born",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.bornDielectric",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.bornDielectric",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.bornRelax",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.bornRelax",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.bornVRadiiAngstrom",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.bornVRadiiAngstrom",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cpmdProperties",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cpmdProperties",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.useGridComparison",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.useGridComparison",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.director",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.director",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.directorFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.directorFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cellExpandX",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cellExpandX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cellExpandY",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cellExpandY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cellExpandZ",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cellExpandZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mapping",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.mapping",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.rotation",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.rotation",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lmaxMultipole",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.lmaxMultipole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.fei",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.fei",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.feiFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.feiFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.initialVelocitiesTemperature",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.initialVelocitiesTemperature",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.initialVelocitiesSeed",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.initialVelocitiesSeed",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.makeHmass2",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.makeHmass2",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.translateVectorSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorX",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.translateVectorX",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorY",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.translateVectorY",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateVectorZ",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.translateVectorZ",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateGeometryName",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.translateGeometryName",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translateReorder",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.translateReorder",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.socketType",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.socketType",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.socketIp",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.socketIp",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.apcSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.apcSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.apcGc",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.apcGc",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.apcGamma",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.apcGamma",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.translation",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.translation",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.minimizer",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.minimizer",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ksAlgorithm",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ksAlgorithm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.scfAlgorithm",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.scfAlgorithm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.precondition",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.precondition",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.kerkerG0Set",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.kerkerG0Set",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.kerkerG0",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.kerkerG0",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ksAlphaSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ksAlphaSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ksAlpha",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ksAlpha",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ksMaxitOrbSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ksMaxitOrbSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ksMaxitOrb",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ksMaxitOrb",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ksMaxitOrbsSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ksMaxitOrbsSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.ksMaxitOrbs",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.ksMaxitOrbs",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.diisHistoriesSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.diisHistoriesSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.diisHistories",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.diisHistories",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessItIn",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessItIn",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessItOut",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessItOut",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.oneElectronGuessItOrtho",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.oneElectronGuessItOrtho",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.vfieldFilenames",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.vfieldFilenames",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.singlePrecisionHfx",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.singlePrecisionHfx",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosAlphaSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosAlphaSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosAlpha",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosAlpha",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosNpointsSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosNpointsSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosNpoints",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosNpoints",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosEminSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosEminSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosEmin",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosEmin",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosEmaxSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosEmaxSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosEmax",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosEmax",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosFilename",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.geometryOptimize",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.geometryOptimize",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.auxiliaryPotentials",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.auxiliaryPotentials",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.multiplicity",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.multiplicity",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.spinMode",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.spinMode",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.allowTranslation",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.allowTranslation",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cutoffWavefunction",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cutoffWavefunction",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.cutoffEnergy",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.cutoffEnergy",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mcStepStart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.mcStepStart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mcStepEnd",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.mcStepEnd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.etMovecsA",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.etMovecsA",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.etMovecsB",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.etMovecsB",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.etIonA",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.etIonA",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.etIonB",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.etIonB",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.temperatureIon",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.temperatureIon",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.temperatureIonPeriod",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.temperatureIonPeriod",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.temperatureElectron",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.temperatureElectron",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.temperatureElectronPeriod",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.temperatureElectronPeriod",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.temperatureRestart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.temperatureRestart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.temperatureIonChainLength",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.temperatureIonChainLength",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.temperatureElectronChainLength",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.temperatureElectronChainLength",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mappingAlias",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.mappingAlias",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.virtualAliasSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.virtualAliasSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.virtualAliasStart",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.virtualAliasStart",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.virtualAliasEnd",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.virtualAliasEnd",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.boTimeStepSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.boTimeStepSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.boFakeMassSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.boFakeMassSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.scalingSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.scalingSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.npDimensionsSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.npDimensionsSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.tolerancesSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.tolerancesSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.mappingSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.mappingSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.dosSet",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.dosSet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lcaoMask",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.lcaoMask",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lcaoMaskUpOrbitals",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.lcaoMaskUpOrbitals",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.lcaoMaskDownOrbitals",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.lcaoMaskDownOrbitals",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.occupations",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.occupations",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.occupationStates",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.occupationStates",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.extraOrbitals",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.extraOrbitals",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemNwpwStanza.scalingAtomIndices",
+      "class": "schema_field",
+      "schema_path": "NWChemNwpwStanza.scalingAtomIndices",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfConvergence.mode",
+      "class": "schema_field",
+      "schema_path": "NWChemScfConvergence.mode",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemScfSemidirect.enabled",
+      "class": "schema_field",
+      "schema_path": "NWChemScfSemidirect.enabled",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemScfSemidirect.filesize",
+      "class": "schema_field",
+      "schema_path": "NWChemScfSemidirect.filesize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemScfSemidirect.memsize",
+      "class": "schema_field",
+      "schema_path": "NWChemScfSemidirect.memsize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.vectorsInput",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.vectorsInput",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.vectorsOutput",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.vectorsOutput",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.maxiter",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.maxiter",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.thresh",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.thresh",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.tol2e",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.tol2e",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.noprint",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.noprint",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.wavefunctionType",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.wavefunctionType",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.nopen",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.nopen",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.diis",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.diis",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.diisBas",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.diisBas",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.maxsub",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.maxsub",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.lock",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.lock",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.adapt",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.adapt",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.noscf",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.noscf",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.convergence",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.convergence",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemScfStanza.semidirect",
+      "class": "schema_field",
+      "schema_path": "NWChemScfStanza.semidirect",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.maxiter",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.maxiter",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.thresh",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.thresh",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.tol2e",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.tol2e",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.iprt",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.iprt",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.maxDiis",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.maxDiis",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.frozenCore",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.frozenCore",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.frozenVirtual",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.frozenVirtual",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.useDisk",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.useDisk",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.sameSpinScale",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.sameSpinScale",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.oppositeSpinScale",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.oppositeSpinScale",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.printLevel",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.printLevel",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.printItems",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.printItems",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.noPrintItems",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.noPrintItems",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.doa",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.doa",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.dob",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.dob",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.dog",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.dog",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.doh",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.doh",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.dojk",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.dojk",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.dos",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.dos",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.dod",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.dod",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.useTriplesDriverNonblocking",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.useTriplesDriverNonblocking",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.useCcsdOpenmp",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.useCcsdOpenmp",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.useTriplesDriverOpenmp",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.useTriplesDriverOpenmp",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemCcsdStanza.useTriplesDriverOffload",
+      "class": "schema_field",
+      "schema_path": "NWChemCcsdStanza.useTriplesDriverOffload",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.method",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.method",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.model",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.model",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.model2e",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.model2e",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.perturbative",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.perturbative",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.ccsdVariant",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.ccsdVariant",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.noTriplesSingles",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.noTriplesSingles",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.reference",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.reference",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.frozenCore",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.frozenCore",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.frozenVirtual",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.frozenVirtual",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.thresh",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.thresh",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.levelShift",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.levelShift",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.leftLevelShift",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.leftLevelShift",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.levelShift2Alpha",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.levelShift2Alpha",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.levelShift2Beta",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.levelShift2Beta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.levelShift3Alpha",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.levelShift3Alpha",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.levelShift3Beta",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.levelShift3Beta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.maxiter",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.maxiter",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.ioAlgorithm",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.ioAlgorithm",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.diis",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.diis",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.diis2",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.diis2",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.diis3",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.diis3",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.eomSolver",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.eomSolver",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.hbarDimension",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.hbarDimension",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.nroots",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.nroots",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.target",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.target",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.targetSymmetry",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.targetSymmetry",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.symmetry",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.symmetry",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.densityMatrix",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.densityMatrix",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.densityMatrixFile",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.densityMatrixFile",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.left",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.left",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.multipole",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.multipole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.fragment",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.fragment",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.recomputeFock",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.recomputeFock",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeOccupiedAlpha",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeOccupiedAlpha",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeOccupiedBeta",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeOccupiedBeta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeVirtualAlpha",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeVirtualAlpha",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeVirtualBeta",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeVirtualBeta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeOccupied",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeOccupied",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeUnoccupied",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeUnoccupied",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeEnergyMin",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeEnergyMin",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeEnergyMax",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeEnergyMax",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.activeExcitationLevel",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.activeExcitationLevel",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.maxDiff",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.maxDiff",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.atomicTileSize",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.atomicTileSize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.split",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.split",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.twoElectronMethod",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.twoElectronMethod",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.diskBackend",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.diskBackend",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.tileSize",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.tileSize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.cudaDevices",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.cudaDevices",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.mrcc",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.mrcc",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.tccSpaces",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.tccSpaces",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.eaCcsd",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.eaCcsd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.ipCcsd",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.ipCcsd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.freezeMode",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.freezeMode",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.dipole",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.dipole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.printLevel",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.printLevel",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.printItems",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.printItems",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.quadrupole",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.quadrupole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTceStanza.octupole",
+      "class": "schema_field",
+      "schema_path": "NWChemTceStanza.octupole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.root",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.root",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.casElectrons",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.casElectrons",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.casOrbitals",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.casOrbitals",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.nref",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.nref",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.references",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.references",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.se4t",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.se4t",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.noAposteriori",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.noAposteriori",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.subgroupSize",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.subgroupSize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.improveTiling",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.improveTiling",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.usspt",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.usspt",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMrccDataStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemMrccDataStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTaskStanza.theory",
+      "class": "schema_field",
+      "schema_path": "NWChemTaskStanza.theory",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTaskStanza.operation",
+      "class": "schema_field",
+      "schema_path": "NWChemTaskStanza.operation",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemTaskStanza.ignore",
+      "class": "schema_field",
+      "schema_path": "NWChemTaskStanza.ignore",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.maxiter",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.maxiter",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.tight",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.tight",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.loose",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.loose",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.xyz",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.xyz",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.gmaxTol",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.gmaxTol",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.grmsTol",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.grmsTol",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.xmaxTol",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.xmaxTol",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemDriverStanza.xrmsTol",
+      "class": "schema_field",
+      "schema_path": "NWChemDriverStanza.xrmsTol",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.dipole",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.dipole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.mulliken",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.mulliken",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.quadrupol",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.quadrupol",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.octupole",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.octupole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.esp",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.esp",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.efield",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.efield",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.efieldGrad",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.efieldGrad",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.electronDensity",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.electronDensity",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.spinDensity",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.spinDensity",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.spinPopulation",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.spinPopulation",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.shielding",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.shielding",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.hyperfine",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.hyperfine",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemPropertyStanza.polarizability",
+      "class": "schema_field",
+      "schema_path": "NWChemPropertyStanza.polarizability",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.freezeCore",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.freezeCore",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.freezeVirtual",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.freezeVirtual",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.tight",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.tight",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.aotol2e",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.aotol2e",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.aotol2eFock",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.aotol2eFock",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.backtol",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.backtol",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.sameSpinScale",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.sameSpinScale",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.oppositeSpinScale",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.oppositeSpinScale",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.scs",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.scs",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.scratchDisk",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.scratchDisk",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemMp2Stanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemMp2Stanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.nroots",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.nroots",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.tda",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.tda",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.maxiter",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.maxiter",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.thresh",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.thresh",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.maxvecs",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.maxvecs",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.singlet",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.singlet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.triplet",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.triplet",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.target",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.target",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.targetSym",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.targetSym",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.symmetry",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.symmetry",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.algorithm",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.algorithm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.energyCutoff",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.energyCutoff",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemTddftStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemTddftStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBasisStanza.spherical",
+      "class": "schema_field",
+      "schema_path": "NWChemBasisStanza.spherical",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBasisStanza.segment",
+      "class": "schema_field",
+      "schema_path": "NWChemBasisStanza.segment",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBasisStanza.ecp",
+      "class": "schema_field",
+      "schema_path": "NWChemBasisStanza.ecp",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBasisStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemBasisStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBasisStanza.libraryRoot",
+      "class": "schema_field",
+      "schema_path": "NWChemBasisStanza.libraryRoot",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBasisStanza.angularKind",
+      "class": "schema_field",
+      "schema_path": "NWChemBasisStanza.angularKind",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemBasisStanza.segmentMode",
+      "class": "schema_field",
+      "schema_path": "NWChemBasisStanza.segmentMode",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemGeometryStanza.units",
+      "class": "schema_field",
+      "schema_path": "NWChemGeometryStanza.units",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemGeometryStanza.symmetry",
+      "class": "schema_field",
+      "schema_path": "NWChemGeometryStanza.symmetry",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemGeometryStanza.noautosym",
+      "class": "schema_field",
+      "schema_path": "NWChemGeometryStanza.noautosym",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemGeometryStanza.noautoz",
+      "class": "schema_field",
+      "schema_path": "NWChemGeometryStanza.noautoz",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemGeometryStanza.center",
+      "class": "schema_field",
+      "schema_path": "NWChemGeometryStanza.center",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemGeometryStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemGeometryStanza.directives",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.kind",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.kind",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.generic",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.generic",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.dft",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.dft",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.set",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.set",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.raw",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.raw",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.module",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.module",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.pseudopotential",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.pseudopotential",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.scf",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.scf",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.taskStanza",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.taskStanza",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.driver",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.driver",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.property",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.property",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.basisStanza",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.basisStanza",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.geometry",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.geometry",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.nwpw",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.nwpw",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.ccsd",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.ccsd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.tce",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.tce",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.mrccData",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.mrccData",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.brillouinZone",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.brillouinZone",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.simulationCell",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.simulationCell",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.mp2",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.mp2",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.tddft",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.tddft",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.basis",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.basis",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.theory",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.theory",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.scfType",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.scfType",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.charge",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.charge",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.multiplicity",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.multiplicity",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.enginePath",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.enginePath",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.nwchemRoot",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.nwchemRoot",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.task",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.task",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.title",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.title",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.memoryMb",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.memoryMb",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.scratchDir",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.scratchDir",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.permanentDir",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.permanentDir",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.inputBlocks",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.inputBlocks",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemParams.inputStanzas",
+      "class": "schema_field",
+      "schema_path": "NWChemParams.inputStanzas",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialConfig.none",
+      "class": "schema_field",
+      "schema_path": "PotentialConfig.none",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialConfig.nwchem",
+      "class": "schema_field",
+      "schema_path": "PotentialConfig.nwchem",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculate",
+      "class": "schema_method",
+      "schema_path": "Potential.calculate",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.configure",
+      "class": "schema_method",
+      "schema_path": "Potential.configure",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateEnergy",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateEnergy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateForces",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateForces",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateHessian",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateHessian",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateDipole",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateDipole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateQuadrupole",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateQuadrupole",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateStress",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateStress",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateOptimize",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateOptimize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateFrequencies",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateFrequencies",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculatePolarizability",
+      "class": "schema_method",
+      "schema_path": "Potential.calculatePolarizability",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "method.Potential.calculateGradient",
+      "class": "schema_method",
+      "schema_path": "Potential.calculateGradient",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "abi.nwchemc_set_params",
+      "class": "abi",
+      "schema_path": "nwchemc_set_params",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_configure",
+      "class": "abi",
+      "schema_path": "nwchemc_configure",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_energy_gradient",
+      "class": "abi",
+      "schema_path": "nwchemc_energy_gradient",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_energy",
+      "class": "abi",
+      "schema_path": "nwchemc_energy",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_energy_forces",
+      "class": "abi",
+      "schema_path": "nwchemc_energy_forces",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_hessian",
+      "class": "abi",
+      "schema_path": "nwchemc_hessian",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_dipole",
+      "class": "abi",
+      "schema_path": "nwchemc_dipole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_polarizability",
+      "class": "abi",
+      "schema_path": "nwchemc_polarizability",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_quadrupole",
+      "class": "abi",
+      "schema_path": "nwchemc_quadrupole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_stress",
+      "class": "abi",
+      "schema_path": "nwchemc_stress",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_optimize",
+      "class": "abi",
+      "schema_path": "nwchemc_optimize",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_frequencies",
+      "class": "abi",
+      "schema_path": "nwchemc_frequencies",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_energy_gradient_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_energy_gradient_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_energy_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_energy_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_energy_forces_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_energy_forces_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_hessian_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_hessian_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_dipole_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_dipole_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_polarizability_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_polarizability_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_quadrupole_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_quadrupole_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_stress_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_stress_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_optimize_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_optimize_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_frequencies_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_frequencies_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_create",
+      "class": "abi",
+      "schema_path": "nwchemc_session_create",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_create_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_session_create_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_set_params",
+      "class": "abi",
+      "schema_path": "nwchemc_session_set_params",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_configure",
+      "class": "abi",
+      "schema_path": "nwchemc_session_configure",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_reset_topology",
+      "class": "abi",
+      "schema_path": "nwchemc_session_reset_topology",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_destroy",
+      "class": "abi",
+      "schema_path": "nwchemc_session_destroy",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_energy_gradient",
+      "class": "abi",
+      "schema_path": "nwchemc_session_energy_gradient",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_energy",
+      "class": "abi",
+      "schema_path": "nwchemc_session_energy",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_energy_forces",
+      "class": "abi",
+      "schema_path": "nwchemc_session_energy_forces",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_dipole",
+      "class": "abi",
+      "schema_path": "nwchemc_session_dipole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_polarizability",
+      "class": "abi",
+      "schema_path": "nwchemc_session_polarizability",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_quadrupole",
+      "class": "abi",
+      "schema_path": "nwchemc_session_quadrupole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_stress",
+      "class": "abi",
+      "schema_path": "nwchemc_session_stress",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_optimize",
+      "class": "abi",
+      "schema_path": "nwchemc_session_optimize",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_frequencies",
+      "class": "abi",
+      "schema_path": "nwchemc_session_frequencies",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_forces",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_forces",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_gradient",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_gradient",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_energy",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_energy",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_forces",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_forces",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_gradient",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_gradient",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_forces_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_forces_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_gradient_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_gradient_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_energy",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_energy",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_energy_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_energy_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_energy_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_energy_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_energy_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_energy_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_energy_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_energy_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_energy_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_energy_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_forces_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_forces_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_gradient_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_gradient_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_forces_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_forces_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_gradient_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_gradient_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_forces_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_forces_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_gradient_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_gradient_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_forces_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_forces_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_gradient_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_gradient_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_hessian",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_hessian",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_hessian_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_hessian_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_hessian_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_hessian_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_hessian_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_hessian_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_hessian_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_hessian_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_hessian_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_hessian_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_dipole",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_dipole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_dipole_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_dipole_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_dipole_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_dipole_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_dipole_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_dipole_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_dipole_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_dipole_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_dipole_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_dipole_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_polarizability",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_polarizability",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_polarizability_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_polarizability_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_polarizability_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_polarizability_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_polarizability_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_polarizability_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_polarizability_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_polarizability_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_polarizability_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_polarizability_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_quadrupole",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_quadrupole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_quadrupole_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_quadrupole_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_quadrupole_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_quadrupole_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_quadrupole_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_quadrupole_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_quadrupole_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_quadrupole_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_quadrupole_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_quadrupole_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_stress",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_stress",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_stress_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_stress_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_stress_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_stress_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_stress_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_stress_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_stress_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_stress_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_stress_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_stress_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_optimize",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_optimize",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_optimize_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_optimize_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_optimize_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_optimize_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_optimize_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_optimize_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_optimize_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_optimize_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_optimize_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_optimize_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_frequencies",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_frequencies",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_frequencies_detail",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_frequencies_detail",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_frequencies_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_frequencies_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_frequencies_detail_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_frequencies_detail_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_frequencies_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_frequencies_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_frequencies_result",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_frequencies_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_frequencies_result",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_frequencies_result",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_calculate_frequencies_result_from_config",
+      "class": "abi",
+      "schema_path": "nwchemc_calculate_frequencies_result_from_config",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_potential_result_size_for_force_input",
+      "class": "abi",
+      "schema_path": "nwchemc_potential_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_hessian",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_hessian",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_dipole",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_dipole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_polarizability",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_polarizability",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_quadrupole",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_quadrupole",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_stress",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_stress",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_optimize",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_optimize",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_frequencies",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_frequencies",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_calculate_frequencies_detail",
+      "class": "abi",
+      "schema_path": "nwchemc_session_calculate_frequencies_detail",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_session_hessian",
+      "class": "abi",
+      "schema_path": "nwchemc_session_hessian",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_available",
+      "class": "abi",
+      "schema_path": "nwchemc_available",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_version",
+      "class": "abi",
+      "schema_path": "nwchemc_version",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_finalize",
+      "class": "abi",
+      "schema_path": "nwchemc_finalize",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    }
+  ]
+}

@@ -900,6 +900,16 @@ def main() -> int:
         json.dumps(inventory, indent=2) + "\n", encoding="utf-8"
     )
 
+    # Apply honest support tiers from shipped render/extract/embed/tests.
+    map_script = root / "tools/build_nwchem_support_map.py"
+    if map_script.is_file():
+        import subprocess
+
+        subprocess.check_call([sys.executable, str(map_script), str(root)])
+        inventory = json.loads(
+            (out_dir / "nwchem_features.json").read_text(encoding="utf-8")
+        )
+
     entries = []
     for m in inventory["modules"]:
         entries.append(
@@ -910,7 +920,7 @@ def main() -> int:
                 "klass": "NWCHEMC_FEATURE_MODULE",
                 "eid": m["enum_id"],
                 "stub": 1,
-                "embed": 1,
+                "embed": 1 if m.get("embed_applicable", False) else 0,
             }
         )
     for s in inventory["stanzas"]:
@@ -922,7 +932,7 @@ def main() -> int:
                 "klass": "NWCHEMC_FEATURE_STANZA",
                 "eid": -1,
                 "stub": 1,
-                "embed": 1,
+                "embed": 1 if s.get("embed", s.get("embed_applicable", False)) else 0,
             }
         )
     for f in inventory["params_fields"]:

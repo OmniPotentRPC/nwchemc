@@ -10,6 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / "schema" / "Potentials.capnp"
 INVENTORY = ROOT / "schema" / "inventory" / "nwchem_features.json"
+SUPPORT_STATUS = ROOT / "schema" / "inventory" / "nwchem_support_status.json"
+SUPPORT_TIERS = frozenset({"absent", "schema", "text", "embed", "tested"})
 FEATURES_C = ROOT / "src" / "nwchemc_features.c"
 OPTIONS_DOC = ROOT / "docs" / "orgmode" / "reference" / "nwchem-options.org"
 
@@ -322,11 +324,73 @@ def main() -> int:
                     continue
                 errors.append(f"options.org missing stanza coverage for {kind}")
 
+    # Support map: every inventory feature_id must have a closed support_tier.
+    inv_feature_ids: set[str] = set()
+    for m in inv.get("modules", []):
+        inv_feature_ids.add(m["feature_id"])
+        if m.get("support_tier") not in SUPPORT_TIERS:
+            errors.append(f"module missing/invalid support_tier: {m['feature_id']}")
+    for s in inv.get("stanzas", []):
+        fid = s.get("feature_id") or f"stanza.{s['kind']}"
+        inv_feature_ids.add(fid)
+        if s.get("support_tier") not in SUPPORT_TIERS:
+            errors.append(f"stanza missing/invalid support_tier: {fid}")
+    for f in inv.get("params_fields", []):
+        fid = f.get("feature_id") or f"params.{f['name']}"
+        inv_feature_ids.add(fid)
+        if f.get("support_tier") not in SUPPORT_TIERS:
+            errors.append(f"params_field missing/invalid support_tier: {fid}")
+    for f in inv.get("schema_fields", []):
+        inv_feature_ids.add(f["feature_id"])
+        if f.get("support_tier") not in SUPPORT_TIERS:
+            errors.append(
+                f"schema_field missing/invalid support_tier: {f['feature_id']}"
+            )
+    for f in inv.get("schema_methods", []):
+        inv_feature_ids.add(f["feature_id"])
+        if f.get("support_tier") not in SUPPORT_TIERS:
+            errors.append(
+                f"schema_method missing/invalid support_tier: {f['feature_id']}"
+            )
+    for f in inv.get("abi_entrypoints", []):
+        fid = f.get("feature_id") or f"abi.{f['name']}"
+        inv_feature_ids.add(fid)
+        if f.get("support_tier") not in SUPPORT_TIERS:
+            errors.append(f"abi missing/invalid support_tier: {fid}")
+
+    if not SUPPORT_STATUS.is_file():
+        errors.append(f"missing support status map: {SUPPORT_STATUS}")
+    else:
+        status = json.loads(SUPPORT_STATUS.read_text(encoding="utf-8"))
+        status_ids = {r["feature_id"] for r in status.get("features", [])}
+        if status.get("row_count", 0) < len(inv_feature_ids):
+            errors.append(
+                f"support map row_count {status.get('row_count')} < "
+                f"inventory features {len(inv_feature_ids)}"
+            )
+        missing_status = inv_feature_ids - status_ids
+        extra_status = status_ids - inv_feature_ids
+        if missing_status:
+            errors.append(
+                f"support map missing feature_ids: {sorted(missing_status)[:20]}"
+            )
+        if extra_status:
+            errors.append(
+                f"support map extra feature_ids: {sorted(extra_status)[:20]}"
+            )
+        for r in status.get("features", []):
+            if r.get("support_tier") not in SUPPORT_TIERS:
+                errors.append(
+                    f"support map invalid tier for {r.get('feature_id')}: "
+                    f"{r.get('support_tier')}"
+                )
+
     print(
         f"modules={len(schema_mods)} fields={len(schema_fields)} "
         f"schema_fields={len(schema_all_fields)} schema_methods={len(schema_methods)} "
         f"stanzas={len(schema_stanzas)} intern_ok_rows="
-        f"{features_c.count('NWCHEMC_FEATURE_')}"
+        f"{features_c.count('NWCHEMC_FEATURE_')} "
+        f"inventory_features={len(inv_feature_ids)}"
     )
     if errors:
         for e in errors:
