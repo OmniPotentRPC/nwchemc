@@ -1,4 +1,5 @@
 /* Drive shipped nwchemc_energy_forces / nwchemc_energy_gradient for SP theories. */
+#define _POSIX_C_SOURCE 200809L
 #include "nwchemc.h"
 
 #include <errno.h>

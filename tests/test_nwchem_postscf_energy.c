@@ -1,4 +1,5 @@
 /* Drive shipped nwchemc_energy for post-SCF theories (ccsd/mp2/tce). */
+#define _POSIX_C_SOURCE 200809L
 #include "nwchemc.h"
 
 #include <errno.h>
