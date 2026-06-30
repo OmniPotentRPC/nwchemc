@@ -58,6 +58,8 @@ C        make classic CCSD(T) triples ga_access on X oper fault on H2/STO-3G.
          else
             if (.not. ma_init(mt_dbl, stack, heap)) return
          endif
+c        Match nwchem.F: 64-byte MA alignment (ma_set_numalign(6)).
+         if (.not. ma_set_numalign(6)) return
          call util_blas_set_num_threads(1)
 C        NWChem file prefix / scratch / permanent (env: NWCHEM_SCRATCH_DIR,
 C        NWCHEM_PERMANENT_DIR, or .nwchemrc; else CWD). No embed-local paths.
@@ -3151,9 +3153,9 @@ C     -fdefault-integer-8); force integer*4 for mpi_initialized args.
       return
       end
 
-C     Override NWChem ga_create_JKblocked for classic CCSD(T) under embed.
-C     Use ga_create with full-dimension blocks (own entire array on each
-C     block boundary) and zero-fill so region is committed before moints.
+C     Override NWChem ga_create_JKblocked — keep stock algorithm (row_dist =
+C     n1*n2) so behavior matches CLI; classic CCSD(T) fix is MA alignment
+C     and ga_initialize_ltd in embed init (see nwchem_legacy_init).
       integer function ga_create_JKblocked(noper, n1, n2, label)
       implicit none
 #include "errquit.fh"
@@ -3162,21 +3164,15 @@ C     block boundary) and zero-fill so region is committed before moints.
       integer noper, n1, n2
       character*(*) label
       integer g_a
-      integer nrows
-      logical status
-      if (noper .lt. 1) noper = 1
-      if (n1 .lt. 1) n1 = 1
-      if (n2 .lt. 1) n2 = 1
-      nrows = n1 * n2
-      status = ga_create(MT_DBL, nrows, noper, label, nrows, noper,
-     $     g_a)
-      if (.not. status) then
-         write(6, *) ' ga_create_JKblocked(embed): ', label
+      integer row_dist, col_dist
+      col_dist = 1
+      row_dist = n1 * n2
+      if (.not. ga_create(MT_DBL, (n1 * n2), noper, label, row_dist,
+     $     col_dist, g_a)) then
+         write(6, *) ' ga_create_JKblocked: ', label
          call util_flush(6)
          call errquit('ga_create_JKblocked: cannot allocate', 0, GA_ERR)
       endif
-      call ga_zero(g_a)
-      call ga_sync()
       ga_create_JKblocked = g_a
       return
       end
