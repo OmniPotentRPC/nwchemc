@@ -37,9 +37,16 @@ METHOD_ENERGY_RES = [
     re.compile(r"Total\s+DFT\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     # Exclude SCS-CCSD (printed after plain CCSD; last-match would steal it).
     re.compile(r"Total\s+CCSD\s+energy:\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    re.compile(r"Total\s+CCSD\(T\)\s+energy:\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"CCSD\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"CCSD\(T\)\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"CCSDt?\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
+    # TCE method totals: "CCD/CISD/MBPT(n)/CC2/LCCSD/... total energy / hartree ="
+    re.compile(
+        r"(?:CCD|CC2|CISDT?|LCCSD|MBPT\(\d+\)|CR-CCSD[\[(]T[\])]|Lambda-CCSD[\[(]T[\])]|"
+        r"CCSDT|CCSDTQ)\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)",
+        re.IGNORECASE,
+    ),
     re.compile(r"SELCI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"Final\s+CI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     re.compile(r"ci\+pt\s+energy\s+([-+0-9.Ee+]+)", re.IGNORECASE),
