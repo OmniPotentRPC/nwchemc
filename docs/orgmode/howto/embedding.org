@@ -119,8 +119,17 @@ python3 tools/compare_nwchem_cli.py \
 
 The comparison report is written as ~nwchem_compare_report.txt~ and
 ~nwchem_compare_report.json~ in the selected output directory. The embed leg
-writes ~NWCHEMC_COMPARE_JSON~ through the real C ABI test binary so the report
-captures the embedded energy and gradient vector.
+writes ~NWCHEMC_COMPARE_JSON~ through real C ABI test binaries (~energy/forces~,
+~optimize/frequencies~, ~primary_props~ for dipole/quadrupole/Hessian) so the
+report captures embedded primary observables, not a reimplementation.
+
+~tests/integration/task_matrix.json~ declares ~embed_compare~ rows and
+tolerances. Polarizability is embed-proven (~nwchemc_polarizability~ with a
+non-trivial magnitude gate) but is not CLI-compared unless NWChem prints
+aoresponse data the parser can read honestly. ~nwchemc_stress~ requires an
+NWChem embed tree linked with NWPW/PSPW modules; smallqm-style exclusions that
+omit ~nwpw~ cannot exercise stress. Conda-forge ~nwchem~ is a runtime
+executable prefix and is not interchangeable with ~-Dnwchem_root~ embed trees.
 
 * Session Step Calls
 Callers that drive multiple geometry steps can keep the NWChem configuration in

@@ -46,9 +46,14 @@ meson compile -C build-nwchem
 meson test -C build-nwchem --print-errorlogs
 #+end_src
 
-The embed test suite exercises energy, gradient, forces, Hessian, serialized
-session results, RTDB geometry/basis state, and pseudopotential state against
-the same ~NWChemParams~ and ~ForceInput~ Cap'n Proto carriers.
+The embed test suite exercises the primary calculation surface: energy,
+gradient, forces, Hessian, dipole, polarizability, quadrupole, optimize,
+frequencies, plus serialized session results, RTDB geometry/basis state, and
+pseudopotential state against the same ~NWChemParams~ and ~ForceInput~ Cap'n
+Proto carriers. Dedicated probes include ~test_nwchem_energy_forces~,
+~test_nwchem_postscf_energy~, ~test_nwchem_optimize_freq~, and
+~test_nwchem_primary_props~ (each can write ~NWCHEMC_COMPARE_JSON~ for the CLI
+compare driver). Stress tests require an NWChem tree linked with NWPW/PSPW.
 
 Shared ~libnwchemc.so~ builds are available when the selected NWChem archives
 are PIC-compatible. If the shared link probe reports an ELF relocation error,
@@ -88,6 +93,16 @@ python3 tools/compare_nwchem_cli.py \
 
 The report files are written to the selected output directory as
 ~nwchem_compare_report.txt~ and ~nwchem_compare_report.json~.
+
+The contract for which quantities are compared is
+~tests/integration/task_matrix.json~ (~embed_compare~, ~embed_meson_test~,
+tolerances). Rows cover energy/forces across SCF and post-SCF theories,
+optimize (energy + optimized positions), frequencies (energy + magnitudes),
+dipole, quadrupole, and Hessian (via the CLI ~.hess~ file). Polarizability is
+proven on the embed ABI with a non-trivial magnitude gate but is not inventively
+parsed from energy-only CLI logs. Authoritative embed-vs-CLI runs use a real
+NWChem embed build and CLI on the same host (project practice: ~rg.terra~);
+laptop-only CLI is not a substitute when claiming embed parity.
 
 * CMake Build
 The CMake build exposes the same stub/parser path and the real NWChem embed

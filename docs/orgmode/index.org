@@ -21,7 +21,9 @@ Callers pass an unpacked flat Cap'n Proto message whose root is
 ~NWChemParams~.
 The runtime reads that message through generated ~capnp-c~ bindings and
 applies the resulting method configuration to a Fortran bridge around NWChem's
-RTDB, geometry, basis, energy, gradient, and Hessian entry points.
+RTDB, geometry, basis, and primary calculation entry points: energy, gradient,
+forces, Hessian, dipole, polarizability, quadrupole, optimize, frequencies, and
+stress (when the linked NWChem tree includes NWPW/PSPW).
 
 Every ~NWChemModuleName~, input stanza kind, top-level ~NWChemParams~ field, and
 public ABI entrypoint is interned in ~schema/inventory/nwchem_features.json~
