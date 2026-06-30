@@ -2251,10 +2251,6 @@ c        TDDFT SP forces: persist CI vectors + util paths + grad root.
 c        Post-SCF theories (ccsd/mp2/tce/...) need HF reference scftype too.
          status = rtdb_cput(rtdb, 'scf:scftype', 1, scf_type)
          ok = ok .and. status
-c        Classic ccsd(t): map to TCE perturbative triples (embed GA-safe).
-         call nwchemc_map_classic_ccsdt_to_tce(rtdb, theory_name,
-     $        status)
-         ok = ok .and. status
 c        TCE: promote/inputBlocks may set tce:model (mbpt2, lccsd, …);
 c        only default to ccsd when unset so method-specific SP/MR is kept.
          if (theory_name(1:3) .eq. 'tce') then
@@ -3155,56 +3151,39 @@ C     -fdefault-integer-8); force integer*4 for mpi_initialized args.
       return
       end
 
-C     Classic theory ccsd(t) under embed: use TCE perturbative triples.
-      subroutine nwchemc_map_classic_ccsdt_to_tce(rtdb, theory_name, ok)
+C     Override NWChem ga_create_JKblocked for classic CCSD(T) under embed.
+C     Stock row_dist=n1*n2 yields empty ga_access [1:0,1:1] on X oper when
+C     nvir=1 under embed. Irregular maps place the full array on process 0.
+      integer function ga_create_JKblocked(noper, n1, n2, label)
       implicit none
+#include "errquit.fh"
+#include "global.fh"
 #include "mafdecls.fh"
-#include "rtdb.fh"
-#include "inp.fh"
-      integer rtdb
-      character*(*) theory_name
-      logical ok
+      integer noper, n1, n2
+      character*(*) label
+      integer g_a
+      integer dims(2), nblock1, nblock2
+      integer map1(1), map2(1)
       logical status
-      logical nw_inp_from_character
-      external nw_inp_from_character
-      integer ival
-      logical lval
-      character*32 tce_model_existing
-      character*64 tce_block
-      character*7 ccsdt_tok
-      ok = .true.
-c     Classic module theory ccsd(t) only (not TCE / iterative ccsdt).
-c     Build token without embedding apostrophe in (t).
-      ccsdt_tok = 'ccsd(' // 't)'
-      if (.not. inp_compare(.false., theory_name, ccsdt_tok)) return
-      tce_block = 'tce' // char(10) // '  ' // ccsdt_tok //
-     $     char(10) // 'end'
-      if (.not. nw_inp_from_character(rtdb, tce_block)) then
-         ok = .false.
-         return
+      integer nga_create_irreg
+      external nga_create_irreg
+      if (noper .lt. 1) noper = 1
+      if (n1 .lt. 1) n1 = 1
+      if (n2 .lt. 1) n2 = 1
+      dims(1) = n1 * n2
+      dims(2) = noper
+      nblock1 = 1
+      nblock2 = 1
+      map1(1) = 1
+      map2(1) = 1
+      status = nga_create_irreg(MT_DBL, 2, dims, label, map1, nblock1,
+     $     map2, nblock2, g_a)
+      if (.not. status) then
+         write(6, *) ' ga_create_JKblocked(embed): ', label
+         call util_flush(6)
+         call errquit('ga_create_JKblocked: cannot allocate', 0, GA_ERR)
       endif
-      theory_name = 'tce'
-      tce_model_existing = ' '
-      if (.not. rtdb_cget(rtdb, 'tce:model', 1,
-     $     tce_model_existing)) then
-         status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
-         ok = ok .and. status
-      endif
-      status = rtdb_cput(rtdb, 'tce:model2e', 1, 'default')
-      ok = ok .and. status
-      ival = -1
-      call nwchemc_rtdb_put_int(rtdb, 'tce:fragment', ival, status)
-      ok = ok .and. status
-      ival = 1
-      call nwchemc_rtdb_put_int(rtdb, 'tce:reference', ival, status)
-      ok = ok .and. status
-      lval = .false.
-      status = rtdb_put(rtdb, 'tce:densmat', mt_log, 1, lval)
-      ok = ok .and. status
-      lval = .true.
-      status = rtdb_put(rtdb, 'tce:recompf', mt_log, 1, lval)
-      ok = ok .and. status
-      status = rtdb_cput(rtdb, 'tce:module', 1, 'tce')
-      ok = ok .and. status
+      ga_create_JKblocked = g_a
       return
       end
+
