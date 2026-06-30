@@ -3163,12 +3163,10 @@ C     Linked via link_whole on nwchemc_legacy before NWChem archives.
       integer noper, n1, n2
       character*(*) label
       integer g_a
-      integer row_dist, col_dist, nrows
-c     Classic CCSD(T) triples builds X oper as (nbf*nvir) x noper. On H2/STO-3G
-c     nvir=1 so nrows=nbf; under embed GA access then faults with [1:0,1:1].
-c     Allocate at least n1*n1 rows (same footprint as Coulomb oper) so the
-c     distribution is non-empty and moints_trp ga_access/ga_get succeed.
-c     Extra rows are unused padding; K-transform only writes nvir*nvir.
+      integer row_dist, col_dist, nrows, nlen
+      character*64 uniq
+c     H2/STO-3G classic CCSD(T): nvir=1 X oper access faults under embed when
+c     the GA name reuses "X oper" after CCSD destroy. Unique name + min nrows.
       if (noper .lt. 1) noper = 1
       if (n1 .lt. 1) n1 = 1
       if (n2 .lt. 1) n2 = 1
@@ -3177,9 +3175,12 @@ c     Extra rows are unused padding; K-transform only writes nvir*nvir.
       if (nrows .lt. 1) nrows = 1
       col_dist = 1
       row_dist = nrows
-      if (.not. ga_create(MT_DBL, nrows, noper, label, row_dist,
+      nlen = len_trim(label)
+      if (nlen .gt. 48) nlen = 48
+      uniq = 'emb/' // label(1:nlen)
+      if (.not. ga_create(MT_DBL, nrows, noper, uniq, row_dist,
      $     col_dist, g_a)) then
-         write(6, *) ' ga_create_JKblocked(embed): ', label
+         write(6, *) ' ga_create_JKblocked(embed): ', uniq
          call util_flush(6)
          call errquit('ga_create_JKblocked: cannot allocate', 0, GA_ERR)
       endif
