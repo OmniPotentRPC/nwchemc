@@ -2046,8 +2046,6 @@ C     Full method setup (same as energy_only), including inputBlocks.
       character*255 tddft_fn
       character*32 tce_model_existing
       external util_file_name, util_file_name_resolve
-      external rtdb_cget
-      logical rtdb_cget
 
       ok = .true.
 C     New method/config: drop cached geometry handle.
