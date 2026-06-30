@@ -9,11 +9,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <cmocka.h>
 
 static const char *g_label = NULL;
 static const char *g_params_path = NULL;
+
+/* Per-label dirs so Meson suite order cannot leave movecs/RTDB that break
+ * classic CCSD after rimp2/TCE (shared compile-time scratch path). */
+static int isolate_embed_dirs(const char *label) {
+  char scratch[512];
+  char permanent[512];
+  const char *lab = (label && label[0]) ? label : "postscf";
+  snprintf(scratch, sizeof(scratch), "%s-%s", NWCHEMC_TEST_SCRATCH_DIR, lab);
+  snprintf(permanent, sizeof(permanent), "%s-%s", NWCHEMC_TEST_PERMANENT_DIR,
+           lab);
+  if (mkdir(scratch, 0755) != 0 && errno != EEXIST)
+    return -1;
+  if (mkdir(permanent, 0755) != 0 && errno != EEXIST)
+    return -1;
+  if (setenv("NWCHEM_SCRATCH_DIR", scratch, 1) != 0)
+    return -1;
+  if (setenv("NWCHEM_PERMANENT_DIR", permanent, 1) != 0)
+    return -1;
+  return 0;
+}
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -53,6 +74,7 @@ static int teardown_nwchem(void **state) {
 static void test_h2_postscf_energy_finite(void **state) {
   (void)state;
   assert_true(nwchemc_available());
+  assert_int_equal(isolate_embed_dirs(g_label), 0);
   size_t params_size = 0;
   unsigned char *params = read_file(g_params_path, &params_size);
   assert_non_null(params);
