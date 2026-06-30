@@ -1996,8 +1996,7 @@ nwchem_config_options_params_bin = custom_target(
       ['sodft', nwchem_params_h2_sodft_bin],
       ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
       ['selci', nwchem_params_h2_selci_bin],
-      # classic ccsd(t) embed on H2 STO-3G aborts in triples GA (CLI OK);
-      # triples coverage is via TCE ccsd(t)/cr/lambda and iterative ccsdt.
+      ['ccsd-t', nwchem_params_h2_ccsd_t_bin],
       ['tce-ccd', nwchem_params_h2_tce_ccd_bin],
       ['tce-cisd', nwchem_params_h2_tce_cisd_bin],
       ['tce-mbpt2', nwchem_params_h2_tce_mbpt2_bin],

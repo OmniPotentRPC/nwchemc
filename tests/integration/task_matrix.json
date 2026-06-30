@@ -345,8 +345,9 @@
       "quantities": [
         "energy"
       ],
-      "embed_compare": false,
-      "notes": "classic task ccsd(t) energy CLI-only on H2 (embed triples GA abort; use TCE ccsd(t)/ccsdt-iter)"
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-ccsd-t",
+      "notes": "classic module task ccsd(t) energy (perturbative triples)"
     },
     {
       "id": "h2_tce_ccd_energy",

@@ -2882,6 +2882,7 @@ C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
       external geom_get_user_scale, geom_cart_set, geom_masses_set
       external geom_rtdb_store, geom_atn_to_default_mass
       external geom_amatrix_set, geom_isystype_set, geom_P1_set
+      external geom_getsym
       logical geom_create, geom_destroy, geom_set_user_units
       logical geom_get_user_scale, geom_cart_set, geom_masses_set
       logical geom_rtdb_store, geom_atn_to_default_mass
@@ -2963,6 +2964,12 @@ C     Live geometry handle in RTDB (no COMMON; GCC16 rejects COMMON+SAVE).
       endif
       deallocate(coords, charge, mass, tags)
       call geom_compute_values(geom)
+c     Molecular geometries: run autosym like default NWChem geometry input.
+c     Without it, classic CCSD(T) triples (ga_create 'X oper') aborts on
+c     H2/STO-3G under embed while CLI with autosym/noautosym succeeds.
+      if (has_cell .eq. 0) then
+         call geom_getsym(rtdb, geom, 'geometry')
+      endif
       if (.not. geom_rtdb_store(rtdb, geom, 'geometry')) then
          errmsg = 'geom_rtdb_store failed'
          status = geom_destroy(geom)
