@@ -1397,6 +1397,10 @@ nwchem_config_options_params_bin = custom_target(
       'tce_lccsd',
       'tce_mbpt4',
       'tce_lambda',
+      'tce_lccd',
+      'tce_mbpt3',
+      'tce_cisdt',
+      'tce_ccsdt_bt',
     ]
       nwchem_params_h2_extra += {
         _extra: custom_target(
@@ -1425,6 +1429,10 @@ nwchem_config_options_params_bin = custom_target(
     nwchem_params_h2_tce_lccsd_bin = nwchem_params_h2_extra['tce_lccsd']
     nwchem_params_h2_tce_mbpt4_bin = nwchem_params_h2_extra['tce_mbpt4']
     nwchem_params_h2_tce_lambda_bin = nwchem_params_h2_extra['tce_lambda']
+    nwchem_params_h2_tce_lccd_bin = nwchem_params_h2_extra['tce_lccd']
+    nwchem_params_h2_tce_mbpt3_bin = nwchem_params_h2_extra['tce_mbpt3']
+    nwchem_params_h2_tce_cisdt_bin = nwchem_params_h2_extra['tce_cisdt']
+    nwchem_params_h2_tce_ccsdt_bt_bin = nwchem_params_h2_extra['tce_ccsdt_bt']
 
     nwchem_input_blocks_params_text = configure_file(
       input: 'tests/nwchem_params_input_blocks.capnp.txt.in',
@@ -1885,6 +1893,8 @@ nwchem_config_options_params_bin = custom_target(
       ['selci', nwchem_params_h2_selci_bin],
       ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
       ['tce-cisd', nwchem_params_h2_tce_cisd_bin],
+      ['tce-ccd', nwchem_params_h2_tce_ccd_bin],
+      ['tce-mbpt2', nwchem_params_h2_tce_mbpt2_bin],
     ]
       test(
         'nwchem-energy-forces-' + forces_case[0],
@@ -1997,6 +2007,10 @@ nwchem_config_options_params_bin = custom_target(
       ['tce-lccsd', nwchem_params_h2_tce_lccsd_bin],
       ['tce-mbpt4', nwchem_params_h2_tce_mbpt4_bin],
       ['tce-lambda', nwchem_params_h2_tce_lambda_bin],
+      ['tce-lccd', nwchem_params_h2_tce_lccd_bin],
+      ['tce-mbpt3', nwchem_params_h2_tce_mbpt3_bin],
+      ['tce-cisdt', nwchem_params_h2_tce_cisdt_bin],
+      ['tce-ccsdt-bt', nwchem_params_h2_tce_ccsdt_bt_bin],
     ]
       test(
         'nwchem-postscf-energy-' + postscf[0],

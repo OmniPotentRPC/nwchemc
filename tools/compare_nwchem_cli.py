@@ -43,8 +43,8 @@ METHOD_ENERGY_RES = [
     re.compile(r"CCSDt?\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),
     # TCE method totals: "CCD/CISD/MBPT(n)/CC2/LCCSD/... total energy / hartree ="
     re.compile(
-        r"(?:CCD|CC2|CISDT?|LCCSD|MBPT\(\d+\)|CR-CCSD[\[(]T[\])]|Lambda-CCSD[\[(]T[\])]|"
-        r"CCSDT|CCSDTQ)\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)",
+        r"(?:L?CCD|CC2|CISDT?|LCCSD|MBPT\(\d+\)(?:\(SDQ\))?|CR-CCSD[\[(]T[\])]|"
+        r"Lambda-CCSD[\[(]T[\])]|CCSD\[T\]|CCSDT|CCSDTQ)\s+total\s+energy\s*/\s*hartree\s*=\s*([-+0-9.Ee+]+)",
         re.IGNORECASE,
     ),
     re.compile(r"SELCI\s+energy\s*=\s*([-+0-9.Ee+]+)", re.IGNORECASE),

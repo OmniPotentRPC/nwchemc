@@ -459,6 +459,68 @@
       "embed_compare": true,
       "embed_meson_test": "nwchem-energy-forces-tce-cisd",
       "notes": "TCE CISD gradient"
+    },
+    {
+      "id": "h2_tce_lccd_energy",
+      "nw_input": "tests/integration/nw/h2_tce_lccd_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-lccd",
+      "notes": "TCE linearized CCD"
+    },
+    {
+      "id": "h2_tce_mbpt3_energy",
+      "nw_input": "tests/integration/nw/h2_tce_mbpt3_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-mbpt3",
+      "notes": "TCE MBPT(3)"
+    },
+    {
+      "id": "h2_tce_cisdt_energy",
+      "nw_input": "tests/integration/nw/h2_tce_cisdt_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-cisdt",
+      "notes": "TCE CISDT multi-config CI"
+    },
+    {
+      "id": "h2_tce_ccsdt_bt_energy",
+      "nw_input": "tests/integration/nw/h2_tce_ccsdt_bt_energy.nw",
+      "quantities": [
+        "energy"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-postscf-energy-tce-ccsdt-bt",
+      "notes": "TCE CCSD[T] (bracket triples)"
+    },
+    {
+      "id": "h2_tce_ccd_forces",
+      "nw_input": "tests/integration/nw/h2_tce_ccd_forces.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-energy-forces-tce-ccd",
+      "notes": "TCE CCD numerical gradient"
+    },
+    {
+      "id": "h2_tce_mbpt2_forces",
+      "nw_input": "tests/integration/nw/h2_tce_mbpt2_forces.nw",
+      "quantities": [
+        "energy",
+        "forces"
+      ],
+      "embed_compare": true,
+      "embed_meson_test": "nwchem-energy-forces-tce-mbpt2",
+      "notes": "TCE MBPT(2) numerical gradient"
     }
   ]
 }
