@@ -3058,9 +3058,9 @@ c     segment_mode: 0=unspecified, 1=segment, 2=nosegment
 c     Map on-disk library filename form to NWChem in-file standard name.
 c     NWChem bas_tag_lib builds filenames by replacing * with s; file keys
 c     keep stars (e.g. basis "H_6-31G*"). Accept either form by peeking the
-c     library file for the first basis "TAG_STANDARD" matching TAG.
+c     library file for the first basis/ecp "TAG_STANDARD" matching TAG.
       subroutine nwchemc_resolve_library_standard(basis_in, tag,
-     $     standard)
+     $     standard, is_ecp)
       implicit none
 #include "baslibraryP.fh"
 #include "inp.fh"
@@ -3068,9 +3068,10 @@ c     library file for the first basis "TAG_STANDARD" matching TAG.
       character*(*) basis_in
       character*16 tag
       character*(*) standard
+      logical is_ecp
       character*255 filestring, field, key, want
       character*255 std_try, basis_lc
-      integer i, lenn, lena, ind, ios
+      integer i, lenn, lena, ind, ios, klen
       logical file_exists, found
       character*1 ch
 
@@ -3123,8 +3124,12 @@ c     Peek file for basis "tag_standard" entries (same search key layout).
       found = .false.
  40   read(98, '(a)', end=50, err=50) field
       call inp_lcase(field)
-      if (field(1:5) .ne. 'basis') goto 40
-c     Find quoted key after basis
+      if (is_ecp) then
+         if (field(1:3) .ne. 'ecp') goto 40
+      else
+         if (field(1:5) .ne. 'basis') goto 40
+      endif
+c     Find quoted key after basis/ecp
       i = index(field, '"')
       if (i .le. 0) goto 40
       key = field(i+1:)
@@ -3132,11 +3137,11 @@ c     Find quoted key after basis
       if (i .le. 0) goto 40
       key = key(1:i-1)
       call inp_lcase(key)
-      if (key(1:lenn+1) .ne. want(1:lenn+1)) goto 40
+      klen = inp_strlen(want)
+      if (key(1:klen) .ne. want(1:klen)) goto 40
 c     Remainder after tag_ is the standard name (underscores -> spaces later
-c     handled by bas_tag_lib; keep as-is from file but restore * from filename
-c     when the key uses stars).
-      std_try = key(lenn+2:)
+c     handled by bas_tag_lib).
+      std_try = key(klen+1:)
       if (inp_strlen(std_try) .gt. 0) then
          standard = std_try
          found = .true.
@@ -3145,7 +3150,7 @@ c     when the key uses stars).
       goto 40
  50   close(98)
 c     Heuristic fallback if peek failed: trailing gss -> g**, gs -> g*
-      if (.not. found) then
+      if (.not. found .and. .not. is_ecp) then
          lenn = inp_strlen(basis_lc)
          if (lenn .ge. 3 .and. basis_lc(lenn-2:lenn) .eq. 'gss') then
             standard = basis_lc(1:lenn-2)//'**'
@@ -3246,10 +3251,10 @@ c     AO basis plus RI-MP2 fitting basis (same library atoms) for rimp2.
       external bas_create, bas_tag_lib, bas_rtdb_store
       external bas_do_destroy, bas_set_library_name
       external bas_add_ucnt_init, bas_add_ucnt_tidy
-      external bas_set_spherical
+      external bas_set_spherical, bas_set_ecp_basis, bas_set_ecp_name
       logical bas_create, bas_rtdb_store, bas_do_destroy
       logical bas_add_ucnt_init, bas_add_ucnt_tidy
-      logical bas_set_spherical
+      logical bas_set_spherical, bas_set_ecp_basis, bas_set_ecp_name
 
       ok = .false.
       allocate(tags(n_atoms), stat=alloc_status)
@@ -3266,6 +3271,15 @@ c     compiled basis/libraries/. bse => bas_set_library_name('libraries.bse').
          errmsg = 'bas_create failed'
          deallocate(tags)
          return
+      endif
+c     Mark ECP handles so bas_tag_lib searches ecp keys (not basis keys).
+      if (is_ecp) then
+         if (.not. bas_set_ecp_basis(basis)) then
+            errmsg = 'bas_set_ecp_basis failed'
+            deallocate(tags)
+            status = bas_do_destroy(basis)
+            return
+         endif
       endif
       if (.not. bas_add_ucnt_init(basis)) then
          errmsg = 'bas_add_ucnt_init failed'
@@ -3288,6 +3302,15 @@ c     after bas_tag_lib so classic library parsers are unchanged.
          deallocate(tags)
          status = bas_do_destroy(basis)
          return
+      endif
+c     Associate AO basis with RTDB ECP name so bas_rtdb_load links them.
+      if (.not. is_ecp .and. nwchemc_basis_ecp_name .ne. ' ') then
+         if (.not. bas_set_ecp_name(basis, 'ecp basis')) then
+            errmsg = 'bas_set_ecp_name failed'
+            deallocate(tags)
+            status = bas_do_destroy(basis)
+            return
+         endif
       endif
       ntags = 0
       osegment = .true.
@@ -3320,13 +3343,13 @@ c     read_sphere is set for BSE. Angular kind uses bas_set_spherical after.
                endif
             enddo
             call nwchemc_resolve_library_standard(lib_for_tag, tag,
-     $           standard)
+     $           standard, is_ecp)
             filename = user_library_name
             call bas_tag_lib(basis, osegment, tag, tag, standard,
      $           filename, oshell_is_rel, read_sphere)
          endif
       enddo
-      if (want_sph) then
+      if (want_sph .and. .not. is_ecp) then
          if (.not. bas_set_spherical(basis, .true.)) then
             errmsg = 'bas_set_spherical failed'
             deallocate(tags)

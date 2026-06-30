@@ -6,7 +6,8 @@
 
 extern void nwchemc_test_geometry_basis_rtdb(int *result);
 
-static void test_geometry_basis_accepts_more_than_64_atoms(void **state) {
+/* Large-H store plus Cl2 lanl2dz_ecp ECP association in one GA session. */
+static void test_geometry_basis_and_ecp_association(void **state) {
   (void)state;
   int result = -1;
   nwchemc_test_geometry_basis_rtdb(&result);
@@ -15,7 +16,7 @@ static void test_geometry_basis_accepts_more_than_64_atoms(void **state) {
 
 int main(void) {
   const struct CMUnitTest tests[] = {
-      cmocka_unit_test(test_geometry_basis_accepts_more_than_64_atoms),
+      cmocka_unit_test(test_geometry_basis_and_ecp_association),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

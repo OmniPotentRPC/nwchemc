@@ -2201,7 +2201,8 @@ nwchem_config_options_params_bin = custom_target(
       include_directories: inc,
       dependencies: [cmocka_dep],
       link_with: nwchemc_legacy,
-      link_args: nwchem_link_args,
+      # Embed provides ga_create_JKblocked; allow multiple vs NWChem moints.
+      link_args: nwchem_link_args + ['-Wl,--allow-multiple-definition'],
       c_args: common_c_args,
       fortran_args: nwchem_legacy_args,
     )
