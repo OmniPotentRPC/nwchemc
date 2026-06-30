@@ -3171,16 +3171,18 @@ C     Classic theory ccsd(t) under embed: use TCE perturbative triples.
       character*32 tce_model_existing
       character*64 tce_block
       ok = .true.
-c     Only classic module theory token ccsd(t) (not TCE, not iterative ccsdt).
+c     Classic module theory ccsd(t) only (not TCE / iterative ccsdt).
       if (.not. inp_compare(.false., theory_name, 'ccsd(t)')) return
-      tce_block = 'tce' // char(10) // '  ccsd(t)' // char(10) // 'end'
+      tce_block = 'tce' // char(10) // '  ccsd(t)' // char(10) //
+     $     'end'
       if (.not. nw_inp_from_character(rtdb, tce_block)) then
          ok = .false.
          return
       endif
       theory_name = 'tce'
       tce_model_existing = ' '
-      if (.not. rtdb_cget(rtdb, 'tce:model', 1, tce_model_existing)) then
+      if (.not. rtdb_cget(rtdb, 'tce:model', 1,
+     $     tce_model_existing)) then
          status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
          ok = ok .and. status
       endif
