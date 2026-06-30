@@ -3152,8 +3152,6 @@ C     -fdefault-integer-8); force integer*4 for mpi_initialized args.
       end
 
 C     Override NWChem ga_create_JKblocked for classic CCSD(T) under embed.
-C     Stock row_dist=n1*n2 yields empty ga_access [1:0,1:1] on X oper when
-C     nvir=1 under embed. Irregular maps place the full array on process 0.
       integer function ga_create_JKblocked(noper, n1, n2, label)
       implicit none
 #include "errquit.fh"
@@ -3163,6 +3161,7 @@ C     nvir=1 under embed. Irregular maps place the full array on process 0.
       character*(*) label
       integer g_a
       integer dims(2), nblock(2), map(2)
+      integer rlo, rhi, clo, chi
       logical status
       if (noper .lt. 1) noper = 1
       if (n1 .lt. 1) n1 = 1
@@ -3179,6 +3178,26 @@ C     nvir=1 under embed. Irregular maps place the full array on process 0.
          write(6, *) ' ga_create_JKblocked(embed): ', label
          call util_flush(6)
          call errquit('ga_create_JKblocked: cannot allocate', 0, GA_ERR)
+      endif
+      call ga_sync()
+      call ga_distribution(g_a, ga_nodeid(), rlo, rhi, clo, chi)
+      write(6, *) ' JKblocked ', label, ' dims=', dims(1), dims(2),
+     $     ' me=', ga_nodeid(), ' nnodes=', ga_nnodes(),
+     $     ' dist=', rlo, rhi, clo, chi, ' h=', g_a
+      call util_flush(6)
+      if (rhi .lt. rlo .or. chi .lt. clo) then
+         write(6, *) ' embed JKblocked EMPTY dist, recreating with ',
+     $        'ga_create full blocks'
+         call util_flush(6)
+         status = ga_destroy(g_a)
+         status = ga_create(MT_DBL, dims(1), dims(2), label,
+     $        dims(1), dims(2), g_a)
+         if (.not. status) call errquit(
+     $        'ga_create_JKblocked: ga_create fallback', 0, GA_ERR)
+         call ga_sync()
+         call ga_distribution(g_a, ga_nodeid(), rlo, rhi, clo, chi)
+         write(6, *) ' fallback dist=', rlo, rhi, clo, chi
+         call util_flush(6)
       endif
       ga_create_JKblocked = g_a
       return
