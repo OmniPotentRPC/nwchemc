@@ -49,13 +49,14 @@ C        stock CLI uses ~5.2e7 global / ~2.6e7 heap.
          if (stack .lt. 4000000) stack = 4000000
          if (heap .lt. 26214394) heap = 26214394
          if (global .lt. 52428800) global = 52428800
-C        Match NWChemWrap / geninterface embed path (not full nwchem.F).
-         call ga_initialize()
+C        Match nwchem.F: ga_initialize_ltd(global) then ma_init (not bare
+C        ga_initialize + optional ga_set_memory_limit). Wrong order/limits
+C        make classic CCSD(T) triples ga_access on X oper fault on H2/STO-3G.
+         call ga_initialize_ltd(ma_sizeof(mt_dbl, global, mt_byte))
          if (ga_uses_ma()) then
             if (.not. ma_init(mt_dbl, stack, heap + global)) return
          else
             if (.not. ma_init(mt_dbl, stack, heap)) return
-            call ga_set_memory_limit(ma_sizeof(mt_dbl, global, mt_byte))
          endif
          call util_blas_set_num_threads(1)
 C        NWChem file prefix / scratch / permanent (env: NWCHEM_SCRATCH_DIR,
