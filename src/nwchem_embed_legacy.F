@@ -2044,7 +2044,10 @@ C     Full method setup (same as energy_only), including inputBlocks.
       double precision chg
       character*255 vectors_in
       character*255 tddft_fn
+      character*32 tce_model_existing
       external util_file_name, util_file_name_resolve
+      external rtdb_cget
+      logical rtdb_cget
 
       ok = .true.
 C     New method/config: drop cached geometry handle.
@@ -2245,10 +2248,15 @@ c        TDDFT SP forces: persist CI vectors + util paths + grad root.
 c        Post-SCF theories (ccsd/mp2/tce/...) need HF reference scftype too.
          status = rtdb_cput(rtdb, 'scf:scftype', 1, scf_type)
          ok = ok .and. status
-c        TCE: promote/input should set keys; ensure non-fragment path.
+c        TCE: promote/inputBlocks may set tce:model (mbpt2, lccsd, …);
+c        only default to ccsd when unset so method-specific SP/MR is kept.
          if (theory_name(1:3) .eq. 'tce') then
-            status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
-            ok = ok .and. status
+            tce_model_existing = ' '
+            if (.not. rtdb_cget(rtdb, 'tce:model', 1,
+     $           tce_model_existing)) then
+               status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
+               ok = ok .and. status
+            endif
             status = rtdb_cput(rtdb, 'tce:model2e', 1, 'default')
             ok = ok .and. status
             ival = -1
