@@ -2251,6 +2251,9 @@ c        TDDFT SP forces: persist CI vectors + util paths + grad root.
 c        Post-SCF theories (ccsd/mp2/tce/...) need HF reference scftype too.
          status = rtdb_cput(rtdb, 'scf:scftype', 1, scf_type)
          ok = ok .and. status
+c        Classic ccsd(t): map to TCE perturbative triples (embed GA-safe).
+         call nwchemc_map_classic_ccsdt_to_tce(rtdb, theory_name, status)
+         ok = ok .and. status
 c        TCE: promote/inputBlocks may set tce:model (mbpt2, lccsd, …);
 c        only default to ccsd when unset so method-specific SP/MR is kept.
          if (theory_name(1:3) .eq. 'tce') then
@@ -3154,6 +3157,7 @@ C     -fdefault-integer-8); force integer*4 for mpi_initialized args.
 C     Classic theory ccsd(t) under embed: use TCE perturbative triples.
       subroutine nwchemc_map_classic_ccsdt_to_tce(rtdb, theory_name, ok)
       implicit none
+#include "mafdecls.fh"
 #include "rtdb.fh"
 #include "inp.fh"
       integer rtdb
