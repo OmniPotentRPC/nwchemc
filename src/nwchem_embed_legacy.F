@@ -3151,40 +3151,50 @@ C     -fdefault-integer-8); force integer*4 for mpi_initialized args.
       return
       end
 
-C     Override NWChem ga_create_JKblocked (moints_aux2.F). Stock uses
-C     row_dist = n1*n2 which for classic CCSD(T) X oper (nbf*nvir, noper)
-C     with nvir=1 yields ga_distribution/access [1:0,...] under embed and
-C     aborts. Use unit row blocking (same as a working col_dist=1 layout).
-C     Linked via link_whole on nwchemc_legacy before NWChem archives.
-      integer function ga_create_JKblocked(noper, n1, n2, label)
+C     Classic theory ccsd(t) under embed: use TCE perturbative triples.
+      subroutine nwchemc_map_classic_ccsdt_to_tce(rtdb, theory_name, ok)
       implicit none
-#include "errquit.fh"
-#include "global.fh"
-#include "mafdecls.fh"
-      integer noper, n1, n2
-      character*(*) label
-      integer g_a
-      integer row_dist, col_dist, nrows, nlen
-      character*64 uniq
-c     H2/STO-3G classic CCSD(T): nvir=1 X oper access faults under embed when
-c     the GA name reuses "X oper" after CCSD destroy. Unique name + min nrows.
-      if (noper .lt. 1) noper = 1
-      if (n1 .lt. 1) n1 = 1
-      if (n2 .lt. 1) n2 = 1
-      nrows = n1 * n2
-      if (nrows .lt. n1 * n1) nrows = n1 * n1
-      if (nrows .lt. 1) nrows = 1
-      col_dist = 1
-      row_dist = nrows
-      nlen = len_trim(label)
-      if (nlen .gt. 48) nlen = 48
-      uniq = 'emb/' // label(1:nlen)
-      if (.not. ga_create(MT_DBL, nrows, noper, uniq, row_dist,
-     $     col_dist, g_a)) then
-         write(6, *) ' ga_create_JKblocked(embed): ', uniq
-         call util_flush(6)
-         call errquit('ga_create_JKblocked: cannot allocate', 0, GA_ERR)
+#include "rtdb.fh"
+#include "inp.fh"
+      integer rtdb
+      character*(*) theory_name
+      logical ok
+      logical status
+      logical nw_inp_from_character
+      external nw_inp_from_character
+      integer ival
+      logical lval
+      character*32 tce_model_existing
+      ok = .true.
+c     Only classic module theory token ccsd(t) (not TCE, not iterative ccsdt).
+      if (.not. inp_compare(.false., theory_name, 'ccsd(t)')) return
+      if (.not. nw_inp_from_character(rtdb,
+     $     'tce' // char(10) // '  ccsd(t)' // char(10) // 'end')) then
+         ok = .false.
+         return
       endif
-      ga_create_JKblocked = g_a
+      theory_name = 'tce'
+      tce_model_existing = ' '
+      if (.not. rtdb_cget(rtdb, 'tce:model', 1, tce_model_existing))
+     $     then
+         status = rtdb_cput(rtdb, 'tce:model', 1, 'ccsd')
+         ok = ok .and. status
+      endif
+      status = rtdb_cput(rtdb, 'tce:model2e', 1, 'default')
+      ok = ok .and. status
+      ival = -1
+      call nwchemc_rtdb_put_int(rtdb, 'tce:fragment', ival, status)
+      ok = ok .and. status
+      ival = 1
+      call nwchemc_rtdb_put_int(rtdb, 'tce:reference', ival, status)
+      ok = ok .and. status
+      lval = .false.
+      status = rtdb_put(rtdb, 'tce:densmat', mt_log, 1, lval)
+      ok = ok .and. status
+      lval = .true.
+      status = rtdb_put(rtdb, 'tce:recompf', mt_log, 1, lval)
+      ok = ok .and. status
+      status = rtdb_cput(rtdb, 'tce:module', 1, 'tce')
+      ok = ok .and. status
       return
       end
