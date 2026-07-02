@@ -634,19 +634,19 @@ artifacts and link metadata.
 Use the workspace build scratch path for all temporary output:
 
 #+begin_src bash
-env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-red \
-  meson test -C /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-red \
+env CC=cc TMPDIR=""/nwchemc-v2-red \
+  meson test -C ""/nwchemc-v2-red \
   stub-abi capnp-parser features-cmocka feature-inventory-check --print-errorlogs
 
-env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-real-red \
-  meson test -C /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-real-red \
+env CC=cc TMPDIR=""/nwchemc-v2-real-red \
+  meson test -C ""/nwchemc-v2-real-red \
   nwchem-energy-gradient nwchem-energy-gradient-input-blocks \
   nwchem-energy-gradient-structured nwchem-energy-forces nwchem-hessian \
   nwchem-geometry-basis-rtdb \
   --print-errorlogs
 
-env CC=cc TMPDIR=/home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-cmake \
-  ctest --test-dir /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/.build-tmp/nwchemc-v2-cmake \
+env CC=cc TMPDIR=""/nwchemc-v2-cmake \
+  ctest --test-dir ""/nwchemc-v2-cmake \
   -R '^(stub-abi|capnp-parser|nwchem-energy-gradient|nwchem-energy-gradient-input-blocks|nwchem-energy-gradient-structured|nwchem-energy-forces|nwchem-hessian|nwchem-geometry-basis-rtdb)$' \
   --output-on-failure
 #+end_src
