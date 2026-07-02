@@ -39,6 +39,16 @@ int nwchemc_embed_set_dft_direct(const char *xc, int xc_len, int direct_enabled,
   (void)smear_sigma_hartree; (void)smearing_spinset;
   return 0;
 }
+int nwchemc_embed_set_basis_direct(int library_root, int angular_kind,
+                                   int segment_mode, int legacy_spherical,
+                                   const char *ecp_name, int ecp_len,
+                                   int elem_n, const char *elem_tags,
+                                   const char *elem_libs) {
+  (void)library_root; (void)angular_kind; (void)segment_mode;
+  (void)legacy_spherical; (void)ecp_name; (void)ecp_len;
+  (void)elem_n; (void)elem_tags; (void)elem_libs;
+  return 0;
+}
 int nwchemc_embed_set_scf_direct(int has_options, int maxiter, double thresh,
                                  double tol2e) {
   (void)has_options; (void)maxiter; (void)thresh; (void)tol2e;
