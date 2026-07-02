@@ -374,7 +374,7 @@ def run_nwchem_cli(
     local_nw.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
     log_path = work / (src.stem + ".out")
     proc = subprocess.run(
-        nwchem_command + [str(local_nw)],
+        nwchem_command + [local_nw.name],
         cwd=str(work),
         capture_output=True,
         text=True,
