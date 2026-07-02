@@ -74,6 +74,7 @@ static int g_brillouin_dos_zone_count = 0;
 static int g_set_config_calls = 0;
 static int g_reset_rtdb_calls = 0;
 static int g_set_dft_direct_calls = 0;
+static int g_set_basis_direct_calls = 0;
 static int g_set_scf_direct_calls = 0;
 static int g_set_driver_direct_calls = 0;
 static int g_set_nwpw_direct_calls = 0;
@@ -686,6 +687,24 @@ int nwchemc_embed_set_dft_direct(const char *xc, int xc_len,
   g_dft_smearing_enabled = smearing_enabled;
   g_dft_smear_sigma_hartree = smear_sigma_hartree;
   g_dft_smearing_spinset = smearing_spinset;
+  return 0;
+}
+
+int nwchemc_embed_set_basis_direct(int library_root, int angular_kind,
+                                   int segment_mode, int legacy_spherical,
+                                   const char *ecp_name, int ecp_len,
+                                   int elem_n, const char *elem_tags,
+                                   const char *elem_libs) {
+  (void)library_root;
+  (void)angular_kind;
+  (void)segment_mode;
+  (void)legacy_spherical;
+  (void)ecp_name;
+  (void)ecp_len;
+  (void)elem_n;
+  (void)elem_tags;
+  (void)elem_libs;
+  ++g_set_basis_direct_calls;
   return 0;
 }
 
