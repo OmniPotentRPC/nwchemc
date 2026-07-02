@@ -41,6 +41,7 @@ class MesonInstallContractTest(unittest.TestCase):
             self.text,
             re.compile(
                 r"install_headers\(\s*'include/nwchemc\.h'\s*,\s*"
+                r"'include/nwchemc_features\.h'\s*,\s*"
                 r"subdir:\s*'nwchemc'\s*,?\s*\)",
                 re.S,
             ),

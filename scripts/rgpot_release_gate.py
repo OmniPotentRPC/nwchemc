@@ -43,11 +43,13 @@ def listed_meson_tests(meson: str, build_dir: str) -> set[str]:
     return names
 
 
-def rgpot_gate_command(meson: str, build_dir: str, num_processes: int) -> list[str]:
+def rgpot_gate_command(
+    meson: str, build_dir: str, num_processes: int, require_all: bool = True
+) -> list[str]:
     available = listed_meson_tests(meson, build_dir)
     selected = [name for name in RGPOT_RELEASE_TESTS if name in available]
     missing = [name for name in RGPOT_RELEASE_TESTS if name not in available]
-    if missing:
+    if missing and require_all:
         raise SystemExit(
             "rgpot release gate tests missing from this build "
             f"(renamed or not configured): {', '.join(missing)}"
@@ -104,7 +106,9 @@ def main() -> int:
             print(name)
         return 0
 
-    command = rgpot_gate_command(args.meson, args.build_dir, args.num_processes)
+    command = rgpot_gate_command(
+        args.meson, args.build_dir, args.num_processes, require_all=not args.dry_run
+    )
     if args.dry_run:
         print(shlex.join(command))
         return 0
