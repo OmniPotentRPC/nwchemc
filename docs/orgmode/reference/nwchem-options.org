@@ -719,6 +719,7 @@ spin-scaling rules.
 | ~nwchemc_session_hessian~ | ~abi.nwchemc_session_hessian~ | fails ok==0 | runs session Cartesian Hessian |
 | ~nwchemc_available~ | ~abi.nwchemc_available~ | returns 0 | returns 1 |
 | ~nwchemc_version~ | ~abi.nwchemc_version~ | contains stub | library version |
+| ~nwchemc_abi_version~ | ~abi.nwchemc_abi_version~ | returns NWCHEMC_ABI_VERSION | returns NWCHEMC_ABI_VERSION |
 | ~nwchemc_finalize~ | ~abi.nwchemc_finalize~ | no-op | finalize owned runtime |
 
 * Feature Inventory

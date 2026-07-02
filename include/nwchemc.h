@@ -2,6 +2,14 @@
 
 #include <stddef.h>
 
+/**
+ * @brief Numeric ABI generation of this header.
+ *
+ * Matches the shared-library soversion and `nwchemc_abi_version()`; bumps
+ * only on an incompatible ABI change.
+ */
+#define NWCHEMC_ABI_VERSION 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1252,6 +1260,13 @@ NWChemCResult nwchemc_session_hessian(NWChemCSession *session, int n_atoms,
  * @brief Return the compiled library version string.
  */
 const char *nwchemc_version(void);
+
+/**
+ * @brief Return the numeric ABI generation of the compiled library.
+ *
+ * Compare against the `NWCHEMC_ABI_VERSION` the consumer compiled with.
+ */
+int nwchemc_abi_version(void);
 
 /**
  * @brief Return 1 when the embedded NWChem runtime is available.

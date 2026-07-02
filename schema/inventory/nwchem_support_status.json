@@ -15,14 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 777,
+  "row_count": 1290,
   "counts_by_tier": {
-    "text": 273,
+    "text": 354,
     "tested": 497,
-    "embed": 7
+    "embed": 8,
+    "schema": 431
   },
-  "done_count": 504,
-  "not_done_count": 273,
+  "done_count": 505,
+  "not_done_count": 785,
   "features": [
     {
       "feature_id": "module.custom",
@@ -5185,6 +5186,4094 @@
       "done": false
     },
     {
+      "feature_id": "field.CPMDDirective.keyword",
+      "class": "schema_field",
+      "schema_path": "CPMDDirective.keyword",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDirective.args",
+      "class": "schema_field",
+      "schema_path": "CPMDDirective.args",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDGenericSection.name",
+      "class": "schema_field",
+      "schema_path": "CPMDGenericSection.name",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDGenericSection.directives",
+      "class": "schema_field",
+      "schema_path": "CPMDGenericSection.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSetDirective.key",
+      "class": "schema_field",
+      "schema_path": "CPMDSetDirective.key",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSetDirective.value",
+      "class": "schema_field",
+      "schema_path": "CPMDSetDirective.value",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDKPoint.coordinates",
+      "class": "schema_field",
+      "schema_path": "CPMDKPoint.coordinates",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDKPoint.weight",
+      "class": "schema_field",
+      "schema_path": "CPMDKPoint.weight",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDKPointBand.points",
+      "class": "schema_field",
+      "schema_path": "CPMDKPointBand.points",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDKPointBand.start",
+      "class": "schema_field",
+      "schema_path": "CPMDKPointBand.start",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDKPointBand.end",
+      "class": "schema_field",
+      "schema_path": "CPMDKPointBand.end",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCouplingSurface.stateI",
+      "class": "schema_field",
+      "schema_path": "CPMDCouplingSurface.stateI",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCouplingSurface.stateJ",
+      "class": "schema_field",
+      "schema_path": "CPMDCouplingSurface.stateJ",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCouplingSurface.coefficient",
+      "class": "schema_field",
+      "schema_path": "CPMDCouplingSurface.coefficient",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.symmetry",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.symmetry",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.angstrom",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.angstrom",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cell",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cell",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cutOffRy",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cutOffRy",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.scale",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.scale",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.charge",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.charge",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.multiplicity",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.multiplicity",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.directives",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.densityCutOffRy",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.densityCutOffRy",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.poissonSolver",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.poissonSolver",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.poissonParameter",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.poissonParameter",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.surface",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.surface",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.referenceCell",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.referenceCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.classicalCell",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.classicalCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.isotropicCell",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.isotropicCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.zFlexibleCell",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.zFlexibleCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.densityCutoffNumber",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.densityCutoffNumber",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.dual",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.dual",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.constantCutoff",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.constantCutoff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.mesh",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.mesh",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.scaleCartesian",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.scaleCartesian",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.doubleGrid",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.doubleGrid",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.symmetrizeCoordinates",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.symmetrizeCoordinates",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.tesr",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.tesr",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.polymer",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.polymer",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cluster",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cluster",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cutoffShape",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cutoffShape",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.hfxCutoff",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.hfxCutoff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.boxWalls",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.boxWalls",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.nSup",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.nSup",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.states",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.states",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.occupation",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.occupation",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.occupationFixed",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.occupationFixed",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.externalField",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.externalField",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.pressure",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.pressure",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.stressTensor",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.stressTensor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.shockVelocity",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.shockVelocity",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.checkSymmetryPrecision",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.checkSymmetryPrecision",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.checkSymmetryOff",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.checkSymmetryOff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.wCut",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.wCut",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.wGauss",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.wGauss",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.lowSpinExcitation",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.lowSpinExcitation",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.lowSpinExcitationLsets",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.lowSpinExcitationLsets",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.lseParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.lseParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.modifiedGoedecker",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.modifiedGoedecker",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.modifiedGoedeckerParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.modifiedGoedeckerParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.energyProfile",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.energyProfile",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.pointGroup",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.pointGroup",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.pointGroupDelta",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.pointGroupDelta",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.pointGroupMolecule",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.pointGroupMolecule",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.scaleX",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.scaleX",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.scaleY",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.scaleY",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.scaleZ",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.scaleZ",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpoints",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpoints",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsScaled",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsScaled",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsOnlyDiagonal",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsOnlyDiagonal",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsMonkhorstPack",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsMonkhorstPack",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsMonkhorstSymmetrized",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsMonkhorstSymmetrized",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsMonkhorstFull",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsMonkhorstFull",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsMonkhorstKdp",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsMonkhorstKdp",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsMonkhorstShift",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsMonkhorstShift",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointBands",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointBands",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsBlock",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsBlock",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsBlockAll",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsBlockAll",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsBlockCalculated",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsBlockCalculated",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.kpointsBlockNoSwap",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.kpointsBlockNoSwap",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.lowSpinExcitationPenalty",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.lowSpinExcitationPenalty",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cdftDonorAtoms",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cdftDonorAtoms",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cdftDonorWeights",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cdftDonorWeights",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cdftAcceptorAtoms",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cdftAcceptorAtoms",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cdftAcceptorHdasDonors",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cdftAcceptorHdasDonors",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cdftAcceptorWeights",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cdftAcceptorWeights",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsFiniteDifference",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsFiniteDifference",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsFiniteDifferenceDisplacement",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsFiniteDifferenceDisplacement",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsProductDisplacement",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsProductDisplacement",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsLinres",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsLinres",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsLinresTolerance",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsLinresTolerance",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsLinresNvects",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsLinresNvects",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsLinresSpecify",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsLinresSpecify",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsLinresBruteForce",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsLinresBruteForce",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsLinresThresholds",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsLinresThresholds",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsSurfaces",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsSurfaces",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.couplingsFiniteDifferenceAtoms",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.couplingsFiniteDifferenceAtoms",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cellAbsolute",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cellAbsolute",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cellDegree",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cellDegree",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.referenceCellAbsolute",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.referenceCellAbsolute",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.referenceCellDegree",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.referenceCellDegree",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.classicalCellAbsolute",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.classicalCellAbsolute",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.classicalCellDegree",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.classicalCellDegree",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.cellVectors",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.cellVectors",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDSystemSection.referenceCellVectors",
+      "class": "schema_field",
+      "schema_path": "CPMDSystemSection.referenceCellVectors",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.optimizeWavefunction",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.optimizeWavefunction",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamics",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamics",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceOrbitals",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceOrbitals",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.maxStep",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.maxStep",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.timestep",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.timestep",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.restartWavefunction",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.restartWavefunction",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trajectory",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trajectory",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.directives",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.optimizeGeometry",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.optimizeGeometry",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.maxIter",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.maxIter",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceGeometry",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceGeometry",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.electronMass",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.electronMass",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsCp",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsCp",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsBo",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsBo",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsEh",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsEh",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsPt",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsPt",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsClassical",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsClassical",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsFile",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsFile",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nose",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nose",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseElectrons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseElectrons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.berendsen",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.berendsen",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.langevin",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.langevin",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.annealing",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.annealing",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.quench",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.quench",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rattle",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rattle",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.shake",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.shake",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.constraint",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.constraint",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trotter",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trotter",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.restart",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.restart",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.printOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.printOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.storeOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.storeOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.centerMoleculeOff",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.centerMoleculeOff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.centerMoleculeOn",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.centerMoleculeOn",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.diis",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.diis",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.odiis",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.odiis",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.pcg",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.pcg",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.diagonalization",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.diagonalization",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.freeEnergy",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.freeEnergy",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.interface",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.interface",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.qmmm",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.qmmm",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.bicanonicalEnsemble",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.bicanonicalEnsemble",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cdft",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cdft",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.properties",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.properties",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.vdwCorrection",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.vdwCorrection",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.vdwWannier",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.vdwWannier",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.dcacp",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.dcacp",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.isolatedMolecule",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.isolatedMolecule",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.maxRuntime",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.maxRuntime",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.timestepElectrons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.timestepElectrons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.timestepIons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.timestepIons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cellMass",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cellMass",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.temperatureElectron",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.temperatureElectron",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.temperature",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.temperature",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.temperatureRamp",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.temperatureRamp",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.temperatureRampTime",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.temperatureRampTime",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.temperatureRampRate",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.temperatureRampRate",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rescaleOldVelocities",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rescaleOldVelocities",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.reverseVelocities",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.reverseVelocities",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.subtractComVelocity",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.subtractComVelocity",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.subtractRotVelocity",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.subtractRotVelocity",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prngSeed",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prngSeed",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tempControlIons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tempControlIons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tempControlElectrons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tempControlElectrons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tempControlCell",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tempControlCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.berendsenIons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.berendsenIons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.berendsenElectrons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.berendsenElectrons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.berendsenCell",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.berendsenCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsThermostat",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsThermostat",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseElectronsThermostat",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseElectronsThermostat",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseCellThermostat",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseCellThermostat",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceCell",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceAdapt",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceAdapt",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceEnergy",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceEnergy",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceCalfor",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceCalfor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceRelax",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceRelax",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceRhofix",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceRhofix",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceInitial",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceInitial",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.convergenceConstraint",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.convergenceConstraint",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.annealingIons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.annealingIons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.annealingElectrons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.annealingElectrons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.annealingCell",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.annealingCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.dampingIons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.dampingIons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.dampingElectrons",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.dampingElectrons",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.dampingCell",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.dampingCell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.hessian",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.hessian",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.project",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.project",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.stressTensorSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.stressTensorSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.stressTensorVirial",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.stressTensorVirial",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.classStressSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.classStressSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.storeSelection",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.storeSelection",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.storeInterval",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.storeInterval",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.storeSelfConsistentInterval",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.storeSelfConsistentInterval",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.storeOffSelection",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.storeOffSelection",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.restFileCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.restFileCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.restFileSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.restFileSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trajectoryOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trajectoryOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trajectorySample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trajectorySample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trajectoryRange",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trajectoryRange",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.movieSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.movieSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.movieOff",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.movieOff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.energyBands",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.energyBands",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.externalPotential",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.externalPotential",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.externalPotentialAdd",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.externalPotentialAdd",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.electrostaticPotential",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.electrostaticPotential",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.electrostaticPotentialSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.electrostaticPotentialSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.dipoleDynamicsSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.dipoleDynamicsSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.dipoleDynamicsWannier",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.dipoleDynamicsWannier",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rhoOut",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rhoOut",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rhoOutSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rhoOutSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rhoOutBandsCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rhoOutBandsCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rhoOutBands",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rhoOutBands",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.elf",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.elf",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.elfParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.elfParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierOptimization",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierOptimization",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierType",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierType",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierReference",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierReference",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierSerial",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierSerial",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierDos",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierDos",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierMolecular",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierMolecular",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierWfnOutOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierWfnOutOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierWfnOutPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierWfnOutPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.compress",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.compress",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.memory",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.memory",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.realSpaceWfnKeep",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.realSpaceWfnKeep",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.realSpaceWfnSize",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.realSpaceWfnSize",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.splineOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.splineOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.splinePoints",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.splinePoints",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.splineRange",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.splineRange",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.finiteDifferences",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.finiteDifferences",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.taskGroups",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.taskGroups",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.taskGroupsCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.taskGroupsCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.distributeFnl",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.distributeFnl",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.filePath",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.filePath",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.benchmark",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.benchmark",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.mirror",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.mirror",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.shiftPotential",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.shiftPotential",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.glocalizationParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.glocalizationParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.glocalizationOptimization",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.glocalizationOptimization",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gfunctionalType",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gfunctionalType",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.spreadRspace",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.spreadRspace",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gUnitarityOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gUnitarityOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.stepTuning",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.stepTuning",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gAntisym",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gAntisym",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gAntisymPenalty",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gAntisymPenalty",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gKick",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gKick",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gComplex",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gComplex",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gReal",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gReal",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.readMatrix",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.readMatrix",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gStepTune",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gStepTune",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.glocWfnOutOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.glocWfnOutOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.glocWfnOutPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.glocWfnOutPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noGeoCheck",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noGeoCheck",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.brokenSymmetry",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.brokenSymmetry",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.distributedLinalg",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.distributedLinalg",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.linalgNewOrtho",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.linalgNewOrtho",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.disorthoBlockSize",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.disorthoBlockSize",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.statesBlockSize",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.statesBlockSize",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.allToAllPrecision",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.allToAllPrecision",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gshell",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gshell",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.localPotential",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.localPotential",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cdftOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cdftOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cdftPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cdftPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cdftHdaPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cdftHdaPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.vgfactor",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.vgfactor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.vMirror",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.vMirror",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.combineSystemsOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.combineSystemsOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.combineSystemsPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.combineSystemsPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.combineSystemsSabPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.combineSystemsSabPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.kshamOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.kshamOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.kshamPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.kshamPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.czonesSet",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.czonesSet",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.woutOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.woutOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.woutPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.woutPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.xfmqcTrajectories",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.xfmqcTrajectories",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsFileOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsFileOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.molecularDynamicsBdTrajectories",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.molecularDynamicsBdTrajectories",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.parrinelloRahmanOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.parrinelloRahmanOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.optimizeGeometryOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.optimizeGeometryOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.optimizeGeometrySample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.optimizeGeometrySample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.optimizeCombinedOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.optimizeCombinedOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.optimizeCombinedSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.optimizeCombinedSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cheby",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cheby",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cayley",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cayley",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rungeKutta",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rungeKutta",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.forceMatch",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.forceMatch",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.debugOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.debugOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.kohnShamEnergiesOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.kohnShamEnergiesOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.kohnShamEnergiesCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.kohnShamEnergiesCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.surfaceHoppingOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.surfaceHoppingOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.roksOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.roksOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.roksExpertPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.roksExpertPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.pathSampling",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.pathSampling",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fixrhoUpwfnOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fixrhoUpwfnOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fixrhoVectors",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fixrhoVectors",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fixrhoLoop",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fixrhoLoop",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fixrhoWftol",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fixrhoWftol",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.bogoliubovCorrection",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.bogoliubovCorrection",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.vibrationalAnalysisOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.vibrationalAnalysisOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.vibrationalAnalysisSample",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.vibrationalAnalysisSample",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.vibrationalAnalysisMode",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.vibrationalAnalysisMode",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.electronicSpectra",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.electronicSpectra",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.spinOrbitCouplingStates",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.spinOrbitCouplingStates",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.propagationSpectra",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.propagationSpectra",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.propagationDistrub",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.propagationDistrub",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gaugePulse",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gaugePulse",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gaugeFieldFrequency",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gaugeFieldFrequency",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nacv",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nacv",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.orbitalHardnessOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.orbitalHardnessOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.pathIntegral",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.pathIntegral",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.pathMinimization",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.pathMinimization",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.langevinOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.langevinOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.langevinParameter",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.langevinParameter",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.qmmmEasy",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.qmmmEasy",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.interfaceOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.interfaceOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trotterFactorCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trotterFactorCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trotterFactorPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trotterFactorPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.linearResponse",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.linearResponse",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.harmonicReference",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.harmonicReference",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.scaledMasses",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.scaledMasses",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tddft",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tddft",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.ssic",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.ssic",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nonorthogonalOrbitalsOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nonorthogonalOrbitalsOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nonorthogonalOrbitalsLimit",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nonorthogonalOrbitalsLimit",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lanczosDiagonalizationOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lanczosDiagonalizationOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lanczosParametersCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lanczosParametersCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lanczosParametersPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lanczosParametersPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.davidsonDiagonalization",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.davidsonDiagonalization",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.davidsonParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.davidsonParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.alexanderMixing",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.alexanderMixing",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.andersonMixingGspace",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.andersonMixingGspace",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.andersonMixingCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.andersonMixingCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.andersonMixingPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.andersonMixingPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.broydenMixingOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.broydenMixingOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.broydenMixingPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.broydenMixingPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.diisMixingCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.diisMixingCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.diisMixingPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.diisMixingPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.moverhoMixing",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.moverhoMixing",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.extrapolateWfnOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.extrapolateWfnOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.extrapolateWfnOrder",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.extrapolateWfnOrder",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.extrapolateConstraintOrder",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.extrapolateConstraintOrder",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tsdeOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tsdeOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tsdpOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tsdpOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tcgp",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tcgp",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.tsdc",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.tsdc",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.steepestDescentOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.steepestDescentOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.conjugateGradientOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.conjugateGradientOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.odiisOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.odiisOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.odiisVectors",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.odiisVectors",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.hamiltonianCutoff",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.hamiltonianCutoff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.gdiisVectors",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.gdiisVectors",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lbfgsOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lbfgsOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lbfgsPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lbfgsPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.hesscore",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.hesscore",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.bfgs",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.bfgs",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rfoOrder",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rfoOrder",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.inrParametersCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.inrParametersCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.inrParametersPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.inrParametersPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.implicitNewtonOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.implicitNewtonOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.implicitNewtonMaxIter",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.implicitNewtonMaxIter",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.mixsd",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.mixsd",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.mixdiis",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.mixdiis",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.restartOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.restartOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.intFileOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.intFileOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.intFileName",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.intFileName",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.initializeWavefunctionOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.initializeWavefunctionOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.rattleParameters",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.rattleParameters",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.orthogonalizationOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.orthogonalizationOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.quenchOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.quenchOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.randomizeOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.randomizeOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.randomizeAmplitude",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.randomizeAmplitude",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.useMts",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.useMts",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nabdyZmax",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nabdyZmax",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nabdySoft",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nabdySoft",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nabdyRedistributeAmplitude",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nabdyRedistributeAmplitude",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nabdyScaleP",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nabdyScaleP",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.nabdyThermo",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.nabdyThermo",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.useInStream",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.useInStream",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.useOutStream",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.useOutStream",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.useCublas",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.useCublas",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.useCufft",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.useCufft",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.blasNStreamsPerDevice",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.blasNStreamsPerDevice",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.blasNDevicesPerTask",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.blasNDevicesPerTask",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fftNStreamsPerDevice",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fftNStreamsPerDevice",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fftNDevicesPerTask",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fftNDevicesPerTask",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.useMpiIo",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.useMpiIo",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.traceOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.traceOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.traceProcedure",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.traceProcedure",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.traceMaxDepth",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.traceMaxDepth",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.traceMaxCalls",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.traceMaxCalls",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.structureOptions",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.structureOptions",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.structureSelection",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.structureSelection",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierNproc",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierNproc",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierRelocalizeInScf",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierRelocalizeInScf",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierRecomputeDipoleMatricesEvery",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierRecomputeDipoleMatricesEvery",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.wannierRelocalizeEvery",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.wannierRelocalizeEvery",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.paraUseMpiInPlace",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.paraUseMpiInPlace",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.paraBuffSize",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.paraBuffSize",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.paraStackBuffSize",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.paraStackBuffSize",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.cpGroups",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.cpGroups",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fileFusionPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fileFusionPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fileMergePayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fileMergePayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.fileSeparationPayload",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.fileSeparationPayload",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noReset",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noReset",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lbfgsNtrust",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lbfgsNtrust",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lbfgsNrestt",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lbfgsNrestt",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lbfgsNtrstr",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lbfgsNtrstr",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lbfgsTrustr",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lbfgsTrustr",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoMode",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoMode",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoMdlock",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoMdlock",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoTolenv",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoTolenv",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoTrustp",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoTrustp",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoOmin",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoOmin",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoNsvib",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoNsvib",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoCoreAtoms",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoCoreAtoms",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoNsmaxp",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoNsmaxp",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoProjectedHessian",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoProjectedHessian",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoDisplacement",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoDisplacement",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.prfoHessianType",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.prfoHessianType",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.lsd",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.lsd",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.checkMemory",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.checkMemory",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trotterFactorizationOff",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trotterFactorizationOff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.damping",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.damping",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.dipoleDynamics",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.dipoleDynamics",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.realSpaceWfn",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.realSpaceWfn",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsLocalT0",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsLocalT0",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsLocalThermostatCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsLocalThermostatCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsLocalThermostats",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsLocalThermostats",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsLocalRangeCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsLocalRangeCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsLocalRanges",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsLocalRanges",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsCafesGroupCount",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsCafesGroupCount",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.noseIonsCafesGroups",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.noseIonsCafesGroups",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDCpmdSection.trotterFactorization",
+      "class": "schema_field",
+      "schema_path": "CPMDCpmdSection.trotterFactorization",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.functional",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.functional",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.lsd",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.lsd",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.directives",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.gcCutoff",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.gcCutoff",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.xcDriver",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.xcDriver",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.libxc",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.libxc",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.lrKernel",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.lrKernel",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.refunct",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.refunct",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.mtsHighFunc",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.mtsHighFunc",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.mtsLowFunc",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.mtsLowFunc",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.hfx",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.hfx",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.hfxScreening",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.hfxScreening",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.hubbard",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.hubbard",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.alpha",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.alpha",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.beta",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.beta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.oldCode",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.oldCode",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.newCode",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.newCode",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.correlation",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.correlation",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.exchange",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.exchange",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDftSection.becke88",
+      "class": "schema_field",
+      "schema_path": "CPMDDftSection.becke88",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDAtomsPseudopotential.element",
+      "class": "schema_field",
+      "schema_path": "CPMDAtomsPseudopotential.element",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDAtomsPseudopotential.path",
+      "class": "schema_field",
+      "schema_path": "CPMDAtomsPseudopotential.path",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDAtomsPseudopotential.lmax",
+      "class": "schema_field",
+      "schema_path": "CPMDAtomsPseudopotential.lmax",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDAtomsSection.pseudopotentials",
+      "class": "schema_field",
+      "schema_path": "CPMDAtomsSection.pseudopotentials",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDAtomsSection.directives",
+      "class": "schema_field",
+      "schema_path": "CPMDAtomsSection.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDirectiveSection.directives",
+      "class": "schema_field",
+      "schema_path": "CPMDDirectiveSection.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDDirectiveSection.subsections",
+      "class": "schema_field",
+      "schema_path": "CPMDDirectiveSection.subsections",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.generic",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.generic",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.system",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.system",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.cpmd",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.cpmd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.dft",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.dft",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.atoms",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.atoms",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.set",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.set",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.raw",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.raw",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.atom",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.atom",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.basis",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.basis",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.clas",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.clas",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.eam",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.eam",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.exte",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.exte",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.hardness",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.hardness",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.info",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.info",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.linres",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.linres",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.molstates",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.molstates",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.mts",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.mts",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.nlcc",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.nlcc",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.path",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.path",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.pimd",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.pimd",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.potential",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.potential",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.prop",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.prop",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.ptddft",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.ptddft",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.resp",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.resp",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.tddft",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.tddft",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.vdw",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.vdw",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.vectors",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.vectors",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDInputSection.wavefunction",
+      "class": "schema_field",
+      "schema_path": "CPMDInputSection.wavefunction",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.functional",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.functional",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.cutOffRy",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.cutOffRy",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.charge",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.charge",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.multiplicity",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.multiplicity",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.task",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.task",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.title",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.title",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.memoryMb",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.memoryMb",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.scratchDir",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.scratchDir",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.permanentDir",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.permanentDir",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.cpmdRoot",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.cpmdRoot",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.enginePath",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.enginePath",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.inputBlocks",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.inputBlocks",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CPMDParams.inputSections",
+      "class": "schema_field",
+      "schema_path": "CPMDParams.inputSections",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
       "feature_id": "field.PotentialConfig.none",
       "class": "schema_field",
       "schema_path": "PotentialConfig.none",
@@ -5196,6 +9285,14 @@
       "feature_id": "field.PotentialConfig.nwchem",
       "class": "schema_field",
       "schema_path": "PotentialConfig.nwchem",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialConfig.cpmd",
+      "class": "schema_field",
+      "schema_path": "PotentialConfig.cpmd",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false
@@ -6229,6 +10326,14 @@
       "class": "abi",
       "schema_path": "nwchemc_version",
       "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_abi_version",
+      "class": "abi",
+      "schema_path": "nwchemc_abi_version",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },

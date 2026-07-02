@@ -122,6 +122,7 @@ configuration. The public calculation entry points are:
 - ~nwchemc_session_stress~
 - ~nwchemc_session_hessian~
 - ~nwchemc_version~
+- ~nwchemc_abi_version~
 - ~nwchemc_available~
 - ~nwchemc_finalize~
 

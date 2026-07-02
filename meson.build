@@ -9,6 +9,10 @@ cc = meson.get_compiler('c')
 fc = meson.get_compiler('fortran')
 python = find_program('python3')
 pkgconfig = import('pkgconfig')
+add_project_arguments(
+  '-DNWCHEMC_VERSION_STRING="' + meson.project_version() + '"',
+  language: 'c',
+)
 math_dep = cc.find_library('m', required: false)
 cmocka_dep = dependency('cmocka', required: get_option('with_tests'))
 

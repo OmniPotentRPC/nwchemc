@@ -6,6 +6,8 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+add_compile_definitions(NWCHEMC_VERSION_STRING="${PROJECT_VERSION}")
+
 option(NWCHEMC_BUILD_TESTS "Build nwchemc tests" ON)
 option(NWCHEMC_WITH_NWCHEM "Build the real NWChem embed library" OFF)
 option(NWCHEMC_BUILD_SHARED "Build nwchemc as a shared library" ON)

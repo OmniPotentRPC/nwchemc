@@ -584,6 +584,7 @@ NWChemCResult nwchemc_session_hessian(
     NWChemCSession *session, int n_atoms, const double *positions_ang,
     const int *atomic_numbers, double *hessian_h_bohr2);
 const char *nwchemc_version(void);
+int nwchemc_abi_version(void);
 int nwchemc_available(void);
 void nwchemc_finalize(void);
 ```

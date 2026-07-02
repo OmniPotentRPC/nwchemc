@@ -2,6 +2,10 @@
 
 #include <stdio.h>
 
+#ifndef NWCHEMC_VERSION_STRING
+#define NWCHEMC_VERSION_STRING "unknown"
+#endif
+
 static NWChemCResult stub_fail(void);
 
 int nwchemc_set_params(const void *params_capnp,
@@ -295,7 +299,9 @@ NWChemCResult nwchemc_frequencies_from_config(
   return stub_fail();
 }
 
-const char *nwchemc_version(void) { return "nwchemc-stub/0.1.0"; }
+const char *nwchemc_version(void) { return "nwchemc-stub/" NWCHEMC_VERSION_STRING; }
+
+int nwchemc_abi_version(void) { return NWCHEMC_ABI_VERSION; }
 
 int nwchemc_available(void) { return 0; }
 

@@ -848,6 +848,11 @@ def main() -> int:
                 "embed": "library version",
             },
             {
+                "name": "nwchemc_abi_version",
+                "stub": "returns NWCHEMC_ABI_VERSION",
+                "embed": "returns NWCHEMC_ABI_VERSION",
+            },
+            {
                 "name": "nwchemc_finalize",
                 "stub": "no-op",
                 "embed": "finalize owned runtime",

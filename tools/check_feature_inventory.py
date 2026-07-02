@@ -277,6 +277,7 @@ def main() -> int:
         "nwchemc_session_hessian",
         "nwchemc_available",
         "nwchemc_version",
+        "nwchemc_abi_version",
         "nwchemc_finalize",
     )
     inventory_abi = {entry["name"] for entry in inv["abi_entrypoints"]}

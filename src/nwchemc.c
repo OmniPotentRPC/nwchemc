@@ -4,6 +4,10 @@
 
 #include "nwchemc_params.h"
 
+#ifndef NWCHEMC_VERSION_STRING
+#define NWCHEMC_VERSION_STRING "unknown"
+#endif
+
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -9520,7 +9524,9 @@ NWChemCResult nwchemc_calculate_frequencies_result_from_config(
       nwchemc_session_calculate_frequencies_result);
 }
 
-const char *nwchemc_version(void) { return "nwchemc/0.1.0"; }
+const char *nwchemc_version(void) { return "nwchemc/" NWCHEMC_VERSION_STRING; }
+
+int nwchemc_abi_version(void) { return NWCHEMC_ABI_VERSION; }
 
 int nwchemc_available(void) {
   ensure_init();
@@ -9720,7 +9726,9 @@ NWChemCResult nwchemc_stress(
   return r;
 }
 
-const char *nwchemc_version(void) { return "nwchemc/unavailable"; }
+const char *nwchemc_version(void) { return "nwchemc/" NWCHEMC_VERSION_STRING; }
+
+int nwchemc_abi_version(void) { return NWCHEMC_ABI_VERSION; }
 
 int nwchemc_available(void) { return 0; }
 
