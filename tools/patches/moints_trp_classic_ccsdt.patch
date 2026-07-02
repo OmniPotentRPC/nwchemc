@@ -1,5 +1,5 @@
---- /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/third_party/nwchem/src/ccsd/moints_trp.F.orig_classic	2026-06-30 17:35:03.431655943 -0500
-+++ /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/third_party/nwchem/src/ccsd/moints_trp.F	2026-06-30 17:35:52.702734666 -0500
+--- a/src/ccsd/moints_trp.F
++++ b/src/ccsd/moints_trp.F
 @@ -651,6 +651,14 @@
        call ga_sync
        my_id = ga_nodeid()

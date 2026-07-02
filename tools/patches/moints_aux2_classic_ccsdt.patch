@@ -1,5 +1,5 @@
---- /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/third_party/nwchem/src/moints/moints_aux2.F.orig_classic	2026-06-30 17:35:03.430880624 -0500
-+++ /home/rgoswami/Git/Github/OmniPotentRPC/rgpot/third_party/nwchem/src/moints/moints_aux2.F	2026-06-30 17:35:29.204210069 -0500
+--- a/src/moints/moints_aux2.F
++++ b/src/moints/moints_aux2.F
 @@ -1021,6 +1021,15 @@
        nvir = vhi - vlo + 1
        my_id = ga_nodeid()
