@@ -108,6 +108,10 @@ def main() -> int:
 
     schema_fields = []
     for struct_name, body in iter_named_blocks(schema_clean, "struct"):
+        # The canonical shared schema also carries the cpmdc backend arm;
+        # nwchemc's inventory tracks only the NWChem arm and shared carriers.
+        if struct_name.startswith("CPMD"):
+            continue
         for field in parse_struct_fields(body):
             schema_fields.append(
                 {

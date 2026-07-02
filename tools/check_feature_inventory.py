@@ -68,6 +68,10 @@ def parse_params_fields(text: str) -> set[str]:
 def parse_schema_fields(text: str) -> set[str]:
     fields: set[str] = set()
     for struct_name, body in iter_named_blocks(text, "struct"):
+        # The canonical shared schema carries the cpmdc backend arm; nwchemc's
+        # inventory tracks only the NWChem arm and shared carriers.
+        if struct_name.startswith("CPMD"):
+            continue
         for field_name in parse_struct_fields(body):
             fields.add(f"{struct_name}.{field_name}")
     return fields
