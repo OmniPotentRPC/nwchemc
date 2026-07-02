@@ -264,9 +264,14 @@ if(NWCHEMC_WITH_NWCHEM)
     src/nwchemc.c
     src/nwchem_embed_c_api.f90
   )
+  set_target_properties(nwchemc PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    SOVERSION "${PROJECT_VERSION_MAJOR}"
+  )
   target_include_directories(nwchemc PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nwchemc>"
   )
   target_include_directories(nwchemc PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
@@ -316,7 +321,9 @@ if(NWCHEMC_WITH_NWCHEM)
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   )
-  install(FILES include/nwchemc.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+  install(FILES include/nwchemc.h include/nwchemc_features.h
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nwchemc"
+  )
   install(FILES
     src/nwchemc_params.h
     "${NWCHEMC_POTENTIALS_CAPNP_H}"

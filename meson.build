@@ -222,6 +222,7 @@ if has_nwchem
     fortran_args: nwchem_f90_args,
     link_whole: nwchemc_legacy,
     link_args: nwchem_link_args + ['-Wl,--allow-multiple-definition'],
+    soversion: meson.project_version().split('.')[0],
     install: true,
   )
   nwchemc_consumer_deps = []
@@ -238,7 +239,7 @@ if has_nwchem
     dependencies: nwchemc_consumer_deps,
     link_args: nwchemc_consumer_link_args,
   )
-  install_headers('include/nwchemc.h', subdir: 'nwchemc')
+  install_headers('include/nwchemc.h', 'include/nwchemc_features.h', subdir: 'nwchemc')
   pkgconfig.generate(
     name: 'nwchemc',
     filebase: 'nwchemc',
