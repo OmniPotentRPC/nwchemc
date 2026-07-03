@@ -487,6 +487,13 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     nwchem_params_pspspin.bin
   )
   nwchemc_add_encoded_fixture(
+    nwchem_ccsd_energy_params_bin
+    NWCHEMC_CCSD_ENERGY_PARAMS_BIN
+    NWChemParams
+    nwchem_params_ccsd_energy.capnp.txt
+    nwchem_params_ccsd_energy.bin
+  )
+  nwchemc_add_encoded_fixture(
     nwchem_pspspin_many_params_bin
     NWCHEMC_PSPSPIN_MANY_PARAMS_BIN
     NWChemParams
@@ -1011,6 +1018,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     nwchem_nwpw_translate_vector_default_params_bin
     nwchem_brillouin_monkhorst_default_params_bin
     nwchem_brillouin_dos_grid_default_params_bin
+    nwchem_ccsd_energy_params_bin
   )
   add_test(NAME embed-config-cmocka
     COMMAND test_embed_config_cmocka
@@ -1051,6 +1059,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
       "${NWCHEMC_NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN}"
       "${NWCHEMC_BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN}"
       "${NWCHEMC_BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN}"
+      "${NWCHEMC_CCSD_ENERGY_PARAMS_BIN}"
   )
 
   if(NWCHEMC_WITH_NWCHEM)
