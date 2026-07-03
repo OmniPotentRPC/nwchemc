@@ -772,8 +772,15 @@ spacing, restraint). Batch 3 adds Born-Oppenheimer dynamics
 (~stanza.qmd~: step count, timestep, target temperature, thermostat), Raman
 intensity controls (~stanza.raman~: normal/dynamic mode, frequency window),
 and fractional occupations (~stanza.fon~: partial set, electrons, spin
-channel, electronic temperature). Renderer and embed promotion for these
-stanzas track the parity epic.
+channel, electronic temperature). Batch 4 keywords come straight from the
+NWChem parsers: nudged elastic band (~stanza.neb~: nbeads, kbeads spring
+constant, maxiter, stepsize, trust radius, nhist, algorithm, reset, the
+loose/default/tight presets, and explicit gmax/grms/xmax/xrms criteria map
+1:1 onto ~neb:*~ RTDB keys in ~neb_input.F~) and constrained DFT
+(~dft.cdft~: per-line atom ranges with a charge or spin target plus the
+trailing ~convergence~ and ~pop~ becke/mulliken/lowdin directives from
+~cdft_inp.F~). Renderer and embed promotion for these stanzas track the
+parity epic.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a

@@ -629,6 +629,18 @@ static void test_render_parity_batch_stanzas(void **state) {
   assert_render_contains(blocks, "high 3500");
   assert_render_contains(blocks, "steps 20");
   assert_render_contains(blocks, "fon both partial 4 electrons 2 filled 10 temperature 1000");
+  assert_render_contains(blocks, "neb\n");
+  assert_render_contains(blocks, "nbeads 12");
+  assert_render_contains(blocks, "kbeads 0.15");
+  assert_render_contains(blocks, "maxiter 25");
+  assert_render_contains(blocks, "stepsize 0.6");
+  assert_render_contains(blocks, "trust 0.2");
+  assert_render_contains(blocks, "algorithm 1");
+  assert_render_contains(blocks, "tight");
+  assert_render_contains(blocks, "xrms 0.001");
+  assert_render_contains(blocks, "cdft 1 5 charge 1");
+  assert_render_contains(blocks,
+                         "cdft 6 10 11 15 spin 2 convergence 1e-05 pop lowdin");
   assert_render_contains(blocks, "bq units angstroms");
   assert_render_contains(blocks, "force");
   assert_render_contains(blocks, "0 0 5 -1");

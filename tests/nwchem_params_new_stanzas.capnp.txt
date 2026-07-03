@@ -72,6 +72,33 @@
       fon = ( partial = 4, electrons = 2.0, filled = 10, temperature = 1000.0 )
     ),
     (
+      kind = neb,
+      neb = (
+        nbeads = 12,
+        kbeads = 0.15,
+        maxiter = 25,
+        stepsize = 0.6,
+        trust = 0.2,
+        algorithm = 1,
+        convergence = tight,
+        xrms = 0.001
+      )
+    ),
+    (
+      kind = dft,
+      dft = (
+        xc = "b3lyp",
+        cdft = (
+          constraints = [
+            ( firstAtomStart = 1, firstAtomEnd = 5, kind = charge, value = 1.0 ),
+            ( firstAtomStart = 6, firstAtomEnd = 10, secondAtomStart = 11, secondAtomEnd = 15, kind = spin, value = 2.0 )
+          ],
+          convergence = 1.0e-5,
+          population = lowdin
+        )
+      )
+    ),
+    (
       kind = bq,
       bq = (
         units = "angstroms",

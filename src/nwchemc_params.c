@@ -520,7 +520,125 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
         return -1;
     }
   }
+  if (dft.cdft.p.type != CAPN_NULL) {
+    struct NWChemCdftSpec cdft;
+    read_NWChemCdftSpec(&cdft, dft.cdft);
+    int ncon = struct_list_len(&cdft.constraints.p);
+    if (ncon < 0)
+      return -1;
+    for (int i = 0; i < ncon; ++i) {
+      struct NWChemCdftConstraint entry;
+      get_NWChemCdftConstraint(&entry, cdft.constraints, i);
+      if (append_format(block, sizeof(block), "  cdft %d %d",
+                        entry.firstAtomStart, entry.firstAtomEnd) != 0)
+        return -1;
+      if ((entry.secondAtomStart > 0 || entry.secondAtomEnd > 0) &&
+          append_format(block, sizeof(block), " %d %d", entry.secondAtomStart,
+                        entry.secondAtomEnd) != 0)
+        return -1;
+      if (append_format(block, sizeof(block), " %s %g",
+                        entry.kind == NWChemCdftConstraint_Kind_spin
+                            ? "spin"
+                            : "charge",
+                        entry.value) != 0)
+        return -1;
+      /* convergence/pop parse as trailing directives; emit on the last line. */
+      if (i == ncon - 1) {
+        if (cdft.convergence > 0.0 &&
+            append_format(block, sizeof(block), " convergence %g",
+                          cdft.convergence) != 0)
+          return -1;
+        if (cdft.population != NWChemCdftSpec_Population_unspecified) {
+          const char *pop =
+              cdft.population == NWChemCdftSpec_Population_mulliken
+                  ? "mulliken"
+                  : cdft.population == NWChemCdftSpec_Population_lowdin
+                        ? "lowdin"
+                        : "becke";
+          if (append_format(block, sizeof(block), " pop %s", pop) != 0)
+            return -1;
+        }
+      }
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+  }
   if (render_directives(dft.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+/* neb keywords map 1:1 onto neb:* RTDB keys (optim/neb/neb_input.F). */
+static int render_neb_stanza(NWChemNebStanza_ptr ptr, char *dst,
+                             size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemNebStanza neb;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemNebStanza(&neb, ptr);
+  int has_directives = directives_have_keywords(neb.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body =
+      neb.nbeads > 0 || neb.kbeads > 0.0 || neb.maxiter > 0 ||
+      neb.stepsize > 0.0 || neb.trust > 0.0 || neb.nhist > 0 ||
+      neb.algorithm > 0 || neb.reset ||
+      neb.convergence != NWChemNebStanza_Convergence_unspecified ||
+      neb.gmax > 0.0 || neb.grms > 0.0 || neb.xmax > 0.0 || neb.xrms > 0.0 ||
+      has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "neb\n") != 0)
+    return -1;
+  if (neb.nbeads > 0 &&
+      append_format(block, sizeof(block), "  nbeads %d\n", neb.nbeads) != 0)
+    return -1;
+  if (neb.kbeads > 0.0 &&
+      append_format(block, sizeof(block), "  kbeads %g\n", neb.kbeads) != 0)
+    return -1;
+  if (neb.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", neb.maxiter) != 0)
+    return -1;
+  if (neb.stepsize > 0.0 &&
+      append_format(block, sizeof(block), "  stepsize %g\n", neb.stepsize) !=
+          0)
+    return -1;
+  if (neb.trust > 0.0 &&
+      append_format(block, sizeof(block), "  trust %g\n", neb.trust) != 0)
+    return -1;
+  if (neb.nhist > 0 &&
+      append_format(block, sizeof(block), "  nhist %d\n", neb.nhist) != 0)
+    return -1;
+  if (neb.algorithm > 0 &&
+      append_format(block, sizeof(block), "  algorithm %d\n",
+                    neb.algorithm) != 0)
+    return -1;
+  if (neb.reset && append_format(block, sizeof(block), "  reset\n") != 0)
+    return -1;
+  if (neb.convergence != NWChemNebStanza_Convergence_unspecified) {
+    const char *level =
+        neb.convergence == NWChemNebStanza_Convergence_loose
+            ? "loose"
+            : neb.convergence == NWChemNebStanza_Convergence_tight ? "tight"
+                                                                   : "default";
+    if (append_format(block, sizeof(block), "  %s\n", level) != 0)
+      return -1;
+  }
+  if (neb.gmax > 0.0 &&
+      append_format(block, sizeof(block), "  gmax %g\n", neb.gmax) != 0)
+    return -1;
+  if (neb.grms > 0.0 &&
+      append_format(block, sizeof(block), "  grms %g\n", neb.grms) != 0)
+    return -1;
+  if (neb.xmax > 0.0 &&
+      append_format(block, sizeof(block), "  xmax %g\n", neb.xmax) != 0)
+    return -1;
+  if (neb.xrms > 0.0 &&
+      append_format(block, sizeof(block), "  xrms %g\n", neb.xrms) != 0)
+    return -1;
+  if (render_directives(neb.directives, block, sizeof(block), "  ") != 0 ||
       append_format(block, sizeof(block), "end") != 0)
     return -1;
   return append_block(dst, dst_size, block);
@@ -4260,6 +4378,10 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_fon:
       if (render_fon_stanza(stanza.fon, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_neb:
+      if (render_neb_stanza(stanza.neb, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:
