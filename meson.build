@@ -299,706 +299,92 @@ if get_option('with_tests')
     ),
     suite: ['cmocka', 'inventory'],
   )
-  nwchem_parser_params_bin = custom_target(
-    'nwchem_parser_params_bin',
-    input: 'tests/nwchem_params_parser.capnp.txt',
-    output: 'nwchem_params_parser.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_direct_dft_params_bin = custom_target(
-    'nwchem_direct_dft_params_bin',
-    input: 'tests/nwchem_params_direct_dft.capnp.txt',
-    output: 'nwchem_params_direct_dft.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_ccsd_energy_params_bin = custom_target(
-    'nwchem_ccsd_energy_params_bin',
-    input: 'tests/nwchem_params_ccsd_energy.capnp.txt',
-    output: 'nwchem_params_ccsd_energy.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_compact_cells_params_bin = custom_target(
-    'nwchem_compact_cells_params_bin',
-    input: 'tests/nwchem_params_compact_cells.capnp.txt',
-    output: 'nwchem_params_compact_cells.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_tce_methods_params_bin = custom_target(
-    'nwchem_tce_methods_params_bin',
-    input: 'tests/nwchem_params_tce_methods.capnp.txt',
-    output: 'nwchem_params_tce_methods.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_pspspin_params_bin = custom_target(
-    'nwchem_pspspin_params_bin',
-    input: 'tests/nwchem_params_pspspin.capnp.txt',
-    output: 'nwchem_params_pspspin.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_pspspin_many_params_bin = custom_target(
-    'nwchem_pspspin_many_params_bin',
-    input: 'tests/nwchem_params_pspspin_many.capnp.txt',
-    output: 'nwchem_params_pspspin_many.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_spin_mode_params_bin = custom_target(
-    'nwchem_nwpw_spin_mode_params_bin',
-    input: 'tests/nwchem_params_nwpw_spin_mode.capnp.txt',
-    output: 'nwchem_params_nwpw_spin_mode.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_allow_translation_params_bin = custom_target(
-    'nwchem_nwpw_allow_translation_params_bin',
-    input: 'tests/nwchem_params_nwpw_allow_translation.capnp.txt',
-    output: 'nwchem_params_nwpw_allow_translation.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_cutoff_alias_params_bin = custom_target(
-    'nwchem_nwpw_cutoff_alias_params_bin',
-    input: 'tests/nwchem_params_nwpw_cutoff_alias.capnp.txt',
-    output: 'nwchem_params_nwpw_cutoff_alias.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_mc_steps_params_bin = custom_target(
-    'nwchem_nwpw_mc_steps_params_bin',
-    input: 'tests/nwchem_params_nwpw_mc_steps.capnp.txt',
-    output: 'nwchem_params_nwpw_mc_steps.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_bo_steps_default_params_bin = custom_target(
-    'nwchem_nwpw_bo_steps_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_bo_steps_default.capnp.txt',
-    output: 'nwchem_params_nwpw_bo_steps_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_bo_time_step_default_params_bin = custom_target(
-    'nwchem_nwpw_bo_time_step_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_bo_time_step_default.capnp.txt',
-    output: 'nwchem_params_nwpw_bo_time_step_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_bo_fake_mass_default_params_bin = custom_target(
-    'nwchem_nwpw_bo_fake_mass_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_bo_fake_mass_default.capnp.txt',
-    output: 'nwchem_params_nwpw_bo_fake_mass_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_scaling_default_params_bin = custom_target(
-    'nwchem_nwpw_scaling_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_scaling_default.capnp.txt',
-    output: 'nwchem_params_nwpw_scaling_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_np_dimensions_default_params_bin = custom_target(
-    'nwchem_nwpw_np_dimensions_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_np_dimensions_default.capnp.txt',
-    output: 'nwchem_params_nwpw_np_dimensions_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_tolerances_default_params_bin = custom_target(
-    'nwchem_nwpw_tolerances_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_tolerances_default.capnp.txt',
-    output: 'nwchem_params_nwpw_tolerances_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_mc_steps_default_params_bin = custom_target(
-    'nwchem_nwpw_mc_steps_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_mc_steps_default.capnp.txt',
-    output: 'nwchem_params_nwpw_mc_steps_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_brillouin_tetrahedron_params_bin = custom_target(
-    'nwchem_brillouin_tetrahedron_params_bin',
-    input: 'tests/nwchem_params_brillouin_tetrahedron.capnp.txt',
-    output: 'nwchem_params_brillouin_tetrahedron.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_brillouin_dos_grid_params_bin = custom_target(
-    'nwchem_brillouin_dos_grid_params_bin',
-    input: 'tests/nwchem_params_brillouin_dos_grid.capnp.txt',
-    output: 'nwchem_params_brillouin_dos_grid.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_et_params_bin = custom_target(
-    'nwchem_nwpw_et_params_bin',
-    input: 'tests/nwchem_params_nwpw_et.capnp.txt',
-    output: 'nwchem_params_nwpw_et.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_temperature_params_bin = custom_target(
-    'nwchem_nwpw_temperature_params_bin',
-    input: 'tests/nwchem_params_nwpw_temperature.capnp.txt',
-    output: 'nwchem_params_nwpw_temperature.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_basis_options_params_bin = custom_target(
-    'nwchem_basis_options_params_bin',
-    input: 'tests/nwchem_params_basis_options.capnp.txt',
-    output: 'nwchem_params_basis_options.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_dos_default_params_bin = custom_target(
-    'nwchem_nwpw_dos_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_dos_default.capnp.txt',
-    output: 'nwchem_params_nwpw_dos_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_mapping_alias_params_bin = custom_target(
-    'nwchem_nwpw_mapping_alias_params_bin',
-    input: 'tests/nwchem_params_nwpw_mapping_alias.capnp.txt',
-    output: 'nwchem_params_nwpw_mapping_alias.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_mapping_default_params_bin = custom_target(
-    'nwchem_nwpw_mapping_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_mapping_default.capnp.txt',
-    output: 'nwchem_params_nwpw_mapping_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_virtual_alias_params_bin = custom_target(
-    'nwchem_nwpw_virtual_alias_params_bin',
-    input: 'tests/nwchem_params_nwpw_virtual_alias.capnp.txt',
-    output: 'nwchem_params_nwpw_virtual_alias.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_one_electron_guess_defaults_params_bin = custom_target(
-    'nwchem_nwpw_one_electron_guess_defaults_params_bin',
-    input: 'tests/nwchem_params_nwpw_one_electron_guess_defaults.capnp.txt',
-    output: 'nwchem_params_nwpw_one_electron_guess_defaults.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_fractional_orbitals_default_params_bin = custom_target(
-    'nwchem_nwpw_fractional_orbitals_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_fractional_orbitals_default.capnp.txt',
-    output: 'nwchem_params_nwpw_fractional_orbitals_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_smear_orbitals_default_params_bin = custom_target(
-    'nwchem_nwpw_smear_orbitals_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_smear_orbitals_default.capnp.txt',
-    output: 'nwchem_params_nwpw_smear_orbitals_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_virtual_orbitals_default_params_bin = custom_target(
-    'nwchem_nwpw_virtual_orbitals_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_virtual_orbitals_default.capnp.txt',
-    output: 'nwchem_params_nwpw_virtual_orbitals_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_translate_vector_default_params_bin = custom_target(
-    'nwchem_nwpw_translate_vector_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_translate_vector_default.capnp.txt',
-    output: 'nwchem_params_nwpw_translate_vector_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_nwpw_cell_expand_default_params_bin = custom_target(
-    'nwchem_nwpw_cell_expand_default_params_bin',
-    input: 'tests/nwchem_params_nwpw_cell_expand_default.capnp.txt',
-    output: 'nwchem_params_nwpw_cell_expand_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_brillouin_monkhorst_default_params_bin = custom_target(
-    'nwchem_brillouin_monkhorst_default_params_bin',
-    input: 'tests/nwchem_params_brillouin_monkhorst_default.capnp.txt',
-    output: 'nwchem_params_brillouin_monkhorst_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  nwchem_brillouin_dos_grid_default_params_bin = custom_target(
-    'nwchem_brillouin_dos_grid_default_params_bin',
-    input: 'tests/nwchem_params_brillouin_dos_grid_default.capnp.txt',
-    output: 'nwchem_params_brillouin_dos_grid_default.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_step_a_bin = custom_target(
-    'force_input_step_a_bin',
-    input: 'tests/force_input_step_a.capnp.txt',
-    output: 'force_input_step_a.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_step_b_bin = custom_target(
-    'force_input_step_b_bin',
-    input: 'tests/force_input_step_b.capnp.txt',
-    output: 'force_input_step_b.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_step_ev_bin = custom_target(
-    'force_input_step_ev_bin',
-    input: 'tests/force_input_step_ev.capnp.txt',
-    output: 'force_input_step_ev.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_step_changed_species_bin = custom_target(
-    'force_input_step_changed_species_bin',
-    input: 'tests/force_input_step_changed_species.capnp.txt',
-    output: 'force_input_step_changed_species.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_step_state_bin = custom_target(
-    'force_input_step_state_bin',
-    input: 'tests/force_input_step_state.capnp.txt',
-    output: 'force_input_step_state.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_h2_eq_bin = custom_target(
-    'force_input_h2_eq_bin',
-    input: 'tests/force_input_h2_eq.capnp.txt',
-    output: 'force_input_h2_eq.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_h2_ev_bin = custom_target(
-    'force_input_h2_ev_bin',
-    input: 'tests/force_input_h2_ev.capnp.txt',
-    output: 'force_input_h2_ev.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_h2_bohr_ev_bin = custom_target(
-    'force_input_h2_bohr_ev_bin',
-    input: 'tests/force_input_h2_bohr_ev.capnp.txt',
-    output: 'force_input_h2_bohr_ev.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_h2_stretched_bin = custom_target(
-    'force_input_h2_stretched_bin',
-    input: 'tests/force_input_h2_stretched.capnp.txt',
-    output: 'force_input_h2_stretched.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_h2_invalid_state_bin = custom_target(
-    'force_input_h2_invalid_state_bin',
-    input: 'tests/force_input_h2_invalid_state.capnp.txt',
-    output: 'force_input_h2_invalid_state.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-  force_input_h2_box_ang_bin = custom_target(
-    'force_input_h2_box_ang_bin',
-    input: 'tests/force_input_h2_box_ang.capnp.txt',
-    output: 'force_input_h2_box_ang.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
-force_input_h2_box_bohr_bin = custom_target(
-  'force_input_h2_box_bohr_bin',
-  input: 'tests/force_input_h2_box_bohr.capnp.txt',
-  output: 'force_input_h2_box_bohr.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'ForceInput',
-      '@INPUT@',
-    '@OUTPUT@',
-  ],
-)
-force_input_si_box_ang_bin = custom_target(
-  'force_input_si_box_ang_bin',
-  input: 'tests/force_input_si_box_ang.capnp.txt',
-  output: 'force_input_si_box_ang.bin',
-  command: [
-    python,
-    meson.current_source_dir() / 'tests/encode_capnp.py',
-    capnp,
-    meson.current_source_dir() / 'schema/Potentials.capnp',
-    'ForceInput',
-    '@INPUT@',
-    '@OUTPUT@',
-  ],
-)
-force_input_si_box_bohr_ev_bin = custom_target(
-  'force_input_si_box_bohr_ev_bin',
-  input: 'tests/force_input_si_box_bohr_ev.capnp.txt',
-  output: 'force_input_si_box_bohr_ev.bin',
-  command: [
-    python,
-    meson.current_source_dir() / 'tests/encode_capnp.py',
-    capnp,
-    meson.current_source_dir() / 'schema/Potentials.capnp',
-    'ForceInput',
-    '@INPUT@',
-    '@OUTPUT@',
-  ],
-)
-nwchem_config_options_params_bin = custom_target(
-  'nwchem_config_options_params_bin',
-  input: 'tests/nwchem_params_config_options.capnp.txt',
-  output: 'nwchem_params_config_options.bin',
-    command: [
-      python,
-      meson.current_source_dir() / 'tests/encode_capnp.py',
-      capnp,
-      meson.current_source_dir() / 'schema/Potentials.capnp',
-      'NWChemParams',
-      '@INPUT@',
-      '@OUTPUT@',
-    ],
-  )
+  # Encoded capnp test fixtures: [variable/target name, input, output, root type].
+  nwchem_fixture_specs = [
+    ['nwchem_parser_params_bin', 'tests/nwchem_params_parser.capnp.txt', 'nwchem_params_parser.bin', 'NWChemParams'],
+    ['nwchem_direct_dft_params_bin', 'tests/nwchem_params_direct_dft.capnp.txt', 'nwchem_params_direct_dft.bin', 'NWChemParams'],
+    ['nwchem_ccsd_energy_params_bin', 'tests/nwchem_params_ccsd_energy.capnp.txt', 'nwchem_params_ccsd_energy.bin', 'NWChemParams'],
+    ['nwchem_compact_cells_params_bin', 'tests/nwchem_params_compact_cells.capnp.txt', 'nwchem_params_compact_cells.bin', 'NWChemParams'],
+    ['nwchem_tce_methods_params_bin', 'tests/nwchem_params_tce_methods.capnp.txt', 'nwchem_params_tce_methods.bin', 'NWChemParams'],
+    ['nwchem_pspspin_params_bin', 'tests/nwchem_params_pspspin.capnp.txt', 'nwchem_params_pspspin.bin', 'NWChemParams'],
+    ['nwchem_pspspin_many_params_bin', 'tests/nwchem_params_pspspin_many.capnp.txt', 'nwchem_params_pspspin_many.bin', 'NWChemParams'],
+    ['nwchem_nwpw_spin_mode_params_bin', 'tests/nwchem_params_nwpw_spin_mode.capnp.txt', 'nwchem_params_nwpw_spin_mode.bin', 'NWChemParams'],
+    ['nwchem_nwpw_allow_translation_params_bin', 'tests/nwchem_params_nwpw_allow_translation.capnp.txt', 'nwchem_params_nwpw_allow_translation.bin', 'NWChemParams'],
+    ['nwchem_nwpw_cutoff_alias_params_bin', 'tests/nwchem_params_nwpw_cutoff_alias.capnp.txt', 'nwchem_params_nwpw_cutoff_alias.bin', 'NWChemParams'],
+    ['nwchem_nwpw_mc_steps_params_bin', 'tests/nwchem_params_nwpw_mc_steps.capnp.txt', 'nwchem_params_nwpw_mc_steps.bin', 'NWChemParams'],
+    ['nwchem_nwpw_bo_steps_default_params_bin', 'tests/nwchem_params_nwpw_bo_steps_default.capnp.txt', 'nwchem_params_nwpw_bo_steps_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_bo_time_step_default_params_bin', 'tests/nwchem_params_nwpw_bo_time_step_default.capnp.txt', 'nwchem_params_nwpw_bo_time_step_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_bo_fake_mass_default_params_bin', 'tests/nwchem_params_nwpw_bo_fake_mass_default.capnp.txt', 'nwchem_params_nwpw_bo_fake_mass_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_scaling_default_params_bin', 'tests/nwchem_params_nwpw_scaling_default.capnp.txt', 'nwchem_params_nwpw_scaling_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_np_dimensions_default_params_bin', 'tests/nwchem_params_nwpw_np_dimensions_default.capnp.txt', 'nwchem_params_nwpw_np_dimensions_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_tolerances_default_params_bin', 'tests/nwchem_params_nwpw_tolerances_default.capnp.txt', 'nwchem_params_nwpw_tolerances_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_mc_steps_default_params_bin', 'tests/nwchem_params_nwpw_mc_steps_default.capnp.txt', 'nwchem_params_nwpw_mc_steps_default.bin', 'NWChemParams'],
+    ['nwchem_brillouin_tetrahedron_params_bin', 'tests/nwchem_params_brillouin_tetrahedron.capnp.txt', 'nwchem_params_brillouin_tetrahedron.bin', 'NWChemParams'],
+    ['nwchem_brillouin_dos_grid_params_bin', 'tests/nwchem_params_brillouin_dos_grid.capnp.txt', 'nwchem_params_brillouin_dos_grid.bin', 'NWChemParams'],
+    ['nwchem_nwpw_et_params_bin', 'tests/nwchem_params_nwpw_et.capnp.txt', 'nwchem_params_nwpw_et.bin', 'NWChemParams'],
+    ['nwchem_nwpw_temperature_params_bin', 'tests/nwchem_params_nwpw_temperature.capnp.txt', 'nwchem_params_nwpw_temperature.bin', 'NWChemParams'],
+    ['nwchem_basis_options_params_bin', 'tests/nwchem_params_basis_options.capnp.txt', 'nwchem_params_basis_options.bin', 'NWChemParams'],
+    ['nwchem_nwpw_dos_default_params_bin', 'tests/nwchem_params_nwpw_dos_default.capnp.txt', 'nwchem_params_nwpw_dos_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_mapping_alias_params_bin', 'tests/nwchem_params_nwpw_mapping_alias.capnp.txt', 'nwchem_params_nwpw_mapping_alias.bin', 'NWChemParams'],
+    ['nwchem_nwpw_mapping_default_params_bin', 'tests/nwchem_params_nwpw_mapping_default.capnp.txt', 'nwchem_params_nwpw_mapping_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_virtual_alias_params_bin', 'tests/nwchem_params_nwpw_virtual_alias.capnp.txt', 'nwchem_params_nwpw_virtual_alias.bin', 'NWChemParams'],
+    ['nwchem_nwpw_one_electron_guess_defaults_params_bin', 'tests/nwchem_params_nwpw_one_electron_guess_defaults.capnp.txt', 'nwchem_params_nwpw_one_electron_guess_defaults.bin', 'NWChemParams'],
+    ['nwchem_nwpw_fractional_orbitals_default_params_bin', 'tests/nwchem_params_nwpw_fractional_orbitals_default.capnp.txt', 'nwchem_params_nwpw_fractional_orbitals_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_smear_orbitals_default_params_bin', 'tests/nwchem_params_nwpw_smear_orbitals_default.capnp.txt', 'nwchem_params_nwpw_smear_orbitals_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_virtual_orbitals_default_params_bin', 'tests/nwchem_params_nwpw_virtual_orbitals_default.capnp.txt', 'nwchem_params_nwpw_virtual_orbitals_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_translate_vector_default_params_bin', 'tests/nwchem_params_nwpw_translate_vector_default.capnp.txt', 'nwchem_params_nwpw_translate_vector_default.bin', 'NWChemParams'],
+    ['nwchem_nwpw_cell_expand_default_params_bin', 'tests/nwchem_params_nwpw_cell_expand_default.capnp.txt', 'nwchem_params_nwpw_cell_expand_default.bin', 'NWChemParams'],
+    ['nwchem_brillouin_monkhorst_default_params_bin', 'tests/nwchem_params_brillouin_monkhorst_default.capnp.txt', 'nwchem_params_brillouin_monkhorst_default.bin', 'NWChemParams'],
+    ['nwchem_brillouin_dos_grid_default_params_bin', 'tests/nwchem_params_brillouin_dos_grid_default.capnp.txt', 'nwchem_params_brillouin_dos_grid_default.bin', 'NWChemParams'],
+    ['force_input_step_a_bin', 'tests/force_input_step_a.capnp.txt', 'force_input_step_a.bin', 'ForceInput'],
+    ['force_input_step_b_bin', 'tests/force_input_step_b.capnp.txt', 'force_input_step_b.bin', 'ForceInput'],
+    ['force_input_step_ev_bin', 'tests/force_input_step_ev.capnp.txt', 'force_input_step_ev.bin', 'ForceInput'],
+    ['force_input_step_changed_species_bin', 'tests/force_input_step_changed_species.capnp.txt', 'force_input_step_changed_species.bin', 'ForceInput'],
+    ['force_input_step_state_bin', 'tests/force_input_step_state.capnp.txt', 'force_input_step_state.bin', 'ForceInput'],
+    ['force_input_h2_eq_bin', 'tests/force_input_h2_eq.capnp.txt', 'force_input_h2_eq.bin', 'ForceInput'],
+    ['force_input_h2_ev_bin', 'tests/force_input_h2_ev.capnp.txt', 'force_input_h2_ev.bin', 'ForceInput'],
+    ['force_input_h2_bohr_ev_bin', 'tests/force_input_h2_bohr_ev.capnp.txt', 'force_input_h2_bohr_ev.bin', 'ForceInput'],
+    ['force_input_h2_stretched_bin', 'tests/force_input_h2_stretched.capnp.txt', 'force_input_h2_stretched.bin', 'ForceInput'],
+    ['force_input_h2_invalid_state_bin', 'tests/force_input_h2_invalid_state.capnp.txt', 'force_input_h2_invalid_state.bin', 'ForceInput'],
+    ['force_input_h2_box_ang_bin', 'tests/force_input_h2_box_ang.capnp.txt', 'force_input_h2_box_ang.bin', 'ForceInput'],
+    ['force_input_h2_box_bohr_bin', 'tests/force_input_h2_box_bohr.capnp.txt', 'force_input_h2_box_bohr.bin', 'ForceInput'],
+    ['force_input_si_box_ang_bin', 'tests/force_input_si_box_ang.capnp.txt', 'force_input_si_box_ang.bin', 'ForceInput'],
+    ['force_input_si_box_bohr_ev_bin', 'tests/force_input_si_box_bohr_ev.capnp.txt', 'force_input_si_box_bohr_ev.bin', 'ForceInput'],
+    ['nwchem_config_options_params_bin', 'tests/nwchem_params_config_options.capnp.txt', 'nwchem_params_config_options.bin', 'NWChemParams'],
+    ['nwchem_params_h2_scf_bin', 'tests/nwchem_params_h2_scf.capnp.txt', 'nwchem_params_h2_scf.bin', 'NWChemParams'],
+    ['nwchem_params_h2_ccsd_bin', 'tests/nwchem_params_h2_ccsd.capnp.txt', 'nwchem_params_h2_ccsd.bin', 'NWChemParams'],
+    ['nwchem_params_h2_mp2_bin', 'tests/nwchem_params_h2_mp2.capnp.txt', 'nwchem_params_h2_mp2.bin', 'NWChemParams'],
+    ['nwchem_params_h2_tce_bin', 'tests/nwchem_params_h2_tce.capnp.txt', 'nwchem_params_h2_tce.bin', 'NWChemParams'],
+    ['nwchem_params_h2_dft_bin', 'tests/nwchem_params_h2_dft.capnp.txt', 'nwchem_params_h2_dft.bin', 'NWChemParams'],
+    ['nwchem_params_h2_rimp2_bin', 'tests/nwchem_params_h2_rimp2.capnp.txt', 'nwchem_params_h2_rimp2.bin', 'NWChemParams'],
+    ['nwchem_params_h2_tce_ccsdt_bin', 'tests/nwchem_params_h2_tce_ccsdt.capnp.txt', 'nwchem_params_h2_tce_ccsdt.bin', 'NWChemParams'],
+    ['nwchem_params_h2_tddft_bin', 'tests/nwchem_params_h2_tddft.capnp.txt', 'nwchem_params_h2_tddft.bin', 'NWChemParams'],
+    ['nwchem_params_h2_mcscf_bin', 'tests/nwchem_params_h2_mcscf.capnp.txt', 'nwchem_params_h2_mcscf.bin', 'NWChemParams'],
+    ['nwchem_params_h2_sodft_bin', 'tests/nwchem_params_h2_sodft.capnp.txt', 'nwchem_params_h2_sodft.bin', 'NWChemParams'],
+    ['nwchem_params_h2_tce_mrcc_bin', 'tests/nwchem_params_h2_tce_mrcc.capnp.txt', 'nwchem_params_h2_tce_mrcc.bin', 'NWChemParams'],
+    ['nwchem_params_h2_direct_mp2_bin', 'tests/nwchem_params_h2_direct_mp2.capnp.txt', 'nwchem_params_h2_direct_mp2.bin', 'NWChemParams'],
+    ['nwchem_params_h2_selci_bin', 'tests/nwchem_params_h2_selci.capnp.txt', 'nwchem_params_h2_selci.bin', 'NWChemParams'],
+  ]
+  foreach fixture_spec : nwchem_fixture_specs
+    set_variable(
+      fixture_spec[0],
+      custom_target(
+        fixture_spec[0],
+        input: fixture_spec[1],
+        output: fixture_spec[2],
+        command: [
+          python,
+          meson.current_source_dir() / 'tests/encode_capnp.py',
+          capnp,
+          meson.current_source_dir() / 'schema/Potentials.capnp',
+          fixture_spec[3],
+          '@INPUT@',
+          '@OUTPUT@',
+        ],
+      ),
+    )
+  endforeach
+
   test(
     'feature-driver',
     executable(
@@ -1228,192 +614,6 @@ nwchem_config_options_params_bin = custom_target(
       ],
     )
 
-    nwchem_params_h2_scf_bin = custom_target(
-      'nwchem_params_h2_scf_bin',
-      input: 'tests/nwchem_params_h2_scf.capnp.txt',
-      output: 'nwchem_params_h2_scf.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_ccsd_bin = custom_target(
-      'nwchem_params_h2_ccsd_bin',
-      input: 'tests/nwchem_params_h2_ccsd.capnp.txt',
-      output: 'nwchem_params_h2_ccsd.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_mp2_bin = custom_target(
-      'nwchem_params_h2_mp2_bin',
-      input: 'tests/nwchem_params_h2_mp2.capnp.txt',
-      output: 'nwchem_params_h2_mp2.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_tce_bin = custom_target(
-      'nwchem_params_h2_tce_bin',
-      input: 'tests/nwchem_params_h2_tce.capnp.txt',
-      output: 'nwchem_params_h2_tce.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-
-    nwchem_params_h2_dft_bin = custom_target(
-      'nwchem_params_h2_dft_bin',
-      input: 'tests/nwchem_params_h2_dft.capnp.txt',
-      output: 'nwchem_params_h2_dft.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_rimp2_bin = custom_target(
-      'nwchem_params_h2_rimp2_bin',
-      input: 'tests/nwchem_params_h2_rimp2.capnp.txt',
-      output: 'nwchem_params_h2_rimp2.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_tce_ccsdt_bin = custom_target(
-      'nwchem_params_h2_tce_ccsdt_bin',
-      input: 'tests/nwchem_params_h2_tce_ccsdt.capnp.txt',
-      output: 'nwchem_params_h2_tce_ccsdt.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_tddft_bin = custom_target(
-      'nwchem_params_h2_tddft_bin',
-      input: 'tests/nwchem_params_h2_tddft.capnp.txt',
-      output: 'nwchem_params_h2_tddft.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_mcscf_bin = custom_target(
-      'nwchem_params_h2_mcscf_bin',
-      input: 'tests/nwchem_params_h2_mcscf.capnp.txt',
-      output: 'nwchem_params_h2_mcscf.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_sodft_bin = custom_target(
-      'nwchem_params_h2_sodft_bin',
-      input: 'tests/nwchem_params_h2_sodft.capnp.txt',
-      output: 'nwchem_params_h2_sodft.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-    nwchem_params_h2_tce_mrcc_bin = custom_target(
-      'nwchem_params_h2_tce_mrcc_bin',
-      input: 'tests/nwchem_params_h2_tce_mrcc.capnp.txt',
-      output: 'nwchem_params_h2_tce_mrcc.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-
-    nwchem_params_h2_direct_mp2_bin = custom_target(
-      'nwchem_params_h2_direct_mp2_bin',
-      input: 'tests/nwchem_params_h2_direct_mp2.capnp.txt',
-      output: 'nwchem_params_h2_direct_mp2.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
-
-
-    nwchem_params_h2_selci_bin = custom_target(
-      'nwchem_params_h2_selci_bin',
-      input: 'tests/nwchem_params_h2_selci.capnp.txt',
-      output: 'nwchem_params_h2_selci.bin',
-      command: [
-        python,
-        meson.current_source_dir() / 'tests/encode_capnp.py',
-        capnp,
-        meson.current_source_dir() / 'schema/Potentials.capnp',
-        'NWChemParams',
-        '@INPUT@',
-        '@OUTPUT@',
-      ],
-    )
 
     # Extra SP / multi-reference TCE and classic CCSD(T) params (H2 STO-3G).
     nwchem_params_h2_extra = {}
