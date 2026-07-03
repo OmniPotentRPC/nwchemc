@@ -17,10 +17,10 @@
   "inventory": "schema/inventory/nwchem_features.json",
   "row_count": 875,
   "counts_by_tier": {
-    "text": 349,
-    "tested": 505,
-    "embed": 8,
-    "schema": 13
+    "text": 353,
+    "tested": 506,
+    "embed": 7,
+    "schema": 9
   },
   "done_count": 513,
   "not_done_count": 362,
@@ -893,7 +893,7 @@
       "feature_id": "stanza.relativistic",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.relativistic",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -1597,7 +1597,7 @@
       "feature_id": "field.NWChemDftDisp.vdw",
       "class": "schema_field",
       "schema_path": "NWChemDftDisp.vdw",
-      "support_tier": "schema",
+      "support_tier": "text",
       "embed_applicable": false,
       "done": false
     },
@@ -1605,7 +1605,7 @@
       "feature_id": "field.NWChemDftDisp.s6",
       "class": "schema_field",
       "schema_path": "NWChemDftDisp.s6",
-      "support_tier": "schema",
+      "support_tier": "text",
       "embed_applicable": false,
       "done": false
     },
@@ -1613,7 +1613,7 @@
       "feature_id": "field.NWChemDftDisp.s8",
       "class": "schema_field",
       "schema_path": "NWChemDftDisp.s8",
-      "support_tier": "schema",
+      "support_tier": "text",
       "embed_applicable": false,
       "done": false
     },
@@ -1621,7 +1621,7 @@
       "feature_id": "field.NWChemDftDisp.sr6",
       "class": "schema_field",
       "schema_path": "NWChemDftDisp.sr6",
-      "support_tier": "schema",
+      "support_tier": "text",
       "embed_applicable": false,
       "done": false
     },

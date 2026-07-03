@@ -368,6 +368,7 @@ if get_option('with_tests')
     ['nwchem_params_h2_selci_bin', 'tests/nwchem_params_h2_selci.capnp.txt', 'nwchem_params_h2_selci.bin', 'NWChemParams'],
     ['potential_config_common_overlay_bin', 'tests/potential_config_common_overlay.capnp.txt', 'potential_config_common_overlay.bin', 'PotentialConfig'],
     ['potential_config_common_reject_bin', 'tests/potential_config_common_reject.capnp.txt', 'potential_config_common_reject.bin', 'PotentialConfig'],
+    ['nwchem_params_new_stanzas_bin', 'tests/nwchem_params_new_stanzas.capnp.txt', 'nwchem_params_new_stanzas.bin', 'NWChemParams'],
   ]
   foreach fixture_spec : nwchem_fixture_specs
     set_variable(
@@ -585,6 +586,7 @@ if get_option('with_tests')
       nwchem_config_options_params_bin,
       nwchem_direct_dft_params_bin,
       nwchem_basis_options_params_bin,
+          nwchem_params_new_stanzas_bin,
     ],
     suite: ['cmocka', 'parser', 'coverage'],
   )

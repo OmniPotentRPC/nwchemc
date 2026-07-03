@@ -16,6 +16,7 @@
 static const char *g_config_options_path = NULL;
 static const char *g_structured_path = NULL;
 static const char *g_basis_options_path = NULL;
+static const char *g_new_stanzas_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -567,6 +568,54 @@ static void test_params_root_rejects_empty(void **state) {
                    -1);
 }
 
+static void test_render_parity_batch_stanzas(void **state) {
+  (void)state;
+  if (!g_new_stanzas_path || !g_new_stanzas_path[0])
+    skip();
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_new_stanzas_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  char blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(
+      nwchemc_params_render_input_blocks(params_root, blocks, sizeof(blocks)),
+      0);
+
+  assert_render_contains(blocks, "disp vdw 3 s6 1");
+  assert_render_contains(blocks, "relativistic\n");
+  assert_render_contains(blocks, "zora on");
+  assert_render_contains(blocks, "zora:cutoff 1e-30");
+  assert_render_contains(blocks, "cosmo\n");
+  assert_render_contains(blocks, "dielec 78.4");
+  assert_render_contains(blocks, "solvent water");
+  assert_render_contains(blocks, "rsolv 0.5");
+  assert_render_contains(blocks, "do_cosmo_smd true");
+  assert_render_contains(blocks, "solvent ethanol");
+  assert_render_contains(blocks, "sola 0.37");
+  assert_render_contains(blocks, "constraints\n");
+  assert_render_contains(blocks, "clear");
+  assert_render_contains(blocks, "fix atom 1 2");
+  assert_render_contains(blocks, "spring bond 1 2 5");
+  assert_render_contains(blocks, "freq\n");
+  assert_render_contains(blocks, "temp 3 200 298.15 400");
+  assert_render_contains(blocks, "reuse old.hess");
+  assert_render_contains(blocks, "animate");
+  assert_render_contains(blocks, "mass 2 2.014");
+  assert_render_contains(blocks, "bq units angstroms");
+  assert_render_contains(blocks, "force");
+  assert_render_contains(blocks, "0 0 5 -1");
+  assert_render_contains(blocks, "load charges.xyz");
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc < 2) {
     fprintf(stderr,
@@ -577,6 +626,7 @@ int main(int argc, char **argv) {
   g_config_options_path = argv[1];
   g_structured_path = argc >= 3 ? argv[2] : NULL;
   g_basis_options_path = argc >= 4 ? argv[3] : NULL;
+  g_new_stanzas_path = argc >= 5 ? argv[4] : NULL;
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_render_config_options_stanzas),
@@ -588,6 +638,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_render_rejects_null_dst),
       cmocka_unit_test(test_params_root_rejects_empty),
       cmocka_unit_test(test_extract_basis_options_enums_and_directives),
+      cmocka_unit_test(test_render_parity_batch_stanzas),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

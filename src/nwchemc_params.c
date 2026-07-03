@@ -497,7 +497,352 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
         append_format(block, sizeof(block), "\n") != 0)
       return -1;
   }
+  if (dft.disp.p.type != CAPN_NULL) {
+    struct NWChemDftDisp disp;
+    read_NWChemDftDisp(&disp, dft.disp);
+    if (disp.enabled) {
+      if (append_format(block, sizeof(block), "  disp vdw %d",
+                        disp.vdw > 0 ? disp.vdw : 3) != 0)
+        return -1;
+      if (disp.s6 > 0.0 &&
+          append_format(block, sizeof(block), " s6 %g", disp.s6) != 0)
+        return -1;
+      if (disp.s8 > 0.0 &&
+          append_format(block, sizeof(block), " s8 %g", disp.s8) != 0)
+        return -1;
+      if (disp.sr6 > 0.0 &&
+          append_format(block, sizeof(block), " sr6 %g", disp.sr6) != 0)
+        return -1;
+      if (disp.alpha > 0.0 &&
+          append_format(block, sizeof(block), " alpha %g", disp.alpha) != 0)
+        return -1;
+      if (append_format(block, sizeof(block), "\n") != 0)
+        return -1;
+    }
+  }
   if (render_directives(dft.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+/* v1.3.0 parity stanzas: text renders; embed promotion tracks the parity epic. */
+static int render_relativistic_stanza(NWChemRelativisticStanza_ptr ptr,
+                                      char *dst, size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemRelativisticStanza rel;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemRelativisticStanza(&rel, ptr);
+  int has_directives = directives_have_keywords(rel.directives);
+  if (has_directives < 0)
+    return -1;
+  if (rel.method == NWChemRelativisticStanza_Method_none && !has_directives)
+    return 0;
+  if (append_format(block, sizeof(block), "relativistic\n") != 0)
+    return -1;
+  switch (rel.method) {
+  case NWChemRelativisticStanza_Method_zora:
+    if (append_format(block, sizeof(block), "  zora %s\n",
+                      rel.spinOrbit ? "so" : "on") != 0)
+      return -1;
+    if (rel.cutoff > 0.0 &&
+        append_format(block, sizeof(block), "  zora:cutoff %g\n",
+                      rel.cutoff) != 0)
+      return -1;
+    break;
+  case NWChemRelativisticStanza_Method_dk:
+    if (append_format(block, sizeof(block), "  douglas-kroll") != 0)
+      return -1;
+    if (rel.dkModifier.len > 0) {
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), rel.dkModifier) != 0)
+        return -1;
+    } else if (rel.dkOrder == 3 &&
+               append_format(block, sizeof(block), " dk3") != 0) {
+      return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+    break;
+  case NWChemRelativisticStanza_Method_x2c:
+    if (append_format(block, sizeof(block), "  x2c on\n") != 0)
+      return -1;
+    break;
+  default:
+    break;
+  }
+  if (render_directives(rel.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_cosmo_stanza(NWChemCosmoStanza_ptr ptr, char *dst,
+                               size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemCosmoStanza cosmo;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemCosmoStanza(&cosmo, ptr);
+  int has_directives = directives_have_keywords(cosmo.directives);
+  if (has_directives < 0)
+    return -1;
+  int nradii = list64_len(cosmo.radii);
+  if (nradii < 0)
+    return -1;
+  int has_body = cosmo.dielec > 0.0 || cosmo.solvent.len > 0 ||
+                 cosmo.rsolv > 0.0 || cosmo.iscren != 0 || cosmo.minbem > 0 ||
+                 cosmo.lineq > 0 || cosmo.doCosmoSmd || nradii > 0 ||
+                 has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "cosmo\n") != 0)
+    return -1;
+  if (cosmo.dielec > 0.0 &&
+      append_format(block, sizeof(block), "  dielec %g\n", cosmo.dielec) != 0)
+    return -1;
+  if (cosmo.solvent.len > 0) {
+    if (append_format(block, sizeof(block), "  solvent ") != 0 ||
+        append_text(block, sizeof(block), cosmo.solvent) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (cosmo.rsolv > 0.0 &&
+      append_format(block, sizeof(block), "  rsolv %g\n", cosmo.rsolv) != 0)
+    return -1;
+  if (cosmo.iscren != 0 &&
+      append_format(block, sizeof(block), "  iscren %d\n", cosmo.iscren) != 0)
+    return -1;
+  if (cosmo.minbem > 0 &&
+      append_format(block, sizeof(block), "  minbem %d\n", cosmo.minbem) != 0)
+    return -1;
+  if (cosmo.lineq > 0 &&
+      append_format(block, sizeof(block), "  lineq %d\n", cosmo.lineq) != 0)
+    return -1;
+  if (nradii > 0) {
+    if (append_format(block, sizeof(block), "  radius\n") != 0)
+      return -1;
+    for (int i = 0; i < nradii; ++i) {
+      if (append_format(block, sizeof(block), "    %g\n",
+                        capn_to_f64(capn_get64(cosmo.radii, i))) != 0)
+        return -1;
+    }
+  }
+  if (cosmo.doCosmoSmd &&
+      append_format(block, sizeof(block), "  do_cosmo_smd true\n") != 0)
+    return -1;
+  if (render_directives(cosmo.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_smd_stanza(NWChemSmdStanza_ptr ptr, char *dst,
+                             size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemSmdStanza smd;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemSmdStanza(&smd, ptr);
+  int has_directives = directives_have_keywords(smd.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = smd.solvent.len > 0 || smd.sola > 0.0 || smd.solb > 0.0 ||
+                 smd.soln > 0.0 || smd.solg > 0.0 || has_directives;
+  if (!has_body)
+    return 0;
+  /* SMD rides on the cosmo module in NWChem. */
+  if (append_format(block, sizeof(block), "cosmo\n  do_cosmo_smd true\n") !=
+      0)
+    return -1;
+  if (smd.solvent.len > 0) {
+    if (append_format(block, sizeof(block), "  solvent ") != 0 ||
+        append_text(block, sizeof(block), smd.solvent) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (smd.sola > 0.0 &&
+      append_format(block, sizeof(block), "  sola %g\n", smd.sola) != 0)
+    return -1;
+  if (smd.solb > 0.0 &&
+      append_format(block, sizeof(block), "  solb %g\n", smd.solb) != 0)
+    return -1;
+  if (smd.soln > 0.0 &&
+      append_format(block, sizeof(block), "  soln %g\n", smd.soln) != 0)
+    return -1;
+  if (smd.solg > 0.0 &&
+      append_format(block, sizeof(block), "  solg %g\n", smd.solg) != 0)
+    return -1;
+  if (render_directives(smd.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_constraints_stanza(NWChemConstraintsStanza_ptr ptr,
+                                     char *dst, size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemConstraintsStanza con;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemConstraintsStanza(&con, ptr);
+  int has_directives = directives_have_keywords(con.directives);
+  if (has_directives < 0)
+    return -1;
+  int ncon = struct_list_len(&con.constraints.p);
+  if (ncon < 0)
+    return -1;
+  if (!con.clear && ncon == 0 && !has_directives)
+    return 0;
+  if (append_format(block, sizeof(block), "constraints\n") != 0)
+    return -1;
+  if (con.clear && append_format(block, sizeof(block), "  clear\n") != 0)
+    return -1;
+  for (int i = 0; i < ncon; ++i) {
+    struct NWChemConstraint entry;
+    get_NWChemConstraint(&entry, con.constraints, i);
+    int natoms = list32_len(entry.atoms);
+    if (natoms < 0)
+      return -1;
+    const char *kw = NULL;
+    switch (entry.kind) {
+    case NWChemConstraint_Kind_fixAtom:
+      kw = "fix atom";
+      break;
+    case NWChemConstraint_Kind_spring:
+      kw = "spring bond";
+      break;
+    case NWChemConstraint_Kind_bond:
+      kw = "bond";
+      break;
+    case NWChemConstraint_Kind_angle:
+      kw = "angle";
+      break;
+    case NWChemConstraint_Kind_torsion:
+      kw = "torsion";
+      break;
+    default:
+      return -1;
+    }
+    if (append_format(block, sizeof(block), "  %s", kw) != 0)
+      return -1;
+    for (int j = 0; j < natoms; ++j) {
+      if (append_format(block, sizeof(block), " %d",
+                        (int)capn_get32(entry.atoms, j)) != 0)
+        return -1;
+    }
+    if (entry.value != 0.0 &&
+        append_format(block, sizeof(block), " %g", entry.value) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (render_directives(con.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_vib_stanza(NWChemVibStanza_ptr ptr, char *dst,
+                             size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemVibStanza vib;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemVibStanza(&vib, ptr);
+  int has_directives = directives_have_keywords(vib.directives);
+  if (has_directives < 0)
+    return -1;
+  int ntemps = list64_len(vib.temperatures);
+  int nmass = struct_list_len(&vib.masses.p);
+  if (ntemps < 0 || nmass < 0)
+    return -1;
+  int has_body = ntemps > 0 || vib.pressure > 0.0 || vib.reuse.len > 0 ||
+                 vib.animate || nmass > 0 || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "freq\n") != 0)
+    return -1;
+  if (ntemps > 0) {
+    if (append_format(block, sizeof(block), "  temp %d", ntemps) != 0)
+      return -1;
+    for (int i = 0; i < ntemps; ++i) {
+      if (append_format(block, sizeof(block), " %g",
+                        capn_to_f64(capn_get64(vib.temperatures, i))) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (vib.reuse.len > 0) {
+    if (append_format(block, sizeof(block), "  reuse ") != 0 ||
+        append_text(block, sizeof(block), vib.reuse) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (vib.animate &&
+      append_format(block, sizeof(block), "  animate\n") != 0)
+    return -1;
+  for (int i = 0; i < nmass; ++i) {
+    struct NWChemIsotope iso;
+    get_NWChemIsotope(&iso, vib.masses, i);
+    if (append_format(block, sizeof(block), "  mass %u %g\n",
+                      (unsigned)iso.atom, iso.mass) != 0)
+      return -1;
+  }
+  if (render_directives(vib.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_bq_stanza(NWChemBqStanza_ptr ptr, char *dst,
+                            size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemBqStanza bq;
+  char block[8192];
+  block[0] = '\0';
+  read_NWChemBqStanza(&bq, ptr);
+  int has_directives = directives_have_keywords(bq.directives);
+  if (has_directives < 0)
+    return -1;
+  int ncharges = struct_list_len(&bq.charges.p);
+  if (ncharges < 0)
+    return -1;
+  if (ncharges == 0 && bq.loadFile.len == 0 && !has_directives)
+    return 0;
+  if (append_format(block, sizeof(block), "bq") != 0)
+    return -1;
+  if (bq.units.len > 0) {
+    if (append_format(block, sizeof(block), " units ") != 0 ||
+        append_text(block, sizeof(block), bq.units) != 0)
+      return -1;
+  }
+  if (append_format(block, sizeof(block), "\n") != 0)
+    return -1;
+  if (bq.forces && append_format(block, sizeof(block), "  force\n") != 0)
+    return -1;
+  for (int i = 0; i < ncharges; ++i) {
+    struct NWChemBqCharge q;
+    get_NWChemBqCharge(&q, bq.charges, i);
+    if (append_format(block, sizeof(block), "  %g %g %g %g\n", q.x, q.y, q.z,
+                      q.q) != 0)
+      return -1;
+  }
+  if (bq.loadFile.len > 0) {
+    if (append_format(block, sizeof(block), "  load ") != 0 ||
+        append_text(block, sizeof(block), bq.loadFile) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (render_directives(bq.directives, block, sizeof(block), "  ") != 0 ||
       append_format(block, sizeof(block), "end") != 0)
     return -1;
   return append_block(dst, dst_size, block);
@@ -3602,6 +3947,30 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     case NWChemInputStanza_Kind_nwpw:
       if (render_nwpw_stanza(stanza.nwpw, dst, dst_size,
                              include_direct_promoted_nwpw) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_relativistic:
+      if (render_relativistic_stanza(stanza.relativistic, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_cosmo:
+      if (render_cosmo_stanza(stanza.cosmo, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_smd:
+      if (render_smd_stanza(stanza.smd, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_constraints:
+      if (render_constraints_stanza(stanza.constraints, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_vib:
+      if (render_vib_stanza(stanza.vib, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_bq:
+      if (render_bq_stanza(stanza.bq, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

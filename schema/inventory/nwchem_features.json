@@ -1288,7 +1288,7 @@
       "stub": true,
       "embed": true,
       "feature_id": "stanza.relativistic",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true
     },
     {
@@ -2413,7 +2413,7 @@
       "stub_applicable": true,
       "embed_applicable": false,
       "driver_class": "schema_field",
-      "support_tier": "schema"
+      "support_tier": "text"
     },
     {
       "feature_id": "field.NWChemDftDisp.s6",
@@ -2426,7 +2426,7 @@
       "stub_applicable": true,
       "embed_applicable": false,
       "driver_class": "schema_field",
-      "support_tier": "schema"
+      "support_tier": "text"
     },
     {
       "feature_id": "field.NWChemDftDisp.s8",
@@ -2439,7 +2439,7 @@
       "stub_applicable": true,
       "embed_applicable": false,
       "driver_class": "schema_field",
-      "support_tier": "schema"
+      "support_tier": "text"
     },
     {
       "feature_id": "field.NWChemDftDisp.sr6",
@@ -2452,7 +2452,7 @@
       "stub_applicable": true,
       "embed_applicable": false,
       "driver_class": "schema_field",
-      "support_tier": "schema"
+      "support_tier": "text"
     },
     {
       "feature_id": "field.NWChemDftDisp.alpha",

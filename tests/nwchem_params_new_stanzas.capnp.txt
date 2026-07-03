@@ -1,0 +1,52 @@
+( basis = "6-31g",
+  theory = "dft",
+  task = "energy",
+  inputStanzas = [
+    (
+      kind = dft,
+      dft = (
+        xc = "xpbe96 cpbe96",
+        disp = ( enabled = true, vdw = 3, s6 = 1.0 )
+      )
+    ),
+    (
+      kind = relativistic,
+      relativistic = ( method = zora, cutoff = 1.0e-30 )
+    ),
+    (
+      kind = cosmo,
+      cosmo = ( dielec = 78.4, solvent = "water", rsolv = 0.5, doCosmoSmd = true )
+    ),
+    (
+      kind = smd,
+      smd = ( solvent = "ethanol", sola = 0.37 )
+    ),
+    (
+      kind = constraints,
+      constraints = (
+        clear = true,
+        constraints = [
+          ( kind = fixAtom, atoms = [1, 2] ),
+          ( kind = spring, atoms = [1, 2], value = 5.0 )
+        ]
+      )
+    ),
+    (
+      kind = vib,
+      vib = (
+        temperatures = [200.0, 298.15, 400.0],
+        reuse = "old.hess",
+        animate = true,
+        masses = [ ( atom = 2, mass = 2.014 ) ]
+      )
+    ),
+    (
+      kind = bq,
+      bq = (
+        units = "angstroms",
+        forces = true,
+        charges = [ ( x = 0.0, y = 0.0, z = 5.0, q = -1.0 ) ],
+        loadFile = "charges.xyz"
+      )
+    )
+  ] )
