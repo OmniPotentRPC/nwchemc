@@ -590,7 +590,9 @@ static int render_cosmo_stanza(NWChemCosmoStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(cosmo.directives);
   if (has_directives < 0)
     return -1;
-  int nradii = list64_len(cosmo.radii);
+  capn_list64 cosmo_radii = cosmo.radii;
+  capn_resolve(&cosmo_radii.p);
+  int nradii = list64_len(cosmo_radii);
   if (nradii < 0)
     return -1;
   int has_body = cosmo.dielec > 0.0 || cosmo.solvent.len > 0 ||
@@ -627,7 +629,7 @@ static int render_cosmo_stanza(NWChemCosmoStanza_ptr ptr, char *dst,
       return -1;
     for (int i = 0; i < nradii; ++i) {
       if (append_format(block, sizeof(block), "    %g\n",
-                        capn_to_f64(capn_get64(cosmo.radii, i))) != 0)
+                        capn_to_f64(capn_get64(cosmo_radii, i))) != 0)
         return -1;
     }
   }
@@ -706,7 +708,9 @@ static int render_constraints_stanza(NWChemConstraintsStanza_ptr ptr,
   for (int i = 0; i < ncon; ++i) {
     struct NWChemConstraint entry;
     get_NWChemConstraint(&entry, con.constraints, i);
-    int natoms = list32_len(entry.atoms);
+    capn_list32 entry_atoms = entry.atoms;
+    capn_resolve(&entry_atoms.p);
+    int natoms = list32_len(entry_atoms);
     if (natoms < 0)
       return -1;
     const char *kw = NULL;
@@ -733,7 +737,7 @@ static int render_constraints_stanza(NWChemConstraintsStanza_ptr ptr,
       return -1;
     for (int j = 0; j < natoms; ++j) {
       if (append_format(block, sizeof(block), " %d",
-                        (int)capn_get32(entry.atoms, j)) != 0)
+                        (int)capn_get32(entry_atoms, j)) != 0)
         return -1;
     }
     if (entry.value != 0.0 &&
@@ -759,7 +763,9 @@ static int render_vib_stanza(NWChemVibStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(vib.directives);
   if (has_directives < 0)
     return -1;
-  int ntemps = list64_len(vib.temperatures);
+  capn_list64 vib_temps = vib.temperatures;
+  capn_resolve(&vib_temps.p);
+  int ntemps = list64_len(vib_temps);
   int nmass = struct_list_len(&vib.masses.p);
   if (ntemps < 0 || nmass < 0)
     return -1;
@@ -774,7 +780,7 @@ static int render_vib_stanza(NWChemVibStanza_ptr ptr, char *dst,
       return -1;
     for (int i = 0; i < ntemps; ++i) {
       if (append_format(block, sizeof(block), " %g",
-                        capn_to_f64(capn_get64(vib.temperatures, i))) != 0)
+                        capn_to_f64(capn_get64(vib_temps, i))) != 0)
         return -1;
     }
     if (append_format(block, sizeof(block), "\n") != 0)
