@@ -1,1 +1,1 @@
-( common = ( vanDerWaalsMethod = "DFT-D3" ) )
+( common = ( relativityMethod = "ZORA" ) )

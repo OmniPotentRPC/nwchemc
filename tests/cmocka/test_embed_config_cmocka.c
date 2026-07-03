@@ -2988,7 +2988,7 @@ static void test_common_overlay_rejects_unlowered_fields(void **state) {
   assert_non_null(config);
 
   assert_int_not_equal(nwchemc_configure(config, config_size), 0);
-  assert_non_null(strstr(nwchemc_last_error(), "vanDerWaalsMethod"));
+  assert_non_null(strstr(nwchemc_last_error(), "relativityMethod"));
   assert_int_equal(g_set_config_calls, 0);
   free(config);
 }
