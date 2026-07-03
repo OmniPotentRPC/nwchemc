@@ -245,16 +245,16 @@ class CMakeRealNWChemContractTest(unittest.TestCase):
         missing = [needle for needle in needles if needle not in haystack]
         self.assertEqual(missing, [])
 
-    def test_embed_config_cmocka_receives_all_fixture_arguments(self):
+    def test_embed_config_cmocka_receives_fixture_dir_and_dependencies(self):
         dependencies = self._block(r"add_dependencies\(\s*test_embed_config_cmocka\b")
         command = self._block(r"add_test\(\s*NAME\s+embed-config-cmocka\b")
 
         self.assert_contains_all(
             dependencies, [target for target, _variable in CMOCKA_FIXTURES]
         )
-        self.assert_contains_all(
-            command, [variable for _target, variable in CMOCKA_FIXTURES]
-        )
+        # The harness takes one fixture-directory argument and resolves
+        # filenames itself; fixture generation is tracked via dependencies.
+        self.assertIn("${CMAKE_CURRENT_BINARY_DIR}", command)
 
     def test_capnp_parser_receives_all_parser_fixture_arguments(self):
         dependencies = self._block(r"add_dependencies\(\s*test_capnp_parser\b")

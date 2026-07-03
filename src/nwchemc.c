@@ -5490,7 +5490,7 @@ static int common_ptr_list_len(capn_ptr ptr) {
   capn_resolve(&ptr);
   if (ptr.type == CAPN_NULL)
     return 0;
-  if (ptr.type != CAPN_LIST)
+  if (ptr.type != CAPN_PTR_LIST)
     return -1;
   return ptr.len;
 }
