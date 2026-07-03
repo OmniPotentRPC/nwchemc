@@ -15,15 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 868,
+  "row_count": 875,
   "counts_by_tier": {
-    "text": 345,
+    "text": 349,
     "tested": 505,
     "embed": 8,
-    "schema": 10
+    "schema": 13
   },
   "done_count": 513,
-  "not_done_count": 355,
+  "not_done_count": 362,
   "features": [
     {
       "feature_id": "module.custom",
@@ -5870,6 +5870,62 @@
       "class": "schema_field",
       "schema_path": "MetatomicParams.dtypeOverride",
       "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.outputs",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.outputs",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.name",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.name",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.perAtom",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.perAtom",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.explicitGradients",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.explicitGradients",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Output.name",
+      "class": "schema_field",
+      "schema_path": "Output.name",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Output.perAtom",
+      "class": "schema_field",
+      "schema_path": "Output.perAtom",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Output.explicitGradients",
+      "class": "schema_field",
+      "schema_path": "Output.explicitGradients",
+      "support_tier": "text",
       "embed_applicable": false,
       "done": false
     },

@@ -734,6 +734,13 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.MetatomicParams.checkConsistency", "MetatomicParams.checkConsistency", "MetatomicParams.checkConsistency Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
     {"field.MetatomicParams.uncertaintyThreshold", "MetatomicParams.uncertaintyThreshold", "MetatomicParams.uncertaintyThreshold Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
     {"field.MetatomicParams.dtypeOverride", "MetatomicParams.dtypeOverride", "MetatomicParams.dtypeOverride Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
+    {"field.MetatomicParams.outputs", "MetatomicParams.outputs", "MetatomicParams.outputs Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 0},
+    {"field.MetatomicParams.name", "MetatomicParams.name", "MetatomicParams.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.MetatomicParams.perAtom", "MetatomicParams.perAtom", "MetatomicParams.perAtom Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.MetatomicParams.explicitGradients", "MetatomicParams.explicitGradients", "MetatomicParams.explicitGradients Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.Output.name", "Output.name", "Output.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.Output.perAtom", "Output.perAtom", "Output.perAtom Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.Output.explicitGradients", "Output.explicitGradients", "Output.explicitGradients Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
     {"field.PotentialConfig.none", "PotentialConfig.none", "PotentialConfig.none Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.PotentialConfig.nwchem", "PotentialConfig.nwchem", "PotentialConfig.nwchem Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.PotentialConfig.cpmd", "PotentialConfig.cpmd", "PotentialConfig.cpmd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
@@ -873,7 +880,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 868;
+static const size_t k_feature_count = 875;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
