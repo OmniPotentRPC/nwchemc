@@ -49,7 +49,9 @@ if has_nwchem
 endif
 if need_capnp_c
   capnp = find_program('capnp')
-  capnp_c_project = subproject('c-capnproto')
+  # b_sanitize=none: sanitizer lanes cover first-party code; the vendored
+  # c-capnproto runtime has known UB (left-shift negative, null memcpy).
+  capnp_c_project = subproject('c-capnproto', default_options: ['b_sanitize=none'])
   capnp_c_dep = capnp_c_project.get_variable('capnp_c_dep')
   capnpc_c = capnp_c_project.get_variable('capnpc_c')
   # Canonical contract pinned via subprojects/potentials-schema.wrap; the
