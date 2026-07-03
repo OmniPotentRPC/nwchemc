@@ -2956,7 +2956,7 @@ static void test_common_overlay_lowers_before_native(void **state) {
   assert_true(fabs(g_dft_smear_sigma_hartree - 0.01) < 1e-9);
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 42);
-  assert_true(fabs(g_scf_thresh - 1.0e-5) < 1e-12);
+  assert_true(g_scf_thresh == 0.0);
   free(config);
 }
 
