@@ -1269,6 +1269,16 @@ const char *nwchemc_version(void);
 int nwchemc_abi_version(void);
 
 /**
+ * @brief Diagnostic message for the most recent int-returning configuration
+ *        call on this thread.
+ *
+ * Covers `nwchemc_set_params()`, `nwchemc_configure()`, and the session
+ * setup entry points, which report failure as a bare -1. Returns an empty
+ * string when the last such call succeeded.
+ */
+const char *nwchemc_last_error(void);
+
+/**
  * @brief Return 1 when the embedded NWChem runtime is available.
  */
 int nwchemc_available(void);

@@ -9403,7 +9403,15 @@
       "stub": "returns NWCHEMC_ABI_VERSION",
       "embed": "returns NWCHEMC_ABI_VERSION",
       "feature_id": "abi.nwchemc_abi_version",
-      "support_tier": "embed",
+      "support_tier": "tested",
+      "embed_applicable": true
+    },
+    {
+      "name": "nwchemc_last_error",
+      "stub": "stub unavailable message",
+      "embed": "config diagnostic or empty",
+      "feature_id": "abi.nwchemc_last_error",
+      "support_tier": "tested",
       "embed_applicable": true
     },
     {

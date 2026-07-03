@@ -585,6 +585,7 @@ NWChemCResult nwchemc_session_hessian(
     const int *atomic_numbers, double *hessian_h_bohr2);
 const char *nwchemc_version(void);
 int nwchemc_abi_version(void);
+const char *nwchemc_last_error(void);
 int nwchemc_available(void);
 void nwchemc_finalize(void);
 ```

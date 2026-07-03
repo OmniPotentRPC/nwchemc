@@ -123,6 +123,7 @@ configuration. The public calculation entry points are:
 - ~nwchemc_session_hessian~
 - ~nwchemc_version~
 - ~nwchemc_abi_version~
+- ~nwchemc_last_error~
 - ~nwchemc_available~
 - ~nwchemc_finalize~
 

@@ -15,13 +15,13 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 779,
+  "row_count": 780,
   "counts_by_tier": {
     "text": 274,
-    "tested": 497,
-    "embed": 8
+    "tested": 499,
+    "embed": 7
   },
-  "done_count": 505,
+  "done_count": 506,
   "not_done_count": 274,
   "features": [
     {
@@ -6244,7 +6244,15 @@
       "feature_id": "abi.nwchemc_abi_version",
       "class": "abi",
       "schema_path": "nwchemc_abi_version",
-      "support_tier": "embed",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_last_error",
+      "class": "abi",
+      "schema_path": "nwchemc_last_error",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },

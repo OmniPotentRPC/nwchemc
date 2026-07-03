@@ -463,6 +463,8 @@ static void test_stub_reports_unavailable(void **state) {
   assert_non_null(version);
   assert_non_null(strstr(version, "stub"));
   assert_int_not_equal(nwchemc_set_params(NULL, 0), 0);
+  assert_non_null(nwchemc_last_error());
+  assert_non_null(strstr(nwchemc_last_error(), "stub"));
   assert_true(nwchemc_configure != NULL);
   assert_int_not_equal(nwchemc_configure(NULL, 0), 0);
   NWChemCResult energy_result = nwchemc_energy(0, NULL, NULL, NULL, 0);

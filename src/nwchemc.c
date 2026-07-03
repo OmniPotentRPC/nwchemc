@@ -8,6 +8,15 @@
 #define NWCHEMC_VERSION_STRING "unknown"
 #endif
 
+/* Diagnostic channel for the int-returning configuration entry points. */
+static _Thread_local char g_last_error[512];
+
+static void nwchemc_store_error(const char *msg) {
+  snprintf(g_last_error, sizeof(g_last_error), "%s", msg ? msg : "");
+}
+
+const char *nwchemc_last_error(void) { return g_last_error; }
+
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -4627,16 +4636,20 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
 
 int nwchemc_set_params(const void *params_capnp,
                        size_t params_capnp_size_bytes) {
+  nwchemc_store_error("");
   if (params_blob_matches_applied(params_capnp, params_capnp_size_bytes))
     return 0;
   struct capn arena;
   NWChemParams_ptr params_root;
   if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
-                          &params_root) != 0)
+                          &params_root) != 0) {
+    nwchemc_store_error("NWChemParams parse failed");
     return -1;
+  }
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
   if (apply_config_to_embed(params_root, &params) != 0) {
+    nwchemc_store_error("apply NWChemParams to embed failed");
     nwchemc_params_release(&arena);
     return -1;
   }
@@ -5567,12 +5580,15 @@ static int write_nwchem_params_root_flat(NWChemParams_ptr params_root,
 
 int nwchemc_configure(const void *config_capnp,
                       size_t config_capnp_size_bytes) {
+  nwchemc_store_error("");
   struct capn arena;
   NWChemParams_ptr params_root;
   int is_none = 0;
   if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
-                                   &arena, &params_root, &is_none) != 0)
+                                   &arena, &params_root, &is_none) != 0) {
+    nwchemc_store_error("PotentialConfig parse failed");
     return -1;
+  }
   if (is_none) {
     nwchemc_params_release(&arena);
     return 0;
@@ -5580,6 +5596,8 @@ int nwchemc_configure(const void *config_capnp,
   int rc = apply_root_to_embed(params_root);
   if (rc == 0)
     g_active_session = NULL;
+  else
+    nwchemc_store_error("apply PotentialConfig to embed failed");
   nwchemc_params_release(&arena);
   return rc == 0 ? 0 : -1;
 }
@@ -5732,28 +5750,45 @@ nwchemc_session_create_from_config(const void *config_capnp,
 int nwchemc_session_set_params(NWChemCSession *session,
                                const void *params_capnp,
                                size_t params_capnp_size_bytes) {
-  if (!session || !params_capnp || params_capnp_size_bytes == 0)
+  nwchemc_store_error("");
+  if (!session || !params_capnp || params_capnp_size_bytes == 0) {
+    nwchemc_store_error("invalid session params arguments");
     return -1;
-  if (session->topology_atom_count != 0)
+  }
+  if (session->topology_atom_count != 0) {
+    nwchemc_store_error(
+        "session already accepted a topology; create a new session");
     return -1;
-  return session_install_params(session, params_capnp,
-                                params_capnp_size_bytes);
+  }
+  int rc = session_install_params(session, params_capnp,
+                                  params_capnp_size_bytes);
+  if (rc != 0)
+    nwchemc_store_error("installing session params failed");
+  return rc;
 }
 
 int nwchemc_session_configure(NWChemCSession *session,
                               const void *config_capnp,
                               size_t config_capnp_size_bytes) {
-  if (!session || !config_capnp || config_capnp_size_bytes == 0)
+  nwchemc_store_error("");
+  if (!session || !config_capnp || config_capnp_size_bytes == 0) {
+    nwchemc_store_error("invalid session config arguments");
     return -1;
-  if (session->topology_atom_count != 0)
+  }
+  if (session->topology_atom_count != 0) {
+    nwchemc_store_error(
+        "session already accepted a topology; create a new session");
     return -1;
+  }
 
   struct capn arena;
   NWChemParams_ptr params_root;
   int is_none = 0;
   if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
-                                   &arena, &params_root, &is_none) != 0)
+                                   &arena, &params_root, &is_none) != 0) {
+    nwchemc_store_error("PotentialConfig parse failed");
     return -1;
+  }
   if (is_none) {
     nwchemc_params_release(&arena);
     return 0;
@@ -9547,6 +9582,7 @@ int nwchemc_set_params(const void *params_capnp,
                        size_t params_capnp_size_bytes) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  nwchemc_store_error("compiled without NWCHEMC_HAS_NWCHEM");
   return -1;
 }
 
@@ -9554,6 +9590,7 @@ int nwchemc_configure(const void *config_capnp,
                       size_t config_capnp_size_bytes) {
   (void)config_capnp;
   (void)config_capnp_size_bytes;
+  nwchemc_store_error("compiled without NWCHEMC_HAS_NWCHEM");
   return -1;
 }
 

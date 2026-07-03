@@ -6,12 +6,22 @@
 #define NWCHEMC_VERSION_STRING "unknown"
 #endif
 
+static _Thread_local char g_last_error[512];
+
+const char *nwchemc_last_error(void) { return g_last_error; }
+
+static void stub_store_error(void) {
+  snprintf(g_last_error, sizeof(g_last_error),
+           "NWChem embed not available in nwchemc stub");
+}
+
 static NWChemCResult stub_fail(void);
 
 int nwchemc_set_params(const void *params_capnp,
                        size_t params_capnp_size_bytes) {
   (void)params_capnp;
   (void)params_capnp_size_bytes;
+  stub_store_error();
   return -1;
 }
 
@@ -19,6 +29,7 @@ int nwchemc_configure(const void *config_capnp,
                       size_t config_capnp_size_bytes) {
   (void)config_capnp;
   (void)config_capnp_size_bytes;
+  stub_store_error();
   return -1;
 }
 

@@ -781,10 +781,11 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_available", "include/nwchemc.h::nwchemc_available", "stub=returns 0; embed=returns 1", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_version", "include/nwchemc.h::nwchemc_version", "stub=contains stub; embed=library version", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_abi_version", "include/nwchemc.h::nwchemc_abi_version", "stub=returns NWCHEMC_ABI_VERSION; embed=returns NWCHEMC_ABI_VERSION", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_last_error", "include/nwchemc.h::nwchemc_last_error", "stub=stub unavailable message; embed=config diagnostic or empty", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 779;
+static const size_t k_feature_count = 780;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

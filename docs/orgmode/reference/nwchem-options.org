@@ -720,6 +720,7 @@ spin-scaling rules.
 | ~nwchemc_available~ | ~abi.nwchemc_available~ | returns 0 | returns 1 |
 | ~nwchemc_version~ | ~abi.nwchemc_version~ | contains stub | library version |
 | ~nwchemc_abi_version~ | ~abi.nwchemc_abi_version~ | returns NWCHEMC_ABI_VERSION | returns NWCHEMC_ABI_VERSION |
+| ~nwchemc_last_error~ | ~abi.nwchemc_last_error~ | stub unavailable message | config diagnostic or empty |
 | ~nwchemc_finalize~ | ~abi.nwchemc_finalize~ | no-op | finalize owned runtime |
 
 * Feature Inventory

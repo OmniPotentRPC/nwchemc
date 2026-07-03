@@ -857,6 +857,11 @@ def main() -> int:
                 "embed": "returns NWCHEMC_ABI_VERSION",
             },
             {
+                "name": "nwchemc_last_error",
+                "stub": "stub unavailable message",
+                "embed": "config diagnostic or empty",
+            },
+            {
                 "name": "nwchemc_finalize",
                 "stub": "no-op",
                 "embed": "finalize owned runtime",
