@@ -610,6 +610,15 @@ static void test_render_parity_batch_stanzas(void **state) {
   assert_render_contains(blocks, "reuse old.hess");
   assert_render_contains(blocks, "animate");
   assert_render_contains(blocks, "mass 2 2.014");
+  assert_render_contains(blocks, "dplot\n");
+  assert_render_contains(blocks, "gaussian density.cube");
+  assert_render_contains(blocks, "limitxyz -4 4 -4 4 -4 4");
+  assert_render_contains(blocks, "spin total");
+  assert_render_contains(blocks, "orbitals view; 2; 3 4");
+  assert_render_contains(blocks, "esp\n");
+  assert_render_contains(blocks, "recalculate");
+  assert_render_contains(blocks, "spacing 0.2");
+  assert_render_contains(blocks, "restrain hfree");
   assert_render_contains(blocks, "bq units angstroms");
   assert_render_contains(blocks, "force");
   assert_render_contains(blocks, "0 0 5 -1");

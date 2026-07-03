@@ -15,15 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 875,
+  "row_count": 894,
   "counts_by_tier": {
-    "text": 353,
-    "tested": 506,
+    "text": 370,
+    "tested": 508,
     "embed": 7,
     "schema": 9
   },
-  "done_count": 513,
-  "not_done_count": 362,
+  "done_count": 515,
+  "not_done_count": 379,
   "features": [
     {
       "feature_id": "module.custom",
@@ -933,6 +933,22 @@
       "feature_id": "stanza.bq",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.bq",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.dplot",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.dplot",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.esp",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.esp",
       "support_tier": "tested",
       "embed_applicable": true,
       "done": true
@@ -5594,6 +5610,22 @@
       "done": false
     },
     {
+      "feature_id": "field.NWChemInputStanza.dplot",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.dplot",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.esp",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.esp",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
       "feature_id": "field.NWChemParams.basis",
       "class": "schema_field",
       "schema_path": "NWChemParams.basis",
@@ -5925,6 +5957,126 @@
       "feature_id": "field.Output.explicitGradients",
       "class": "schema_field",
       "schema_path": "Output.explicitGradients",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.title",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.title",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.gaussianCube",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.gaussianCube",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.civecs",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.civecs",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.limitXyz",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.limitXyz",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.spin",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.spin",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.orbitals",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.orbitals",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.output",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.output",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemDplotStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemDplotStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEspStanza.recalculate",
+      "class": "schema_field",
+      "schema_path": "NWChemEspStanza.recalculate",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEspStanza.rangeFactor",
+      "class": "schema_field",
+      "schema_path": "NWChemEspStanza.rangeFactor",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEspStanza.probe",
+      "class": "schema_field",
+      "schema_path": "NWChemEspStanza.probe",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEspStanza.spacing",
+      "class": "schema_field",
+      "schema_path": "NWChemEspStanza.spacing",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEspStanza.restrain",
+      "class": "schema_field",
+      "schema_path": "NWChemEspStanza.restrain",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEspStanza.restrainHfree",
+      "class": "schema_field",
+      "schema_path": "NWChemEspStanza.restrainHfree",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEspStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemEspStanza.directives",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false

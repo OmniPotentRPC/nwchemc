@@ -854,6 +854,132 @@ static int render_bq_stanza(NWChemBqStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static int render_dplot_stanza(NWChemDplotStanza_ptr ptr, char *dst,
+                               size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemDplotStanza dplot;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemDplotStanza(&dplot, ptr);
+  int has_directives = directives_have_keywords(dplot.directives);
+  if (has_directives < 0)
+    return -1;
+  capn_list64 limits = dplot.limitXyz;
+  capn_resolve(&limits.p);
+  int nlimits = list64_len(limits);
+  capn_list32 orbitals = dplot.orbitals;
+  capn_resolve(&orbitals.p);
+  int norbitals = list32_len(orbitals);
+  if (nlimits < 0 || norbitals < 0)
+    return -1;
+  int has_body = dplot.title.len > 0 || dplot.gaussianCube.len > 0 ||
+                 dplot.civecs.len > 0 || nlimits > 0 || dplot.spin.len > 0 ||
+                 norbitals > 0 || dplot.output.len > 0 || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "dplot\n") != 0)
+    return -1;
+  if (dplot.title.len > 0) {
+    if (append_format(block, sizeof(block), "  title ") != 0 ||
+        append_text(block, sizeof(block), dplot.title) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (dplot.gaussianCube.len > 0) {
+    if (append_format(block, sizeof(block), "  gaussian ") != 0 ||
+        append_text(block, sizeof(block), dplot.gaussianCube) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (dplot.civecs.len > 0) {
+    if (append_format(block, sizeof(block), "  civecs ") != 0 ||
+        append_text(block, sizeof(block), dplot.civecs) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (nlimits > 0) {
+    if (append_format(block, sizeof(block), "  limitxyz") != 0)
+      return -1;
+    for (int i = 0; i < nlimits; ++i) {
+      if (append_format(block, sizeof(block), " %g",
+                        capn_to_f64(capn_get64(limits, i))) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (dplot.spin.len > 0) {
+    if (append_format(block, sizeof(block), "  spin ") != 0 ||
+        append_text(block, sizeof(block), dplot.spin) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (norbitals > 0) {
+    if (append_format(block, sizeof(block), "  orbitals view; %d;",
+                      norbitals) != 0)
+      return -1;
+    for (int i = 0; i < norbitals; ++i) {
+      if (append_format(block, sizeof(block), " %d",
+                        (int)capn_get32(orbitals, i)) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (dplot.output.len > 0) {
+    if (append_format(block, sizeof(block), "  output ") != 0 ||
+        append_text(block, sizeof(block), dplot.output) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (render_directives(dplot.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_esp_stanza(NWChemEspStanza_ptr ptr, char *dst,
+                             size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemEspStanza esp;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemEspStanza(&esp, ptr);
+  int has_directives = directives_have_keywords(esp.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = esp.recalculate || esp.rangeFactor > 0.0 || esp.probe > 0.0 ||
+                 esp.spacing > 0.0 || esp.restrain || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "esp\n") != 0)
+    return -1;
+  if (esp.recalculate &&
+      append_format(block, sizeof(block), "  recalculate\n") != 0)
+    return -1;
+  if (esp.rangeFactor > 0.0 &&
+      append_format(block, sizeof(block), "  range %g\n",
+                    esp.rangeFactor) != 0)
+    return -1;
+  if (esp.probe > 0.0 &&
+      append_format(block, sizeof(block), "  probe %g\n", esp.probe) != 0)
+    return -1;
+  if (esp.spacing > 0.0 &&
+      append_format(block, sizeof(block), "  spacing %g\n", esp.spacing) != 0)
+    return -1;
+  if (esp.restrain) {
+    if (append_format(block, sizeof(block), "  restrain%s\n",
+                      esp.restrainHfree ? " hfree" : "") != 0)
+      return -1;
+  }
+  if (render_directives(esp.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static const char *module_name_literal(enum NWChemModuleName name) {
   switch (name) {
   case NWChemModuleName_basis:
@@ -3977,6 +4103,14 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_bq:
       if (render_bq_stanza(stanza.bq, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_dplot:
+      if (render_dplot_stanza(stanza.dplot, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_esp:
+      if (render_esp_stanza(stanza.esp, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

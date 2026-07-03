@@ -41,6 +41,19 @@
       )
     ),
     (
+      kind = dplot,
+      dplot = (
+        gaussianCube = "density.cube",
+        spin = "total",
+        limitXyz = [-4.0, 4.0, -4.0, 4.0, -4.0, 4.0],
+        orbitals = [3, 4]
+      )
+    ),
+    (
+      kind = esp,
+      esp = ( recalculate = true, spacing = 0.2, restrain = true, restrainHfree = true )
+    ),
+    (
       kind = bq,
       bq = (
         units = "angstroms",
