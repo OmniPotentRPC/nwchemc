@@ -726,6 +726,163 @@ static int render_string_stanza(NWChemStringStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+/* gw grammar and gw:* RTDB keys follow gwmol/gw_input.F. */
+static int render_gw_stanza(NWChemGwStanza_ptr ptr, char *dst,
+                            size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemGwStanza gw;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemGwStanza(&gw, ptr);
+  int has_directives = directives_have_keywords(gw.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body =
+      gw.evgw || gw.evgw0 || gw.method != NWChemGwStanza_Method_unspecified ||
+      gw.solver != NWChemGwStanza_Solver_unspecified || gw.thresholdEv > 0.0 ||
+      gw.occAlpha > 0 || gw.virAlpha > 0 || gw.occBeta > 0 || gw.virBeta > 0 ||
+      gw.first > 0 || gw.ncap || gw.eta > 0.0 || gw.rpa || gw.diag ||
+      gw.core || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "gw\n") != 0)
+    return -1;
+  if (gw.evgw0) {
+    if (append_format(block, sizeof(block), "  evgw0") != 0)
+      return -1;
+    if (gw.eviter > 0 &&
+        append_format(block, sizeof(block), " %d", gw.eviter) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  } else if (gw.evgw) {
+    if (append_format(block, sizeof(block), "  evgw") != 0)
+      return -1;
+    if (gw.eviter > 0 &&
+        append_format(block, sizeof(block), " %d", gw.eviter) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (gw.method == NWChemGwStanza_Method_cdgw) {
+    if (append_format(block, sizeof(block), "  method cdgw") != 0)
+      return -1;
+    if (gw.ngl > 0 && append_format(block, sizeof(block), " %d", gw.ngl) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  } else if (gw.method == NWChemGwStanza_Method_analytic) {
+    if (append_format(block, sizeof(block), "  method analytic\n") != 0)
+      return -1;
+  }
+  if (gw.solver == NWChemGwStanza_Solver_graph) {
+    if (append_format(block, sizeof(block), "  solver graph\n") != 0)
+      return -1;
+  } else if (gw.solver == NWChemGwStanza_Solver_newton) {
+    if (append_format(block, sizeof(block), "  solver newton") != 0)
+      return -1;
+    if (gw.qpiter > 0 &&
+        append_format(block, sizeof(block), " %d", gw.qpiter) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (gw.thresholdEv > 0.0 &&
+      append_format(block, sizeof(block), "  convergence %g ev\n",
+                    gw.thresholdEv) != 0)
+    return -1;
+  if (gw.occAlpha > 0 || gw.virAlpha > 0) {
+    if (append_format(block, sizeof(block), "  states alpha") != 0)
+      return -1;
+    if (gw.occAlpha > 0 &&
+        append_format(block, sizeof(block), " occ %d", gw.occAlpha) != 0)
+      return -1;
+    if (gw.virAlpha > 0 &&
+        append_format(block, sizeof(block), " vir %d", gw.virAlpha) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (gw.occBeta > 0 || gw.virBeta > 0) {
+    if (append_format(block, sizeof(block), "  states beta") != 0)
+      return -1;
+    if (gw.occBeta > 0 &&
+        append_format(block, sizeof(block), " occ %d", gw.occBeta) != 0)
+      return -1;
+    if (gw.virBeta > 0 &&
+        append_format(block, sizeof(block), " vir %d", gw.virBeta) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (gw.first > 0 &&
+      append_format(block, sizeof(block), "  first %d\n", gw.first) != 0)
+    return -1;
+  if (gw.ncap && append_format(block, sizeof(block), "  ncap\n") != 0)
+    return -1;
+  if (gw.eta > 0.0 &&
+      append_format(block, sizeof(block), "  eta %g\n", gw.eta) != 0)
+    return -1;
+  if (gw.rpa && append_format(block, sizeof(block), "  rpa\n") != 0)
+    return -1;
+  if (gw.diag && append_format(block, sizeof(block), "  diag\n") != 0)
+    return -1;
+  if (gw.core && append_format(block, sizeof(block), "  core\n") != 0)
+    return -1;
+  if (render_directives(gw.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+/* et grammar and et:* RTDB keys follow etrans/et_input.F. */
+static int render_etrans_stanza(NWChemEtransStanza_ptr ptr, char *dst,
+                                size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemEtransStanza et;
+  char block[1024];
+  block[0] = '\0';
+  read_NWChemEtransStanza(&et, ptr);
+  int has_directives = directives_have_keywords(et.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = et.tol2e > 0.0 || et.fock != NWChemToggle_unspecified ||
+                 et.fmo || et.vectorsReactant.len > 0 || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "et\n") != 0)
+    return -1;
+  if (et.vectorsReactant.len > 0) {
+    if (append_format(block, sizeof(block), "  vectors ") != 0 ||
+        append_text(block, sizeof(block), et.vectorsReactant) != 0)
+      return -1;
+    if (et.vectorsProduct.len > 0) {
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), et.vectorsProduct) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (et.tol2e > 0.0 &&
+      append_format(block, sizeof(block), "  tol2e %g\n", et.tol2e) != 0)
+    return -1;
+  if (et.fock == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  fock\n") != 0)
+    return -1;
+  if (et.fock == NWChemToggle_disabled &&
+      append_format(block, sizeof(block), "  nofock\n") != 0)
+    return -1;
+  if (et.fmo && append_format(block, sizeof(block), "  fmo\n") != 0)
+    return -1;
+  if (render_directives(et.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 /* v1.3.0 parity stanzas: text renders; embed promotion tracks the parity epic. */
 static int render_relativistic_stanza(NWChemRelativisticStanza_ptr ptr,
                                       char *dst, size_t dst_size) {
@@ -4505,6 +4662,14 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_stringMethod:
       if (render_string_stanza(stanza.stringMethod, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_gw:
+      if (render_gw_stanza(stanza.gw, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_etrans:
+      if (render_etrans_stanza(stanza.etrans, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

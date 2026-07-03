@@ -786,8 +786,16 @@ xyz_path, serial/parallel mode; each keyword maps onto a ~string:*~ RTDB
 key in ~string_input.F~) and deepens ~stanza.tddft~ with the remaining
 ~tddft_input.F~ spectroscopy switches: cdspectrum, giao, velocity, civecs,
 transden, the ~ewin~ energy window, and excited-state gradient roots via
-the ~grad~ subblock. Renderer and embed promotion for these stanzas track
-the parity epic.
+the ~grad~ subblock. Batch 6 adds molecular GW (~stanza.gw~: evgw/evgw0
+with iteration counts, cdgw/analytic method with Gauss-Legendre grid,
+graph/newton quasiparticle solvers, convergence threshold in eV,
+per-spin occ/vir state windows, first, ncap, eta, rpa, diag, core; all
+~gw:*~ RTDB keys from ~gw_input.F~) and electron-transfer coupling
+(~stanza.etrans~: reactant/product movecs, tol2e screening, fock/nofock
+two-electron method, fmo; ~et:*~ keys from ~et_input.F~). The common
+overlay also lowers ~common.vanDerWaalsS6~ onto the ~dft:vdw~ scaling
+factor. Renderer and embed promotion for these stanzas track the parity
+epic.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a

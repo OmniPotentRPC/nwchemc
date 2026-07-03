@@ -7,4 +7,5 @@
     scfMaxIterations = 42,
     smearing = (kind = fermi, widthEv = 0.27211386245988),
     vanDerWaalsMethod = "DFT-D3",
+    vanDerWaalsS6 = 1.05,
     relativityMethod = "ZORA" ) )

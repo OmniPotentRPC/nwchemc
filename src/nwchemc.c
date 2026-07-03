@@ -5737,6 +5737,11 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
       return -1;
     }
   }
+  if (c.vanDerWaalsS6 > 0.0 &&
+      overlay_set_rtdb_double("dft:vdw", c.vanDerWaalsS6) != 0) {
+    nwchemc_store_error("common overlay: applying dispersion s6 failed");
+    return -1;
+  }
   if (rel_key) {
     if (overlay_set_rtdb_typed(rel_key, NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
                                "true") != 0) {

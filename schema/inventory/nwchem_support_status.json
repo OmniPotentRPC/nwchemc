@@ -15,15 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 975,
+  "row_count": 1005,
   "counts_by_tier": {
-    "text": 437,
-    "tested": 522,
+    "text": 465,
+    "tested": 524,
     "embed": 7,
     "schema": 9
   },
-  "done_count": 529,
-  "not_done_count": 446,
+  "done_count": 531,
+  "not_done_count": 474,
   "features": [
     {
       "feature_id": "module.custom",
@@ -989,6 +989,22 @@
       "feature_id": "stanza.stringMethod",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.stringMethod",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.gw",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.gw",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.etrans",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.etrans",
       "support_tier": "tested",
       "embed_applicable": true,
       "done": true
@@ -5778,6 +5794,22 @@
       "done": false
     },
     {
+      "feature_id": "field.NWChemInputStanza.gw",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.gw",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.etrans",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.etrans",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
       "feature_id": "field.NWChemParams.basis",
       "class": "schema_field",
       "schema_path": "NWChemParams.basis",
@@ -5973,6 +6005,14 @@
       "feature_id": "field.CommonMethodSpec.relativityMethod",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.relativityMethod",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.vanDerWaalsS6",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.vanDerWaalsS6",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false
@@ -6525,6 +6565,206 @@
       "feature_id": "field.NWChemNebStanza.directives",
       "class": "schema_field",
       "schema_path": "NWChemNebStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.evgw",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.evgw",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.evgw0",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.evgw0",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.eviter",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.eviter",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.method",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.method",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.ngl",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.ngl",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.solver",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.solver",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.qpiter",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.qpiter",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.thresholdEv",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.thresholdEv",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.occAlpha",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.occAlpha",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.virAlpha",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.virAlpha",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.occBeta",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.occBeta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.virBeta",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.virBeta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.first",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.first",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.ncap",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.ncap",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.eta",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.eta",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.rpa",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.rpa",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.diag",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.diag",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.core",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.core",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemGwStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemGwStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEtransStanza.tol2e",
+      "class": "schema_field",
+      "schema_path": "NWChemEtransStanza.tol2e",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEtransStanza.fock",
+      "class": "schema_field",
+      "schema_path": "NWChemEtransStanza.fock",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEtransStanza.fmo",
+      "class": "schema_field",
+      "schema_path": "NWChemEtransStanza.fmo",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEtransStanza.vectorsReactant",
+      "class": "schema_field",
+      "schema_path": "NWChemEtransStanza.vectorsReactant",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEtransStanza.vectorsProduct",
+      "class": "schema_field",
+      "schema_path": "NWChemEtransStanza.vectorsProduct",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemEtransStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemEtransStanza.directives",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false
