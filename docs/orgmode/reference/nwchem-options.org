@@ -757,6 +757,16 @@ The Brillouin-zone, simulation-cell, and pseudopotential stanzas cover k-point
 grids (~stanza.brillouinZone~), NWPW periodic cell state
 (~stanza.simulationCell~), and library/file PSP entries
 (~stanza.pseudopotential~).
+The v1.3.0 parity batch adds typed stanzas for relativistic methods
+(~stanza.relativistic~: ZORA, Douglas-Kroll, X2C selection with spin-orbit and
+cutoff controls), COSMO implicit solvation (~stanza.cosmo~: dielectric,
+named solvent, radii, BEM controls), SMD solvation parameters (~stanza.smd~),
+geometry constraints (~stanza.constraints~: fixed atoms, bond/angle/torsion
+targets, springs), vibrational thermochemistry (~stanza.vib~: temperature
+grid, pressure, Hessian reuse, isotope masses), and external point charges
+(~stanza.bq~: inline charges or load file, optional forces). DFT dispersion
+gains a typed ~NWChemDftDisp~ field on the dft stanza. Renderer and embed
+promotion for these stanzas track the parity epic.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a
