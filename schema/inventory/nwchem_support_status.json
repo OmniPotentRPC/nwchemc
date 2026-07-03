@@ -15,14 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 780,
+  "row_count": 796,
   "counts_by_tier": {
-    "text": 274,
+    "text": 280,
     "tested": 499,
-    "embed": 7
+    "embed": 7,
+    "schema": 10
   },
   "done_count": 506,
-  "not_done_count": 274,
+  "not_done_count": 290,
   "features": [
     {
       "feature_id": "module.custom",
@@ -5185,6 +5186,126 @@
       "done": false
     },
     {
+      "feature_id": "field.CommonMethodSpec.xcFunctionals",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.xcFunctionals",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.basisSet",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.basisSet",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.planewaveCutoffEv",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.planewaveCutoffEv",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.charge",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.charge",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.spinMultiplicity",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.spinMultiplicity",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.scfEnergyToleranceEv",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.scfEnergyToleranceEv",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.scfMaxIterations",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.scfMaxIterations",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.kMesh",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.kMesh",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.smearing",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.smearing",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.vanDerWaalsMethod",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.vanDerWaalsMethod",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.relativityMethod",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.relativityMethod",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.kind",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.kind",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.CommonMethodSpec.widthEv",
+      "class": "schema_field",
+      "schema_path": "CommonMethodSpec.widthEv",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Smearing.kind",
+      "class": "schema_field",
+      "schema_path": "Smearing.kind",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Smearing.widthEv",
+      "class": "schema_field",
+      "schema_path": "Smearing.widthEv",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
       "feature_id": "field.PotentialConfig.none",
       "class": "schema_field",
       "schema_path": "PotentialConfig.none",
@@ -5204,6 +5325,14 @@
       "feature_id": "field.PotentialConfig.cpmd",
       "class": "schema_field",
       "schema_path": "PotentialConfig.cpmd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialConfig.common",
+      "class": "schema_field",
+      "schema_path": "PotentialConfig.common",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false

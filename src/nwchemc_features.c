@@ -648,9 +648,25 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemParams.permanentDir", "NWChemParams.permanentDir", "NWChemParams.permanentDir Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 11, 1, 0},
     {"field.NWChemParams.inputBlocks", "NWChemParams.inputBlocks", "NWChemParams.inputBlocks Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 12, 1, 0},
     {"field.NWChemParams.inputStanzas", "NWChemParams.inputStanzas", "NWChemParams.inputStanzas Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 13, 1, 0},
+    {"field.CommonMethodSpec.xcFunctionals", "CommonMethodSpec.xcFunctionals", "CommonMethodSpec.xcFunctionals Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.CommonMethodSpec.basisSet", "CommonMethodSpec.basisSet", "CommonMethodSpec.basisSet Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.CommonMethodSpec.planewaveCutoffEv", "CommonMethodSpec.planewaveCutoffEv", "CommonMethodSpec.planewaveCutoffEv Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.CommonMethodSpec.charge", "CommonMethodSpec.charge", "CommonMethodSpec.charge Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
+    {"field.CommonMethodSpec.spinMultiplicity", "CommonMethodSpec.spinMultiplicity", "CommonMethodSpec.spinMultiplicity Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.CommonMethodSpec.scfEnergyToleranceEv", "CommonMethodSpec.scfEnergyToleranceEv", "CommonMethodSpec.scfEnergyToleranceEv Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
+    {"field.CommonMethodSpec.scfMaxIterations", "CommonMethodSpec.scfMaxIterations", "CommonMethodSpec.scfMaxIterations Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 0},
+    {"field.CommonMethodSpec.kMesh", "CommonMethodSpec.kMesh", "CommonMethodSpec.kMesh Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 0},
+    {"field.CommonMethodSpec.smearing", "CommonMethodSpec.smearing", "CommonMethodSpec.smearing Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 0},
+    {"field.CommonMethodSpec.vanDerWaalsMethod", "CommonMethodSpec.vanDerWaalsMethod", "CommonMethodSpec.vanDerWaalsMethod Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 9, 1, 0},
+    {"field.CommonMethodSpec.relativityMethod", "CommonMethodSpec.relativityMethod", "CommonMethodSpec.relativityMethod Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 10, 1, 0},
+    {"field.CommonMethodSpec.kind", "CommonMethodSpec.kind", "CommonMethodSpec.kind Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.CommonMethodSpec.widthEv", "CommonMethodSpec.widthEv", "CommonMethodSpec.widthEv Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.Smearing.kind", "Smearing.kind", "Smearing.kind Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.Smearing.widthEv", "Smearing.widthEv", "Smearing.widthEv Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.PotentialConfig.none", "PotentialConfig.none", "PotentialConfig.none Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.PotentialConfig.nwchem", "PotentialConfig.nwchem", "PotentialConfig.nwchem Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.PotentialConfig.cpmd", "PotentialConfig.cpmd", "PotentialConfig.cpmd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.PotentialConfig.common", "PotentialConfig.common", "PotentialConfig.common Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
     {"method.Potential.calculate", "Potential.calculate", "Potential.calculate Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 0, 1, 0},
     {"method.Potential.configure", "Potential.configure", "Potential.configure Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 1, 1, 0},
     {"method.Potential.calculateEnergy", "Potential.calculateEnergy", "Potential.calculateEnergy Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 2, 1, 0},
@@ -785,7 +801,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 780;
+static const size_t k_feature_count = 796;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
