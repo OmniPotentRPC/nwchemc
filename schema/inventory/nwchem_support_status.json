@@ -15,15 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 861,
+  "row_count": 868,
   "counts_by_tier": {
-    "text": 344,
+    "text": 345,
     "tested": 505,
     "embed": 8,
-    "schema": 4
+    "schema": 10
   },
   "done_count": 513,
-  "not_done_count": 348,
+  "not_done_count": 355,
   "features": [
     {
       "feature_id": "module.custom",
@@ -5826,6 +5826,54 @@
       "done": false
     },
     {
+      "feature_id": "field.MetatomicParams.modelPath",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.modelPath",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.device",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.device",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.extensionsDirectory",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.extensionsDirectory",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.checkConsistency",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.checkConsistency",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.uncertaintyThreshold",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.uncertaintyThreshold",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.MetatomicParams.dtypeOverride",
+      "class": "schema_field",
+      "schema_path": "MetatomicParams.dtypeOverride",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
       "feature_id": "field.PotentialConfig.none",
       "class": "schema_field",
       "schema_path": "PotentialConfig.none",
@@ -5845,6 +5893,14 @@
       "feature_id": "field.PotentialConfig.cpmd",
       "class": "schema_field",
       "schema_path": "PotentialConfig.cpmd",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialConfig.metatomic",
+      "class": "schema_field",
+      "schema_path": "PotentialConfig.metatomic",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false

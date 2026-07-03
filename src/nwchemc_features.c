@@ -728,9 +728,16 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.CommonMethodSpec.widthEv", "CommonMethodSpec.widthEv", "CommonMethodSpec.widthEv Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.Smearing.kind", "Smearing.kind", "Smearing.kind Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.Smearing.widthEv", "Smearing.widthEv", "Smearing.widthEv Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.MetatomicParams.modelPath", "MetatomicParams.modelPath", "MetatomicParams.modelPath Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.MetatomicParams.device", "MetatomicParams.device", "MetatomicParams.device Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.MetatomicParams.extensionsDirectory", "MetatomicParams.extensionsDirectory", "MetatomicParams.extensionsDirectory Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.MetatomicParams.checkConsistency", "MetatomicParams.checkConsistency", "MetatomicParams.checkConsistency Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
+    {"field.MetatomicParams.uncertaintyThreshold", "MetatomicParams.uncertaintyThreshold", "MetatomicParams.uncertaintyThreshold Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.MetatomicParams.dtypeOverride", "MetatomicParams.dtypeOverride", "MetatomicParams.dtypeOverride Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
     {"field.PotentialConfig.none", "PotentialConfig.none", "PotentialConfig.none Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.PotentialConfig.nwchem", "PotentialConfig.nwchem", "PotentialConfig.nwchem Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.PotentialConfig.cpmd", "PotentialConfig.cpmd", "PotentialConfig.cpmd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.PotentialConfig.metatomic", "PotentialConfig.metatomic", "PotentialConfig.metatomic Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
     {"field.PotentialConfig.common", "PotentialConfig.common", "PotentialConfig.common Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
     {"method.Potential.calculate", "Potential.calculate", "Potential.calculate Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 0, 1, 0},
     {"method.Potential.configure", "Potential.configure", "Potential.configure Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 1, 1, 0},
@@ -866,7 +873,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 861;
+static const size_t k_feature_count = 868;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
