@@ -54,6 +54,24 @@
       esp = ( recalculate = true, spacing = 0.2, restrain = true, restrainHfree = true )
     ),
     (
+      kind = qmd,
+      qmd = (
+        nstepNucl = 500,
+        dtNucl = 10.0,
+        targTemp = 300.0,
+        thermostat = "svr",
+        thermostatParameter = 100.0
+      )
+    ),
+    (
+      kind = raman,
+      raman = ( normalMode = true, low = 400.0, high = 3500.0, steps = 20 )
+    ),
+    (
+      kind = fon,
+      fon = ( partial = 4, electrons = 2.0, filled = 10, temperature = 1000.0 )
+    ),
+    (
       kind = bq,
       bq = (
         units = "angstroms",

@@ -619,6 +619,16 @@ static void test_render_parity_batch_stanzas(void **state) {
   assert_render_contains(blocks, "recalculate");
   assert_render_contains(blocks, "spacing 0.2");
   assert_render_contains(blocks, "restrain hfree");
+  assert_render_contains(blocks, "qmd\n");
+  assert_render_contains(blocks, "nstep_nucl 500");
+  assert_render_contains(blocks, "dt_nucl 10");
+  assert_render_contains(blocks, "targ_temp 300");
+  assert_render_contains(blocks, "thermostat svr 100");
+  assert_render_contains(blocks, "raman\n");
+  assert_render_contains(blocks, "low 400");
+  assert_render_contains(blocks, "high 3500");
+  assert_render_contains(blocks, "steps 20");
+  assert_render_contains(blocks, "fon both partial 4 electrons 2 filled 10 temperature 1000");
   assert_render_contains(blocks, "bq units angstroms");
   assert_render_contains(blocks, "force");
   assert_render_contains(blocks, "0 0 5 -1");

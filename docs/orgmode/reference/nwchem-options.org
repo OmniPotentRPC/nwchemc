@@ -768,8 +768,12 @@ grid, pressure, Hessian reuse, isotope masses), and external point charges
 gains a typed ~NWChemDftDisp~ field on the dft stanza. Batch 2 adds cube and
 density output (~stanza.dplot~: gaussian cube, civecs, LimitXYZ, spin,
 orbitals) and ESP/RESP charges (~stanza.esp~: recalculate, range, probe,
-spacing, restraint). Renderer and embed promotion for these stanzas track the
-parity epic.
+spacing, restraint). Batch 3 adds Born-Oppenheimer dynamics
+(~stanza.qmd~: step count, timestep, target temperature, thermostat), Raman
+intensity controls (~stanza.raman~: normal/dynamic mode, frequency window),
+and fractional occupations (~stanza.fon~: partial set, electrons, spin
+channel, electronic temperature). Renderer and embed promotion for these
+stanzas track the parity epic.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a

@@ -980,6 +980,143 @@ static int render_esp_stanza(NWChemEspStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+static int render_qmd_stanza(NWChemQmdStanza_ptr ptr, char *dst,
+                             size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemQmdStanza qmd;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemQmdStanza(&qmd, ptr);
+  int has_directives = directives_have_keywords(qmd.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = qmd.nstepNucl > 0 || qmd.dtNucl > 0.0 || qmd.targTemp > 0.0 ||
+                 qmd.thermostat.len > 0 || qmd.randomSeed > 0 ||
+                 qmd.comStep > 0 || qmd.printXyz > 0 || qmd.linear ||
+                 has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "qmd\n") != 0)
+    return -1;
+  if (qmd.nstepNucl > 0 &&
+      append_format(block, sizeof(block), "  nstep_nucl %d\n",
+                    qmd.nstepNucl) != 0)
+    return -1;
+  if (qmd.dtNucl > 0.0 &&
+      append_format(block, sizeof(block), "  dt_nucl %g\n", qmd.dtNucl) != 0)
+    return -1;
+  if (qmd.targTemp > 0.0 &&
+      append_format(block, sizeof(block), "  targ_temp %g\n",
+                    qmd.targTemp) != 0)
+    return -1;
+  if (qmd.thermostat.len > 0) {
+    if (append_format(block, sizeof(block), "  thermostat ") != 0 ||
+        append_text(block, sizeof(block), qmd.thermostat) != 0)
+      return -1;
+    if (qmd.thermostatParameter > 0.0 &&
+        append_format(block, sizeof(block), " %g",
+                      qmd.thermostatParameter) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (qmd.randomSeed > 0 &&
+      append_format(block, sizeof(block), "  rand_seed %d\n",
+                    qmd.randomSeed) != 0)
+    return -1;
+  if (qmd.comStep > 0 &&
+      append_format(block, sizeof(block), "  com_step %d\n",
+                    qmd.comStep) != 0)
+    return -1;
+  if (qmd.printXyz > 0 &&
+      append_format(block, sizeof(block), "  print_xyz %d\n",
+                    qmd.printXyz) != 0)
+    return -1;
+  if (qmd.linear && append_format(block, sizeof(block), "  linear\n") != 0)
+    return -1;
+  if (render_directives(qmd.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_raman_stanza(NWChemRamanStanza_ptr ptr, char *dst,
+                               size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemRamanStanza raman;
+  char block[1024];
+  block[0] = '\0';
+  read_NWChemRamanStanza(&raman, ptr);
+  int has_directives = directives_have_keywords(raman.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = raman.normalMode || raman.dynamic || raman.low > 0.0 ||
+                 raman.high > 0.0 || raman.steps > 0 ||
+                 raman.fieldFrequency > 0.0 || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "raman\n") != 0)
+    return -1;
+  if (raman.normalMode &&
+      append_format(block, sizeof(block), "  normal\n") != 0)
+    return -1;
+  if (raman.dynamic &&
+      append_format(block, sizeof(block), "  dynamic\n") != 0)
+    return -1;
+  if (raman.low > 0.0 &&
+      append_format(block, sizeof(block), "  low %g\n", raman.low) != 0)
+    return -1;
+  if (raman.high > 0.0 &&
+      append_format(block, sizeof(block), "  high %g\n", raman.high) != 0)
+    return -1;
+  if (raman.steps > 0 &&
+      append_format(block, sizeof(block), "  steps %d\n", raman.steps) != 0)
+    return -1;
+  if (raman.fieldFrequency > 0.0 &&
+      append_format(block, sizeof(block), "  frequency %g\n",
+                    raman.fieldFrequency) != 0)
+    return -1;
+  if (render_directives(raman.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+static int render_fon_stanza(NWChemFonStanza_ptr ptr, char *dst,
+                             size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemFonStanza fon;
+  char block[1024];
+  block[0] = '\0';
+  read_NWChemFonStanza(&fon, ptr);
+  int has_directives = directives_have_keywords(fon.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = fon.partial > 0 || fon.electrons > 0.0 || fon.filled > 0 ||
+                 fon.temperature > 0.0 || has_directives;
+  if (!has_body)
+    return 0;
+  /* fon rides inside the dft block in NWChem decks. */
+  if (append_format(block, sizeof(block), "dft\n  fon %s partial %d "
+                                          "electrons %g filled %d",
+                    fon.alphaOnly ? "alpha" : "both", fon.partial,
+                    fon.electrons, fon.filled) != 0)
+    return -1;
+  if (fon.temperature > 0.0 &&
+      append_format(block, sizeof(block), " temperature %g",
+                    fon.temperature) != 0)
+    return -1;
+  if (append_format(block, sizeof(block), "\n") != 0)
+    return -1;
+  if (render_directives(fon.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 static const char *module_name_literal(enum NWChemModuleName name) {
   switch (name) {
   case NWChemModuleName_basis:
@@ -4111,6 +4248,18 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_esp:
       if (render_esp_stanza(stanza.esp, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_qmd:
+      if (render_qmd_stanza(stanza.qmd, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_raman:
+      if (render_raman_stanza(stanza.raman, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_fon:
+      if (render_fon_stanza(stanza.fon, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

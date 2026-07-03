@@ -119,6 +119,9 @@ static const NWChemCFeatureEntry k_features[] = {
     {"stanza.bq", "NWChemInputStanza.bq", "bq stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.dplot", "NWChemInputStanza.dplot", "dplot stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"stanza.esp", "NWChemInputStanza.esp", "esp stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.qmd", "NWChemInputStanza.qmd", "qmd stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.raman", "NWChemInputStanza.raman", "raman stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
+    {"stanza.fon", "NWChemInputStanza.fon", "fon stanza", NWCHEMC_FEATURE_STANZA, -1, 1, 1},
     {"params.basis", "NWChemParams.basis", "Gaussian basis set name", NWCHEMC_FEATURE_PARAMS_FIELD, 0, 1, 1},
     {"params.theory", "NWChemParams.theory", "Main theory/task family (scf/dft/...)", NWCHEMC_FEATURE_PARAMS_FIELD, 1, 1, 1},
     {"params.scfType", "NWChemParams.scfType", "SCF type or DFT XC keyword", NWCHEMC_FEATURE_PARAMS_FIELD, 2, 1, 1},
@@ -703,6 +706,9 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemInputStanza.bq", "NWChemInputStanza.bq", "NWChemInputStanza.bq Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 26, 1, 0},
     {"field.NWChemInputStanza.dplot", "NWChemInputStanza.dplot", "NWChemInputStanza.dplot Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 27, 1, 0},
     {"field.NWChemInputStanza.esp", "NWChemInputStanza.esp", "NWChemInputStanza.esp Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 28, 1, 0},
+    {"field.NWChemInputStanza.qmd", "NWChemInputStanza.qmd", "NWChemInputStanza.qmd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 29, 1, 0},
+    {"field.NWChemInputStanza.raman", "NWChemInputStanza.raman", "NWChemInputStanza.raman Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 30, 1, 0},
+    {"field.NWChemInputStanza.fon", "NWChemInputStanza.fon", "NWChemInputStanza.fon Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 31, 1, 0},
     {"field.NWChemParams.basis", "NWChemParams.basis", "NWChemParams.basis Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.NWChemParams.theory", "NWChemParams.theory", "NWChemParams.theory Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.NWChemParams.scfType", "NWChemParams.scfType", "NWChemParams.scfType Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
@@ -760,6 +766,29 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.NWChemEspStanza.restrain", "NWChemEspStanza.restrain", "NWChemEspStanza.restrain Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
     {"field.NWChemEspStanza.restrainHfree", "NWChemEspStanza.restrainHfree", "NWChemEspStanza.restrainHfree Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
     {"field.NWChemEspStanza.directives", "NWChemEspStanza.directives", "NWChemEspStanza.directives Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 0},
+    {"field.NWChemQmdStanza.nstepNucl", "NWChemQmdStanza.nstepNucl", "NWChemQmdStanza.nstepNucl Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.NWChemQmdStanza.dtNucl", "NWChemQmdStanza.dtNucl", "NWChemQmdStanza.dtNucl Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.NWChemQmdStanza.targTemp", "NWChemQmdStanza.targTemp", "NWChemQmdStanza.targTemp Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.NWChemQmdStanza.thermostat", "NWChemQmdStanza.thermostat", "NWChemQmdStanza.thermostat Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
+    {"field.NWChemQmdStanza.thermostatParameter", "NWChemQmdStanza.thermostatParameter", "NWChemQmdStanza.thermostatParameter Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.NWChemQmdStanza.randomSeed", "NWChemQmdStanza.randomSeed", "NWChemQmdStanza.randomSeed Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
+    {"field.NWChemQmdStanza.comStep", "NWChemQmdStanza.comStep", "NWChemQmdStanza.comStep Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 0},
+    {"field.NWChemQmdStanza.printXyz", "NWChemQmdStanza.printXyz", "NWChemQmdStanza.printXyz Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 0},
+    {"field.NWChemQmdStanza.linear", "NWChemQmdStanza.linear", "NWChemQmdStanza.linear Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 0},
+    {"field.NWChemQmdStanza.directives", "NWChemQmdStanza.directives", "NWChemQmdStanza.directives Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 9, 1, 0},
+    {"field.NWChemRamanStanza.normalMode", "NWChemRamanStanza.normalMode", "NWChemRamanStanza.normalMode Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.NWChemRamanStanza.dynamic", "NWChemRamanStanza.dynamic", "NWChemRamanStanza.dynamic Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.NWChemRamanStanza.low", "NWChemRamanStanza.low", "NWChemRamanStanza.low Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.NWChemRamanStanza.high", "NWChemRamanStanza.high", "NWChemRamanStanza.high Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
+    {"field.NWChemRamanStanza.steps", "NWChemRamanStanza.steps", "NWChemRamanStanza.steps Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.NWChemRamanStanza.fieldFrequency", "NWChemRamanStanza.fieldFrequency", "NWChemRamanStanza.fieldFrequency Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
+    {"field.NWChemRamanStanza.directives", "NWChemRamanStanza.directives", "NWChemRamanStanza.directives Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 0},
+    {"field.NWChemFonStanza.partial", "NWChemFonStanza.partial", "NWChemFonStanza.partial Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.NWChemFonStanza.electrons", "NWChemFonStanza.electrons", "NWChemFonStanza.electrons Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.NWChemFonStanza.filled", "NWChemFonStanza.filled", "NWChemFonStanza.filled Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.NWChemFonStanza.alphaOnly", "NWChemFonStanza.alphaOnly", "NWChemFonStanza.alphaOnly Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
+    {"field.NWChemFonStanza.temperature", "NWChemFonStanza.temperature", "NWChemFonStanza.temperature Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.NWChemFonStanza.directives", "NWChemFonStanza.directives", "NWChemFonStanza.directives Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
     {"field.PotentialConfig.none", "PotentialConfig.none", "PotentialConfig.none Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.PotentialConfig.nwchem", "PotentialConfig.nwchem", "PotentialConfig.nwchem Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.PotentialConfig.cpmd", "PotentialConfig.cpmd", "PotentialConfig.cpmd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
@@ -899,7 +928,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 894;
+static const size_t k_feature_count = 923;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 
