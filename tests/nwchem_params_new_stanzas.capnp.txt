@@ -99,6 +99,35 @@
       )
     ),
     (
+      kind = stringMethod,
+      stringMethod = (
+        nbeads = 10,
+        maxiter = 40,
+        stepsize = 0.5,
+        tol = 0.0005,
+        interpol = 2,
+        freeze1 = true,
+        freezen = true,
+        impose = true,
+        xyzPath = "path.xyz",
+        mode = parallel
+      )
+    ),
+    (
+      kind = tddft,
+      tddft = (
+        nroots = 8,
+        cdspectrum = true,
+        giao = true,
+        velocity = true,
+        civecs = true,
+        transden = true,
+        ewinLow = 0.1,
+        ewinHigh = 0.5,
+        gradRoots = [1, 2]
+      )
+    ),
+    (
       kind = bq,
       bq = (
         units = "angstroms",

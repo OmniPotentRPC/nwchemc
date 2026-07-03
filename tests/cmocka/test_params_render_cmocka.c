@@ -641,6 +641,24 @@ static void test_render_parity_batch_stanzas(void **state) {
   assert_render_contains(blocks, "cdft 1 5 charge 1");
   assert_render_contains(blocks,
                          "cdft 6 10 11 15 spin 2 convergence 1e-05 pop lowdin");
+  assert_render_contains(blocks, "string\n");
+  assert_render_contains(blocks, "nbeads 10");
+  assert_render_contains(blocks, "maxiter 40");
+  assert_render_contains(blocks, "stepsize 0.5");
+  assert_render_contains(blocks, "tol 0.0005");
+  assert_render_contains(blocks, "interpol 2");
+  assert_render_contains(blocks, "freeze1");
+  assert_render_contains(blocks, "freezen");
+  assert_render_contains(blocks, "impose");
+  assert_render_contains(blocks, "xyz_path path.xyz");
+  assert_render_contains(blocks, "mode parallel");
+  assert_render_contains(blocks, "cdspectrum");
+  assert_render_contains(blocks, "giao");
+  assert_render_contains(blocks, "velocity");
+  assert_render_contains(blocks, "civecs");
+  assert_render_contains(blocks, "transden");
+  assert_render_contains(blocks, "ewin 0.1 0.5");
+  assert_render_contains(blocks, "root 1 2");
   assert_render_contains(blocks, "bq units angstroms");
   assert_render_contains(blocks, "force");
   assert_render_contains(blocks, "0 0 5 -1");

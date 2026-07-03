@@ -779,8 +779,15 @@ loose/default/tight presets, and explicit gmax/grms/xmax/xrms criteria map
 1:1 onto ~neb:*~ RTDB keys in ~neb_input.F~) and constrained DFT
 (~dft.cdft~: per-line atom ranges with a charge or spin target plus the
 trailing ~convergence~ and ~pop~ becke/mulliken/lowdin directives from
-~cdft_inp.F~). Renderer and embed promotion for these stanzas track the
-parity epic.
+~cdft_inp.F~). Batch 5 adds the zero-temperature string method
+(~stanza.stringMethod~: nbeads, maxiter, stepsize, tol, interpol, nhist,
+algorithm, print_shift, freeze1/freezen, hasmiddle, impose, reset,
+xyz_path, serial/parallel mode; each keyword maps onto a ~string:*~ RTDB
+key in ~string_input.F~) and deepens ~stanza.tddft~ with the remaining
+~tddft_input.F~ spectroscopy switches: cdspectrum, giao, velocity, civecs,
+transden, the ~ewin~ energy window, and excited-state gradient roots via
+the ~grad~ subblock. Renderer and embed promotion for these stanzas track
+the parity epic.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a

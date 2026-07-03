@@ -644,6 +644,88 @@ static int render_neb_stanza(NWChemNebStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+/* string keywords map onto string:* RTDB keys (optim/string/string_input.F);
+ * nhist stores as string:m and maxiter as string:maxit. */
+static int render_string_stanza(NWChemStringStanza_ptr ptr, char *dst,
+                                size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemStringStanza str;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemStringStanza(&str, ptr);
+  int has_directives = directives_have_keywords(str.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body =
+      str.nbeads > 0 || str.maxiter > 0 || str.stepsize > 0.0 ||
+      str.tol > 0.0 || str.interpol > 0 || str.nhist > 0 ||
+      str.algorithm > 0 || str.printShift > 0 || str.freeze1 || str.freezen ||
+      str.hasmiddle || str.impose || str.reset || str.xyzPath.len > 0 ||
+      str.mode != NWChemStringStanza_Mode_unspecified || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "string\n") != 0)
+    return -1;
+  if (str.nbeads > 0 &&
+      append_format(block, sizeof(block), "  nbeads %d\n", str.nbeads) != 0)
+    return -1;
+  if (str.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", str.maxiter) != 0)
+    return -1;
+  if (str.stepsize > 0.0 &&
+      append_format(block, sizeof(block), "  stepsize %g\n", str.stepsize) !=
+          0)
+    return -1;
+  if (str.tol > 0.0 &&
+      append_format(block, sizeof(block), "  tol %g\n", str.tol) != 0)
+    return -1;
+  if (str.interpol > 0 &&
+      append_format(block, sizeof(block), "  interpol %d\n", str.interpol) !=
+          0)
+    return -1;
+  if (str.nhist > 0 &&
+      append_format(block, sizeof(block), "  nhist %d\n", str.nhist) != 0)
+    return -1;
+  if (str.algorithm > 0 &&
+      append_format(block, sizeof(block), "  algorithm %d\n",
+                    str.algorithm) != 0)
+    return -1;
+  if (str.printShift > 0 &&
+      append_format(block, sizeof(block), "  print_shift %d\n",
+                    str.printShift) != 0)
+    return -1;
+  if (str.freeze1 &&
+      append_format(block, sizeof(block), "  freeze1\n") != 0)
+    return -1;
+  if (str.freezen &&
+      append_format(block, sizeof(block), "  freezen\n") != 0)
+    return -1;
+  if (str.hasmiddle &&
+      append_format(block, sizeof(block), "  hasmiddle\n") != 0)
+    return -1;
+  if (str.impose && append_format(block, sizeof(block), "  impose\n") != 0)
+    return -1;
+  if (str.reset && append_format(block, sizeof(block), "  reset\n") != 0)
+    return -1;
+  if (str.xyzPath.len > 0) {
+    if (append_format(block, sizeof(block), "  xyz_path ") != 0 ||
+        append_text(block, sizeof(block), str.xyzPath) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (str.mode != NWChemStringStanza_Mode_unspecified &&
+      append_format(block, sizeof(block), "  mode %s\n",
+                    str.mode == NWChemStringStanza_Mode_parallel
+                        ? "parallel"
+                        : "serial") != 0)
+    return -1;
+  if (render_directives(str.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 /* v1.3.0 parity stanzas: text renders; embed promotion tracks the parity epic. */
 static int render_relativistic_stanza(NWChemRelativisticStanza_ptr ptr,
                                       char *dst, size_t dst_size) {
@@ -3172,13 +3254,20 @@ static int render_tddft_stanza(NWChemTddftStanza_ptr ptr, char *dst,
   int has_directives = directives_have_keywords(tddft.directives);
   if (has_directives < 0)
     return -1;
+  capn_list32 grad_roots = tddft.gradRoots;
+  capn_resolve(&grad_roots.p);
+  int n_grad_roots = list32_len(grad_roots);
+  if (n_grad_roots < 0)
+    return -1;
   int has_promoted =
       tddft.nroots > 0 || tddft.tda != NWChemToggle_unspecified ||
       tddft.maxiter > 0 || tddft.thresh > 0.0 || tddft.maxvecs > 0 ||
       tddft.singlet != NWChemToggle_unspecified ||
       tddft.triplet != NWChemToggle_unspecified || tddft.target > 0 ||
       tddft.targetSym.len > 0 || tddft.symmetry != NWChemToggle_unspecified ||
-      tddft.algorithm > 0 || tddft.energyCutoff > 0.0;
+      tddft.algorithm > 0 || tddft.energyCutoff > 0.0 || tddft.cdspectrum ||
+      tddft.giao || tddft.velocity || tddft.civecs || tddft.transden ||
+      tddft.ewinHigh > 0.0 || n_grad_roots > 0;
   if (!include_direct_promoted && !has_directives)
     return 0;
   if (include_direct_promoted && !has_promoted && !has_directives)
@@ -3227,6 +3316,36 @@ static int render_tddft_stanza(NWChemTddftStanza_ptr ptr, char *dst,
       append_format(block, sizeof(block), "  ecut %.12g\n",
                     tddft.energyCutoff) != 0)
     return -1;
+  if (include_direct_promoted && tddft.cdspectrum &&
+      append_format(block, sizeof(block), "  cdspectrum\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.giao &&
+      append_format(block, sizeof(block), "  giao\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.velocity &&
+      append_format(block, sizeof(block), "  velocity\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.civecs &&
+      append_format(block, sizeof(block), "  civecs\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.transden &&
+      append_format(block, sizeof(block), "  transden\n") != 0)
+    return -1;
+  if (include_direct_promoted && tddft.ewinHigh > 0.0 &&
+      append_format(block, sizeof(block), "  ewin %g %g\n", tddft.ewinLow,
+                    tddft.ewinHigh) != 0)
+    return -1;
+  if (include_direct_promoted && n_grad_roots > 0) {
+    if (append_format(block, sizeof(block), "  grad\n    root") != 0)
+      return -1;
+    for (int i = 0; i < n_grad_roots; ++i) {
+      int32_t r = (int32_t)capn_get32(grad_roots, i);
+      if (append_format(block, sizeof(block), " %d", r) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n  end\n") != 0)
+      return -1;
+  }
   if (render_directives(tddft.directives, block, sizeof(block), "  ") != 0 ||
       append_format(block, sizeof(block), "end") != 0)
     return -1;
@@ -4382,6 +4501,10 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_neb:
       if (render_neb_stanza(stanza.neb, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_stringMethod:
+      if (render_string_stanza(stanza.stringMethod, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:
