@@ -5,4 +5,5 @@
     spinMultiplicity = 2,
     scfEnergyToleranceEv = 2.7211386245988e-4,
     scfMaxIterations = 42,
-    smearing = (kind = fermi, widthEv = 0.27211386245988) ) )
+    smearing = (kind = fermi, widthEv = 0.27211386245988),
+    vanDerWaalsMethod = "DFT-D3" ) )

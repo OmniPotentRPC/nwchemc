@@ -5486,6 +5486,23 @@ static const struct {
 
 static const capn_text k_common_empty_text = {0, "", 0};
 
+static int text_equals_ci_overlay(capn_text text, const char *lit) {
+  int n = (int)strlen(lit);
+  if (text.len != n || !text.str)
+    return 0;
+  for (int i = 0; i < n; ++i) {
+    char a = text.str[i];
+    char b = lit[i];
+    if (a >= 'a' && a <= 'z')
+      a = (char)(a - ('a' - 'A'));
+    if (b >= 'a' && b <= 'z')
+      b = (char)(b - ('a' - 'A'));
+    if (a != b)
+      return 0;
+  }
+  return 1;
+}
+
 static int common_ptr_list_len(capn_ptr ptr) {
   capn_resolve(&ptr);
   if (ptr.type == CAPN_NULL)
@@ -5548,6 +5565,23 @@ static int common_xc_tokens(capn_ptr list, char *out, size_t out_size) {
   return -1;
 }
 
+static int overlay_set_rtdb_typed(const char *key, int value_type,
+                                  const char *value_text) {
+  char keys[NWCHEMC_DIRECT_SET_KEY_LEN];
+  char values[NWCHEMC_DIRECT_SET_VALUE_LEN];
+  int types[1] = {value_type};
+  int counts[1] = {1};
+  memset(keys, 0, sizeof(keys));
+  memset(values, 0, sizeof(values));
+  int n = snprintf(keys, sizeof(keys), "%s", key);
+  if (n < 0 || (size_t)n >= sizeof(keys))
+    return -1;
+  n = snprintf(values, sizeof(values), "%s", value_text);
+  if (n < 0 || (size_t)n >= sizeof(values))
+    return -1;
+  return nwchemc_embed_set_rtdb_values(keys, types, counts, values, 1);
+}
+
 static int overlay_set_rtdb_double(const char *key, double value) {
   char keys[NWCHEMC_DIRECT_SET_KEY_LEN];
   char values[NWCHEMC_DIRECT_SET_VALUE_LEN];
@@ -5575,23 +5609,32 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
   memset(&c, 0, sizeof(c));
   read_CommonMethodSpec(&c, common_root);
 
-  if (common_list32_len(c.kMesh) != 0) {
-    nwchemc_store_error("common overlay: kMesh has no NWChem lowering yet");
+  int kmesh_len = common_list32_len(c.kMesh);
+  if (kmesh_len != 0 && kmesh_len != 3) {
+    nwchemc_store_error(
+        "common overlay: kMesh must carry 3 Monkhorst divisions");
     return -1;
   }
-  if (c.planewaveCutoffEv > 0.0) {
-    nwchemc_store_error(
-        "common overlay: planewaveCutoffEv has no NWChem lowering yet");
-    return -1;
+  int is_planewave = 0;
+  if (c.basisSet.len > 0) {
+    const char *pw = "planewave";
+    is_planewave = c.basisSet.len == (int)strlen(pw);
+    for (int i = 0; is_planewave && i < c.basisSet.len; ++i) {
+      char ch = c.basisSet.str[i];
+      if ((char)((ch >= 'A' && ch <= 'Z') ? ch + ('a' - 'A') : ch) != pw[i])
+        is_planewave = 0;
+    }
   }
-  if (c.vanDerWaalsMethod.len > 0) {
+  if ((kmesh_len == 3 || c.planewaveCutoffEv > 0.0) && !is_planewave) {
     nwchemc_store_error(
-        "common overlay: vanDerWaalsMethod has no NWChem lowering yet");
+        "common overlay: kMesh/planewaveCutoffEv require basisSet "
+        "\"planewave\" (NWPW module) on NWChem");
     return -1;
   }
   if (c.relativityMethod.len > 0) {
     nwchemc_store_error(
-        "common overlay: relativityMethod has no NWChem lowering yet");
+        "common overlay: relativityMethod lowering is pending; use the "
+        "relativistic stanza on the nwchem arm");
     return -1;
   }
   struct CommonMethodSpec_Smearing smear;
@@ -5623,12 +5666,62 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
     const char *basis = c.basisSet.len > 0 ? c.basisSet.str : "sto-3g";
     int basis_len = c.basisSet.len > 0 ? c.basisSet.len : 6;
     const char *theory = have_xc ? "dft" : "scf";
+    if (is_planewave) {
+      /* NWPW module: band with a k mesh, pspw at Gamma. */
+      theory = kmesh_len == 3 ? "band" : "pspw";
+      basis = "";
+      basis_len = 0;
+    }
     int charge = c.charge;
     int mult = c.spinMultiplicity > 0 ? c.spinMultiplicity : 1;
     if (nwchemc_embed_set_config(basis, basis_len, theory,
                                  (int)strlen(theory), "", 0, &charge, &mult,
                                  "", 0) != 0) {
       nwchemc_store_error("common overlay: applying base config failed");
+      return -1;
+    }
+  }
+
+  if (c.planewaveCutoffEv > 0.0) {
+    /* NWChem nwpw cutoffs are Hartree; keyword sets wcut, ecut = 2*wcut. */
+    double wcut_ha = c.planewaveCutoffEv / NWCHEMC_HARTREE_EV;
+    if (nwchemc_embed_set_nwpw_direct(1, 2.0 * wcut_ha, wcut_ha, 0.0, 0) !=
+        0) {
+      nwchemc_store_error("common overlay: applying nwpw cutoffs failed");
+      return -1;
+    }
+  }
+  if (kmesh_len == 3) {
+    if (nwchemc_embed_set_brillouin_zone(
+            1, "zone_default", 12, (int)capn_get32(c.kMesh, 0),
+            (int)capn_get32(c.kMesh, 1), (int)capn_get32(c.kMesh, 2), 0, NULL,
+            0) != 0) {
+      nwchemc_store_error("common overlay: applying k mesh failed");
+      return -1;
+    }
+  }
+  if (c.vanDerWaalsMethod.len > 0) {
+    /* dft disp: rtdb dft:disp (log) + dft:ivdw (int); D2=2, D3=3, D3(BJ)=4. */
+    int ivdw = 0;
+    if (text_equals_ci_overlay(c.vanDerWaalsMethod, "DFT-D2"))
+      ivdw = 2;
+    else if (text_equals_ci_overlay(c.vanDerWaalsMethod, "DFT-D3"))
+      ivdw = 3;
+    else if (text_equals_ci_overlay(c.vanDerWaalsMethod, "DFT-D3(BJ)"))
+      ivdw = 4;
+    if (ivdw == 0) {
+      nwchemc_store_error(
+          "common overlay: unmapped vanDerWaalsMethod (use DFT-D2, DFT-D3, "
+          "or DFT-D3(BJ))");
+      return -1;
+    }
+    char ivdw_text[8];
+    snprintf(ivdw_text, sizeof(ivdw_text), "%d", ivdw);
+    if (overlay_set_rtdb_typed("dft:disp", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                               "true") != 0 ||
+        overlay_set_rtdb_typed("dft:ivdw", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                               ivdw_text) != 0) {
+      nwchemc_store_error("common overlay: applying dispersion failed");
       return -1;
     }
   }

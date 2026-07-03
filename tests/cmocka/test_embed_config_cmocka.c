@@ -2966,6 +2966,17 @@ static void test_common_overlay_lowers_before_native(void **state) {
     }
   }
   assert_int_equal(found_e_conv, 1);
+  int found_disp = 0, found_ivdw = 0;
+  for (int i = 0; i < g_typed_set_count; ++i) {
+    if (strcmp(g_typed_set_keys[i], "dft:disp") == 0)
+      found_disp = 1;
+    if (strcmp(g_typed_set_keys[i], "dft:ivdw") == 0) {
+      found_ivdw = 1;
+      assert_string_equal(g_typed_set_values[i][0], "3");
+    }
+  }
+  assert_int_equal(found_disp, 1);
+  assert_int_equal(found_ivdw, 1);
   free(config);
 }
 
