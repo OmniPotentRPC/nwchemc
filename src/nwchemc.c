@@ -5548,6 +5548,22 @@ static int common_xc_tokens(capn_ptr list, char *out, size_t out_size) {
   return -1;
 }
 
+static int overlay_set_rtdb_double(const char *key, double value) {
+  char keys[NWCHEMC_DIRECT_SET_KEY_LEN];
+  char values[NWCHEMC_DIRECT_SET_VALUE_LEN];
+  int types[1] = {NWCHEMC_DIRECT_SET_VALUE_DOUBLE};
+  int counts[1] = {1};
+  memset(keys, 0, sizeof(keys));
+  memset(values, 0, sizeof(values));
+  int n = snprintf(keys, sizeof(keys), "%s", key);
+  if (n < 0 || (size_t)n >= sizeof(keys))
+    return -1;
+  n = snprintf(values, sizeof(values), "%.17g", value);
+  if (n < 0 || (size_t)n >= sizeof(values))
+    return -1;
+  return nwchemc_embed_set_rtdb_values(keys, types, counts, values, 1);
+}
+
 /* Lower the normalized CommonMethodSpec overlay into the embed BEFORE the
  * native arm applies; the native arm re-sets anything it specifies, so
  * native settings win. Fields without an NWChem lowering are rejected
@@ -5627,17 +5643,25 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
     }
   }
 
-  if (c.scfEnergyToleranceEv > 0.0) {
-    /* NWChem scf:thresh and dft grids are gradient-norm criteria; lowering an
-     * energy-change tolerance onto them would silently change meaning. */
-    nwchemc_store_error(
-        "common overlay: scfEnergyToleranceEv has no faithful NWChem "
-        "lowering yet; set the native scf/dft convergence instead");
-    return -1;
-  }
-  if (c.scfMaxIterations > 0) {
-    if (nwchemc_embed_set_scf_direct(1, c.scfMaxIterations, 0.0, 0.0) != 0) {
+  if (c.scfMaxIterations > 0 || (c.scfEnergyToleranceEv > 0.0 && !have_xc)) {
+    /* For the scf module the primary convergence criterion is scf:thresh. */
+    double thresh_ha =
+        !have_xc && c.scfEnergyToleranceEv > 0.0
+            ? c.scfEnergyToleranceEv / NWCHEMC_HARTREE_EV
+            : 0.0;
+    if (nwchemc_embed_set_scf_direct(1, c.scfMaxIterations, thresh_ha, 0.0) !=
+        0) {
       nwchemc_store_error("common overlay: applying scf settings failed");
+      return -1;
+    }
+  }
+  if (have_xc && c.scfEnergyToleranceEv > 0.0) {
+    /* DFT exposes a true energy-change criterion. */
+    if (overlay_set_rtdb_double("dft:e_conv",
+                                c.scfEnergyToleranceEv /
+                                    NWCHEMC_HARTREE_EV) != 0) {
+      nwchemc_store_error(
+          "common overlay: applying dft energy convergence failed");
       return -1;
     }
   }
@@ -5811,14 +5835,6 @@ int nwchemc_configure(const void *config_capnp,
     nwchemc_store_error("PotentialConfig parse failed");
     return -1;
   }
-  if (!is_none && common_root.p.type == CAPN_STRUCT) {
-    nwchemc_params_release(&arena);
-    nwchemc_store_error(
-        "PotentialConfig sets both the nwchem arm and the common overlay; "
-        "capnp cannot distinguish unset arm fields from defaults, so the "
-        "combination is rejected - fold the overlay values into the arm");
-    return -1;
-  }
   if (apply_common_to_embed(common_root) != 0) {
     nwchemc_params_release(&arena);
     return -1;
@@ -5970,16 +5986,13 @@ nwchemc_session_create_from_config(const void *config_capnp,
     nwchemc_params_release(&arena);
     return NULL;
   }
-  if (common_root.p.type == CAPN_STRUCT) {
-    nwchemc_params_release(&arena);
-    nwchemc_store_error(
-        "PotentialConfig sets both the nwchem arm and the common overlay; "
-        "fold the overlay values into the arm");
-    return NULL;
-  }
-
   unsigned char *common_bytes = NULL;
   size_t common_size = 0;
+  if (common_root.p.type == CAPN_STRUCT &&
+      write_ptr_root_flat(common_root.p, &common_bytes, &common_size) != 0) {
+    nwchemc_params_release(&arena);
+    return NULL;
+  }
 
   unsigned char *params_bytes = NULL;
   size_t params_size = 0;
@@ -6052,14 +6065,6 @@ int nwchemc_session_configure(NWChemCSession *session,
                                    &arena, &params_root, &is_none,
                                    &common_root) != 0) {
     nwchemc_store_error("PotentialConfig parse failed");
-    return -1;
-  }
-
-  if (!is_none && common_root.p.type == CAPN_STRUCT) {
-    nwchemc_params_release(&arena);
-    nwchemc_store_error(
-        "PotentialConfig sets both the nwchem arm and the common overlay; "
-        "fold the overlay values into the arm");
     return -1;
   }
 
