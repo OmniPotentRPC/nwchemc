@@ -5484,13 +5484,33 @@ static const struct {
     {"MGGA_C_SCAN+MGGA_X_SCAN", "scan"},
 };
 
+static const capn_text k_common_empty_text = {0, "", 0};
+
+static int common_ptr_list_len(capn_ptr ptr) {
+  capn_resolve(&ptr);
+  if (ptr.type == CAPN_NULL)
+    return 0;
+  if (ptr.type != CAPN_LIST)
+    return -1;
+  return ptr.len;
+}
+
+static int common_list32_len(capn_list32 list) {
+  capn_resolve(&list.p);
+  if (list.p.type == CAPN_NULL)
+    return 0;
+  if (list.p.type != CAPN_LIST || list.p.datasz != 4)
+    return -1;
+  return list.p.len;
+}
+
 static int common_xc_tokens(capn_ptr list, char *out, size_t out_size) {
-  int n = capn_len(list);
+  int n = common_ptr_list_len(list);
   if (n <= 0 || n > 4)
     return -1;
   char names[4][64];
   for (int i = 0; i < n; ++i) {
-    capn_text entry = capn_get_text(list, i, capn_val0);
+    capn_text entry = capn_get_text(list, i, k_common_empty_text);
     if (!entry.str || entry.len <= 0 || (size_t)entry.len >= sizeof(names[0]))
       return -1;
     for (int j = 0; j < entry.len; ++j) {
@@ -5539,7 +5559,7 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
   memset(&c, 0, sizeof(c));
   read_CommonMethodSpec(&c, common_root);
 
-  if (capn_len(c.kMesh) > 0) {
+  if (common_list32_len(c.kMesh) != 0) {
     nwchemc_store_error("common overlay: kMesh has no NWChem lowering yet");
     return -1;
   }
@@ -5558,8 +5578,13 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
         "common overlay: relativityMethod has no NWChem lowering yet");
     return -1;
   }
-  if (c.smearing.kind != CommonMethodSpec_Smearing_Kind_none &&
-      c.smearing.kind != CommonMethodSpec_Smearing_Kind_fermi) {
+  struct CommonMethodSpec_Smearing smear;
+  memset(&smear, 0, sizeof(smear));
+  capn_resolve(&c.smearing.p);
+  if (c.smearing.p.type == CAPN_STRUCT)
+    read_CommonMethodSpec_Smearing(&smear, c.smearing);
+  if (smear.kind != CommonMethodSpec_Smearing_Kind_none &&
+      smear.kind != CommonMethodSpec_Smearing_Kind_fermi) {
     nwchemc_store_error(
         "common overlay: only fermi smearing has an NWChem lowering");
     return -1;
@@ -5567,8 +5592,8 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
 
   char xc[128] = "";
   int have_xc = 0;
-  if (capn_len(c.xcFunctionals) > 0) {
-    if (common_xc_tokens(c.xcFunctionals.p, xc, sizeof(xc)) != 0) {
+  if (common_ptr_list_len(c.xcFunctionals) > 0) {
+    if (common_xc_tokens(c.xcFunctionals, xc, sizeof(xc)) != 0) {
       nwchemc_store_error(
           "common overlay: unmapped xcFunctionals for NWChem");
       return -1;
@@ -5592,9 +5617,9 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
     }
   }
 
-  int smear_on = c.smearing.kind == CommonMethodSpec_Smearing_Kind_fermi;
+  int smear_on = smear.kind == CommonMethodSpec_Smearing_Kind_fermi;
   if (have_xc || smear_on) {
-    double sigma_ha = c.smearing.widthEv / NWCHEMC_HARTREE_EV;
+    double sigma_ha = smear.widthEv / NWCHEMC_HARTREE_EV;
     if (nwchemc_embed_set_dft_direct(xc, (int)strlen(xc), 0, smear_on,
                                      smear_on ? sigma_ha : 0.0, 0) != 0) {
       nwchemc_store_error("common overlay: applying dft settings failed");
