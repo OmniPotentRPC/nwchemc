@@ -49,7 +49,10 @@ static unsigned char *read_file(const char *path, size_t *size) {
 
 static void assert_render_contains(const char *blocks, const char *needle) {
   assert_non_null(blocks);
-  assert_non_null(strstr(blocks, needle));
+  if (!strstr(blocks, needle)) {
+    fprintf(stderr, "missing render token [%s] in:\n%s\n", needle, blocks);
+    fail_msg("missing render token [%s]", needle);
+  }
 }
 
 static void assert_capn_text_equals(capn_text text, const char *expected) {
