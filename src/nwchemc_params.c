@@ -470,7 +470,7 @@ static int render_dft_stanza(NWChemDftStanza_ptr ptr, char *dst,
       case NWChemDftGridSpec_Quality_xfine:
         q = " xfine";
         break;
-      case NWChemDftGridSpec_Quality_huge:
+      case NWChemDftGridSpec_Quality_hugeGrid:
         q = " huge";
         break;
       default:
