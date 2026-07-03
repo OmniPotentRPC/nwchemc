@@ -1030,6 +1030,220 @@ static int render_dimqm_stanza(NWChemDimQmStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+/* metadynamics rides inside the nwpw block; CV grammar follows
+ * nwpwlib/MetaDynamics/metadynamics_input.F (bare indices for
+ * bond/angle/dihedral, index groups for coord_number). */
+static int render_metadynamics_stanza(NWChemMetadynamicsStanza_ptr ptr,
+                                      char *dst, size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemMetadynamicsStanza meta;
+  char block[4096];
+  block[0] = '\0';
+  read_NWChemMetadynamicsStanza(&meta, ptr);
+  int has_directives = directives_have_keywords(meta.directives);
+  if (has_directives < 0)
+    return -1;
+  int ncvs = struct_list_len(&meta.cvs.p);
+  if (ncvs < 0)
+    return -1;
+  int has_body = ncvs > 0 || meta.tempered || meta.boundary > 0.0 ||
+                 meta.potentialFilename.len > 0 || meta.printShift > 0 ||
+                 has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "nwpw\n  metadynamics\n") != 0)
+    return -1;
+  for (int i = 0; i < ncvs; ++i) {
+    struct NWChemMetadynamicsCv cv;
+    get_NWChemMetadynamicsCv(&cv, meta.cvs, i);
+    capn_list32 cv_atoms = cv.atoms;
+    capn_resolve(&cv_atoms.p);
+    int natoms = list32_len(cv_atoms);
+    if (natoms < 0)
+      return -1;
+    if (cv.kind == NWChemMetadynamicsCv_Kind_coordNumber) {
+      if (append_format(block, sizeof(block), "    coord_number") != 0)
+        return -1;
+      capn_list32 idx1 = cv.index1;
+      capn_resolve(&idx1.p);
+      int n1 = list32_len(idx1);
+      if (n1 < 0)
+        return -1;
+      if (n1 > 0) {
+        if (append_format(block, sizeof(block), " index1") != 0)
+          return -1;
+        for (int j = 0; j < n1; ++j)
+          if (append_format(block, sizeof(block), " %d",
+                            (int)capn_get32(idx1, j)) != 0)
+            return -1;
+      }
+      capn_list32 idx2 = cv.index2;
+      capn_resolve(&idx2.p);
+      int n2 = list32_len(idx2);
+      if (n2 < 0)
+        return -1;
+      if (n2 > 0) {
+        if (append_format(block, sizeof(block), " index2") != 0)
+          return -1;
+        for (int j = 0; j < n2; ++j)
+          if (append_format(block, sizeof(block), " %d",
+                            (int)capn_get32(idx2, j)) != 0)
+            return -1;
+      }
+      if (cv.n > 0.0 &&
+          append_format(block, sizeof(block), " n %g", cv.n) != 0)
+        return -1;
+      if (cv.m > 0.0 &&
+          append_format(block, sizeof(block), " m %g", cv.m) != 0)
+        return -1;
+      if (cv.r0 > 0.0 &&
+          append_format(block, sizeof(block), " r0 %g", cv.r0) != 0)
+        return -1;
+    } else {
+      const char *kind =
+          cv.kind == NWChemMetadynamicsCv_Kind_angle
+              ? "angle"
+              : cv.kind == NWChemMetadynamicsCv_Kind_dihedral ? "dihedral"
+                                                              : "bond";
+      if (append_format(block, sizeof(block), "    %s", kind) != 0)
+        return -1;
+      for (int j = 0; j < natoms; ++j)
+        if (append_format(block, sizeof(block), " %d",
+                          (int)capn_get32(cv_atoms, j)) != 0)
+          return -1;
+    }
+    if (cv.weight > 0.0 &&
+        append_format(block, sizeof(block), " w %g", cv.weight) != 0)
+      return -1;
+    if (cv.sigma > 0.0 &&
+        append_format(block, sizeof(block), " sigma %g", cv.sigma) != 0)
+      return -1;
+    if ((cv.rangeLow != 0.0 || cv.rangeHigh != 0.0) &&
+        append_format(block, sizeof(block), " range %g %g", cv.rangeLow,
+                      cv.rangeHigh) != 0)
+      return -1;
+    if (cv.nrange > 0 &&
+        append_format(block, sizeof(block), " nrange %d", cv.nrange) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (meta.tempered &&
+      append_format(block, sizeof(block), "    tempered\n") != 0)
+    return -1;
+  if (meta.boundary > 0.0 &&
+      append_format(block, sizeof(block), "    boundary %g\n",
+                    meta.boundary) != 0)
+    return -1;
+  if (meta.potentialFilename.len > 0) {
+    if (append_format(block, sizeof(block), "    potential_filename ") != 0 ||
+        append_text(block, sizeof(block), meta.potentialFilename) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (meta.printShift > 0 &&
+      append_format(block, sizeof(block), "    print_shift %d\n",
+                    meta.printShift) != 0)
+    return -1;
+  if (render_directives(meta.directives, block, sizeof(block), "    ") != 0 ||
+      append_format(block, sizeof(block), "  end\nend") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+/* cell_optimize rides inside the nwpw block (cell_optimize_input.F). */
+static int render_cell_optimize_stanza(NWChemCellOptimizeStanza_ptr ptr,
+                                       char *dst, size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemCellOptimizeStanza cell;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemCellOptimizeStanza(&cell, ptr);
+  int has_directives = directives_have_keywords(cell.directives);
+  if (has_directives < 0)
+    return -1;
+  int nlat = pointer_list_len(&cell.optimizeLattice);
+  int nvec = pointer_list_len(&cell.optimizeLatticeVectors);
+  capn_list64 tols = cell.latticeTolerances;
+  capn_resolve(&tols.p);
+  int ntols = list64_len(tols);
+  if (nlat < 0 || nvec < 0 || ntols < 0)
+    return -1;
+  int has_body = cell.cellName.len > 0 ||
+                 cell.strategy !=
+                     NWChemCellOptimizeStanza_Strategy_unspecified ||
+                 nlat > 0 || nvec > 0 || ntols > 0 || cell.cycles > 0 ||
+                 has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "nwpw\n  cell_optimize\n") != 0)
+    return -1;
+  if (cell.cellName.len > 0) {
+    if (append_format(block, sizeof(block), "    cell_name ") != 0 ||
+        append_text(block, sizeof(block), cell.cellName) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (cell.strategy != NWChemCellOptimizeStanza_Strategy_unspecified) {
+    const char *strategy =
+        cell.strategy == NWChemCellOptimizeStanza_Strategy_lattice
+            ? "lattice"
+            : cell.strategy ==
+                      NWChemCellOptimizeStanza_Strategy_latticeVectors
+                  ? "lattice_vectors"
+                  : "all";
+    if (append_format(block, sizeof(block), "    optimize %s\n", strategy) !=
+        0)
+      return -1;
+  }
+  if (nlat > 0) {
+    if (append_format(block, sizeof(block), "    optimize_lattice") != 0)
+      return -1;
+    for (int i = 0; i < nlat; ++i) {
+      capn_text token = capn_get_text(cell.optimizeLattice, i, empty_text);
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), token) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (nvec > 0) {
+    if (append_format(block, sizeof(block), "    optimize_lattice_vectors") !=
+        0)
+      return -1;
+    for (int i = 0; i < nvec; ++i) {
+      capn_text token =
+          capn_get_text(cell.optimizeLatticeVectors, i, empty_text);
+      if (append_format(block, sizeof(block), " ") != 0 ||
+          append_text(block, sizeof(block), token) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (ntols > 0) {
+    if (append_format(block, sizeof(block), "    lattice_tolerances") != 0)
+      return -1;
+    for (int i = 0; i < ntols; ++i)
+      if (append_format(block, sizeof(block), " %g",
+                        capn_to_f64(capn_get64(tols, i))) != 0)
+        return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (cell.cycles > 0 &&
+      append_format(block, sizeof(block), "    cycles %d\n", cell.cycles) !=
+          0)
+    return -1;
+  if (render_directives(cell.directives, block, sizeof(block), "    ") != 0 ||
+      append_format(block, sizeof(block), "  end\nend") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 /* v1.3.0 parity stanzas: text renders; embed promotion tracks the parity epic. */
 static int render_relativistic_stanza(NWChemRelativisticStanza_ptr ptr,
                                       char *dst, size_t dst_size) {
@@ -4825,6 +5039,15 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_dimQm:
       if (render_dimqm_stanza(stanza.dimQm, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_metadynamics:
+      if (render_metadynamics_stanza(stanza.metadynamics, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_cellOptimize:
+      if (render_cell_optimize_stanza(stanza.cellOptimize, dst, dst_size) !=
+          0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

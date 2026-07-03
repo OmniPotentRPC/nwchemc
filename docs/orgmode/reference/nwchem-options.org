@@ -801,8 +801,17 @@ closure kind, vdw combination rule and parameter file; ~rism:*~ keys from
 discrete interaction model (~stanza.dimQm~: frequency-dependent response,
 algorithm, induced-dipole tolerance, finite efield vector, localfield,
 noresp, none/exp/erf screening with factor, noseed, debug,
-printatomicdipoles; ~dimqm:*~ keys from ~dimqm_input.F~). Renderer and
-embed promotion for these stanzas track the parity epic.
+printatomicdipoles; ~dimqm:*~ keys from ~dimqm_input.F~). Batch 8 covers the nwpw-nested
+blocks: metadynamics (~stanza.metadynamics~: typed collective variables
+for bond/angle/dihedral with bare atom indices and coord_number with
+index groups plus n/m/r0 switching, per-CV hill height w, width sigma,
+range and nrange grids, tempered, boundary, potential_filename,
+print_shift; grammar from ~metadynamics_input.F~) and cell optimization
+(~stanza.cellOptimize~: cell_name, all/lattice/lattice_vectors strategy,
+optimize_lattice and optimize_lattice_vectors token subsets,
+lattice_tolerances, cycles; ~cell_optimize:*~ keys from
+~cell_optimize_input.F~); both render nested inside "nwpw ... end".
+Renderer and embed promotion for these stanzas track the parity epic.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a

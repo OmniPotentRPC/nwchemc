@@ -690,6 +690,20 @@ static void test_render_parity_batch_stanzas(void **state) {
   assert_render_contains(blocks, "localfield");
   assert_render_contains(blocks, "screen erf 1.5");
   assert_render_contains(blocks, "printatomicdipoles");
+  assert_render_contains(blocks, "metadynamics\n");
+  assert_render_contains(blocks,
+                         "bond 1 2 w 0.0001 sigma 0.15 range 1 4 nrange 601");
+  assert_render_contains(blocks,
+                         "coord_number index1 1 index2 3 4 5 n 6 m 12 r0 2.5");
+  assert_render_contains(blocks, "tempered");
+  assert_render_contains(blocks, "print_shift 25");
+  assert_render_contains(blocks, "cell_optimize\n");
+  assert_render_contains(blocks, "cell_name unit_cell");
+  assert_render_contains(blocks, "optimize lattice");
+  assert_render_contains(blocks, "optimize_lattice lat_a lat_c");
+  assert_render_contains(blocks,
+                         "lattice_tolerances 0.001 0.001 0.001 0.001 0.001 0.001");
+  assert_render_contains(blocks, "cycles 20");
   assert_render_contains(blocks, "bq units angstroms");
   assert_render_contains(blocks, "force");
   assert_render_contains(blocks, "0 0 5 -1");

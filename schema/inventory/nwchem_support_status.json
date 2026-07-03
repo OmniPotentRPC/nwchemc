@@ -15,15 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 1032,
+  "row_count": 1061,
   "counts_by_tier": {
-    "text": 490,
-    "tested": 526,
+    "text": 517,
+    "tested": 528,
     "embed": 7,
     "schema": 9
   },
-  "done_count": 533,
-  "not_done_count": 499,
+  "done_count": 535,
+  "not_done_count": 526,
   "features": [
     {
       "feature_id": "module.custom",
@@ -1021,6 +1021,22 @@
       "feature_id": "stanza.dimQm",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.dimQm",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.metadynamics",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.metadynamics",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "stanza.cellOptimize",
+      "class": "stanza",
+      "schema_path": "NWChemInputStanza.cellOptimize",
       "support_tier": "tested",
       "embed_applicable": true,
       "done": true
@@ -5842,6 +5858,22 @@
       "done": false
     },
     {
+      "feature_id": "field.NWChemInputStanza.metadynamics",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.metadynamics",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemInputStanza.cellOptimize",
+      "class": "schema_field",
+      "schema_path": "NWChemInputStanza.cellOptimize",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
       "feature_id": "field.NWChemParams.basis",
       "class": "schema_field",
       "schema_path": "NWChemParams.basis",
@@ -6597,6 +6629,206 @@
       "feature_id": "field.NWChemNebStanza.directives",
       "class": "schema_field",
       "schema_path": "NWChemNebStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.kind",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.kind",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.atoms",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.atoms",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.index1",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.index1",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.index2",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.index2",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.weight",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.weight",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.sigma",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.sigma",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.rangeLow",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.rangeLow",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.rangeHigh",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.rangeHigh",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.nrange",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.nrange",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.n",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.n",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.m",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.m",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsCv.r0",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsCv.r0",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsStanza.cvs",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsStanza.cvs",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsStanza.tempered",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsStanza.tempered",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsStanza.boundary",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsStanza.boundary",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsStanza.potentialFilename",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsStanza.potentialFilename",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsStanza.printShift",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsStanza.printShift",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemMetadynamicsStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemMetadynamicsStanza.directives",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemCellOptimizeStanza.cellName",
+      "class": "schema_field",
+      "schema_path": "NWChemCellOptimizeStanza.cellName",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemCellOptimizeStanza.strategy",
+      "class": "schema_field",
+      "schema_path": "NWChemCellOptimizeStanza.strategy",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemCellOptimizeStanza.optimizeLattice",
+      "class": "schema_field",
+      "schema_path": "NWChemCellOptimizeStanza.optimizeLattice",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemCellOptimizeStanza.optimizeLatticeVectors",
+      "class": "schema_field",
+      "schema_path": "NWChemCellOptimizeStanza.optimizeLatticeVectors",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemCellOptimizeStanza.latticeTolerances",
+      "class": "schema_field",
+      "schema_path": "NWChemCellOptimizeStanza.latticeTolerances",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemCellOptimizeStanza.cycles",
+      "class": "schema_field",
+      "schema_path": "NWChemCellOptimizeStanza.cycles",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.NWChemCellOptimizeStanza.directives",
+      "class": "schema_field",
+      "schema_path": "NWChemCellOptimizeStanza.directives",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false
