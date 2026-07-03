@@ -194,6 +194,8 @@ static int g_atexit_registered = 0;
 struct NWChemCSession {
   unsigned char *params_bytes;
   size_t params_size;
+  unsigned char *common_bytes;
+  size_t common_size;
   struct capn arena;
   NWChemParams_ptr params_root;
   int has_params;
@@ -5364,6 +5366,14 @@ NWChemCResult nwchemc_frequencies_from_config(
   return r;
 }
 
+static void session_clear_common(NWChemCSession *session) {
+  if (!session)
+    return;
+  free(session->common_bytes);
+  session->common_bytes = NULL;
+  session->common_size = 0;
+}
+
 static void session_clear_params(NWChemCSession *session) {
   if (!session)
     return;
@@ -5451,6 +5461,174 @@ static int session_check_topology(NWChemCSession *session, size_t n_atoms,
   return 0;
 }
 
+#define NWCHEMC_HARTREE_EV 27.211386245988
+
+/* Map CommonMethodSpec.xcFunctionals (libxc names or composites) to NWChem
+ * dft xc tokens. Entries are matched against the sorted '+'-joined uppercase
+ * functional list. */
+static const struct {
+  const char *key;
+  const char *tokens;
+} k_common_xc_map[] = {
+    {"PBE", "xpbe96 cpbe96"},
+    {"GGA_C_PBE+GGA_X_PBE", "xpbe96 cpbe96"},
+    {"PBE0", "pbe0"},
+    {"HYB_GGA_XC_PBEH", "pbe0"},
+    {"B3LYP", "b3lyp"},
+    {"HYB_GGA_XC_B3LYP", "b3lyp"},
+    {"BLYP", "becke88 lyp"},
+    {"GGA_C_LYP+GGA_X_B88", "becke88 lyp"},
+    {"LDA", "slater vwn_5"},
+    {"LDA_C_VWN+LDA_X", "slater vwn_5"},
+    {"SCAN", "scan"},
+    {"MGGA_C_SCAN+MGGA_X_SCAN", "scan"},
+};
+
+static int common_xc_tokens(capn_ptr list, char *out, size_t out_size) {
+  int n = capn_len(list);
+  if (n <= 0 || n > 4)
+    return -1;
+  char names[4][64];
+  for (int i = 0; i < n; ++i) {
+    capn_text entry = capn_get_text(list, i, capn_val0);
+    if (!entry.str || entry.len <= 0 || (size_t)entry.len >= sizeof(names[0]))
+      return -1;
+    for (int j = 0; j < entry.len; ++j) {
+      char ch = entry.str[j];
+      names[i][j] = (char)((ch >= 'a' && ch <= 'z') ? ch - ('a' - 'A') : ch);
+    }
+    names[i][entry.len] = '\0';
+  }
+  for (int i = 0; i < n; ++i) {
+    for (int j = i + 1; j < n; ++j) {
+      if (strcmp(names[i], names[j]) > 0) {
+        char tmp[64];
+        memcpy(tmp, names[i], sizeof(tmp));
+        memcpy(names[i], names[j], sizeof(names[j]));
+        memcpy(names[j], tmp, sizeof(tmp));
+      }
+    }
+  }
+  char key[280] = "";
+  size_t used = 0;
+  for (int i = 0; i < n; ++i) {
+    int wrote = snprintf(key + used, sizeof(key) - used, "%s%s",
+                         i > 0 ? "+" : "", names[i]);
+    if (wrote < 0 || (size_t)wrote >= sizeof(key) - used)
+      return -1;
+    used += (size_t)wrote;
+  }
+  for (size_t i = 0; i < sizeof(k_common_xc_map) / sizeof(k_common_xc_map[0]);
+       ++i) {
+    if (strcmp(k_common_xc_map[i].key, key) == 0) {
+      snprintf(out, out_size, "%s", k_common_xc_map[i].tokens);
+      return 0;
+    }
+  }
+  return -1;
+}
+
+/* Lower the normalized CommonMethodSpec overlay into the embed BEFORE the
+ * native arm applies; the native arm re-sets anything it specifies, so
+ * native settings win. Fields without an NWChem lowering are rejected
+ * loudly rather than dropped. */
+static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
+  if (common_root.p.type != CAPN_STRUCT)
+    return 0;
+  struct CommonMethodSpec c;
+  memset(&c, 0, sizeof(c));
+  read_CommonMethodSpec(&c, common_root);
+
+  if (capn_len(c.kMesh) > 0) {
+    nwchemc_store_error("common overlay: kMesh has no NWChem lowering yet");
+    return -1;
+  }
+  if (c.planewaveCutoffEv > 0.0) {
+    nwchemc_store_error(
+        "common overlay: planewaveCutoffEv has no NWChem lowering yet");
+    return -1;
+  }
+  if (c.vanDerWaalsMethod.len > 0) {
+    nwchemc_store_error(
+        "common overlay: vanDerWaalsMethod has no NWChem lowering yet");
+    return -1;
+  }
+  if (c.relativityMethod.len > 0) {
+    nwchemc_store_error(
+        "common overlay: relativityMethod has no NWChem lowering yet");
+    return -1;
+  }
+  if (c.smearing.kind != CommonMethodSpec_Smearing_Kind_none &&
+      c.smearing.kind != CommonMethodSpec_Smearing_Kind_fermi) {
+    nwchemc_store_error(
+        "common overlay: only fermi smearing has an NWChem lowering");
+    return -1;
+  }
+
+  char xc[128] = "";
+  int have_xc = 0;
+  if (capn_len(c.xcFunctionals) > 0) {
+    if (common_xc_tokens(c.xcFunctionals.p, xc, sizeof(xc)) != 0) {
+      nwchemc_store_error(
+          "common overlay: unmapped xcFunctionals for NWChem");
+      return -1;
+    }
+    have_xc = 1;
+  }
+
+  int have_state = have_xc || c.basisSet.len > 0 || c.charge != 0 ||
+                   c.spinMultiplicity > 0;
+  if (have_state) {
+    const char *basis = c.basisSet.len > 0 ? c.basisSet.str : "sto-3g";
+    int basis_len = c.basisSet.len > 0 ? c.basisSet.len : 6;
+    const char *theory = have_xc ? "dft" : "scf";
+    int charge = c.charge;
+    int mult = c.spinMultiplicity > 0 ? c.spinMultiplicity : 1;
+    if (nwchemc_embed_set_config(basis, basis_len, theory,
+                                 (int)strlen(theory), "", 0, &charge, &mult,
+                                 "", 0) != 0) {
+      nwchemc_store_error("common overlay: applying base config failed");
+      return -1;
+    }
+  }
+
+  int smear_on = c.smearing.kind == CommonMethodSpec_Smearing_Kind_fermi;
+  if (have_xc || smear_on) {
+    double sigma_ha = c.smearing.widthEv / NWCHEMC_HARTREE_EV;
+    if (nwchemc_embed_set_dft_direct(xc, (int)strlen(xc), 0, smear_on,
+                                     smear_on ? sigma_ha : 0.0, 0) != 0) {
+      nwchemc_store_error("common overlay: applying dft settings failed");
+      return -1;
+    }
+  }
+
+  if (c.scfMaxIterations > 0 || c.scfEnergyToleranceEv > 0.0) {
+    double thresh_ha = c.scfEnergyToleranceEv / NWCHEMC_HARTREE_EV;
+    if (nwchemc_embed_set_scf_direct(1, c.scfMaxIterations,
+                                     c.scfEnergyToleranceEv > 0.0 ? thresh_ha
+                                                                  : 0.0,
+                                     0.0) != 0) {
+      nwchemc_store_error("common overlay: applying scf settings failed");
+      return -1;
+    }
+  }
+  return 0;
+}
+
+static int apply_common_bytes_to_embed(const unsigned char *bytes,
+                                       size_t size) {
+  if (!bytes || size == 0)
+    return 0;
+  struct capn arena;
+  if (capn_init_mem(&arena, (const uint8_t *)bytes, size, 0) != 0)
+    return -1;
+  CommonMethodSpec_ptr common;
+  common.p = capn_getp(capn_root(&arena), 0, 1);
+  int rc = apply_common_to_embed(common);
+  capn_free(&arena);
+  return rc;
+}
+
 static int apply_root_to_embed(NWChemParams_ptr params_root) {
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
@@ -5495,11 +5673,14 @@ static int potential_config_nwchem_root(const void *config_capnp,
                                         size_t config_capnp_size_bytes,
                                         struct capn *arena,
                                         NWChemParams_ptr *params_root,
-                                        int *is_none) {
+                                        int *is_none,
+                                        CommonMethodSpec_ptr *common_root) {
   if (!arena || !params_root || !is_none)
     return -1;
   memset(params_root, 0, sizeof(*params_root));
   *is_none = 0;
+  if (common_root)
+    memset(common_root, 0, sizeof(*common_root));
 
   PotentialConfig_ptr config_root;
   if (potential_config_root(config_capnp, config_capnp_size_bytes, arena,
@@ -5509,6 +5690,10 @@ static int potential_config_nwchem_root(const void *config_capnp,
   struct PotentialConfig config;
   memset(&config, 0, sizeof(config));
   read_PotentialConfig(&config, config_root);
+  if (common_root) {
+    *common_root = config.common;
+    capn_resolve(&common_root->p);
+  }
   if (config.which == PotentialConfig_none) {
     *is_none = 1;
     return 0;
@@ -5526,14 +5711,13 @@ static int potential_config_nwchem_root(const void *config_capnp,
   return 0;
 }
 
-static int write_nwchem_params_root_flat(NWChemParams_ptr params_root,
-                                         unsigned char **params_capnp,
-                                         size_t *params_capnp_size_bytes) {
-  if (params_root.p.type == CAPN_NULL || !params_capnp ||
-      !params_capnp_size_bytes)
+static int write_ptr_root_flat(capn_ptr struct_ptr,
+                               unsigned char **out_capnp,
+                               size_t *out_capnp_size_bytes) {
+  if (struct_ptr.type == CAPN_NULL || !out_capnp || !out_capnp_size_bytes)
     return -1;
-  *params_capnp = NULL;
-  *params_capnp_size_bytes = 0;
+  *out_capnp = NULL;
+  *out_capnp_size_bytes = 0;
 
   struct capn arena;
   capn_init_malloc(&arena);
@@ -5542,7 +5726,7 @@ static int write_nwchem_params_root_flat(NWChemParams_ptr params_root,
     capn_free(&arena);
     return -1;
   }
-  if (capn_setp(root, 0, params_root.p) != 0) {
+  if (capn_setp(root, 0, struct_ptr) != 0) {
     capn_free(&arena);
     return -1;
   }
@@ -5573,9 +5757,16 @@ static int write_nwchem_params_root_flat(NWChemParams_ptr params_root,
     free(buffer);
     return -1;
   }
-  *params_capnp = buffer;
-  *params_capnp_size_bytes = (size_t)written;
+  *out_capnp = buffer;
+  *out_capnp_size_bytes = (size_t)written;
   return 0;
+}
+
+static int write_nwchem_params_root_flat(NWChemParams_ptr params_root,
+                                         unsigned char **params_capnp,
+                                         size_t *params_capnp_size_bytes) {
+  return write_ptr_root_flat(params_root.p, params_capnp,
+                             params_capnp_size_bytes);
 }
 
 int nwchemc_configure(const void *config_capnp,
@@ -5583,10 +5774,16 @@ int nwchemc_configure(const void *config_capnp,
   nwchemc_store_error("");
   struct capn arena;
   NWChemParams_ptr params_root;
+  CommonMethodSpec_ptr common_root;
   int is_none = 0;
   if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
-                                   &arena, &params_root, &is_none) != 0) {
+                                   &arena, &params_root, &is_none,
+                                   &common_root) != 0) {
     nwchemc_store_error("PotentialConfig parse failed");
+    return -1;
+  }
+  if (apply_common_to_embed(common_root) != 0) {
+    nwchemc_params_release(&arena);
     return -1;
   }
   if (is_none) {
@@ -5613,6 +5810,11 @@ static int session_install_params(NWChemCSession *session,
     return -1;
   memcpy(copy, params_capnp, params_capnp_size_bytes);
 
+  if (apply_common_bytes_to_embed(session->common_bytes,
+                                  session->common_size) != 0) {
+    free(copy);
+    return -1;
+  }
   if (apply_message_to_embed(copy, params_capnp_size_bytes) != 0) {
     free(copy);
     return -1;
@@ -5643,6 +5845,13 @@ static int session_apply_config(NWChemCSession *session) {
     return -1;
   if (session->configured && g_active_session == session)
     return 0;
+  if (apply_common_bytes_to_embed(session->common_bytes,
+                                  session->common_size) != 0) {
+    session->configured = 0;
+    if (g_active_session == session)
+      g_active_session = NULL;
+    return -1;
+  }
   if (apply_root_to_embed(session->params_root) != 0) {
     session->configured = 0;
     if (g_active_session == session)
@@ -5714,11 +5923,21 @@ nwchemc_session_create_from_config(const void *config_capnp,
                                    size_t config_capnp_size_bytes) {
   struct capn arena;
   NWChemParams_ptr params_root;
+  CommonMethodSpec_ptr common_root;
   int is_none = 0;
   if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
-                                   &arena, &params_root, &is_none) != 0)
+                                   &arena, &params_root, &is_none,
+                                   &common_root) != 0)
     return NULL;
   if (is_none) {
+    nwchemc_params_release(&arena);
+    return NULL;
+  }
+
+  unsigned char *common_bytes = NULL;
+  size_t common_size = 0;
+  if (common_root.p.type == CAPN_STRUCT &&
+      write_ptr_root_flat(common_root.p, &common_bytes, &common_size) != 0) {
     nwchemc_params_release(&arena);
     return NULL;
   }
@@ -5727,6 +5946,7 @@ nwchemc_session_create_from_config(const void *config_capnp,
   size_t params_size = 0;
   if (write_nwchem_params_root_flat(params_root, &params_bytes,
                                     &params_size) != 0) {
+    free(common_bytes);
     nwchemc_params_release(&arena);
     return NULL;
   }
@@ -5735,11 +5955,15 @@ nwchemc_session_create_from_config(const void *config_capnp,
   NWChemCSession *session =
       (NWChemCSession *)calloc(1, sizeof(NWChemCSession));
   if (!session) {
+    free(common_bytes);
     free(params_bytes);
     return NULL;
   }
+  session->common_bytes = common_bytes;
+  session->common_size = common_size;
   if (session_install_params(session, params_bytes, params_size) != 0) {
     free(params_bytes);
+    session_clear_common(session);
     free(session);
     return NULL;
   }
@@ -5783,25 +6007,45 @@ int nwchemc_session_configure(NWChemCSession *session,
 
   struct capn arena;
   NWChemParams_ptr params_root;
+  CommonMethodSpec_ptr common_root;
   int is_none = 0;
   if (potential_config_nwchem_root(config_capnp, config_capnp_size_bytes,
-                                   &arena, &params_root, &is_none) != 0) {
+                                   &arena, &params_root, &is_none,
+                                   &common_root) != 0) {
     nwchemc_store_error("PotentialConfig parse failed");
     return -1;
   }
+
+  unsigned char *common_bytes = NULL;
+  size_t common_size = 0;
+  if (common_root.p.type == CAPN_STRUCT &&
+      write_ptr_root_flat(common_root.p, &common_bytes, &common_size) != 0) {
+    nwchemc_params_release(&arena);
+    nwchemc_store_error("common overlay serialization failed");
+    return -1;
+  }
+
   if (is_none) {
     nwchemc_params_release(&arena);
-    return 0;
+    session_clear_common(session);
+    session->common_bytes = common_bytes;
+    session->common_size = common_size;
+    int rc = apply_common_bytes_to_embed(common_bytes, common_size);
+    return rc;
   }
 
   unsigned char *params_bytes = NULL;
   size_t params_size = 0;
   if (write_nwchem_params_root_flat(params_root, &params_bytes,
                                     &params_size) != 0) {
+    free(common_bytes);
     nwchemc_params_release(&arena);
     return -1;
   }
   nwchemc_params_release(&arena);
+  session_clear_common(session);
+  session->common_bytes = common_bytes;
+  session->common_size = common_size;
   int rc = session_install_params(session, params_bytes, params_size);
   free(params_bytes);
   return rc;
@@ -5821,6 +6065,7 @@ void nwchemc_session_destroy(NWChemCSession *session) {
   if (g_active_session == session)
     g_active_session = NULL;
   session_clear_params(session);
+  session_clear_common(session);
   session_clear_step_scratch(session);
   session_clear_topology(session);
   free(session);

@@ -3,6 +3,7 @@
 
 #include <cmocka.h>
 #include <errno.h>
+#include <math.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -48,6 +49,8 @@ static const char *g_force_step_changed_species_path = NULL;
 static const char *g_force_step_state_path = NULL;
 static const char *g_tce_methods_path = NULL;
 static const char *g_ccsd_energy_path = NULL;
+static const char *g_common_overlay_path = NULL;
+static const char *g_common_reject_path = NULL;
 
 static char g_basis[64];
 static char g_theory[64];
@@ -2935,6 +2938,39 @@ static void test_embed_promotes_typed_scf_semidirect_int2e(void **state) {
   assert_null(strstr(g_input_blocks, "filesize 200"));
 
   free(buffer);
+}
+
+static void test_common_overlay_lowers_before_native(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t config_size = 0;
+  unsigned char *config = read_file(g_common_overlay_path, &config_size);
+  assert_non_null(config);
+
+  assert_int_equal(nwchemc_configure(config, config_size), 0);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_string_equal(g_basis, "6-31g");
+  assert_string_equal(g_theory, "dft");
+  assert_string_equal(g_dft_xc, "xpbe96 cpbe96");
+  assert_int_equal(g_dft_smearing_enabled, 1);
+  assert_true(fabs(g_dft_smear_sigma_hartree - 0.01) < 1e-9);
+  assert_int_equal(g_scf_has_options, 1);
+  assert_int_equal(g_scf_maxiter, 42);
+  assert_true(fabs(g_scf_thresh - 1.0e-5) < 1e-12);
+  free(config);
+}
+
+static void test_common_overlay_rejects_unlowered_fields(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t config_size = 0;
+  unsigned char *config = read_file(g_common_reject_path, &config_size);
+  assert_non_null(config);
+
+  assert_int_not_equal(nwchemc_configure(config, config_size), 0);
+  assert_non_null(strstr(nwchemc_last_error(), "vanDerWaalsMethod"));
+  assert_int_equal(g_set_config_calls, 0);
+  free(config);
 }
 
 static void test_configure_accepts_potential_config_nwchem(void **state) {
@@ -7158,77 +7194,60 @@ static void test_embed_promotes_theory_ccsd_energy_controls(void **state) {
 }
 
 
+static const char *fixture_path(const char *dir, const char *name) {
+  size_t need = strlen(dir) + 1 + strlen(name) + 1;
+  char *path = (char *)malloc(need);
+  if (!path)
+    return NULL;
+  snprintf(path, need, "%s/%s", dir, name);
+  return path;
+}
+
 int main(int argc, char **argv) {
-  if (argc != 39) {
-    fprintf(stderr,
-            "usage: %s PARAMS_BIN CONFIG_OPTIONS_BIN PSPSPIN_PARAMS_BIN "
-            "PSPSPIN_MANY_PARAMS_BIN NWPW_SPIN_MODE_PARAMS_BIN "
-            "NWPW_ALLOW_TRANSLATION_PARAMS_BIN NWPW_CUTOFF_ALIAS_PARAMS_BIN "
-            "NWPW_MC_STEPS_PARAMS_BIN NWPW_BO_STEPS_DEFAULT_PARAMS_BIN "
-            "NWPW_BO_TIME_STEP_DEFAULT_PARAMS_BIN "
-            "NWPW_BO_FAKE_MASS_DEFAULT_PARAMS_BIN "
-            "NWPW_SCALING_DEFAULT_PARAMS_BIN "
-            "NWPW_NP_DIMENSIONS_DEFAULT_PARAMS_BIN "
-            "NWPW_TOLERANCES_DEFAULT_PARAMS_BIN "
-            "NWPW_MC_STEPS_DEFAULT_PARAMS_BIN "
-            "BRILLOUIN_TETRAHEDRON_PARAMS_BIN "
-            "BRILLOUIN_DOS_GRID_PARAMS_BIN NWPW_ET_PARAMS_BIN "
-            "NWPW_TEMPERATURE_PARAMS_BIN NWPW_DOS_DEFAULT_PARAMS_BIN "
-            "NWPW_MAPPING_ALIAS_PARAMS_BIN "
-            "NWPW_MAPPING_DEFAULT_PARAMS_BIN "
-            "NWPW_VIRTUAL_ALIAS_PARAMS_BIN "
-            "NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN "
-            "NWPW_FRACTIONAL_ORBITALS_DEFAULT_PARAMS_BIN "
-            "NWPW_SMEAR_ORBITALS_DEFAULT_PARAMS_BIN "
-            "NWPW_VIRTUAL_ORBITALS_DEFAULT_PARAMS_BIN "
-            "FORCE_STEP_A_BIN FORCE_STEP_B_BIN FORCE_STEP_EV_BIN "
-            "FORCE_STEP_CHANGED_SPECIES_BIN "
-            "FORCE_STEP_STATE_BIN TCE_METHODS_BIN COMPACT_CELLS_BIN "
-            "NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN "
-            "BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN "
-            "BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN "
-            "CCSD_ENERGY_PARAMS_BIN\n",
-            argv[0]);
+  if (argc != 2) {
+    fprintf(stderr, "usage: %s FIXTURE_DIR\n", argv[0]);
     return 2;
   }
-  g_params_path = argv[1];
-  g_config_options_path = argv[2];
-  g_pspspin_path = argv[3];
-  g_pspspin_many_path = argv[4];
-  g_nwpw_spin_mode_path = argv[5];
-  g_nwpw_allow_translation_path = argv[6];
-  g_nwpw_cutoff_alias_path = argv[7];
-  g_nwpw_mc_steps_path = argv[8];
-  g_nwpw_bo_steps_default_path = argv[9];
-  g_nwpw_bo_time_step_default_path = argv[10];
-  g_nwpw_bo_fake_mass_default_path = argv[11];
-  g_nwpw_scaling_default_path = argv[12];
-  g_nwpw_np_dimensions_default_path = argv[13];
-  g_nwpw_tolerances_default_path = argv[14];
-  g_nwpw_mc_steps_default_path = argv[15];
-  g_brillouin_tetrahedron_path = argv[16];
-  g_brillouin_dos_grid_path = argv[17];
-  g_nwpw_et_path = argv[18];
-  g_nwpw_temperature_path = argv[19];
-  g_nwpw_dos_default_path = argv[20];
-  g_nwpw_mapping_alias_path = argv[21];
-  g_nwpw_mapping_default_path = argv[22];
-  g_nwpw_virtual_alias_path = argv[23];
-  g_nwpw_one_electron_guess_defaults_path = argv[24];
-  g_nwpw_fractional_orbitals_default_path = argv[25];
-  g_nwpw_smear_orbitals_default_path = argv[26];
-  g_nwpw_virtual_orbitals_default_path = argv[27];
-  g_force_step_a_path = argv[28];
-  g_force_step_b_path = argv[29];
-  g_force_step_ev_path = argv[30];
-  g_force_step_changed_species_path = argv[31];
-  g_force_step_state_path = argv[32];
-  g_tce_methods_path = argv[33];
-  g_compact_cells_path = argv[34];
-  g_nwpw_translate_vector_default_path = argv[35];
-  g_brillouin_monkhorst_default_path = argv[36];
-  g_brillouin_dos_grid_default_path = argv[37];
-  g_ccsd_energy_path = argv[38];
+  g_params_path = fixture_path(argv[1], "nwchem_params_direct_dft.bin");
+  g_config_options_path = fixture_path(argv[1], "nwchem_params_config_options.bin");
+  g_pspspin_path = fixture_path(argv[1], "nwchem_params_pspspin.bin");
+  g_pspspin_many_path = fixture_path(argv[1], "nwchem_params_pspspin_many.bin");
+  g_nwpw_spin_mode_path = fixture_path(argv[1], "nwchem_params_nwpw_spin_mode.bin");
+  g_nwpw_allow_translation_path = fixture_path(argv[1], "nwchem_params_nwpw_allow_translation.bin");
+  g_nwpw_cutoff_alias_path = fixture_path(argv[1], "nwchem_params_nwpw_cutoff_alias.bin");
+  g_nwpw_mc_steps_path = fixture_path(argv[1], "nwchem_params_nwpw_mc_steps.bin");
+  g_nwpw_bo_steps_default_path = fixture_path(argv[1], "nwchem_params_nwpw_bo_steps_default.bin");
+  g_nwpw_bo_time_step_default_path = fixture_path(argv[1], "nwchem_params_nwpw_bo_time_step_default.bin");
+  g_nwpw_bo_fake_mass_default_path = fixture_path(argv[1], "nwchem_params_nwpw_bo_fake_mass_default.bin");
+  g_nwpw_scaling_default_path = fixture_path(argv[1], "nwchem_params_nwpw_scaling_default.bin");
+  g_nwpw_np_dimensions_default_path = fixture_path(argv[1], "nwchem_params_nwpw_np_dimensions_default.bin");
+  g_nwpw_tolerances_default_path = fixture_path(argv[1], "nwchem_params_nwpw_tolerances_default.bin");
+  g_nwpw_mc_steps_default_path = fixture_path(argv[1], "nwchem_params_nwpw_mc_steps_default.bin");
+  g_brillouin_tetrahedron_path = fixture_path(argv[1], "nwchem_params_brillouin_tetrahedron.bin");
+  g_brillouin_dos_grid_path = fixture_path(argv[1], "nwchem_params_brillouin_dos_grid.bin");
+  g_nwpw_et_path = fixture_path(argv[1], "nwchem_params_nwpw_et.bin");
+  g_nwpw_temperature_path = fixture_path(argv[1], "nwchem_params_nwpw_temperature.bin");
+  g_nwpw_dos_default_path = fixture_path(argv[1], "nwchem_params_nwpw_dos_default.bin");
+  g_nwpw_mapping_alias_path = fixture_path(argv[1], "nwchem_params_nwpw_mapping_alias.bin");
+  g_nwpw_mapping_default_path = fixture_path(argv[1], "nwchem_params_nwpw_mapping_default.bin");
+  g_nwpw_virtual_alias_path = fixture_path(argv[1], "nwchem_params_nwpw_virtual_alias.bin");
+  g_nwpw_one_electron_guess_defaults_path = fixture_path(argv[1], "nwchem_params_nwpw_one_electron_guess_defaults.bin");
+  g_nwpw_fractional_orbitals_default_path = fixture_path(argv[1], "nwchem_params_nwpw_fractional_orbitals_default.bin");
+  g_nwpw_smear_orbitals_default_path = fixture_path(argv[1], "nwchem_params_nwpw_smear_orbitals_default.bin");
+  g_nwpw_virtual_orbitals_default_path = fixture_path(argv[1], "nwchem_params_nwpw_virtual_orbitals_default.bin");
+  g_force_step_a_path = fixture_path(argv[1], "force_input_step_a.bin");
+  g_force_step_b_path = fixture_path(argv[1], "force_input_step_b.bin");
+  g_force_step_ev_path = fixture_path(argv[1], "force_input_step_ev.bin");
+  g_force_step_changed_species_path = fixture_path(argv[1], "force_input_step_changed_species.bin");
+  g_force_step_state_path = fixture_path(argv[1], "force_input_step_state.bin");
+  g_tce_methods_path = fixture_path(argv[1], "nwchem_params_tce_methods.bin");
+  g_compact_cells_path = fixture_path(argv[1], "nwchem_params_compact_cells.bin");
+  g_nwpw_translate_vector_default_path = fixture_path(argv[1], "nwchem_params_nwpw_translate_vector_default.bin");
+  g_brillouin_monkhorst_default_path = fixture_path(argv[1], "nwchem_params_brillouin_monkhorst_default.bin");
+  g_brillouin_dos_grid_default_path = fixture_path(argv[1], "nwchem_params_brillouin_dos_grid_default.bin");
+  g_ccsd_energy_path = fixture_path(argv[1], "nwchem_params_ccsd_energy.bin");
+  g_common_overlay_path = fixture_path(argv[1], "potential_config_common_overlay.bin");
+  g_common_reject_path = fixture_path(argv[1], "potential_config_common_reject.bin");
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_embed_promotes_classic_ccsd_controls),
@@ -7240,6 +7259,8 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_promotes_compact_simulation_cells),
       cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
+      cmocka_unit_test(test_common_overlay_lowers_before_native),
+      cmocka_unit_test(test_common_overlay_rejects_unlowered_fields),
       cmocka_unit_test(test_configure_accepts_potential_config_nwchem),
       cmocka_unit_test(test_engine_path_is_rejected_before_embed_config),
       cmocka_unit_test(test_session_create_from_config_applies_nwchem),

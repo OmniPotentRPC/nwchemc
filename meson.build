@@ -366,6 +366,8 @@ if get_option('with_tests')
     ['nwchem_params_h2_tce_mrcc_bin', 'tests/nwchem_params_h2_tce_mrcc.capnp.txt', 'nwchem_params_h2_tce_mrcc.bin', 'NWChemParams'],
     ['nwchem_params_h2_direct_mp2_bin', 'tests/nwchem_params_h2_direct_mp2.capnp.txt', 'nwchem_params_h2_direct_mp2.bin', 'NWChemParams'],
     ['nwchem_params_h2_selci_bin', 'tests/nwchem_params_h2_selci.capnp.txt', 'nwchem_params_h2_selci.bin', 'NWChemParams'],
+    ['potential_config_common_overlay_bin', 'tests/potential_config_common_overlay.capnp.txt', 'potential_config_common_overlay.bin', 'PotentialConfig'],
+    ['potential_config_common_reject_bin', 'tests/potential_config_common_reject.capnp.txt', 'potential_config_common_reject.bin', 'PotentialConfig'],
   ]
   foreach fixture_spec : nwchem_fixture_specs
     set_variable(
@@ -509,7 +511,8 @@ if get_option('with_tests')
       dependencies: nwchemc_params_deps + [cmocka_dep],
       c_args: common_c_args + ['-DNWCHEMC_HAS_NWCHEM=1'],
     ),
-    args: [
+    args: [meson.current_build_dir()],
+    depends: [
       nwchem_direct_dft_params_bin,
       nwchem_config_options_params_bin,
       nwchem_pspspin_params_bin,
@@ -548,6 +551,8 @@ if get_option('with_tests')
       nwchem_brillouin_monkhorst_default_params_bin,
       nwchem_brillouin_dos_grid_default_params_bin,
       nwchem_ccsd_energy_params_bin,
+      potential_config_common_overlay_bin,
+      potential_config_common_reject_bin,
     ],
     suite: ['cmocka', 'parser'],
   )

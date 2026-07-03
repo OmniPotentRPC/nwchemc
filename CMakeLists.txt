@@ -494,6 +494,20 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     nwchem_params_ccsd_energy.bin
   )
   nwchemc_add_encoded_fixture(
+    potential_config_common_overlay_bin
+    NWCHEMC_COMMON_OVERLAY_CONFIG_BIN
+    PotentialConfig
+    potential_config_common_overlay.capnp.txt
+    potential_config_common_overlay.bin
+  )
+  nwchemc_add_encoded_fixture(
+    potential_config_common_reject_bin
+    NWCHEMC_COMMON_REJECT_CONFIG_BIN
+    PotentialConfig
+    potential_config_common_reject.capnp.txt
+    potential_config_common_reject.bin
+  )
+  nwchemc_add_encoded_fixture(
     nwchem_pspspin_many_params_bin
     NWCHEMC_PSPSPIN_MANY_PARAMS_BIN
     NWChemParams
@@ -1019,47 +1033,12 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     nwchem_brillouin_monkhorst_default_params_bin
     nwchem_brillouin_dos_grid_default_params_bin
     nwchem_ccsd_energy_params_bin
+    potential_config_common_overlay_bin
+    potential_config_common_reject_bin
   )
   add_test(NAME embed-config-cmocka
     COMMAND test_embed_config_cmocka
-      "${NWCHEMC_DIRECT_DFT_PARAMS_BIN}"
-      "${NWCHEMC_CONFIG_OPTIONS_PARAMS_BIN}"
-      "${NWCHEMC_PSPSPIN_PARAMS_BIN}"
-      "${NWCHEMC_PSPSPIN_MANY_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_SPIN_MODE_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_ALLOW_TRANSLATION_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_CUTOFF_ALIAS_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_MC_STEPS_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_BO_STEPS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_BO_TIME_STEP_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_BO_FAKE_MASS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_SCALING_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_NP_DIMENSIONS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_TOLERANCES_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_MC_STEPS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_BRILLOUIN_TETRAHEDRON_PARAMS_BIN}"
-      "${NWCHEMC_BRILLOUIN_DOS_GRID_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_ET_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_TEMPERATURE_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_DOS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_MAPPING_ALIAS_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_MAPPING_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_VIRTUAL_ALIAS_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_ONE_ELECTRON_GUESS_DEFAULTS_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_FRACTIONAL_ORBITALS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_SMEAR_ORBITALS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_VIRTUAL_ORBITALS_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_FORCE_INPUT_STEP_A_BIN}"
-      "${NWCHEMC_FORCE_INPUT_STEP_B_BIN}"
-      "${NWCHEMC_FORCE_INPUT_STEP_EV_BIN}"
-      "${NWCHEMC_FORCE_INPUT_STEP_CHANGED_SPECIES_BIN}"
-      "${NWCHEMC_FORCE_INPUT_STEP_STATE_BIN}"
-      "${NWCHEMC_TCE_METHODS_PARAMS_BIN}"
-      "${NWCHEMC_COMPACT_CELLS_PARAMS_BIN}"
-      "${NWCHEMC_NWPW_TRANSLATE_VECTOR_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_BRILLOUIN_MONKHORST_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_BRILLOUIN_DOS_GRID_DEFAULT_PARAMS_BIN}"
-      "${NWCHEMC_CCSD_ENERGY_PARAMS_BIN}"
+      "${CMAKE_CURRENT_BINARY_DIR}"
   )
 
   if(NWCHEMC_WITH_NWCHEM)
