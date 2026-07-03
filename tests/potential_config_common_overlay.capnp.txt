@@ -6,4 +6,5 @@
     scfEnergyToleranceEv = 2.7211386245988e-4,
     scfMaxIterations = 42,
     smearing = (kind = fermi, widthEv = 0.27211386245988),
-    vanDerWaalsMethod = "DFT-D3" ) )
+    vanDerWaalsMethod = "DFT-D3",
+    relativityMethod = "ZORA" ) )

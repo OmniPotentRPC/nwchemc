@@ -1,1 +1,1 @@
-( common = ( relativityMethod = "ZORA" ) )
+( common = ( vanDerWaalsMethod = "MBD" ) )

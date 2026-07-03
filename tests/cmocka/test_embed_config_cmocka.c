@@ -2977,6 +2977,12 @@ static void test_common_overlay_lowers_before_native(void **state) {
   }
   assert_int_equal(found_disp, 1);
   assert_int_equal(found_ivdw, 1);
+  int found_zora = 0;
+  for (int i = 0; i < g_typed_set_count; ++i) {
+    if (strcmp(g_typed_set_keys[i], "zora") == 0)
+      found_zora = 1;
+  }
+  assert_int_equal(found_zora, 1);
   free(config);
 }
 
@@ -2988,7 +2994,7 @@ static void test_common_overlay_rejects_unlowered_fields(void **state) {
   assert_non_null(config);
 
   assert_int_not_equal(nwchemc_configure(config, config_size), 0);
-  assert_non_null(strstr(nwchemc_last_error(), "relativityMethod"));
+  assert_non_null(strstr(nwchemc_last_error(), "vanDerWaalsMethod"));
   assert_int_equal(g_set_config_calls, 0);
   free(config);
 }

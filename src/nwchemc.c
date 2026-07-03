@@ -5631,11 +5631,23 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
         "\"planewave\" (NWPW module) on NWChem");
     return -1;
   }
+  const char *rel_key = NULL;
   if (c.relativityMethod.len > 0) {
-    nwchemc_store_error(
-        "common overlay: relativityMethod lowering is pending; use the "
-        "relativistic stanza on the nwchem arm");
-    return -1;
+    /* Source-verified rel module rtdb logicals: zora, doug_kroll, x2c. */
+    if (text_equals_ci_overlay(c.relativityMethod, "ZORA"))
+      rel_key = "zora";
+    else if (text_equals_ci_overlay(c.relativityMethod, "DKH") ||
+             text_equals_ci_overlay(c.relativityMethod, "DK") ||
+             text_equals_ci_overlay(c.relativityMethod, "DOUGLAS-KROLL"))
+      rel_key = "doug_kroll";
+    else if (text_equals_ci_overlay(c.relativityMethod, "X2C"))
+      rel_key = "x2c";
+    if (!rel_key) {
+      nwchemc_store_error(
+          "common overlay: unmapped relativityMethod (use ZORA, DKH, or "
+          "X2C)");
+      return -1;
+    }
   }
   struct CommonMethodSpec_Smearing smear;
   memset(&smear, 0, sizeof(smear));
@@ -5722,6 +5734,19 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
         overlay_set_rtdb_typed("dft:ivdw", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                                ivdw_text) != 0) {
       nwchemc_store_error("common overlay: applying dispersion failed");
+      return -1;
+    }
+  }
+  if (rel_key) {
+    if (overlay_set_rtdb_typed(rel_key, NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                               "true") != 0) {
+      nwchemc_store_error("common overlay: applying relativity failed");
+      return -1;
+    }
+    if (strcmp(rel_key, "zora") == 0 &&
+        overlay_set_rtdb_typed("zora:calc", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                               "true") != 0) {
+      nwchemc_store_error("common overlay: applying zora failed");
       return -1;
     }
   }
