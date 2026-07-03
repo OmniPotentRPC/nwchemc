@@ -883,6 +883,153 @@ static int render_etrans_stanza(NWChemEtransStanza_ptr ptr, char *dst,
   return append_block(dst, dst_size, block);
 }
 
+/* rism keywords map onto rism:* RTDB keys (rism/rism_input.F). */
+static int render_rism_stanza(NWChemRismStanza_ptr ptr, char *dst,
+                              size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemRismStanza rism;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemRismStanza(&rism, ptr);
+  int has_directives = directives_have_keywords(rism.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = rism.permittivity > 0.0 || rism.tau > 0.0 ||
+                 rism.temp > 0.0 || rism.tol > 0.0 || rism.lambda > 0.0 ||
+                 rism.diis > 0 || rism.ngrid > 0 || rism.closure.len > 0 ||
+                 rism.vdwRule.len > 0 || rism.vdwParameters.len > 0 ||
+                 has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "rism\n") != 0)
+    return -1;
+  if (rism.permittivity > 0.0 &&
+      append_format(block, sizeof(block), "  permittivity %g\n",
+                    rism.permittivity) != 0)
+    return -1;
+  if (rism.tau > 0.0 &&
+      append_format(block, sizeof(block), "  tau %g\n", rism.tau) != 0)
+    return -1;
+  if (rism.temp > 0.0 &&
+      append_format(block, sizeof(block), "  temp %g\n", rism.temp) != 0)
+    return -1;
+  if (rism.tol > 0.0 &&
+      append_format(block, sizeof(block), "  tol %g\n", rism.tol) != 0)
+    return -1;
+  if (rism.lambda > 0.0 &&
+      append_format(block, sizeof(block), "  lambda %g\n", rism.lambda) != 0)
+    return -1;
+  if (rism.diis > 0 &&
+      append_format(block, sizeof(block), "  diis %d\n", rism.diis) != 0)
+    return -1;
+  if (rism.ngrid > 0 &&
+      append_format(block, sizeof(block), "  ngrid %d\n", rism.ngrid) != 0)
+    return -1;
+  if (rism.closure.len > 0) {
+    if (append_format(block, sizeof(block), "  closure ") != 0 ||
+        append_text(block, sizeof(block), rism.closure) != 0 ||
+        append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (rism.vdwRule.len > 0 || rism.vdwParameters.len > 0) {
+    if (append_format(block, sizeof(block), "  vdw") != 0)
+      return -1;
+    if (rism.vdwRule.len > 0) {
+      if (append_format(block, sizeof(block), " rule ") != 0 ||
+          append_text(block, sizeof(block), rism.vdwRule) != 0)
+        return -1;
+    }
+    if (rism.vdwParameters.len > 0) {
+      if (append_format(block, sizeof(block), " parameters ") != 0 ||
+          append_text(block, sizeof(block), rism.vdwParameters) != 0)
+        return -1;
+    }
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (render_directives(rism.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+/* dimqm keywords map onto dimqm:* RTDB keys (dimqm/dimqm_input.F). */
+static int render_dimqm_stanza(NWChemDimQmStanza_ptr ptr, char *dst,
+                               size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemDimQmStanza dim;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemDimQmStanza(&dim, ptr);
+  int has_directives = directives_have_keywords(dim.directives);
+  if (has_directives < 0)
+    return -1;
+  capn_list64 efield = dim.efield;
+  capn_resolve(&efield.p);
+  int n_efield = list64_len(efield);
+  if (n_efield < 0)
+    return -1;
+  int has_body = dim.frequency || dim.algorithm > 0 || dim.tolerance > 0.0 ||
+                 n_efield == 3 || dim.localfield || dim.noresp ||
+                 dim.screen != NWChemDimQmStanza_Screen_unspecified ||
+                 dim.noseed || dim.debug || dim.printAtomicDipoles ||
+                 has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "dimqm\n") != 0)
+    return -1;
+  if (dim.frequency &&
+      append_format(block, sizeof(block), "  frequency\n") != 0)
+    return -1;
+  if (dim.algorithm > 0 &&
+      append_format(block, sizeof(block), "  algorithm %d\n",
+                    dim.algorithm) != 0)
+    return -1;
+  if (dim.tolerance > 0.0 &&
+      append_format(block, sizeof(block), "  tolerance %g\n",
+                    dim.tolerance) != 0)
+    return -1;
+  if (n_efield == 3 &&
+      append_format(block, sizeof(block), "  efield %g %g %g\n",
+                    capn_to_f64(capn_get64(efield, 0)),
+                    capn_to_f64(capn_get64(efield, 1)),
+                    capn_to_f64(capn_get64(efield, 2))) != 0)
+    return -1;
+  if (dim.localfield &&
+      append_format(block, sizeof(block), "  localfield\n") != 0)
+    return -1;
+  if (dim.noresp && append_format(block, sizeof(block), "  noresp\n") != 0)
+    return -1;
+  if (dim.screen != NWChemDimQmStanza_Screen_unspecified) {
+    const char *kind = dim.screen == NWChemDimQmStanza_Screen_exp
+                           ? "exp"
+                           : dim.screen == NWChemDimQmStanza_Screen_erf
+                                 ? "erf"
+                                 : "none";
+    if (append_format(block, sizeof(block), "  screen %s", kind) != 0)
+      return -1;
+    if (dim.screen != NWChemDimQmStanza_Screen_none &&
+        dim.screenFactor > 0.0 &&
+        append_format(block, sizeof(block), " %g", dim.screenFactor) != 0)
+      return -1;
+    if (append_format(block, sizeof(block), "\n") != 0)
+      return -1;
+  }
+  if (dim.noseed && append_format(block, sizeof(block), "  noseed\n") != 0)
+    return -1;
+  if (dim.debug && append_format(block, sizeof(block), "  debug\n") != 0)
+    return -1;
+  if (dim.printAtomicDipoles &&
+      append_format(block, sizeof(block), "  printatomicdipoles\n") != 0)
+    return -1;
+  if (render_directives(dim.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 /* v1.3.0 parity stanzas: text renders; embed promotion tracks the parity epic. */
 static int render_relativistic_stanza(NWChemRelativisticStanza_ptr ptr,
                                       char *dst, size_t dst_size) {
@@ -4670,6 +4817,14 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
       break;
     case NWChemInputStanza_Kind_etrans:
       if (render_etrans_stanza(stanza.etrans, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_rism:
+      if (render_rism_stanza(stanza.rism, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_dimQm:
+      if (render_dimqm_stanza(stanza.dimQm, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

@@ -156,6 +156,33 @@
       )
     ),
     (
+      kind = rism,
+      rism = (
+        permittivity = 78.4,
+        tau = 1.0,
+        temp = 298.15,
+        tol = 1.0e-6,
+        diis = 5,
+        ngrid = 4096,
+        closure = "kh",
+        vdwRule = "arithmetic",
+        vdwParameters = "vdw.par"
+      )
+    ),
+    (
+      kind = dimQm,
+      dimQm = (
+        frequency = true,
+        algorithm = 1,
+        tolerance = 1.0e-7,
+        efield = [0.0, 0.0, 0.001],
+        localfield = true,
+        screen = erf,
+        screenFactor = 1.5,
+        printAtomicDipoles = true
+      )
+    ),
+    (
       kind = bq,
       bq = (
         units = "angstroms",

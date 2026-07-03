@@ -794,8 +794,15 @@ per-spin occ/vir state windows, first, ncap, eta, rpa, diag, core; all
 (~stanza.etrans~: reactant/product movecs, tol2e screening, fock/nofock
 two-electron method, fmo; ~et:*~ keys from ~et_input.F~). The common
 overlay also lowers ~common.vanDerWaalsS6~ onto the ~dft:vdw~ scaling
-factor. Renderer and embed promotion for these stanzas track the parity
-epic.
+factor. Batch 7 adds 3D-RISM solvation (~stanza.rism~: permittivity, tau,
+temperature, tolerance, lambda coupling, DIIS subspace, radial grid size,
+closure kind, vdw combination rule and parameter file; ~rism:*~ keys from
+~rism_input.F~; solute/solvent subblocks stay literal directives) and the
+discrete interaction model (~stanza.dimQm~: frequency-dependent response,
+algorithm, induced-dipole tolerance, finite efield vector, localfield,
+noresp, none/exp/erf screening with factor, noseed, debug,
+printatomicdipoles; ~dimqm:*~ keys from ~dimqm_input.F~). Renderer and
+embed promotion for these stanzas track the parity epic.
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a
