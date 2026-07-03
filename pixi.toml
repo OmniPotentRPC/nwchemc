@@ -42,6 +42,7 @@ test-cmocka = { cmd = "meson setup build -Dwith_tests=true && meson test -C buil
 inventory-check = { cmd = "python3 tools/check_feature_inventory.py", description = "Cross-check intern inventory vs schema" }
 inventory-gen = { cmd = "python3 tools/gen_feature_inventory.py .", description = "Regenerate inventory JSON and C intern tables" }
 test-stub-sanitize = { cmd = "meson setup build-sanitize -Dwith_tests=true -Db_sanitize=address,undefined -Db_lundef=false && ASAN_OPTIONS=detect_leaks=0 meson test -C build-sanitize --print-errorlogs", description = "Stub suite under ASan/UBSan" }
+test-cmake-stub = { cmd = "cmake -S . -B build-cmake -DNWCHEMC_BUILD_TESTS=ON && cmake --build build-cmake -j2 && ctest --test-dir build-cmake --output-on-failure", description = "CMake parity build and ctest suite" }
 release-assert = { cmd = "python3 scripts/release_assert.py", description = "Verify release metadata versions agree" }
 towncrier-draft = { cmd = "uvx towncrier build --draft", description = "Preview changelog fragments" }
 release-cog-dry = { cmd = "cog bump --auto --dry-run", description = "Preview the release bump" }
