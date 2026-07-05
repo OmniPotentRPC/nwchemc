@@ -675,6 +675,13 @@ explicit `calculateEnergy`, `calculateForces`, `calculateHessian`,
 to `nwchemc_session_reset_topology()`. The original `calculate` method remains
 the compatibility energy/forces call.
 
+`nwchemc_capabilities_result()` writes a Cap'n Proto `Capabilities` message
+describing the backend before any dispatch: name, version, ABI generation,
+availability, the ten calculate operations above, the `CommonMethodSpec`
+fields the overlay lowers, the accepted `PotentialConfig` arms, and the pinned
+schema release. A stub build reports the same operation surface with
+`available = false`.
+
 Configuration is layered: top-level `NWChemParams` fields for embed/ABI knobs,
 typed `NWChemInputStanza` kinds (DFT, SCF, driver, task, property, basis,
 geometry, module, pseudopotential, set, generic), and escape hatches (`raw`,

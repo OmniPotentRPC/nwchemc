@@ -708,6 +708,7 @@ spin-scaling rules.
 | ~nwchemc_calculate_frequencies_result~ | ~abi.nwchemc_calculate_frequencies_result~ | fails ok==0 | runs one-shot ForceInput frequencies into PotentialResult |
 | ~nwchemc_calculate_frequencies_result_from_config~ | ~abi.nwchemc_calculate_frequencies_result_from_config~ | fails ok==0 | runs one-shot PotentialConfig frequencies into PotentialResult |
 | ~nwchemc_potential_result_size_for_force_input~ | ~abi.nwchemc_potential_result_size_for_force_input~ | returns 0 | sizes session PotentialResult output from ForceInput |
+| ~nwchemc_capabilities_result~ | ~abi.nwchemc_capabilities_result~ | writes Capabilities with available=false | writes Capabilities with available=true |
 | ~nwchemc_session_calculate_hessian~ | ~abi.nwchemc_session_calculate_hessian~ | fails ok==0 | runs session ForceInput Hessian |
 | ~nwchemc_session_calculate_dipole~ | ~abi.nwchemc_session_calculate_dipole~ | fails ok==0 | runs session ForceInput dipole |
 | ~nwchemc_session_calculate_polarizability~ | ~abi.nwchemc_session_calculate_polarizability~ | fails ok==0 | runs session ForceInput polarizability |

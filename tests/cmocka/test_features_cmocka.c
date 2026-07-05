@@ -130,9 +130,9 @@ static void test_class_partition_counts(void **state) {
   assert_int_equal((int)mods, 88);
   assert_int_equal((int)stanzas, 41);
   assert_int_equal((int)fields, 14);
-  assert_int_equal((int)schema_fields, 820);
+  assert_int_equal((int)schema_fields, 828);
   assert_int_equal((int)schema_methods, 12);
-  assert_int_equal((int)abis, 120);
+  assert_int_equal((int)abis, 121);
   assert_int_equal((int)(mods + stanzas + fields + schema_fields +
                          schema_methods + abis),
                    (int)nwchemc_feature_count());

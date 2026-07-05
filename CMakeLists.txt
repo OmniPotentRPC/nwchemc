@@ -8,6 +8,15 @@ include(CMakePackageConfigHelpers)
 
 add_compile_definitions(NWCHEMC_VERSION_STRING="${PROJECT_VERSION}")
 
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/subprojects/potentials-schema.wrap"
+     NWCHEMC_SCHEMA_WRAP_TEXT)
+string(REGEX MATCH "directory = potentials-schema-([0-9.]*[0-9])"
+       NWCHEMC_SCHEMA_WRAP_MATCH "${NWCHEMC_SCHEMA_WRAP_TEXT}")
+if(NOT CMAKE_MATCH_1)
+  message(FATAL_ERROR "cannot read schema version from potentials-schema.wrap")
+endif()
+add_compile_definitions(NWCHEMC_SCHEMA_VERSION="${CMAKE_MATCH_1}")
+
 option(NWCHEMC_BUILD_TESTS "Build nwchemc tests" ON)
 option(NWCHEMC_WITH_NWCHEM "Build the real NWChem embed library" OFF)
 option(NWCHEMC_BUILD_SHARED "Build nwchemc as a shared library" ON)
@@ -118,8 +127,11 @@ if(NWCHEMC_NEEDS_CAPNP_C)
     )
   endif()
 
+  # Capabilities lives in its own object so nwchemc_params consumers without a
+  # backend (nwchemc.c or nwchemc_stub.c) never pull the getter symbols.
   add_library(nwchemc_params STATIC
     src/nwchemc_params.c
+    src/nwchemc_capabilities.c
     "${NWCHEMC_POTENTIALS_CAPNP_C}"
   )
   set_target_properties(nwchemc_params PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -262,8 +274,11 @@ if(NWCHEMC_WITH_NWCHEM)
     set(NWCHEMC_LIBRARY_TYPE SHARED)
   endif()
 
+  # Capabilities compiled in directly: nothing inside the library references
+  # it, so a static-archive pull would drop it from the exported ABI.
   add_library(nwchemc ${NWCHEMC_LIBRARY_TYPE}
     src/nwchemc.c
+    src/nwchemc_capabilities.c
     src/nwchem_embed_c_api.f90
   )
   set_target_properties(nwchemc PROPERTIES
@@ -386,6 +401,20 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   target_link_libraries(test_stub_abi PRIVATE nwchemc_stub PkgConfig::CMOCKA)
   target_compile_options(test_stub_abi PRIVATE ${NWCHEMC_COMMON_C_WARNINGS})
   add_test(NAME stub-abi COMMAND test_stub_abi)
+
+  if(TARGET nwchemc_params)
+    add_executable(test_capabilities_cmocka
+      tests/cmocka/test_capabilities_cmocka.c
+    )
+    target_link_libraries(test_capabilities_cmocka PRIVATE
+      nwchemc_params
+      nwchemc_stub
+      PkgConfig::CMOCKA
+    )
+    target_compile_options(test_capabilities_cmocka PRIVATE
+      ${NWCHEMC_COMMON_C_WARNINGS})
+    add_test(NAME capabilities-cmocka COMMAND test_capabilities_cmocka)
+  endif()
 
   function(nwchemc_add_encoded_fixture target_name output_var schema_type
            input_file output_file)

@@ -183,6 +183,14 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.PotentialResult.mdTrajectoryRow", "PotentialResult.mdTrajectoryRow", "PotentialResult.mdTrajectoryRow Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 25, 1, 0},
     {"field.PotentialResult.mdTrajectoryValid", "PotentialResult.mdTrajectoryValid", "PotentialResult.mdTrajectoryValid Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 26, 1, 0},
     {"field.PotentialResult.embedMdPropsSkipped", "PotentialResult.embedMdPropsSkipped", "PotentialResult.embedMdPropsSkipped Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 27, 1, 0},
+    {"field.Capabilities.backendName", "Capabilities.backendName", "Capabilities.backendName Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.Capabilities.backendVersion", "Capabilities.backendVersion", "Capabilities.backendVersion Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.Capabilities.abiVersion", "Capabilities.abiVersion", "Capabilities.abiVersion Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.Capabilities.available", "Capabilities.available", "Capabilities.available Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
+    {"field.Capabilities.operations", "Capabilities.operations", "Capabilities.operations Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.Capabilities.loweredCommonFields", "Capabilities.loweredCommonFields", "Capabilities.loweredCommonFields Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
+    {"field.Capabilities.configKinds", "Capabilities.configKinds", "Capabilities.configKinds Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 0},
+    {"field.Capabilities.schemaVersion", "Capabilities.schemaVersion", "Capabilities.schemaVersion Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 0},
     {"field.NWChemDirective.keyword", "NWChemDirective.keyword", "NWChemDirective.keyword Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.NWChemDirective.args", "NWChemDirective.args", "NWChemDirective.args Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.NWChemGenericStanza.name", "NWChemGenericStanza.name", "NWChemGenericStanza.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
@@ -1084,6 +1092,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_calculate_frequencies_result", "include/nwchemc.h::nwchemc_calculate_frequencies_result", "stub=fails ok==0; embed=runs one-shot ForceInput frequencies into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_calculate_frequencies_result_from_config", "include/nwchemc.h::nwchemc_calculate_frequencies_result_from_config", "stub=fails ok==0; embed=runs one-shot PotentialConfig frequencies into PotentialResult", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_potential_result_size_for_force_input", "include/nwchemc.h::nwchemc_potential_result_size_for_force_input", "stub=returns 0; embed=sizes session PotentialResult output from ForceInput", NWCHEMC_FEATURE_ABI, -1, 1, 1},
+    {"abi.nwchemc_capabilities_result", "include/nwchemc.h::nwchemc_capabilities_result", "stub=writes Capabilities with available=false; embed=writes Capabilities with available=true", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_hessian", "include/nwchemc.h::nwchemc_session_calculate_hessian", "stub=fails ok==0; embed=runs session ForceInput Hessian", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_dipole", "include/nwchemc.h::nwchemc_session_calculate_dipole", "stub=fails ok==0; embed=runs session ForceInput dipole", NWCHEMC_FEATURE_ABI, -1, 1, 1},
     {"abi.nwchemc_session_calculate_polarizability", "include/nwchemc.h::nwchemc_session_calculate_polarizability", "stub=fails ok==0; embed=runs session ForceInput polarizability", NWCHEMC_FEATURE_ABI, -1, 1, 1},
@@ -1100,7 +1109,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 1095;
+static const size_t k_feature_count = 1104;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

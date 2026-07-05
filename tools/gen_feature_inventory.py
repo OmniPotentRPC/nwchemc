@@ -797,6 +797,11 @@ def main() -> int:
                 "embed": "sizes session PotentialResult output from ForceInput",
             },
             {
+                "name": "nwchemc_capabilities_result",
+                "stub": "writes Capabilities with available=false",
+                "embed": "writes Capabilities with available=true",
+            },
+            {
                 "name": "nwchemc_session_calculate_hessian",
                 "stub": "fails ok==0",
                 "embed": "runs session ForceInput Hessian",

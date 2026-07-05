@@ -270,6 +270,7 @@ def main() -> int:
         "nwchemc_calculate_frequencies_result",
         "nwchemc_calculate_frequencies_result_from_config",
         "nwchemc_potential_result_size_for_force_input",
+        "nwchemc_capabilities_result",
         "nwchemc_session_calculate_hessian",
         "nwchemc_session_calculate_dipole",
         "nwchemc_session_calculate_polarizability",

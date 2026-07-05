@@ -15,15 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 1095,
+  "row_count": 1104,
   "counts_by_tier": {
-    "text": 549,
-    "tested": 530,
+    "text": 550,
+    "tested": 531,
     "embed": 7,
-    "schema": 9
+    "schema": 16
   },
-  "done_count": 537,
-  "not_done_count": 558,
+  "done_count": 538,
+  "not_done_count": 566,
   "features": [
     {
       "feature_id": "module.custom",
@@ -1462,6 +1462,70 @@
       "class": "schema_field",
       "schema_path": "PotentialResult.embedMdPropsSkipped",
       "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.backendName",
+      "class": "schema_field",
+      "schema_path": "Capabilities.backendName",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.backendVersion",
+      "class": "schema_field",
+      "schema_path": "Capabilities.backendVersion",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.abiVersion",
+      "class": "schema_field",
+      "schema_path": "Capabilities.abiVersion",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.available",
+      "class": "schema_field",
+      "schema_path": "Capabilities.available",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.operations",
+      "class": "schema_field",
+      "schema_path": "Capabilities.operations",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.loweredCommonFields",
+      "class": "schema_field",
+      "schema_path": "Capabilities.loweredCommonFields",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.configKinds",
+      "class": "schema_field",
+      "schema_path": "Capabilities.configKinds",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.schemaVersion",
+      "class": "schema_field",
+      "schema_path": "Capabilities.schemaVersion",
+      "support_tier": "schema",
       "embed_applicable": false,
       "done": false
     },
@@ -8669,6 +8733,14 @@
       "feature_id": "abi.nwchemc_potential_result_size_for_force_input",
       "class": "abi",
       "schema_path": "nwchemc_potential_result_size_for_force_input",
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
+    },
+    {
+      "feature_id": "abi.nwchemc_capabilities_result",
+      "class": "abi",
+      "schema_path": "nwchemc_capabilities_result",
       "support_tier": "tested",
       "embed_applicable": true,
       "done": true

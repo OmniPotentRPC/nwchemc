@@ -13,6 +13,19 @@ add_project_arguments(
   '-DNWCHEMC_VERSION_STRING="' + meson.project_version() + '"',
   language: 'c',
 )
+schema_wrap_version = run_command(
+  python,
+  [
+    '-c',
+    'import re, sys; print(re.search(r"directory = potentials-schema-([0-9.]*[0-9])", open(sys.argv[1]).read()).group(1))',
+    meson.current_source_dir() / 'subprojects/potentials-schema.wrap',
+  ],
+  check: true,
+).stdout().strip()
+add_project_arguments(
+  '-DNWCHEMC_SCHEMA_VERSION="' + schema_wrap_version + '"',
+  language: 'c',
+)
 math_dep = cc.find_library('m', required: false)
 cmocka_dep = dependency('cmocka', required: get_option('with_tests'))
 
@@ -63,6 +76,9 @@ if need_capnp_c
   nwchemc_params_sources = ['src/nwchemc_params.c', potentials_capnp_c_src]
   nwchemc_params_deps = [capnp_c_dep, potentials_capnp_c_dep]
   nwchemc_params_includes = [include_directories('schema')]
+  # Needs a linked backend (nwchemc.c or nwchemc_stub.c) for the getters, so
+  # it stays out of nwchemc_params_sources (whose consumers may link neither).
+  nwchemc_capabilities_sources = ['src/nwchemc_capabilities.c']
 endif
 
 nwchemc_features = static_library(
@@ -225,7 +241,8 @@ if has_nwchem
   # Whole-archive legacy so embed ga_create_JKblocked overrides NWChem moints.
   nwchemc = library(
     'nwchemc',
-    ['src/nwchemc.c', 'src/nwchem_embed_c_api.f90'] + nwchemc_params_sources,
+    ['src/nwchemc.c', 'src/nwchem_embed_c_api.f90'] + nwchemc_params_sources +
+    nwchemc_capabilities_sources,
     include_directories: [inc] + nwchemc_params_includes,
     dependencies: nwchemc_params_deps,
     c_args: nwchem_c_args,
@@ -396,7 +413,7 @@ if get_option('with_tests')
       'nwchemc_feature_driver',
       ['tools/nwchemc_feature_driver.c'] +
       (get_option('with_debug_backtrace') ? ['tools/nwchemc_debug.c'] : []) +
-      nwchemc_params_sources,
+      nwchemc_params_sources + nwchemc_capabilities_sources,
       dependencies: [nwchemc_features_dep, nwchemc_stub_dep] + nwchemc_params_deps,
       include_directories: [inc, include_directories('tools')] + nwchemc_params_includes,
       c_args: common_c_args +
@@ -460,6 +477,18 @@ if get_option('with_tests')
       include_directories: inc,
       c_args: common_c_args,
     ),
+  )
+  test(
+    'capabilities-cmocka',
+    executable(
+      'test_capabilities_cmocka',
+      ['tests/cmocka/test_capabilities_cmocka.c'] + nwchemc_params_sources +
+      nwchemc_capabilities_sources,
+      dependencies: [nwchemc_stub_dep, cmocka_dep] + nwchemc_params_deps,
+      include_directories: [inc] + nwchemc_params_includes,
+      c_args: common_c_args,
+    ),
+    suite: ['cmocka', 'abi'],
   )
   test(
     'capnp-parser',
