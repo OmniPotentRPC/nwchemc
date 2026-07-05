@@ -539,6 +539,9 @@ NWChemCResult nwchemc_calculate_frequencies_result_from_config(
     size_t *potential_result_capnp_size_bytes);
 size_t nwchemc_potential_result_size_for_force_input(
     const void *force_input_capnp, size_t force_input_capnp_size_bytes);
+int nwchemc_capabilities_result(void *capabilities_capnp,
+                                size_t capabilities_capnp_capacity_bytes,
+                                size_t *capabilities_capnp_size_bytes);
 NWChemCResult nwchemc_session_calculate_hessian(
     NWChemCSession *session,
     const void *force_input_capnp, size_t force_input_capnp_size_bytes,
