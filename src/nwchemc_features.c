@@ -789,6 +789,16 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.Output.name", "Output.name", "Output.name Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.Output.perAtom", "Output.perAtom", "Output.perAtom Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.Output.explicitGradients", "Output.explicitGradients", "Output.explicitGradients Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.LammpsParams.unitsStyle", "LammpsParams.unitsStyle", "LammpsParams.unitsStyle Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
+    {"field.LammpsParams.atomStyle", "LammpsParams.atomStyle", "LammpsParams.atomStyle Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
+    {"field.LammpsParams.pairStyle", "LammpsParams.pairStyle", "LammpsParams.pairStyle Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
+    {"field.LammpsParams.pairCoeffs", "LammpsParams.pairCoeffs", "LammpsParams.pairCoeffs Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
+    {"field.LammpsParams.typeToAtomicNumber", "LammpsParams.typeToAtomicNumber", "LammpsParams.typeToAtomicNumber Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.LammpsParams.masses", "LammpsParams.masses", "LammpsParams.masses Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
+    {"field.LammpsParams.newtonPair", "LammpsParams.newtonPair", "LammpsParams.newtonPair Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 6, 1, 0},
+    {"field.LammpsParams.boundary", "LammpsParams.boundary", "LammpsParams.boundary Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 7, 1, 0},
+    {"field.LammpsParams.extraSetup", "LammpsParams.extraSetup", "LammpsParams.extraSetup Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 8, 1, 0},
+    {"field.LammpsParams.suffix", "LammpsParams.suffix", "LammpsParams.suffix Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 9, 1, 0},
     {"field.NWChemDplotStanza.title", "NWChemDplotStanza.title", "NWChemDplotStanza.title Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 0, 1, 0},
     {"field.NWChemDplotStanza.gaussianCube", "NWChemDplotStanza.gaussianCube", "NWChemDplotStanza.gaussianCube Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.NWChemDplotStanza.civecs", "NWChemDplotStanza.civecs", "NWChemDplotStanza.civecs Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
@@ -973,6 +983,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"field.PotentialConfig.nwchem", "PotentialConfig.nwchem", "PotentialConfig.nwchem Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 1, 1, 0},
     {"field.PotentialConfig.cpmd", "PotentialConfig.cpmd", "PotentialConfig.cpmd Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 2, 1, 0},
     {"field.PotentialConfig.metatomic", "PotentialConfig.metatomic", "PotentialConfig.metatomic Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 4, 1, 0},
+    {"field.PotentialConfig.lammps", "PotentialConfig.lammps", "PotentialConfig.lammps Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 5, 1, 0},
     {"field.PotentialConfig.common", "PotentialConfig.common", "PotentialConfig.common Cap'n Proto field", NWCHEMC_FEATURE_SCHEMA_FIELD, 3, 1, 0},
     {"method.Potential.calculate", "Potential.calculate", "Potential.calculate Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 0, 1, 0},
     {"method.Potential.configure", "Potential.configure", "Potential.configure Cap'n Proto interface method", NWCHEMC_FEATURE_SCHEMA_METHOD, 1, 1, 0},
@@ -1109,7 +1120,7 @@ static const NWChemCFeatureEntry k_features[] = {
     {"abi.nwchemc_finalize", "include/nwchemc.h::nwchemc_finalize", "stub=no-op; embed=finalize owned runtime", NWCHEMC_FEATURE_ABI, -1, 1, 1},
 };
 
-static const size_t k_feature_count = 1104;
+static const size_t k_feature_count = 1115;
 
 size_t nwchemc_feature_count(void) { return k_feature_count; }
 

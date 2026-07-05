@@ -15,15 +15,15 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 1104,
+  "row_count": 1115,
   "counts_by_tier": {
-    "text": 550,
+    "text": 554,
     "tested": 531,
     "embed": 7,
-    "schema": 16
+    "schema": 23
   },
   "done_count": 538,
-  "not_done_count": 566,
+  "not_done_count": 577,
   "features": [
     {
       "feature_id": "module.custom",
@@ -6314,6 +6314,86 @@
       "done": false
     },
     {
+      "feature_id": "field.LammpsParams.unitsStyle",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.unitsStyle",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.atomStyle",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.atomStyle",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.pairStyle",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.pairStyle",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.pairCoeffs",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.pairCoeffs",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.typeToAtomicNumber",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.typeToAtomicNumber",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.masses",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.masses",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.newtonPair",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.newtonPair",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.boundary",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.boundary",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.extraSetup",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.extraSetup",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.LammpsParams.suffix",
+      "class": "schema_field",
+      "schema_path": "LammpsParams.suffix",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
       "feature_id": "field.NWChemDplotStanza.title",
       "class": "schema_field",
       "schema_path": "NWChemDplotStanza.title",
@@ -7781,6 +7861,14 @@
       "feature_id": "field.PotentialConfig.metatomic",
       "class": "schema_field",
       "schema_path": "PotentialConfig.metatomic",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.PotentialConfig.lammps",
+      "class": "schema_field",
+      "schema_path": "PotentialConfig.lammps",
       "support_tier": "text",
       "embed_applicable": false,
       "done": false
