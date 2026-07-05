@@ -704,6 +704,22 @@ static void test_render_parity_batch_stanzas(void **state) {
   assert_render_contains(blocks,
                          "lattice_tolerances 0.001 0.001 0.001 0.001 0.001 0.001");
   assert_render_contains(blocks, "cycles 20");
+  assert_render_contains(blocks, "mepgs\n");
+  assert_render_contains(blocks, "stride 0.1");
+  assert_render_contains(blocks, "maxmep 12");
+  assert_render_contains(blocks, "evib 0.0001");
+  assert_render_contains(blocks, "forward");
+  assert_render_contains(blocks, "opttol 0.0003");
+  assert_render_contains(blocks, "mswg");
+  assert_render_contains(blocks, "tropt\n");
+  assert_render_contains(blocks, "opttol 0.0002");
+  assert_render_contains(blocks, "trust 0.3");
+  assert_render_contains(blocks, "lbfgs");
+  assert_render_contains(blocks, "mh 9");
+  assert_render_contains(blocks, "noqstep");
+  assert_render_contains(blocks, "modsad 1");
+  assert_render_contains(blocks, "redoautoz");
+  assert_render_contains(blocks, "xrms 0.0008");
   assert_render_contains(blocks, "bq units angstroms");
   assert_render_contains(blocks, "force");
   assert_render_contains(blocks, "0 0 5 -1");

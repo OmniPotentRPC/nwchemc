@@ -206,6 +206,35 @@
       )
     ),
     (
+      kind = mepgs,
+      mepgs = (
+        stride = 0.1,
+        maxmep = 12,
+        maxiter = 30,
+        evib = 0.0001,
+        direction = forward,
+        opttol = 0.0003,
+        xyz = true,
+        mswg = true
+      )
+    ),
+    (
+      kind = tropt,
+      tropt = (
+        opttol = 0.0002,
+        trust = 0.3,
+        maxiter = 60,
+        lbfgs = true,
+        mh = 9,
+        qstep = disabled,
+        modsad = 1,
+        redoautoz = true,
+        convergence = tight,
+        xrms = 0.0008,
+        xyz = true
+      )
+    ),
+    (
       kind = bq,
       bq = (
         units = "angstroms",

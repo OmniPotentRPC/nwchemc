@@ -1244,6 +1244,156 @@ static int render_cell_optimize_stanza(NWChemCellOptimizeStanza_ptr ptr,
   return append_block(dst, dst_size, block);
 }
 
+/* mepgs keywords map onto mepgs:*/gsopt:* RTDB keys (mepgs_input.F). */
+static int render_mepgs_stanza(NWChemMepgsStanza_ptr ptr, char *dst,
+                               size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemMepgsStanza gs;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemMepgsStanza(&gs, ptr);
+  int has_directives = directives_have_keywords(gs.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body = gs.stride > 0.0 || gs.maxmep > 0 || gs.maxiter > 0 ||
+                 gs.inhess > 0 || gs.evib > 0.0 ||
+                 gs.direction != NWChemMepgsStanza_Direction_both ||
+                 gs.opttol > 0.0 || gs.eprec > 0.0 || gs.xyz || gs.mswg ||
+                 has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "mepgs\n") != 0)
+    return -1;
+  if (gs.stride > 0.0 &&
+      append_format(block, sizeof(block), "  stride %g\n", gs.stride) != 0)
+    return -1;
+  if (gs.maxmep > 0 &&
+      append_format(block, sizeof(block), "  maxmep %d\n", gs.maxmep) != 0)
+    return -1;
+  if (gs.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", gs.maxiter) != 0)
+    return -1;
+  if (gs.inhess > 0 &&
+      append_format(block, sizeof(block), "  inhess %d\n", gs.inhess) != 0)
+    return -1;
+  if (gs.evib > 0.0 &&
+      append_format(block, sizeof(block), "  evib %g\n", gs.evib) != 0)
+    return -1;
+  if (gs.direction == NWChemMepgsStanza_Direction_forward &&
+      append_format(block, sizeof(block), "  forward\n") != 0)
+    return -1;
+  if (gs.direction == NWChemMepgsStanza_Direction_backward &&
+      append_format(block, sizeof(block), "  backward\n") != 0)
+    return -1;
+  if (gs.opttol > 0.0 &&
+      append_format(block, sizeof(block), "  opttol %g\n", gs.opttol) != 0)
+    return -1;
+  if (gs.eprec > 0.0 &&
+      append_format(block, sizeof(block), "  eprec %g\n", gs.eprec) != 0)
+    return -1;
+  if (gs.xyz && append_format(block, sizeof(block), "  xyz\n") != 0)
+    return -1;
+  if (gs.mswg && append_format(block, sizeof(block), "  mswg\n") != 0)
+    return -1;
+  if (render_directives(gs.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
+/* tropt keywords map onto tropt:* RTDB keys (tropt_input.F). */
+static int render_tropt_stanza(NWChemTroptStanza_ptr ptr, char *dst,
+                               size_t dst_size) {
+  if (ptr.p.type == CAPN_NULL)
+    return 0;
+  struct NWChemTroptStanza tr;
+  char block[2048];
+  block[0] = '\0';
+  read_NWChemTroptStanza(&tr, ptr);
+  int has_directives = directives_have_keywords(tr.directives);
+  if (has_directives < 0)
+    return -1;
+  int has_body =
+      tr.opttol > 0.0 || tr.eprec > 0.0 || tr.trust > 0.0 || tr.maxiter > 0 ||
+      tr.inhess > 0 || tr.lbfgs || tr.mh > 0 || tr.linopt > 0 ||
+      tr.qstep != NWChemToggle_unspecified || tr.moddir > 0 ||
+      tr.modsad > 0 || tr.redoautoz ||
+      tr.convergence != NWChemTroptStanza_Convergence_unspecified ||
+      tr.gmax > 0.0 || tr.grms > 0.0 || tr.xmax > 0.0 || tr.xrms > 0.0 ||
+      tr.xyz || has_directives;
+  if (!has_body)
+    return 0;
+  if (append_format(block, sizeof(block), "tropt\n") != 0)
+    return -1;
+  if (tr.opttol > 0.0 &&
+      append_format(block, sizeof(block), "  opttol %g\n", tr.opttol) != 0)
+    return -1;
+  if (tr.eprec > 0.0 &&
+      append_format(block, sizeof(block), "  eprec %g\n", tr.eprec) != 0)
+    return -1;
+  if (tr.trust > 0.0 &&
+      append_format(block, sizeof(block), "  trust %g\n", tr.trust) != 0)
+    return -1;
+  if (tr.maxiter > 0 &&
+      append_format(block, sizeof(block), "  maxiter %d\n", tr.maxiter) != 0)
+    return -1;
+  if (tr.inhess > 0 &&
+      append_format(block, sizeof(block), "  inhess %d\n", tr.inhess) != 0)
+    return -1;
+  if (tr.lbfgs && append_format(block, sizeof(block), "  lbfgs\n") != 0)
+    return -1;
+  if (tr.mh > 0 &&
+      append_format(block, sizeof(block), "  mh %d\n", tr.mh) != 0)
+    return -1;
+  if (tr.linopt > 0 &&
+      append_format(block, sizeof(block), "  linopt %d\n", tr.linopt) != 0)
+    return -1;
+  if (tr.qstep == NWChemToggle_enabled &&
+      append_format(block, sizeof(block), "  qstep\n") != 0)
+    return -1;
+  if (tr.qstep == NWChemToggle_disabled &&
+      append_format(block, sizeof(block), "  noqstep\n") != 0)
+    return -1;
+  if (tr.moddir > 0 &&
+      append_format(block, sizeof(block), "  moddir %d\n", tr.moddir) != 0)
+    return -1;
+  if (tr.modsad > 0 &&
+      append_format(block, sizeof(block), "  modsad %d\n", tr.modsad) != 0)
+    return -1;
+  if (tr.redoautoz &&
+      append_format(block, sizeof(block), "  redoautoz\n") != 0)
+    return -1;
+  if (tr.convergence != NWChemTroptStanza_Convergence_unspecified) {
+    const char *level =
+        tr.convergence == NWChemTroptStanza_Convergence_loose
+            ? "loose"
+            : tr.convergence == NWChemTroptStanza_Convergence_tight
+                  ? "tight"
+                  : "default";
+    if (append_format(block, sizeof(block), "  %s\n", level) != 0)
+      return -1;
+  }
+  if (tr.gmax > 0.0 &&
+      append_format(block, sizeof(block), "  gmax %g\n", tr.gmax) != 0)
+    return -1;
+  if (tr.grms > 0.0 &&
+      append_format(block, sizeof(block), "  grms %g\n", tr.grms) != 0)
+    return -1;
+  if (tr.xmax > 0.0 &&
+      append_format(block, sizeof(block), "  xmax %g\n", tr.xmax) != 0)
+    return -1;
+  if (tr.xrms > 0.0 &&
+      append_format(block, sizeof(block), "  xrms %g\n", tr.xrms) != 0)
+    return -1;
+  if (tr.xyz && append_format(block, sizeof(block), "  xyz\n") != 0)
+    return -1;
+  if (render_directives(tr.directives, block, sizeof(block), "  ") != 0 ||
+      append_format(block, sizeof(block), "end") != 0)
+    return -1;
+  return append_block(dst, dst_size, block);
+}
+
 /* v1.3.0 parity stanzas: text renders; embed promotion tracks the parity epic. */
 static int render_relativistic_stanza(NWChemRelativisticStanza_ptr ptr,
                                       char *dst, size_t dst_size) {
@@ -5048,6 +5198,14 @@ static int render_input_stanzas(NWChemInputStanza_list stanzas, char *dst,
     case NWChemInputStanza_Kind_cellOptimize:
       if (render_cell_optimize_stanza(stanza.cellOptimize, dst, dst_size) !=
           0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_mepgs:
+      if (render_mepgs_stanza(stanza.mepgs, dst, dst_size) != 0)
+        return -1;
+      break;
+    case NWChemInputStanza_Kind_tropt:
+      if (render_tropt_stanza(stanza.tropt, dst, dst_size) != 0)
         return -1;
       break;
     case NWChemInputStanza_Kind_generic:

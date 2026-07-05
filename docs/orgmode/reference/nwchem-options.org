@@ -812,6 +812,16 @@ optimize_lattice and optimize_lattice_vectors token subsets,
 lattice_tolerances, cycles; ~cell_optimize:*~ keys from
 ~cell_optimize_input.F~); both render nested inside "nwpw ... end".
 Renderer and embed promotion for these stanzas track the parity epic.
+Batch 9 covers the driver-adjacent optimizers: the Gonzalez-Schlegel
+minimum-energy-path block (~stanza.mepgs~: stride, maxmep IRC points,
+per-point maxiter, inhess, evib, forward/backward/both direction,
+opttol, eprec, xyz trajectory output, mswg mass-weighted coordinates;
+~mepgs:*~/~gsopt:*~/~ircgs:mswg~ RTDB keys from ~mepgs_input.F~) and the
+trust-region optimizer (~stanza.tropt~: opttol, eprec, trust radius,
+maxiter, inhess, lbfgs with mh history depth, linopt, qstep/noqstep
+toggle, moddir/modsad saddle following, redoautoz, loose/default/tight
+convergence presets plus explicit gmax/grms/xmax/xrms tolerances, xyz;
+~tropt:*~ keys from ~tropt_input.F~).
 The raw block is kept for exact upstream syntax, generated inputs, and NWChem
 keywords whose grammar is better preserved as literal input.
 The intern inventory guarantees every schema enum/field/stanza/ABI symbol has a
