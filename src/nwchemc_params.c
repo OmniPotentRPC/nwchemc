@@ -1244,7 +1244,7 @@ static int render_cell_optimize_stanza(NWChemCellOptimizeStanza_ptr ptr,
   return append_block(dst, dst_size, block);
 }
 
-/* mepgs keywords map onto mepgs:*/gsopt:* RTDB keys (mepgs_input.F). */
+/* mepgs keywords map onto the mepgs and gsopt RTDB keys (mepgs_input.F). */
 static int render_mepgs_stanza(NWChemMepgsStanza_ptr ptr, char *dst,
                                size_t dst_size) {
   if (ptr.p.type == CAPN_NULL)
