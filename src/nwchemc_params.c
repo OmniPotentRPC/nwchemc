@@ -5390,6 +5390,132 @@ int nwchemc_params_extract_direct_basis(NWChemParams_ptr params,
   return 0;
 }
 
+int nwchemc_params_extract_direct_cosmo(NWChemParams_ptr params,
+                                        int *has_options, double *dielec,
+                                        capn_text *solvent, double *rsolv,
+                                        int *do_cosmo_smd) {
+  if (params.p.type == CAPN_NULL || !has_options || !dielec || !solvent ||
+      !rsolv || !do_cosmo_smd)
+    return -1;
+  *has_options = 0;
+  *dielec = 0.0;
+  solvent->str = NULL;
+  solvent->len = 0;
+  *rsolv = 0.0;
+  *do_cosmo_smd = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_cosmo ||
+        stanza.cosmo.p.type == CAPN_NULL)
+      continue;
+    struct NWChemCosmoStanza cosmo;
+    read_NWChemCosmoStanza(&cosmo, stanza.cosmo);
+    if (cosmo.dielec > 0.0) {
+      *has_options = 1;
+      *dielec = cosmo.dielec;
+    }
+    if (cosmo.solvent.len > 0) {
+      *has_options = 1;
+      *solvent = cosmo.solvent;
+    }
+    if (cosmo.rsolv > 0.0) {
+      *has_options = 1;
+      *rsolv = cosmo.rsolv;
+    }
+    if (cosmo.doCosmoSmd) {
+      *has_options = 1;
+      *do_cosmo_smd = 1;
+    }
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_esp(NWChemParams_ptr params, int *has_options,
+                                      int *recalculate, double *spacing,
+                                      int *restrain, int *restrain_hfree) {
+  if (params.p.type == CAPN_NULL || !has_options || !recalculate || !spacing ||
+      !restrain || !restrain_hfree)
+    return -1;
+  *has_options = 0;
+  *recalculate = 0;
+  *spacing = 0.0;
+  *restrain = 0;
+  *restrain_hfree = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_esp ||
+        stanza.esp.p.type == CAPN_NULL)
+      continue;
+    struct NWChemEspStanza esp;
+    read_NWChemEspStanza(&esp, stanza.esp);
+    if (esp.recalculate) {
+      *has_options = 1;
+      *recalculate = 1;
+    }
+    if (esp.spacing > 0.0) {
+      *has_options = 1;
+      *spacing = esp.spacing;
+    }
+    if (esp.restrain) {
+      *has_options = 1;
+      *restrain = 1;
+      *restrain_hfree = esp.restrainHfree ? 1 : 0;
+    }
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_constraints(NWChemParams_ptr params,
+                                              int *has_options, int *clear,
+                                              int *constraint_count) {
+  if (params.p.type == CAPN_NULL || !has_options || !clear || !constraint_count)
+    return -1;
+  *has_options = 0;
+  *clear = 0;
+  *constraint_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_constraints ||
+        stanza.constraints.p.type == CAPN_NULL)
+      continue;
+    struct NWChemConstraintsStanza cons;
+    read_NWChemConstraintsStanza(&cons, stanza.constraints);
+    if (cons.clear) {
+      *has_options = 1;
+      *clear = 1;
+    }
+    int nc = struct_list_len(&cons.constraints.p);
+    if (nc < 0)
+      return -1;
+    if (nc > 0) {
+      *has_options = 1;
+      *constraint_count = nc;
+    }
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       int *maxiter, double *thresh,
                                       double *tol2e, capn_text *wavefunction_type,

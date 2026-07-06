@@ -619,6 +619,45 @@ static void test_render_parity_batch_stanzas(void **state) {
   assert_render_contains(blocks, "recalculate");
   assert_render_contains(blocks, "spacing 0.2");
   assert_render_contains(blocks, "restrain hfree");
+
+  /* Shipped extract_direct_* for cosmo / esp / constraints (not reimplemented). */
+  {
+    int cosmo_has = 0, cosmo_smd = 0;
+    double cosmo_dielec = 0.0, cosmo_rsolv = 0.0;
+    capn_text cosmo_solvent = {0};
+    assert_int_equal(nwchemc_params_extract_direct_cosmo(
+                         params_root, &cosmo_has, &cosmo_dielec, &cosmo_solvent,
+                         &cosmo_rsolv, &cosmo_smd),
+                     0);
+    assert_int_equal(cosmo_has, 1);
+    assert_true(cosmo_dielec > 78.39 && cosmo_dielec < 78.41);
+    assert_true(cosmo_rsolv > 0.49 && cosmo_rsolv < 0.51);
+    assert_int_equal(cosmo_smd, 1);
+    assert_true(cosmo_solvent.len > 0);
+    assert_non_null(cosmo_solvent.str);
+    assert_true(strncmp(cosmo_solvent.str, "water", 5) == 0);
+
+    int esp_has = 0, esp_recalc = 0, esp_restrain = 0, esp_hfree = 0;
+    double esp_spacing = 0.0;
+    assert_int_equal(nwchemc_params_extract_direct_esp(
+                         params_root, &esp_has, &esp_recalc, &esp_spacing,
+                         &esp_restrain, &esp_hfree),
+                     0);
+    assert_int_equal(esp_has, 1);
+    assert_int_equal(esp_recalc, 1);
+    assert_true(esp_spacing > 0.19 && esp_spacing < 0.21);
+    assert_int_equal(esp_restrain, 1);
+    assert_int_equal(esp_hfree, 1);
+
+    int cons_has = 0, cons_clear = 0, cons_count = 0;
+    assert_int_equal(nwchemc_params_extract_direct_constraints(
+                         params_root, &cons_has, &cons_clear, &cons_count),
+                     0);
+    assert_int_equal(cons_has, 1);
+    assert_int_equal(cons_clear, 1);
+    assert_true(cons_count >= 1);
+  }
+
   assert_render_contains(blocks, "qmd\n");
   assert_render_contains(blocks, "nstep_nucl 500");
   assert_render_contains(blocks, "dt_nucl 10");

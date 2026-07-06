@@ -166,6 +166,9 @@ _MODULE_EXTRACT_FAMILY: dict[str, tuple[str, ...]] = {
     "basis": ("basis",),
     "brillouinZone": ("brillouin",),
     "pseudopotential": ("pseudopotential", "pseudopotentials"),
+    "cosmo": ("cosmo",),
+    "esp": ("esp",),
+    "constraints": ("constraints",),
     # set stanza is not a module; module.set does not exist
 }
 
@@ -275,6 +278,21 @@ _MODULE_SHIPPED_TEST_MARKERS: dict[str, tuple[str, ...]] = {
         "latticeVectorsBohr",
         "latticeKind = sc",
     ),
+    "cosmo": (
+        "nwchemc_params_extract_direct_cosmo",
+        "cosmo:dielec",
+        "do_cosmo_smd true",
+    ),
+    "esp": (
+        "nwchemc_params_extract_direct_esp",
+        "esp:spacing",
+        "restrain hfree",
+    ),
+    "constraints": (
+        "nwchemc_params_extract_direct_constraints",
+        "constraints:ncons",
+        "fix atom 1 2",
+    ),
 }
 
 
@@ -370,6 +388,9 @@ _STANZA_EXTRACT_FAMILY: dict[str, tuple[str, ...]] = {
     "brillouinZone": ("brillouin",),
     "pseudopotential": ("pseudopotential", "pseudopotentials"),
     "set": ("set_strings", "set_values"),
+    "cosmo": ("cosmo",),
+    "esp": ("esp",),
+    "constraints": ("constraints",),
 }
 
 
@@ -413,6 +434,9 @@ def tier_for_stanza(kind: str, sig: dict) -> str:
         "geometry",
         "set",
         "simulationCell",
+        "cosmo",
+        "esp",
+        "constraints",
     }
     if kind in tested_kinds and tier_rank_ge(tier, "embed"):
         # require an explicit test marker for the kind (not bare substring of nwpw_*)
@@ -436,6 +460,21 @@ def tier_for_stanza(kind: str, sig: dict) -> str:
                 "kind = simulationCell",
                 "append_simulation_cell_direct",
                 "latticeVectorsBohr",
+            ),
+            "cosmo": (
+                "nwchemc_params_extract_direct_cosmo",
+                "cosmo:dielec",
+                "do_cosmo_smd true",
+            ),
+            "esp": (
+                "nwchemc_params_extract_direct_esp",
+                "esp:spacing",
+                "restrain hfree",
+            ),
+            "constraints": (
+                "nwchemc_params_extract_direct_constraints",
+                "constraints:ncons",
+                "fix atom 1 2",
             ),
         }
         for m in markers.get(kind, (kind,)):

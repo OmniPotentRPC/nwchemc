@@ -58,9 +58,9 @@
       "nwchem_text": "cosmo",
       "role": "NWChem input handler block `cosmo`",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.dft",
@@ -118,9 +118,9 @@
       "nwchem_text": "esp",
       "role": "NWChem input handler block `esp`",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.etrans",
@@ -550,9 +550,9 @@
       "nwchem_text": "constraints",
       "role": "NWChem input handler block `constraints`",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.cpmd",
@@ -1297,10 +1297,10 @@
       "capnp_type": "cosmo",
       "nwchem_role": "cosmo stanza",
       "stub": true,
-      "embed": false,
+      "embed": true,
       "feature_id": "stanza.cosmo",
-      "support_tier": "text",
-      "embed_applicable": false
+      "support_tier": "tested",
+      "embed_applicable": true
     },
     {
       "kind": "smd",
@@ -1319,10 +1319,10 @@
       "capnp_type": "constraints",
       "nwchem_role": "constraints stanza",
       "stub": true,
-      "embed": false,
+      "embed": true,
       "feature_id": "stanza.constraints",
-      "support_tier": "text",
-      "embed_applicable": false
+      "support_tier": "tested",
+      "embed_applicable": true
     },
     {
       "kind": "vib",
@@ -1363,10 +1363,10 @@
       "capnp_type": "esp",
       "nwchem_role": "esp stanza",
       "stub": true,
-      "embed": false,
+      "embed": true,
       "feature_id": "stanza.esp",
-      "support_tier": "text",
-      "embed_applicable": false
+      "support_tier": "tested",
+      "embed_applicable": true
     },
     {
       "kind": "qmd",

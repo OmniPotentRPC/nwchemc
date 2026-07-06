@@ -42,8 +42,17 @@ def main() -> int:
     # Known embed/tested anchors.
     assert by["module.dft"]["support_tier"] == "tested"
     assert by["module.scf"]["support_tier"] == "tested"
-    assert by["module.cosmo"]["support_tier"] in {"schema", "text"}
     assert by["stanza.basis"]["support_tier"] == "tested"
+    for fid in (
+        "module.cosmo",
+        "stanza.cosmo",
+        "module.esp",
+        "stanza.esp",
+        "module.constraints",
+        "stanza.constraints",
+    ):
+        assert by[fid]["support_tier"] == "tested", (fid, by[fid]["support_tier"])
+        assert by[fid]["done"] is True
 
     # Former embed-only nine must be tested once shipped-path markers exist.
     nine = (

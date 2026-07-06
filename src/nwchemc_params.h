@@ -64,6 +64,22 @@ int nwchemc_params_extract_direct_basis(NWChemParams_ptr params,
                                         size_t element_capacity,
                                         size_t *element_count);
 
+/* COSMO solvation stanza → direct promotion fields (cosmo:dielec, …). */
+int nwchemc_params_extract_direct_cosmo(NWChemParams_ptr params,
+                                        int *has_options, double *dielec,
+                                        capn_text *solvent, double *rsolv,
+                                        int *do_cosmo_smd);
+
+/* ESP/RESP charge stanza → direct promotion fields. */
+int nwchemc_params_extract_direct_esp(NWChemParams_ptr params, int *has_options,
+                                      int *recalculate, double *spacing,
+                                      int *restrain, int *restrain_hfree);
+
+/* Geometry constraints stanza → clear flag + constraint count. */
+int nwchemc_params_extract_direct_constraints(NWChemParams_ptr params,
+                                              int *has_options, int *clear,
+                                              int *constraint_count);
+
 int nwchemc_params_extract_direct_ccsd(
     NWChemParams_ptr params, int *has_options, int *maxiter, double *thresh,
     double *tol2e, int *iprt, int *max_diis, int *frozen_core,

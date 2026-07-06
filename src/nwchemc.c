@@ -1808,6 +1808,25 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &prop_esp, &prop_efield, &prop_efield_grad, &prop_edens, &prop_sdens,
           &prop_spop, &prop_shield, &prop_hyp, &prop_pol) != 0)
     return -1;
+  int cosmo_has = 0;
+  double cosmo_dielec = 0.0;
+  capn_text cosmo_solvent = {0};
+  double cosmo_rsolv = 0.0;
+  int cosmo_smd = 0;
+  if (nwchemc_params_extract_direct_cosmo(params_root, &cosmo_has, &cosmo_dielec,
+                                          &cosmo_solvent, &cosmo_rsolv,
+                                          &cosmo_smd) != 0)
+    return -1;
+  int esp_has = 0, esp_recalc = 0, esp_restrain = 0, esp_hfree = 0;
+  double esp_spacing = 0.0;
+  if (nwchemc_params_extract_direct_esp(params_root, &esp_has, &esp_recalc,
+                                        &esp_spacing, &esp_restrain,
+                                        &esp_hfree) != 0)
+    return -1;
+  int cons_has = 0, cons_clear = 0, cons_count = 0;
+  if (nwchemc_params_extract_direct_constraints(params_root, &cons_has,
+                                                &cons_clear, &cons_count) != 0)
+    return -1;
   int mp2_freeze_core = 0, mp2_freeze_virt = 0, mp2_tight = 0;
   double mp2_aotol2e = 0.0, mp2_aotol2e_fock = 0.0, mp2_backtol = 0.0;
   double mp2_fss = 0.0, mp2_fos = 0.0, mp2_scratch = 0.0;
@@ -4513,6 +4532,28 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     PROMO_PROP("prop:shldopt", prop_shield);
     PROMO_PROP("prop:hypopt", prop_hyp);
     PROMO_PROP("prop:polfromsos", prop_pol);
+
+    /* COSMO / ESP / constraints stanza direct promotion (extract_direct_*). */
+    if (cosmo_has && cosmo_dielec > 0.0)
+      PROMO_DBL("cosmo:dielec", cosmo_dielec);
+    if (cosmo_has && cosmo_rsolv > 0.0)
+      PROMO_DBL("cosmo:rsolv", cosmo_rsolv);
+    if (cosmo_has && cosmo_solvent.len > 0)
+      PROMO_STR("cosmo:solvent", cosmo_solvent);
+    if (cosmo_has && cosmo_smd)
+      PROMO_LOG("cosmo:do_cosmo_smd", 1);
+    if (esp_has && esp_recalc)
+      PROMO_LOG("esp:recalculate", 1);
+    if (esp_has && esp_spacing > 0.0)
+      PROMO_DBL("esp:spacing", esp_spacing);
+    if (esp_has && esp_restrain)
+      PROMO_LOG("esp:restrain", 1);
+    if (esp_has && esp_restrain && esp_hfree)
+      PROMO_LOG("esp:hfree", 1);
+    if (cons_has && cons_clear)
+      PROMO_LOG("constraints:clear", 1);
+    if (cons_has && cons_count > 0)
+      PROMO_INT("constraints:ncons", cons_count);
 
     if (mp2_freeze_core > 0)
       PROMO_INT("mp2:number frozen core", mp2_freeze_core);

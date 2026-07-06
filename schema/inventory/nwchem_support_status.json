@@ -17,12 +17,12 @@
   "inventory": "schema/inventory/nwchem_features.json",
   "row_count": 1115,
   "counts_by_tier": {
-    "text": 593,
-    "tested": 499,
+    "text": 587,
+    "tested": 505,
     "schema": 23
   },
-  "done_count": 499,
-  "not_done_count": 616,
+  "done_count": 505,
+  "not_done_count": 610,
   "features": [
     {
       "feature_id": "module.custom",
@@ -60,9 +60,9 @@
       "feature_id": "module.cosmo",
       "class": "module",
       "schema_path": "NWChemModuleName.cosmo",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "module.dft",
@@ -100,9 +100,9 @@
       "feature_id": "module.esp",
       "class": "module",
       "schema_path": "NWChemModuleName.esp",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "module.etrans",
@@ -388,9 +388,9 @@
       "feature_id": "module.constraints",
       "class": "module",
       "schema_path": "NWChemModuleName.constraints",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "module.cpmd",
@@ -900,9 +900,9 @@
       "feature_id": "stanza.cosmo",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.cosmo",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "stanza.smd",
@@ -916,9 +916,9 @@
       "feature_id": "stanza.constraints",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.constraints",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "stanza.vib",
@@ -948,9 +948,9 @@
       "feature_id": "stanza.esp",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.esp",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "stanza.qmd",
