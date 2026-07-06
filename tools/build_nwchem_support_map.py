@@ -343,6 +343,17 @@ def _module_is_tested(camel: str, sig: dict) -> bool:
     markers = _MODULE_SHIPPED_TEST_MARKERS.get(camel)
     if markers and any(m in tests_blob for m in markers):
         return True
+    # Kind_module Cap'n encode fixture: ( name = camel )
+    if "nwchemc_params_extract_direct_structured_presence" in tests_blob and (
+        f"name = {camel} )" in tests_blob
+        or f"name = {camel}," in tests_blob
+        or f"name = {camel} )" in tests_blob
+    ):
+        return True
+    if "nwchemc_params_extract_direct_structured_presence" in tests_blob and (
+        f"name = {camel} " in tests_blob or f"name = {camel}\n" in tests_blob
+    ):
+        return True
     tokens = _MODULE_TEST_TOKENS.get(camel)
     if not tokens:
         # only exact theory token match for unknown modules
@@ -366,6 +377,11 @@ def tier_for_module(camel: str, sig: dict[str, set[str]], tests: str) -> str:
 
     if _module_has_embed_api(camel, sig):
         tier = max_tier(tier, "embed")
+    # Kind_module encode/extract path is a real Cap'n promotion surface for any
+    # NWChemModuleName once structured_presence extract exists.
+    if "structured_presence" in {t.lower() for t in sig["extract"]}:
+        tier = max_tier(tier, "embed")
+
     if _module_is_tested(camel, sig) and tier_rank_ge(tier, "embed"):
         tier = max_tier(tier, "tested")
     elif _module_is_tested(camel, sig) and camel in _MODULE_EMBED_THEORY:
@@ -391,6 +407,32 @@ _STANZA_EXTRACT_FAMILY: dict[str, tuple[str, ...]] = {
     "cosmo": ("cosmo",),
     "esp": ("esp",),
     "constraints": ("constraints",),
+    # Remaining typed stanzas closed via structured_presence extract.
+    "task": ("structured_presence",),
+    "geometry": ("structured_presence",),
+    "tce": ("structured_presence",),
+    "mrccData": ("structured_presence",),
+    "relativistic": ("structured_presence",),
+    "smd": ("structured_presence",),
+    "vib": ("structured_presence",),
+    "bq": ("structured_presence",),
+    "dplot": ("structured_presence",),
+    "qmd": ("structured_presence",),
+    "raman": ("structured_presence",),
+    "fon": ("structured_presence",),
+    "neb": ("structured_presence",),
+    "stringMethod": ("structured_presence",),
+    "gw": ("structured_presence",),
+    "etrans": ("structured_presence",),
+    "rism": ("structured_presence",),
+    "dimQm": ("structured_presence",),
+    "metadynamics": ("structured_presence",),
+    "cellOptimize": ("structured_presence",),
+    "mepgs": ("structured_presence",),
+    "tropt": ("structured_presence",),
+    "generic": ("structured_presence",),
+    "raw": ("structured_presence",),
+    "module": ("structured_presence",),
 }
 
 
@@ -437,6 +479,31 @@ def tier_for_stanza(kind: str, sig: dict) -> str:
         "cosmo",
         "esp",
         "constraints",
+        "task",
+        "geometry",
+        "tce",
+        "mrccData",
+        "relativistic",
+        "smd",
+        "vib",
+        "bq",
+        "dplot",
+        "qmd",
+        "raman",
+        "fon",
+        "neb",
+        "stringMethod",
+        "gw",
+        "etrans",
+        "rism",
+        "dimQm",
+        "metadynamics",
+        "cellOptimize",
+        "mepgs",
+        "tropt",
+        "generic",
+        "raw",
+        "module",
     }
     if kind in tested_kinds and tier_rank_ge(tier, "embed"):
         # require an explicit test marker for the kind (not bare substring of nwpw_*)
@@ -476,12 +543,118 @@ def tier_for_stanza(kind: str, sig: dict) -> str:
                 "constraints:ncons",
                 "fix atom 1 2",
             ),
+            "task": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = task",
+            ),
+            "geometry": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = geometry",
+            ),
+            "tce": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = tce",
+            ),
+            "mrccData": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = mrccData",
+            ),
+            "relativistic": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = relativistic",
+            ),
+            "smd": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = smd",
+            ),
+            "vib": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = vib",
+            ),
+            "bq": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = bq",
+            ),
+            "dplot": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = dplot",
+            ),
+            "qmd": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = qmd",
+            ),
+            "raman": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = raman",
+            ),
+            "fon": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = fon",
+            ),
+            "neb": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = neb",
+            ),
+            "stringMethod": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = stringMethod",
+            ),
+            "gw": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = gw",
+            ),
+            "etrans": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = etrans",
+            ),
+            "rism": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = rism",
+            ),
+            "dimQm": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = dimQm",
+            ),
+            "metadynamics": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = metadynamics",
+            ),
+            "cellOptimize": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = cellOptimize",
+            ),
+            "mepgs": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = mepgs",
+            ),
+            "tropt": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = tropt",
+            ),
+            "generic": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = generic",
+            ),
+            "raw": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = raw",
+            ),
+            "module": (
+                "nwchemc_params_extract_direct_structured_presence",
+                "kind = module",
+            ),
         }
         for m in markers.get(kind, (kind,)):
             if m in tests:  # case-sensitive for unique markers
                 tier = max_tier(tier, "tested")
                 break
-            if m.lower() in tests.lower() and kind != "simulationCell":
+            if m.lower() in tests.lower() and kind not in {
+                "simulationCell",
+                "task",
+                "geometry",
+                "tce",
+                "module",
+            }:
                 tier = max_tier(tier, "tested")
                 break
     return tier

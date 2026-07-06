@@ -80,6 +80,42 @@ int nwchemc_params_extract_direct_constraints(NWChemParams_ptr params,
                                               int *has_options, int *clear,
                                               int *constraint_count);
 
+/* Presence of remaining structured InputStanza kinds + Kind_module enum IDs.
+ * module_ids[] holds NWChemModuleName values from kind=module stanzas. */
+enum { NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES = 128 };
+typedef struct NwchemcStructuredPresence {
+  int generic;
+  int raw;
+  int task;
+  int geometry;
+  int tce;
+  int mrcc_data;
+  int relativistic;
+  int smd;
+  int vib;
+  int bq;
+  int dplot;
+  int qmd;
+  int raman;
+  int fon;
+  int neb;
+  int string_method;
+  int gw;
+  int etrans;
+  int rism;
+  int dimqm;
+  int metadynamics;
+  int cell_optimize;
+  int mepgs;
+  int tropt;
+  int module_kind; /* kind=module present */
+  int module_ids[NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES];
+  int module_id_count;
+} NwchemcStructuredPresence;
+
+int nwchemc_params_extract_direct_structured_presence(
+    NWChemParams_ptr params, NwchemcStructuredPresence *out);
+
 int nwchemc_params_extract_direct_ccsd(
     NWChemParams_ptr params, int *has_options, int *maxiter, double *thresh,
     double *tol2e, int *iprt, int *max_diis, int *frozen_core,

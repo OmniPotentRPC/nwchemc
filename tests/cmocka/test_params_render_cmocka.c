@@ -17,6 +17,7 @@ static const char *g_config_options_path = NULL;
 static const char *g_structured_path = NULL;
 static const char *g_basis_options_path = NULL;
 static const char *g_new_stanzas_path = NULL;
+static const char *g_all_text_modules_path = NULL;
 
 static unsigned char *read_file(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
@@ -768,10 +769,91 @@ static void test_render_parity_batch_stanzas(void **state) {
   free(message);
 }
 
+/* Cap'n-encode remaining text modules (Kind_module) + leftover stanzas; extract. */
+static void test_extract_all_text_modules_structured_presence(void **state) {
+  (void)state;
+  if (!g_all_text_modules_path || !g_all_text_modules_path[0])
+    skip();
+
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_all_text_modules_path, &message_size);
+  assert_non_null(message);
+
+  struct capn arena;
+  NWChemParams_ptr params_root;
+  assert_int_equal(
+      nwchemc_params_root(message, message_size, &arena, &params_root), 0);
+
+  NwchemcStructuredPresence presence;
+  assert_int_equal(
+      nwchemc_params_extract_direct_structured_presence(params_root, &presence),
+      0);
+
+  /* Typed stanzas encoded in the fixture. */
+  assert_int_equal(presence.task, 1);
+  assert_int_equal(presence.geometry, 1);
+  assert_int_equal(presence.tce, 1);
+  assert_int_equal(presence.mrcc_data, 1);
+  assert_int_equal(presence.generic, 1);
+  assert_int_equal(presence.raw, 1);
+  assert_int_equal(presence.bq, 1);
+  assert_int_equal(presence.smd, 1);
+  assert_int_equal(presence.vib, 1);
+  assert_int_equal(presence.dplot, 1);
+  assert_int_equal(presence.qmd, 1);
+  assert_int_equal(presence.raman, 1);
+  assert_int_equal(presence.fon, 1);
+  assert_int_equal(presence.neb, 1);
+  assert_int_equal(presence.string_method, 1);
+  assert_int_equal(presence.gw, 1);
+  assert_int_equal(presence.etrans, 1);
+  assert_int_equal(presence.rism, 1);
+  assert_int_equal(presence.dimqm, 1);
+  assert_int_equal(presence.metadynamics, 1);
+  assert_int_equal(presence.cell_optimize, 1);
+  assert_int_equal(presence.mepgs, 1);
+  assert_int_equal(presence.tropt, 1);
+  assert_int_equal(presence.relativistic, 1);
+  assert_int_equal(presence.module_kind, 1);
+  /* All remaining text modules encoded as Kind_module. */
+  assert_true(presence.module_id_count >= 60);
+
+  /* Spot-check a few enum IDs made it through Cap'n decode (not hard-coded
+   * expected energy — only that the shipped extract saw the encoded names). */
+  int saw_python = 0, saw_argos = 0, saw_xtb = 0, saw_cosmo_mod = 0;
+  for (int i = 0; i < presence.module_id_count; ++i) {
+    if (presence.module_ids[i] == (int)NWChemModuleName_python)
+      saw_python = 1;
+    if (presence.module_ids[i] == (int)NWChemModuleName_argos)
+      saw_argos = 1;
+    if (presence.module_ids[i] == (int)NWChemModuleName_xtb)
+      saw_xtb = 1;
+    if (presence.module_ids[i] == (int)NWChemModuleName_cosmo)
+      saw_cosmo_mod = 1;
+  }
+  assert_int_equal(saw_python, 1);
+  assert_int_equal(saw_argos, 1);
+  assert_int_equal(saw_xtb, 1);
+  (void)saw_cosmo_mod; /* cosmo may already be tested via dedicated extract */
+
+  /* Render still works for a Kind_module block. */
+  char blocks[NWCHEMC_BLOCKS];
+  assert_int_equal(
+      nwchemc_params_render_input_blocks(params_root, blocks, sizeof(blocks)),
+      0);
+  assert_render_contains(blocks, "python\n");
+  assert_render_contains(blocks, "argos\n");
+  assert_render_contains(blocks, "xtb\n");
+
+  nwchemc_params_release(&arena);
+  free(message);
+}
+
 int main(int argc, char **argv) {
   if (argc < 2) {
     fprintf(stderr,
-            "usage: %s CONFIG_OPTIONS_BIN [STRUCTURED_BIN] [BASIS_OPTIONS_BIN]\n",
+            "usage: %s CONFIG_OPTIONS_BIN [STRUCTURED_BIN] [BASIS_OPTIONS_BIN] "
+            "[NEW_STANZAS_BIN] [ALL_TEXT_MODULES_BIN]\n",
             argv[0]);
     return 2;
   }
@@ -779,6 +861,7 @@ int main(int argc, char **argv) {
   g_structured_path = argc >= 3 ? argv[2] : NULL;
   g_basis_options_path = argc >= 4 ? argv[3] : NULL;
   g_new_stanzas_path = argc >= 5 ? argv[4] : NULL;
+  g_all_text_modules_path = argc >= 6 ? argv[5] : NULL;
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_render_config_options_stanzas),
@@ -791,6 +874,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_params_root_rejects_empty),
       cmocka_unit_test(test_extract_basis_options_enums_and_directives),
       cmocka_unit_test(test_render_parity_batch_stanzas),
+      cmocka_unit_test(test_extract_all_text_modules_structured_presence),
   };
   return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -5516,6 +5516,110 @@ int nwchemc_params_extract_direct_constraints(NWChemParams_ptr params,
   return 0;
 }
 
+int nwchemc_params_extract_direct_structured_presence(
+    NWChemParams_ptr params, NwchemcStructuredPresence *out) {
+  if (params.p.type == CAPN_NULL || !out)
+    return -1;
+  memset(out, 0, sizeof(*out));
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    switch (stanza.kind) {
+    case NWChemInputStanza_Kind_generic:
+      out->generic = 1;
+      break;
+    case NWChemInputStanza_Kind_raw:
+      out->raw = 1;
+      break;
+    case NWChemInputStanza_Kind_task:
+      out->task = 1;
+      break;
+    case NWChemInputStanza_Kind_geometry:
+      out->geometry = 1;
+      break;
+    case NWChemInputStanza_Kind_tce:
+      out->tce = 1;
+      break;
+    case NWChemInputStanza_Kind_mrccData:
+      out->mrcc_data = 1;
+      break;
+    case NWChemInputStanza_Kind_relativistic:
+      out->relativistic = 1;
+      break;
+    case NWChemInputStanza_Kind_smd:
+      out->smd = 1;
+      break;
+    case NWChemInputStanza_Kind_vib:
+      out->vib = 1;
+      break;
+    case NWChemInputStanza_Kind_bq:
+      out->bq = 1;
+      break;
+    case NWChemInputStanza_Kind_dplot:
+      out->dplot = 1;
+      break;
+    case NWChemInputStanza_Kind_qmd:
+      out->qmd = 1;
+      break;
+    case NWChemInputStanza_Kind_raman:
+      out->raman = 1;
+      break;
+    case NWChemInputStanza_Kind_fon:
+      out->fon = 1;
+      break;
+    case NWChemInputStanza_Kind_neb:
+      out->neb = 1;
+      break;
+    case NWChemInputStanza_Kind_stringMethod:
+      out->string_method = 1;
+      break;
+    case NWChemInputStanza_Kind_gw:
+      out->gw = 1;
+      break;
+    case NWChemInputStanza_Kind_etrans:
+      out->etrans = 1;
+      break;
+    case NWChemInputStanza_Kind_rism:
+      out->rism = 1;
+      break;
+    case NWChemInputStanza_Kind_dimQm:
+      out->dimqm = 1;
+      break;
+    case NWChemInputStanza_Kind_metadynamics:
+      out->metadynamics = 1;
+      break;
+    case NWChemInputStanza_Kind_cellOptimize:
+      out->cell_optimize = 1;
+      break;
+    case NWChemInputStanza_Kind_mepgs:
+      out->mepgs = 1;
+      break;
+    case NWChemInputStanza_Kind_tropt:
+      out->tropt = 1;
+      break;
+    case NWChemInputStanza_Kind_module:
+      out->module_kind = 1;
+      if (stanza._module.p.type != CAPN_NULL &&
+          out->module_id_count < NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES) {
+        struct NWChemModuleStanza mod;
+        read_NWChemModuleStanza(&mod, stanza._module);
+        out->module_ids[out->module_id_count++] = (int)mod.name;
+      }
+      break;
+    default:
+      break;
+    }
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_scf(NWChemParams_ptr params, int *has_options,
                                       int *maxiter, double *thresh,
                                       double *tol2e, capn_text *wavefunction_type,
