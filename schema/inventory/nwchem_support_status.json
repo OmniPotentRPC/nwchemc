@@ -17,12 +17,12 @@
   "inventory": "schema/inventory/nwchem_features.json",
   "row_count": 1115,
   "counts_by_tier": {
-    "tested": 597,
-    "text": 495,
+    "tested": 613,
+    "text": 479,
     "schema": 23
   },
-  "done_count": 597,
-  "not_done_count": 518,
+  "done_count": 613,
+  "not_done_count": 502,
   "features": [
     {
       "feature_id": "module.custom",
@@ -6084,129 +6084,129 @@
       "feature_id": "field.CommonMethodSpec.xcFunctionals",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.xcFunctionals",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.basisSet",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.basisSet",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.planewaveCutoffEv",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.planewaveCutoffEv",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.charge",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.charge",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.spinMultiplicity",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.spinMultiplicity",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.scfEnergyToleranceEv",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.scfEnergyToleranceEv",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.scfMaxIterations",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.scfMaxIterations",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.kMesh",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.kMesh",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.smearing",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.smearing",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.vanDerWaalsMethod",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.vanDerWaalsMethod",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.relativityMethod",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.relativityMethod",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.vanDerWaalsS6",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.vanDerWaalsS6",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.kind",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.kind",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.CommonMethodSpec.widthEv",
       "class": "schema_field",
       "schema_path": "CommonMethodSpec.widthEv",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.Smearing.kind",
       "class": "schema_field",
       "schema_path": "Smearing.kind",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.Smearing.widthEv",
       "class": "schema_field",
       "schema_path": "Smearing.widthEv",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "tested",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "field.MetatomicParams.modelPath",

@@ -1,0 +1,4 @@
+( common = (
+    basisSet = "planewave",
+    planewaveCutoffEv = 27.211386245988,
+    kMesh = [4, 3, 2] ) )

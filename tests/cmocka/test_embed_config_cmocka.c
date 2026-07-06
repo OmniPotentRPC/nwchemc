@@ -50,6 +50,7 @@ static const char *g_force_step_state_path = NULL;
 static const char *g_tce_methods_path = NULL;
 static const char *g_ccsd_energy_path = NULL;
 static const char *g_common_overlay_path = NULL;
+static const char *g_common_planewave_path = NULL;
 static const char *g_common_reject_path = NULL;
 
 static char g_basis[64];
@@ -75,6 +76,10 @@ static int g_set_string_count = 0;
 static int g_typed_set_count = 0;
 static int g_brillouin_dos_zone_count = 0;
 static int g_set_config_calls = 0;
+static int g_config_charge = 0;
+static int g_config_mult = 0;
+static int g_config_has_charge = 0;
+static int g_config_has_mult = 0;
 static int g_reset_rtdb_calls = 0;
 static int g_set_dft_direct_calls = 0;
 static int g_set_basis_direct_calls = 0;
@@ -669,9 +674,11 @@ int nwchemc_embed_set_config(const char *basis, int basis_len,
                              const int *charge, const int *mult,
                              const char *input_blocks,
                              int input_blocks_len) {
-  (void)charge;
-  (void)mult;
   ++g_set_config_calls;
+  g_config_has_charge = charge != NULL;
+  g_config_has_mult = mult != NULL;
+  g_config_charge = charge ? *charge : 0;
+  g_config_mult = mult ? *mult : 0;
   copy_span(g_basis, sizeof(g_basis), basis, basis_len);
   copy_span(g_theory, sizeof(g_theory), theory, theory_len);
   copy_span(g_scf_type, sizeof(g_scf_type), scf_type, scf_len);
@@ -1410,6 +1417,10 @@ static void reset_embed_captures(void) {
   g_set_string_count = 0;
   g_typed_set_count = 0;
   g_set_config_calls = 0;
+  g_config_charge = 0;
+  g_config_mult = 0;
+  g_config_has_charge = 0;
+  g_config_has_mult = 0;
   g_reset_rtdb_calls = 0;
   g_set_dft_direct_calls = 0;
   g_set_scf_direct_calls = 0;
@@ -2951,6 +2962,10 @@ static void test_common_overlay_lowers_before_native(void **state) {
   assert_int_equal(g_set_config_calls, 1);
   assert_string_equal(g_basis, "6-31g");
   assert_string_equal(g_theory, "dft");
+  assert_int_equal(g_config_has_charge, 1);
+  assert_int_equal(g_config_has_mult, 1);
+  assert_int_equal(g_config_charge, 1);
+  assert_int_equal(g_config_mult, 2);
   assert_string_equal(g_dft_xc, "xpbe96 cpbe96");
   assert_int_equal(g_dft_smearing_enabled, 1);
   assert_true(fabs(g_dft_smear_sigma_hartree - 0.01) < 1e-9);
@@ -2991,6 +3006,31 @@ static void test_common_overlay_lowers_before_native(void **state) {
       found_zora = 1;
   }
   assert_int_equal(found_zora, 1);
+  free(config);
+}
+
+static void test_common_overlay_planewave_kmesh_and_cutoff(void **state) {
+  (void)state;
+  reset_embed_captures();
+  size_t config_size = 0;
+  unsigned char *config = read_file(g_common_planewave_path, &config_size);
+  assert_non_null(config);
+
+  assert_int_equal(nwchemc_configure(config, config_size), 0);
+  assert_int_equal(g_set_config_calls, 1);
+  assert_string_equal(g_basis, "");
+  assert_string_equal(g_theory, "band");
+  assert_int_equal(g_set_nwpw_direct_calls, 1);
+  assert_int_equal(g_nwpw_has_options, 1);
+  /* planewaveCutoffEv = 1 Ha => wcut=1, ecut=2*wcut. */
+  assert_true(fabs(g_nwpw_wavefunction_cutoff - 1.0) < 1e-12);
+  assert_true(fabs(g_nwpw_energy_cutoff - 2.0) < 1e-12);
+  assert_int_equal(g_set_brillouin_zone_calls, 1);
+  assert_int_equal(g_brillouin_has_options, 1);
+  assert_string_equal(g_brillouin_zone_name, "zone_default");
+  assert_int_equal(g_brillouin_monkhorst_pack[0], 4);
+  assert_int_equal(g_brillouin_monkhorst_pack[1], 3);
+  assert_int_equal(g_brillouin_monkhorst_pack[2], 2);
   free(config);
 }
 
@@ -7281,6 +7321,8 @@ int main(int argc, char **argv) {
   g_brillouin_dos_grid_default_path = fixture_path(argv[1], "nwchem_params_brillouin_dos_grid_default.bin");
   g_ccsd_energy_path = fixture_path(argv[1], "nwchem_params_ccsd_energy.bin");
   g_common_overlay_path = fixture_path(argv[1], "potential_config_common_overlay.bin");
+  g_common_planewave_path =
+      fixture_path(argv[1], "potential_config_common_planewave.bin");
   g_common_reject_path = fixture_path(argv[1], "potential_config_common_reject.bin");
 
   const struct CMUnitTest tests[] = {
@@ -7294,6 +7336,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test_embed_config_promotes_tce_method_tokens),
       cmocka_unit_test(test_embed_config_uses_direct_scf_values),
       cmocka_unit_test(test_common_overlay_lowers_before_native),
+      cmocka_unit_test(test_common_overlay_planewave_kmesh_and_cutoff),
       cmocka_unit_test(test_common_overlay_rejects_unlowered_fields),
       cmocka_unit_test(test_configure_accepts_potential_config_nwchem),
       cmocka_unit_test(test_engine_path_is_rejected_before_embed_config),

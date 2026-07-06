@@ -5650,6 +5650,10 @@ static int apply_common_to_embed(CommonMethodSpec_ptr common_root) {
   memset(&c, 0, sizeof(c));
   read_CommonMethodSpec(&c, common_root);
 
+  /* Resolve list pointers in-place; common_list32_len() takes a copy and must
+   * not be the only resolve before capn_get32 on c.kMesh. */
+  capn_resolve(&c.kMesh.p);
+  capn_resolve(&c.xcFunctionals);
   int kmesh_len = common_list32_len(c.kMesh);
   if (kmesh_len != 0 && kmesh_len != 3) {
     nwchemc_store_error(

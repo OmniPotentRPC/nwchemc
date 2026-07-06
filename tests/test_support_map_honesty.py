@@ -75,6 +75,47 @@ def main() -> int:
     for fid, snip in required_snippets.items():
         assert snip in blob, (fid, snip)
 
+    # CommonMethodSpec (NOMAD overlay): every inventory field is tested via
+    # potential_config_common_overlay / planewave embed-config paths.
+    common_fields = (
+        "field.CommonMethodSpec.xcFunctionals",
+        "field.CommonMethodSpec.basisSet",
+        "field.CommonMethodSpec.planewaveCutoffEv",
+        "field.CommonMethodSpec.charge",
+        "field.CommonMethodSpec.spinMultiplicity",
+        "field.CommonMethodSpec.scfEnergyToleranceEv",
+        "field.CommonMethodSpec.scfMaxIterations",
+        "field.CommonMethodSpec.kMesh",
+        "field.CommonMethodSpec.smearing",
+        "field.CommonMethodSpec.vanDerWaalsMethod",
+        "field.CommonMethodSpec.relativityMethod",
+        "field.CommonMethodSpec.vanDerWaalsS6",
+        "field.CommonMethodSpec.kind",
+        "field.CommonMethodSpec.widthEv",
+    )
+    for fid in common_fields:
+        assert fid in by, fid
+        assert by[fid]["support_tier"] == "tested", (fid, by[fid]["support_tier"])
+        assert by[fid]["done"] is True
+    common_snippets = {
+        "field.CommonMethodSpec.xcFunctionals": 'assert_string_equal(g_dft_xc, "xpbe96 cpbe96")',
+        "field.CommonMethodSpec.basisSet": 'assert_string_equal(g_basis, "6-31g")',
+        "field.CommonMethodSpec.planewaveCutoffEv": "test_common_overlay_planewave_kmesh_and_cutoff",
+        "field.CommonMethodSpec.charge": "assert_int_equal(g_config_charge, 1)",
+        "field.CommonMethodSpec.spinMultiplicity": "assert_int_equal(g_config_mult, 2)",
+        "field.CommonMethodSpec.scfEnergyToleranceEv": 'strcmp(g_typed_set_keys[i], "dft:e_conv")',
+        "field.CommonMethodSpec.scfMaxIterations": "assert_int_equal(g_scf_maxiter, 42)",
+        "field.CommonMethodSpec.kMesh": "g_brillouin_monkhorst_pack",
+        "field.CommonMethodSpec.smearing": "assert_int_equal(g_dft_smearing_enabled, 1)",
+        "field.CommonMethodSpec.vanDerWaalsMethod": 'strcmp(g_typed_set_keys[i], "dft:ivdw")',
+        "field.CommonMethodSpec.relativityMethod": 'strcmp(g_typed_set_keys[i], "zora")',
+        "field.CommonMethodSpec.vanDerWaalsS6": 'strcmp(g_typed_set_keys[i], "dft:vdw")',
+        "field.CommonMethodSpec.kind": "smearing = (kind = fermi",
+        "field.CommonMethodSpec.widthEv": "widthEv = 0.27211386245988",
+    }
+    for fid, snip in common_snippets.items():
+        assert snip in blob, (fid, snip)
+
     print("support_map_honesty_ok")
     return 0
 

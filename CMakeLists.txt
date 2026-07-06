@@ -530,6 +530,13 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     potential_config_common_overlay.bin
   )
   nwchemc_add_encoded_fixture(
+    potential_config_common_planewave_bin
+    NWCHEMC_COMMON_PLANEWAVE_CONFIG_BIN
+    PotentialConfig
+    potential_config_common_planewave.capnp.txt
+    potential_config_common_planewave.bin
+  )
+  nwchemc_add_encoded_fixture(
     potential_config_common_reject_bin
     NWCHEMC_COMMON_REJECT_CONFIG_BIN
     PotentialConfig
@@ -1063,6 +1070,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     nwchem_brillouin_dos_grid_default_params_bin
     nwchem_ccsd_energy_params_bin
     potential_config_common_overlay_bin
+    potential_config_common_planewave_bin
     potential_config_common_reject_bin
   )
   add_test(NAME embed-config-cmocka

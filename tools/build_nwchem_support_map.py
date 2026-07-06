@@ -697,6 +697,71 @@ def tier_for_params_field(name: str, sig: dict) -> str:
     return tier
 
 
+# CommonMethodSpec / nested Smearing fields lowered by apply_common_to_embed.
+# Per-field markers must appear in shipped tests (not map-only retags).
+_COMMON_METHOD_FIELD_MARKERS: dict[str, tuple[str, ...]] = {
+    "xcFunctionals": (
+        'assert_string_equal(g_dft_xc, "xpbe96 cpbe96")',
+        "xcFunctionals =",
+    ),
+    "basisSet": (
+        'assert_string_equal(g_basis, "6-31g")',
+        'basisSet = "6-31g"',
+    ),
+    "planewaveCutoffEv": (
+        "test_common_overlay_planewave_kmesh_and_cutoff",
+        "planewaveCutoffEv =",
+        "g_nwpw_wavefunction_cutoff",
+    ),
+    "charge": (
+        "assert_int_equal(g_config_charge, 1)",
+        "charge = 1",
+    ),
+    "spinMultiplicity": (
+        "assert_int_equal(g_config_mult, 2)",
+        "spinMultiplicity = 2",
+    ),
+    "scfEnergyToleranceEv": (
+        'strcmp(g_typed_set_keys[i], "dft:e_conv")',
+        "scfEnergyToleranceEv =",
+    ),
+    "scfMaxIterations": (
+        "assert_int_equal(g_scf_maxiter, 42)",
+        "scfMaxIterations = 42",
+    ),
+    "kMesh": (
+        "test_common_overlay_planewave_kmesh_and_cutoff",
+        "g_brillouin_monkhorst_pack",
+        "kMesh =",
+    ),
+    "smearing": (
+        "assert_int_equal(g_dft_smearing_enabled, 1)",
+        "smearing = (kind = fermi",
+    ),
+    "vanDerWaalsMethod": (
+        'strcmp(g_typed_set_keys[i], "dft:ivdw")',
+        'vanDerWaalsMethod = "DFT-D3"',
+    ),
+    "relativityMethod": (
+        'strcmp(g_typed_set_keys[i], "zora")',
+        'relativityMethod = "ZORA"',
+    ),
+    "vanDerWaalsS6": (
+        'strcmp(g_typed_set_keys[i], "dft:vdw")',
+        "vanDerWaalsS6 = 1.05",
+    ),
+    # Nested Smearing members (inventory may attribute under CommonMethodSpec).
+    "kind": (
+        "smearing = (kind = fermi",
+        "assert_int_equal(g_dft_smearing_enabled, 1)",
+    ),
+    "widthEv": (
+        "widthEv = 0.27211386245988",
+        "g_dft_smear_sigma_hartree",
+    ),
+}
+
+
 def tier_for_schema_field(struct: str, name: str, sig: dict) -> str:
     tier = "schema"
     blob = sig["params"] + sig["nwchemc"] + sig["embed"]
@@ -704,6 +769,23 @@ def tier_for_schema_field(struct: str, name: str, sig: dict) -> str:
     # struct referenced in render/extract
     if struct in blob or name in blob:
         tier = max_tier(tier, "text")
+    # NOMAD CommonMethodSpec overlay: full embed lowering + field-level tests.
+    if struct in {"CommonMethodSpec", "Smearing"}:
+        tier = max_tier(tier, "text")
+        if "apply_common_to_embed" in sig["nwchemc"]:
+            tier = max_tier(tier, "embed")
+        markers = _COMMON_METHOD_FIELD_MARKERS.get(name, ())
+        if markers and all(m in tests for m in markers):
+            if tier_rank_ge(tier, "embed"):
+                tier = max_tier(tier, "tested")
+        elif (
+            "test_common_overlay_lowers_before_native" in tests
+            and name in tests
+            and tier_rank_ge(tier, "embed")
+        ):
+            # Field mentioned in overlay fixture path only => still embed.
+            pass
+        return tier
     # stanza structs with extract
     stanza_structs = {
         "NWChemDftStanza": "dft",

@@ -9674,9 +9674,9 @@
       "type": "List(Text)",
       "role": "CommonMethodSpec.xcFunctionals Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.basisSet",
@@ -9687,9 +9687,9 @@
       "type": "Text = \"\"",
       "role": "CommonMethodSpec.basisSet Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.planewaveCutoffEv",
@@ -9700,9 +9700,9 @@
       "type": "Float64 = 0.0",
       "role": "CommonMethodSpec.planewaveCutoffEv Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.charge",
@@ -9713,9 +9713,9 @@
       "type": "Int32 = 0",
       "role": "CommonMethodSpec.charge Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.spinMultiplicity",
@@ -9726,9 +9726,9 @@
       "type": "Int32 = 0",
       "role": "CommonMethodSpec.spinMultiplicity Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.scfEnergyToleranceEv",
@@ -9739,9 +9739,9 @@
       "type": "Float64 = 0.0",
       "role": "CommonMethodSpec.scfEnergyToleranceEv Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.scfMaxIterations",
@@ -9752,9 +9752,9 @@
       "type": "Int32 = 0",
       "role": "CommonMethodSpec.scfMaxIterations Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.kMesh",
@@ -9765,9 +9765,9 @@
       "type": "List(Int32)",
       "role": "CommonMethodSpec.kMesh Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.smearing",
@@ -9778,9 +9778,9 @@
       "type": "Smearing",
       "role": "CommonMethodSpec.smearing Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.vanDerWaalsMethod",
@@ -9791,9 +9791,9 @@
       "type": "Text = \"\"",
       "role": "CommonMethodSpec.vanDerWaalsMethod Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.relativityMethod",
@@ -9804,9 +9804,9 @@
       "type": "Text = \"\"",
       "role": "CommonMethodSpec.relativityMethod Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.vanDerWaalsS6",
@@ -9817,9 +9817,9 @@
       "type": "Float64 = 0.0",
       "role": "CommonMethodSpec.vanDerWaalsS6 Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.kind",
@@ -9830,9 +9830,9 @@
       "type": "Kind = none",
       "role": "CommonMethodSpec.kind Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.CommonMethodSpec.widthEv",
@@ -9843,9 +9843,9 @@
       "type": "Float64 = 0.0",
       "role": "CommonMethodSpec.widthEv Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.Smearing.kind",
@@ -9856,9 +9856,9 @@
       "type": "Kind = none",
       "role": "Smearing.kind Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.Smearing.widthEv",
@@ -9869,9 +9869,9 @@
       "type": "Float64 = 0.0",
       "role": "Smearing.widthEv Cap'n Proto field",
       "stub_applicable": true,
-      "embed_applicable": false,
+      "embed_applicable": true,
       "driver_class": "schema_field",
-      "support_tier": "text"
+      "support_tier": "tested"
     },
     {
       "feature_id": "field.MetatomicParams.modelPath",
