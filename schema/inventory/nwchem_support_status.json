@@ -17,13 +17,13 @@
   "inventory": "schema/inventory/nwchem_features.json",
   "row_count": 1115,
   "counts_by_tier": {
-    "text": 554,
-    "tested": 531,
-    "embed": 7,
+    "text": 593,
+    "embed": 9,
+    "tested": 490,
     "schema": 23
   },
-  "done_count": 538,
-  "not_done_count": 577,
+  "done_count": 499,
+  "not_done_count": 616,
   "features": [
     {
       "feature_id": "module.custom",
@@ -37,7 +37,7 @@
       "feature_id": "module.basis",
       "class": "module",
       "schema_path": "NWChemModuleName.basis",
-      "support_tier": "tested",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },
@@ -93,7 +93,7 @@
       "feature_id": "module.driver",
       "class": "module",
       "schema_path": "NWChemModuleName.driver",
-      "support_tier": "tested",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },
@@ -117,7 +117,7 @@
       "feature_id": "module.geometry",
       "class": "module",
       "schema_path": "NWChemModuleName.geometry",
-      "support_tier": "tested",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },
@@ -133,7 +133,7 @@
       "feature_id": "module.hessian",
       "class": "module",
       "schema_path": "NWChemModuleName.hessian",
-      "support_tier": "tested",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },
@@ -149,17 +149,17 @@
       "feature_id": "module.md",
       "class": "module",
       "schema_path": "NWChemModuleName.md",
-      "support_tier": "embed",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.mm",
       "class": "module",
       "schema_path": "NWChemModuleName.mm",
-      "support_tier": "embed",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.mp2",
@@ -181,7 +181,7 @@
       "feature_id": "module.nwpw",
       "class": "module",
       "schema_path": "NWChemModuleName.nwpw",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -189,7 +189,7 @@
       "feature_id": "module.property",
       "class": "module",
       "schema_path": "NWChemModuleName.property",
-      "support_tier": "tested",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },
@@ -277,9 +277,9 @@
       "feature_id": "module.vscf",
       "class": "module",
       "schema_path": "NWChemModuleName.vscf",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.xtb",
@@ -349,7 +349,7 @@
       "feature_id": "module.brillouinZone",
       "class": "module",
       "schema_path": "NWChemModuleName.brillouinZone",
-      "support_tier": "tested",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },
@@ -397,9 +397,9 @@
       "feature_id": "module.cpmd",
       "class": "module",
       "schema_path": "NWChemModuleName.cpmd",
-      "support_tier": "embed",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.cpsd",
@@ -413,9 +413,9 @@
       "feature_id": "module.ddscf",
       "class": "module",
       "schema_path": "NWChemModuleName.ddscf",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.diana",
@@ -533,9 +533,9 @@
       "feature_id": "module.occup",
       "class": "module",
       "schema_path": "NWChemModuleName.occup",
-      "support_tier": "embed",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.prepare",
@@ -565,33 +565,33 @@
       "feature_id": "module.pspw",
       "class": "module",
       "schema_path": "NWChemModuleName.pspw",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.pspwDplot",
       "class": "module",
       "schema_path": "NWChemModuleName.pspwDplot",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.pspwQmmm",
       "class": "module",
       "schema_path": "NWChemModuleName.pspwQmmm",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.pspwWannier",
       "class": "module",
       "schema_path": "NWChemModuleName.pspwWannier",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.qmdNamd",
@@ -621,15 +621,15 @@
       "feature_id": "module.rtTddft",
       "class": "module",
       "schema_path": "NWChemModuleName.rtTddft",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.simulationCell",
       "class": "module",
       "schema_path": "NWChemModuleName.simulationCell",
-      "support_tier": "tested",
+      "support_tier": "embed",
       "embed_applicable": true,
       "done": true
     },
@@ -637,9 +637,9 @@
       "feature_id": "module.string",
       "class": "module",
       "schema_path": "NWChemModuleName.string",
-      "support_tier": "embed",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.tamd",
@@ -669,9 +669,9 @@
       "feature_id": "module.tceMrcc",
       "class": "module",
       "schema_path": "NWChemModuleName.tceMrcc",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.tddft",
@@ -685,9 +685,9 @@
       "feature_id": "module.tddftGradient",
       "class": "module",
       "schema_path": "NWChemModuleName.tddftGradient",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "module.tropt",
@@ -733,9 +733,9 @@
       "feature_id": "stanza.generic",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.generic",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.dft",
@@ -757,17 +757,17 @@
       "feature_id": "stanza.raw",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.raw",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.module",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.module",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.pseudopotential",
@@ -821,9 +821,9 @@
       "feature_id": "stanza.geometry",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.geometry",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.nwpw",
@@ -845,9 +845,9 @@
       "feature_id": "stanza.tce",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.tce",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.mrccData",
@@ -869,9 +869,9 @@
       "feature_id": "stanza.simulationCell",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.simulationCell",
-      "support_tier": "text",
-      "embed_applicable": false,
-      "done": false
+      "support_tier": "embed",
+      "embed_applicable": true,
+      "done": true
     },
     {
       "feature_id": "stanza.mp2",
@@ -893,169 +893,169 @@
       "feature_id": "stanza.relativistic",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.relativistic",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.cosmo",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.cosmo",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.smd",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.smd",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.constraints",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.constraints",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.vib",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.vib",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.bq",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.bq",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.dplot",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.dplot",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.esp",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.esp",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.qmd",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.qmd",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.raman",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.raman",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.fon",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.fon",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.neb",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.neb",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.stringMethod",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.stringMethod",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.gw",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.gw",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.etrans",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.etrans",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.rism",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.rism",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.dimQm",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.dimQm",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.metadynamics",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.metadynamics",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.cellOptimize",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.cellOptimize",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.mepgs",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.mepgs",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "stanza.tropt",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.tropt",
-      "support_tier": "tested",
-      "embed_applicable": true,
-      "done": true
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
     },
     {
       "feature_id": "params.basis",

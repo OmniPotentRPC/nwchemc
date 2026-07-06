@@ -121,6 +121,10 @@ def scan_signals(src: dict[str, str]) -> dict[str, set[str]]:
         "inputStanzas",
         "nwchemRoot",
     }
+    has_simulation_cell_direct = (
+        "append_simulation_cell_direct" in nwchemc
+        or "Kind_simulationCell" in nwchemc
+    )
     # params always partially embed via set_config
     return {
         "render_stanzas": render_stanzas,
@@ -133,188 +137,251 @@ def scan_signals(src: dict[str, str]) -> dict[str, set[str]]:
         "params": params,
         "nwchemc": nwchemc,
         "embed": embed,
+        "has_simulation_cell_direct": has_simulation_cell_direct,
     }
+
+
+def _to_snake(camel: str) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", camel).lower()
+
+
+def _token_matches_family(token: str, family: str) -> bool:
+    """Exact family match: token == family or token starts with family + '_'."""
+    t = token.lower()
+    f = family.lower()
+    return t == f or t.startswith(f + "_")
+
+
+# Modules with dedicated extract_direct_* / embed_set_* families (exact prefix).
+# Do NOT use bare substring: "md" must not match nwpw_cpmd_grid, "mm" not fmm, etc.
+_MODULE_EXTRACT_FAMILY: dict[str, tuple[str, ...]] = {
+    "scf": ("scf",),
+    "dft": ("dft",),
+    "mp2": ("mp2",),
+    "ccsd": ("ccsd",),
+    "tddft": ("tddft",),
+    "nwpw": ("nwpw",),
+    "driver": ("driver",),
+    "property": ("property",),
+    "basis": ("basis",),
+    "brillouinZone": ("brillouin",),
+    "pseudopotential": ("pseudopotential", "pseudopotentials"),
+    # set stanza is not a module; module.set does not exist
+}
+
+# Modules run via embed cfg_theory / legacy eval (even without a dedicated extract_*).
+_MODULE_EMBED_THEORY: frozenset[str] = frozenset(
+    {
+        "scf",
+        "dft",
+        "mp2",
+        "rimp2",
+        "ccsd",
+        "tce",
+        "mcscf",
+        "selci",
+        "sodft",
+        "tddft",
+        "nwpw",
+        "band",
+    }
+)
+
+# Task-matrix / probe theory tokens that mean this module was exercised.
+_MODULE_TEST_TOKENS: dict[str, frozenset[str]] = {
+    "scf": frozenset({"scf"}),
+    "dft": frozenset({"dft", "sodft"}),
+    "sodft": frozenset({"sodft"}),
+    "mp2": frozenset({"mp2", "direct_mp2"}),
+    "rimp2": frozenset({"rimp2"}),
+    "ccsd": frozenset({"ccsd", "ccsd_t"}),
+    "tce": frozenset(
+        {
+            "tce",
+            "tce_cc2",
+            "tce_ccd",
+            "tce_ccsdt",
+            "tce_ccsdt_bt",
+            "tce_ccsdt_iter",
+            "tce_cisd",
+            "tce_cisdt",
+            "tce_cr_ccsdt",
+            "tce_lambda",
+            "tce_lccd",
+            "tce_lccsd",
+            "tce_mbpt2",
+            "tce_mbpt3",
+            "tce_mbpt4",
+            "tce_mrcc",
+        }
+    ),
+    "mcscf": frozenset({"mcscf"}),
+    "selci": frozenset({"selci"}),
+    "tddft": frozenset({"tddft"}),
+    "nwpw": frozenset({"nwpw", "pspw", "band"}),
+    "band": frozenset({"band"}),
+    "basis": frozenset({"basis", "sto-3g", "6-31g"}),  # geometry/basis probes
+    "driver": frozenset({"optimize", "driver"}),
+    "property": frozenset({"property", "dipole", "quadrupole"}),
+    "hessian": frozenset({"hessian"}),
+    "geometry": frozenset({"geometry", "optimize"}),
+}
+
+
+def _module_has_embed_api(camel: str, sig: dict) -> bool:
+    families = _MODULE_EXTRACT_FAMILY.get(camel, ())
+    tokens = {t.lower() for t in sig["extract"]} | {t.lower() for t in sig["embed_set"]}
+    for fam in families:
+        if any(_token_matches_family(t, fam) for t in tokens):
+            return True
+    # simulation cell uses append_simulation_cell_direct_* (not extract_direct_*)
+    if camel == "simulationCell" and sig.get("has_simulation_cell_direct"):
+        return True
+    # geometry/basis/hessian via legacy store/eval paths
+    if camel in {"geometry", "basis", "hessian"} and (
+        "store_geometry" in sig["embed"].lower()
+        or "store_library_basis" in sig["embed"].lower()
+        or "legacy_hessian" in sig["embed"].lower()
+        or "nwchem_legacy" in sig["embed"].lower()
+    ):
+        # only claim embed for modules we know have dedicated store/eval wiring
+        if camel == "geometry" and "store_geometry" in sig["embed"].lower():
+            return True
+        if camel == "basis" and (
+            "store_library_basis" in sig["embed"].lower()
+            or "basis_direct" in sig["embed"].lower()
+            or "set_basis" in sig["embed"].lower()
+        ):
+            return True
+        if camel == "hessian" and (
+            "hessian" in sig["embed"].lower() or "hessian" in sig["nwchemc"].lower()
+        ):
+            return True
+    if camel in _MODULE_EMBED_THEORY:
+        return True
+    if camel in {"driver", "property"} and (
+        any(_token_matches_family(t, camel) for t in tokens)
+        or camel in sig["embed_set"]
+        or any(camel in t for t in sig["embed_set"])  # set_driver_direct exact family
+    ):
+        # tighten: embed_set names are like driver_direct not substring of random
+        if any(_token_matches_family(t, camel) for t in tokens):
+            return True
+    return False
+
+
+def _module_is_tested(camel: str, sig: dict) -> bool:
+    tokens = _MODULE_TEST_TOKENS.get(camel)
+    if not tokens:
+        # only exact theory token match for unknown modules
+        snake = _to_snake(camel)
+        return snake in sig["theories_tested"]
+    return bool(tokens & sig["theories_tested"])
 
 
 def tier_for_module(camel: str, sig: dict[str, set[str]], tests: str) -> str:
-    name = camel[0].lower() + camel[1:] if camel else camel
-    # snake for nwchem text
-    snake = re.sub(r"(?<!^)(?=[A-Z])", "_", camel).lower()
+    del tests  # unused; testing uses theories_tested only
+    snake = _to_snake(camel)
     tier = "schema"
-    # module stanza always rendered via render_module_stanza if Kind_module handled
+    # Generic module block is always renderable via Kind_module / render_module_stanza
     if "module" in sig["render_stanzas"] or "module" in sig["kind_cases"]:
         tier = max_tier(tier, "text")
-    # dedicated typed stanzas
-    if snake in sig["render_stanzas"] or name in sig["render_stanzas"]:
+    # Dedicated typed stanza render if present under same name
+    if camel in sig["render_stanzas"] or snake in sig["render_stanzas"]:
         tier = max_tier(tier, "text")
-    if camel.lower() in {x.lower() for x in sig["render_stanzas"]}:
+    if camel in sig["kind_cases"]:
         tier = max_tier(tier, "text")
-    # embed if extract or embed_set mentions
-    keys = {
-        snake,
-        name.lower(),
-        camel.lower(),
-        snake.replace("_", ""),
-    }
-    for k in keys:
-        for e in sig["extract"]:
-            if k in e.lower() or e.lower() in k:
-                tier = max_tier(tier, "embed")
-        for e in sig["embed_set"]:
-            if k in e.lower() or e.lower() in k:
-                tier = max_tier(tier, "embed")
-    # theory tested
-    for t in sig["theories_tested"]:
-        if snake in t or t in snake or name.lower() in t:
-            tier = max_tier(tier, "tested")
-            break
-    # known embed theory families always embed-evaluated via cfg_theory
-    if snake in {
-        "scf",
-        "dft",
-        "mp2",
-        "rimp2",
-        "ccsd",
-        "tce",
-        "mcscf",
-        "selci",
-        "sodft",
-        "tddft",
-        "nwpw",
-        "band",
-        "driver",
-        "property",
-        "hessian",
-        "geometry",
-        "basis",
-        "brillouin_zone",
-        "brillouinZone",
-    } or camel in {
-        "scf",
-        "dft",
-        "mp2",
-        "rimp2",
-        "ccsd",
-        "tce",
-        "mcscf",
-        "selci",
-        "sodft",
-        "tddft",
-        "nwpw",
-        "band",
-        "driver",
-        "property",
-        "hessian",
-        "geometry",
-        "basis",
-        "brillouinZone",
-        "simulationCell",
-    }:
-        # only if theory actually runs through embed legacy
-        if snake in {
-            "scf",
-            "dft",
-            "mp2",
-            "rimp2",
-            "ccsd",
-            "tce",
-            "mcscf",
-            "selci",
-            "sodft",
-            "tddft",
-            "nwpw",
-            "band",
-        } or camel in {
-            "scf",
-            "dft",
-            "mp2",
-            "rimp2",
-            "ccsd",
-            "tce",
-            "mcscf",
-            "selci",
-            "sodft",
-            "tddft",
-            "nwpw",
-            "band",
-        }:
-            tier = max_tier(tier, "embed")
-            if any(
-                snake in t or t.startswith(snake) or snake.startswith(t)
-                for t in sig["theories_tested"]
-            ):
-                tier = max_tier(tier, "tested")
-        elif camel in {
-            "driver",
-            "property",
-            "hessian",
-            "geometry",
-            "basis",
-            "brillouinZone",
-            "simulationCell",
-            "scf",
-            "dft",
-            "mp2",
-            "ccsd",
-            "tce",
-            "nwpw",
-        } or snake in {
-            "driver",
-            "property",
-            "hessian",
-            "geometry",
-            "basis",
-            "brillouin_zone",
-            "simulation_cell",
-        }:
-            tier = max_tier(tier, "embed")
-            if camel.lower() in tests.lower() or snake in tests.lower():
-                tier = max_tier(tier, "tested")
+
+    if _module_has_embed_api(camel, sig):
+        tier = max_tier(tier, "embed")
+    if _module_is_tested(camel, sig) and tier_rank_ge(tier, "embed"):
+        tier = max_tier(tier, "tested")
+    elif _module_is_tested(camel, sig) and camel in _MODULE_EMBED_THEORY:
+        # theory exercised via matrix implies embed path was used
+        tier = max_tier(tier, "tested")
     return tier
+
+
+# Stanza kind -> extract_direct / embed_set family prefixes (exact).
+_STANZA_EXTRACT_FAMILY: dict[str, tuple[str, ...]] = {
+    "dft": ("dft",),
+    "scf": ("scf",),
+    "driver": ("driver",),
+    "nwpw": ("nwpw",),
+    "ccsd": ("ccsd",),
+    "mp2": ("mp2",),
+    "tddft": ("tddft",),
+    "basis": ("basis",),
+    "property": ("property",),
+    "brillouinZone": ("brillouin",),
+    "pseudopotential": ("pseudopotential", "pseudopotentials"),
+    "set": ("set_strings", "set_values"),
+}
 
 
 def tier_for_stanza(kind: str, sig: dict) -> str:
     tier = "schema"
     if kind in sig["kind_cases"] or kind in sig["render_stanzas"]:
         tier = max_tier(tier, "text")
-    # render function names map: taskStanza -> task, basisStanza -> basis
-    aliases = {
-        "task": "task",
-        "basis": "basis",
-        "mrccData": "mrcc",
-        "brillouinZone": "brillouin",
-        "simulationCell": "simulation",
-        "pseudopotential": "pseudopotential",
-    }
-    k = kind.lower()
-    for e in sig["extract"]:
-        el = e.lower()
-        if k in el or el in k or aliases.get(kind, "").lower() in el:
+    # Always text-capable when Kind is handled generically
+    if kind in {"raw", "generic", "module", "task", "geometry", "tce", "mrccData"}:
+        tier = max_tier(tier, "text")
+
+    tokens = {t.lower() for t in sig["extract"]} | {t.lower() for t in sig["embed_set"]}
+    for fam in _STANZA_EXTRACT_FAMILY.get(kind, ()):
+        if any(_token_matches_family(t, fam) for t in tokens):
             tier = max_tier(tier, "embed")
-    for e in sig["embed_set"]:
-        el = e.lower()
-        if k in el or el in k or aliases.get(kind, "").lower() in el:
-            tier = max_tier(tier, "embed")
-    # set/raw always text; set also embed via rtdb strings
-    if kind == "set":
+            break
+
+    if kind == "simulationCell" and sig.get("has_simulation_cell_direct"):
         tier = max_tier(tier, "embed")
+    if kind == "set":
+        # RTDB string/value promotion
+        if any(t in {"set_strings", "set_values"} or t.startswith("set_") for t in tokens):
+            tier = max_tier(tier, "embed")
     if kind == "raw":
         tier = max_tier(tier, "text")
-    if kind in {"dft", "scf", "driver", "nwpw", "ccsd", "tce", "basis", "mp2", "tddft",
-                "property", "geometry", "pseudopotential", "brillouinZone",
-                "simulationCell"}:
-        if tier == "schema":
-            tier = "text"
-        # if extract exists for family
-        fam = kind.lower().replace("zone", "").replace("cell", "")
-        if any(fam[:4] in e.lower() for e in sig["extract"] | sig["embed_set"]):
-            tier = max_tier(tier, "embed")
+
     tests = sig.get("tests_blob", "")
-    if kind.lower() in tests.lower() and tier_rank_ge(tier, "embed"):
-        tier = max_tier(tier, "tested")
-    elif kind in {"dft", "scf", "basis", "nwpw", "driver", "ccsd", "tce", "mp2"} and tier == "embed":
-        if kind.lower() in tests.lower():
-            tier = max_tier(tier, "tested")
+    tested_kinds = {
+        "dft",
+        "scf",
+        "basis",
+        "nwpw",
+        "driver",
+        "ccsd",
+        "tce",
+        "mp2",
+        "tddft",
+        "property",
+        "pseudopotential",
+        "brillouinZone",
+        "geometry",
+        "set",
+    }
+    if kind in tested_kinds and tier_rank_ge(tier, "embed"):
+        # require an explicit test marker for the kind (not bare substring of nwpw_*)
+        markers = {
+            "dft": ("extract_direct_dft", "nwchem_params_h2_dft", "h2_dft_"),
+            "scf": ("extract_direct_scf", "nwchem_params_h2_scf", "h2_scf_"),
+            "basis": ("extract_direct_basis", "geometry_basis", "basis_options"),
+            "nwpw": ("extract_direct_nwpw", "nwchem_params_nwpw", "nwpw_"),
+            "driver": ("extract_direct_driver", "optimize"),
+            "ccsd": ("extract_direct_ccsd", "h2_ccsd_"),
+            "tce": ("h2_tce_", "nwchem_params_h2_tce"),
+            "mp2": ("extract_direct_mp2", "h2_mp2_", "h2_direct_mp2"),
+            "tddft": ("extract_direct_tddft", "h2_tddft_"),
+            "property": ("extract_direct_property", "property_dipole", "quadrupole"),
+            "pseudopotential": ("pseudopotential", "pspspin"),
+            "brillouinZone": ("brillouin",),
+            "geometry": ("geometry_basis", "store_geometry"),
+            "set": ("extract_direct_set_", "direct_set"),
+            "simulationCell": ("simulation_cell", "simulationCell"),
+        }
+        for m in markers.get(kind, (kind,)):
+            if m.lower() in tests.lower():
+                tier = max_tier(tier, "tested")
+                break
     return tier
 
 

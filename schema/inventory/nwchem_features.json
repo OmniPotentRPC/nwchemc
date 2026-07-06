@@ -24,7 +24,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "embed"
     },
     {
       "feature_id": "module.bq",
@@ -108,7 +108,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "embed"
     },
     {
       "feature_id": "module.esp",
@@ -144,7 +144,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "embed"
     },
     {
       "feature_id": "module.gw",
@@ -168,7 +168,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "embed"
     },
     {
       "feature_id": "module.mcscf",
@@ -190,9 +190,9 @@
       "nwchem_text": "md",
       "role": "NWChem input handler block `md`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.mm",
@@ -202,9 +202,9 @@
       "nwchem_text": "mm",
       "role": "NWChem input handler block `mm`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.mp2",
@@ -240,7 +240,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.property",
@@ -252,7 +252,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "embed"
     },
     {
       "feature_id": "module.python",
@@ -382,9 +382,9 @@
       "nwchem_text": "vscf",
       "role": "NWChem input handler block `vscf`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.xtb",
@@ -492,7 +492,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "embed"
     },
     {
       "feature_id": "module.bsemol",
@@ -562,9 +562,9 @@
       "nwchem_text": "cpmd",
       "role": "NWChem input handler block `cpmd`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.cpsd",
@@ -586,9 +586,9 @@
       "nwchem_text": "ddscf",
       "role": "NWChem input handler block `ddscf`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.diana",
@@ -766,9 +766,9 @@
       "nwchem_text": "occup",
       "role": "NWChem input handler block `occup`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.prepare",
@@ -814,9 +814,9 @@
       "nwchem_text": "pspw",
       "role": "NWChem input handler block `pspw`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.pspwDplot",
@@ -826,9 +826,9 @@
       "nwchem_text": "pspw_dplot",
       "role": "NWChem input handler block `pspw_dplot`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.pspwQmmm",
@@ -838,9 +838,9 @@
       "nwchem_text": "pspw_qmmm",
       "role": "NWChem input handler block `pspw_qmmm`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.pspwWannier",
@@ -850,9 +850,9 @@
       "nwchem_text": "pspw_wannier",
       "role": "NWChem input handler block `pspw_wannier`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.qmdNamd",
@@ -898,9 +898,9 @@
       "nwchem_text": "rt_tddft",
       "role": "NWChem input handler block `rt_tddft`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.simulationCell",
@@ -912,7 +912,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "embed"
     },
     {
       "feature_id": "module.string",
@@ -922,9 +922,9 @@
       "nwchem_text": "string",
       "role": "NWChem input handler block `string`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.tamd",
@@ -970,9 +970,9 @@
       "nwchem_text": "tce_mrcc",
       "role": "NWChem input handler block `tce_mrcc`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.tddft",
@@ -994,9 +994,9 @@
       "nwchem_text": "tddft_grad",
       "role": "NWChem input handler block `tddft_grad`",
       "stub_applicable": true,
-      "embed_applicable": true,
+      "embed_applicable": false,
       "driver_class": "module_stanza",
-      "support_tier": "tested"
+      "support_tier": "text"
     },
     {
       "feature_id": "module.tropt",
@@ -1066,10 +1066,10 @@
       "capnp_type": "NWChemGenericStanza",
       "nwchem_role": "Named block with directives then end",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.generic",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "dft",
@@ -1099,10 +1099,10 @@
       "capnp_type": "Text",
       "nwchem_role": "Literal NWChem input fragment",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.raw",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "module",
@@ -1110,10 +1110,10 @@
       "capnp_type": "NWChemModuleStanza",
       "nwchem_role": "Typed module block from NWChemModuleName",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.module",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "pseudopotential",
@@ -1187,10 +1187,10 @@
       "capnp_type": "NWChemGeometryStanza",
       "nwchem_role": "Geometry block metadata (units/symmetry; coords via ABI)",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.geometry",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "nwpw",
@@ -1220,10 +1220,10 @@
       "capnp_type": "tce",
       "nwchem_role": "tce stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.tce",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "mrccData",
@@ -1253,10 +1253,10 @@
       "capnp_type": "NWChemSimulationCellStanza",
       "nwchem_role": "NWPW simulation-cell RTDB controls",
       "stub": true,
-      "embed": false,
+      "embed": true,
       "feature_id": "stanza.simulationCell",
-      "support_tier": "text",
-      "embed_applicable": false
+      "support_tier": "embed",
+      "embed_applicable": true
     },
     {
       "kind": "mp2",
@@ -1286,10 +1286,10 @@
       "capnp_type": "relativistic",
       "nwchem_role": "relativistic stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.relativistic",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "cosmo",
@@ -1297,10 +1297,10 @@
       "capnp_type": "cosmo",
       "nwchem_role": "cosmo stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.cosmo",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "smd",
@@ -1308,10 +1308,10 @@
       "capnp_type": "smd",
       "nwchem_role": "smd stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.smd",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "constraints",
@@ -1319,10 +1319,10 @@
       "capnp_type": "constraints",
       "nwchem_role": "constraints stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.constraints",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "vib",
@@ -1330,10 +1330,10 @@
       "capnp_type": "vib",
       "nwchem_role": "vib stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.vib",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "bq",
@@ -1341,10 +1341,10 @@
       "capnp_type": "bq",
       "nwchem_role": "bq stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.bq",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "dplot",
@@ -1352,10 +1352,10 @@
       "capnp_type": "dplot",
       "nwchem_role": "dplot stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.dplot",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "esp",
@@ -1363,10 +1363,10 @@
       "capnp_type": "esp",
       "nwchem_role": "esp stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.esp",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "qmd",
@@ -1374,10 +1374,10 @@
       "capnp_type": "qmd",
       "nwchem_role": "qmd stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.qmd",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "raman",
@@ -1385,10 +1385,10 @@
       "capnp_type": "raman",
       "nwchem_role": "raman stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.raman",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "fon",
@@ -1396,10 +1396,10 @@
       "capnp_type": "fon",
       "nwchem_role": "fon stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.fon",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "neb",
@@ -1407,10 +1407,10 @@
       "capnp_type": "neb",
       "nwchem_role": "neb stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.neb",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "stringMethod",
@@ -1418,10 +1418,10 @@
       "capnp_type": "stringMethod",
       "nwchem_role": "stringMethod stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.stringMethod",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "gw",
@@ -1429,10 +1429,10 @@
       "capnp_type": "gw",
       "nwchem_role": "gw stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.gw",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "etrans",
@@ -1440,10 +1440,10 @@
       "capnp_type": "etrans",
       "nwchem_role": "etrans stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.etrans",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "rism",
@@ -1451,10 +1451,10 @@
       "capnp_type": "rism",
       "nwchem_role": "rism stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.rism",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "dimQm",
@@ -1462,10 +1462,10 @@
       "capnp_type": "dimQm",
       "nwchem_role": "dimQm stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.dimQm",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "metadynamics",
@@ -1473,10 +1473,10 @@
       "capnp_type": "metadynamics",
       "nwchem_role": "metadynamics stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.metadynamics",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "cellOptimize",
@@ -1484,10 +1484,10 @@
       "capnp_type": "cellOptimize",
       "nwchem_role": "cellOptimize stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.cellOptimize",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "mepgs",
@@ -1495,10 +1495,10 @@
       "capnp_type": "mepgs",
       "nwchem_role": "mepgs stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.mepgs",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     },
     {
       "kind": "tropt",
@@ -1506,10 +1506,10 @@
       "capnp_type": "tropt",
       "nwchem_role": "tropt stanza",
       "stub": true,
-      "embed": true,
+      "embed": false,
       "feature_id": "stanza.tropt",
-      "support_tier": "tested",
-      "embed_applicable": true
+      "support_tier": "text",
+      "embed_applicable": false
     }
   ],
   "params_fields": [
