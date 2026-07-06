@@ -24,7 +24,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.bq",
@@ -108,7 +108,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.esp",
@@ -144,7 +144,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.gw",
@@ -168,7 +168,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.mcscf",
@@ -252,7 +252,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.python",
@@ -468,7 +468,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.bandDplot",
@@ -492,7 +492,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.bsemol",
@@ -912,7 +912,7 @@
       "stub_applicable": true,
       "embed_applicable": true,
       "driver_class": "module_stanza",
-      "support_tier": "embed"
+      "support_tier": "tested"
     },
     {
       "feature_id": "module.string",
@@ -1255,7 +1255,7 @@
       "stub": true,
       "embed": true,
       "feature_id": "stanza.simulationCell",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true
     },
     {

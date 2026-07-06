@@ -18,8 +18,7 @@
   "row_count": 1115,
   "counts_by_tier": {
     "text": 593,
-    "embed": 9,
-    "tested": 490,
+    "tested": 499,
     "schema": 23
   },
   "done_count": 499,
@@ -37,7 +36,7 @@
       "feature_id": "module.basis",
       "class": "module",
       "schema_path": "NWChemModuleName.basis",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -93,7 +92,7 @@
       "feature_id": "module.driver",
       "class": "module",
       "schema_path": "NWChemModuleName.driver",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -117,7 +116,7 @@
       "feature_id": "module.geometry",
       "class": "module",
       "schema_path": "NWChemModuleName.geometry",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -133,7 +132,7 @@
       "feature_id": "module.hessian",
       "class": "module",
       "schema_path": "NWChemModuleName.hessian",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -189,7 +188,7 @@
       "feature_id": "module.property",
       "class": "module",
       "schema_path": "NWChemModuleName.property",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -333,7 +332,7 @@
       "feature_id": "module.band",
       "class": "module",
       "schema_path": "NWChemModuleName.band",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -349,7 +348,7 @@
       "feature_id": "module.brillouinZone",
       "class": "module",
       "schema_path": "NWChemModuleName.brillouinZone",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -629,7 +628,7 @@
       "feature_id": "module.simulationCell",
       "class": "module",
       "schema_path": "NWChemModuleName.simulationCell",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },
@@ -869,7 +868,7 @@
       "feature_id": "stanza.simulationCell",
       "class": "stanza",
       "schema_path": "NWChemInputStanza.simulationCell",
-      "support_tier": "embed",
+      "support_tier": "tested",
       "embed_applicable": true,
       "done": true
     },

@@ -227,6 +227,56 @@ _MODULE_TEST_TOKENS: dict[str, frozenset[str]] = {
     "geometry": frozenset({"geometry", "optimize"}),
 }
 
+# Unique substrings that appear only in tests driving the *shipped* entry point
+# for that module (file names, probe symbols, or explicit API calls). No short
+# tokens that collide with unrelated modules (e.g. bare "band" alone is OK only
+# as a typed RTDB key assertion in embed-config tests).
+_MODULE_SHIPPED_TEST_MARKERS: dict[str, tuple[str, ...]] = {
+    "basis": (
+        "nwchemc_test_geometry_basis_rtdb",
+        "nwchemc_store_library_basis",
+        "test_nwchem_geometry_basis_rtdb",
+    ),
+    "geometry": (
+        "nwchemc_store_geometry_cell",
+        "nwchemc_test_geometry_basis_rtdb",
+        "test_nwchem_geometry_basis_rtdb",
+    ),
+    "driver": (
+        "nwchemc_optimize(",
+        '"source": "nwchemc_optimize"',
+        "test_nwchem_optimize_freq",
+    ),
+    "property": (
+        "nwchemc_dipole(",
+        '"source": "nwchemc_dipole"',
+        "test_nwchem_primary_props",
+        "nwchemc_params_extract_direct_property",
+    ),
+    "hessian": (
+        "nwchemc_hessian(",
+        '"source": "nwchemc_hessian"',
+        "test_nwchem_hessian",
+    ),
+    "brillouinZone": (
+        "nwchemc_test_brillouin_dos_zones_rtdb",
+        "nwchemc_params_extract_direct_brillouin_zone",
+        "test_brillouin_dos_zones_reach_rtdb",
+    ),
+    "band": (
+        'assert_typed_set_scalar("band:wcut"',
+        "band:geometry_optimize",
+        "band:ispin",
+        "band:dos-grid",
+    ),
+    "simulationCell": (
+        "nwchem_params_compact_cells",
+        "kind = simulationCell",
+        "latticeVectorsBohr",
+        "latticeKind = sc",
+    ),
+}
+
 
 def _module_has_embed_api(camel: str, sig: dict) -> bool:
     families = _MODULE_EXTRACT_FAMILY.get(camel, ())
@@ -271,6 +321,10 @@ def _module_has_embed_api(camel: str, sig: dict) -> bool:
 
 
 def _module_is_tested(camel: str, sig: dict) -> bool:
+    tests_blob = sig.get("tests_blob", "")
+    markers = _MODULE_SHIPPED_TEST_MARKERS.get(camel)
+    if markers and any(m in tests_blob for m in markers):
+        return True
     tokens = _MODULE_TEST_TOKENS.get(camel)
     if not tokens:
         # only exact theory token match for unknown modules
@@ -280,7 +334,7 @@ def _module_is_tested(camel: str, sig: dict) -> bool:
 
 
 def tier_for_module(camel: str, sig: dict[str, set[str]], tests: str) -> str:
-    del tests  # unused; testing uses theories_tested only
+    del tests  # unused; testing uses theories_tested + shipped markers
     snake = _to_snake(camel)
     tier = "schema"
     # Generic module block is always renderable via Kind_module / render_module_stanza
@@ -358,6 +412,7 @@ def tier_for_stanza(kind: str, sig: dict) -> str:
         "brillouinZone",
         "geometry",
         "set",
+        "simulationCell",
     }
     if kind in tested_kinds and tier_rank_ge(tier, "embed"):
         # require an explicit test marker for the kind (not bare substring of nwpw_*)
@@ -376,10 +431,18 @@ def tier_for_stanza(kind: str, sig: dict) -> str:
             "brillouinZone": ("brillouin",),
             "geometry": ("geometry_basis", "store_geometry"),
             "set": ("extract_direct_set_", "direct_set"),
-            "simulationCell": ("simulation_cell", "simulationCell"),
+            "simulationCell": (
+                "nwchem_params_compact_cells",
+                "kind = simulationCell",
+                "append_simulation_cell_direct",
+                "latticeVectorsBohr",
+            ),
         }
         for m in markers.get(kind, (kind,)):
-            if m.lower() in tests.lower():
+            if m in tests:  # case-sensitive for unique markers
+                tier = max_tier(tier, "tested")
+                break
+            if m.lower() in tests.lower() and kind != "simulationCell":
                 tier = max_tier(tier, "tested")
                 break
     return tier

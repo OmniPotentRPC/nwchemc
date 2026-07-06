@@ -43,8 +43,45 @@ def main() -> int:
     assert by["module.dft"]["support_tier"] == "tested"
     assert by["module.scf"]["support_tier"] == "tested"
     assert by["module.cosmo"]["support_tier"] in {"schema", "text"}
-    assert by["stanza.simulationCell"]["support_tier"] in {"embed", "tested"}
-    assert by["stanza.basis"]["support_tier"] in {"embed", "tested"}
+    assert by["stanza.basis"]["support_tier"] == "tested"
+
+    # Former embed-only nine must be tested once shipped-path markers exist.
+    nine = (
+        "module.band",
+        "module.basis",
+        "module.brillouinZone",
+        "module.driver",
+        "module.geometry",
+        "module.hessian",
+        "module.property",
+        "module.simulationCell",
+        "stanza.simulationCell",
+    )
+    for fid in nine:
+        assert fid in by, fid
+        assert by[fid]["support_tier"] == "tested", (fid, by[fid]["support_tier"])
+        assert by[fid]["done"] is True
+
+    # Structural: each of the nine has a real test/source marker in-tree.
+    tests_root = ROOT / "tests"
+    blob = "\n".join(
+        p.read_text(encoding="utf-8", errors="replace")
+        for p in tests_root.rglob("*")
+        if p.suffix in {".c", ".F", ".f90", ".txt", ".py", ".json"}
+    )
+    required_snippets = {
+        "module.basis": "nwchemc_test_geometry_basis_rtdb",
+        "module.geometry": "nwchemc_store_geometry_cell",
+        "module.driver": "nwchemc_optimize(",
+        "module.property": "nwchemc_dipole(",
+        "module.hessian": "nwchemc_hessian(",
+        "module.brillouinZone": "nwchemc_test_brillouin_dos_zones_rtdb",
+        "module.band": 'assert_typed_set_scalar("band:wcut"',
+        "module.simulationCell": "kind = simulationCell",
+        "stanza.simulationCell": "nwchem_params_compact_cells",
+    }
+    for fid, snip in required_snippets.items():
+        assert snip in blob, (fid, snip)
 
     print("support_map_honesty_ok")
     return 0
