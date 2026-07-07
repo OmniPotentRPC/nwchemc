@@ -341,7 +341,10 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*255 vectors_in
       integer n3, i
       integer l_grad, k_grad
-      logical status, have_movecs
+      integer warm_n
+      logical status, have_movecs, warm_ok
+      save warm_n
+      data warm_n / -1 /
       external task_gradient
       logical task_gradient
       external nw_inp_from_character, util_file_name, util_file_name_resolve
@@ -350,10 +353,25 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       ok = -1
       energy_h = 0.0d0
       errmsg = ' '
+C     Warm multi-call (Socket POSDATA parity): after the first successful
+C     full setup for this rtdb/atom count, only update coordinates then
+C     task_gradient. Re-doing basis/method/inputBlocks every force is ~5x
+C     slower than a live NWChem socket server on the same ranks.
       if (rtdb .lt. 0 .or. n_atoms .le. 0) then
          errmsg = 'invalid rtdb or n_atoms'
          return
       endif
+      n3 = 3 * n_atoms
+      warm_ok = (warm_n .eq. n_atoms)
+      if (warm_ok) then
+         call nwchemc_update_geometry_coords(rtdb, n_atoms, pos_ang,
+     $        errmsg, status)
+         if (.not. status) then
+            warm_n = -1
+            warm_ok = .false.
+         endif
+      endif
+      if (.not. warm_ok) then
 C     Full method setup (same as energy_only), including inputBlocks.
       call nwchemc_store_geometry_cell(rtdb, n_atoms, pos_ang,
      $     atmnrs, cell_ang, has_cell, errmsg, status)
@@ -393,7 +411,6 @@ C     Full method setup (same as energy_only), including inputBlocks.
          errmsg = 'method RTDB setup failed'
          return
       endif
-      n3 = 3 * n_atoms
       call util_file_name('movecs', .false., .false., vectors_in)
       call util_file_name_resolve(vectors_in, .false.)
       status = rtdb_cput(rtdb, 'scf:output vectors', 1, vectors_in)
@@ -413,12 +430,30 @@ C     Full method setup (same as energy_only), including inputBlocks.
          errmsg = 'rtdb_cput scf:input vectors failed'
          return
       endif
+      endif
+C     Both cold and warm paths: drive gradient with current geometry.
       status = rtdb_cput(rtdb, 'task:theory', 1, theory_name)
       status = rtdb_cput(rtdb, 'task:operation', 1, 'gradient')
+C     Prefer prior movecs after first force (warm SCF density).
+      if (warm_ok) then
+         call util_file_name('movecs', .false., .false., vectors_in)
+         call util_file_name_resolve(vectors_in, .false.)
+         i = inp_strlen(vectors_in)
+         vectors_in(i+1:) = ' '
+         inquire(file=vectors_in, exist=have_movecs)
+         if (have_movecs) then
+            status = rtdb_cput(rtdb, 'scf:input vectors', 1,
+     $           vectors_in)
+            status = rtdb_cput(rtdb, 'scf:output vectors', 1,
+     $           vectors_in)
+         endif
+      endif
       if (.not. task_gradient(rtdb)) then
          errmsg = 'task_gradient failed'
+         warm_n = -1
          return
       endif
+      warm_n = n_atoms
       call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
      $     status)
       if (.not. status) then
