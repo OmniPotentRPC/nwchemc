@@ -4,6 +4,17 @@ import sys
 from pathlib import Path
 
 
+# Always-linked support archives from a standard NWChem binary link line
+# (see src/config/makefile.h LIB_DEFINES / final nwchem link). Not always in
+# NW_MODULE_LIBS for small module sets (nwdft driver stepper), but required
+# for undefined refs from task_energy / geom / vectors when building shared
+# libnwchemc.so.
+ALWAYS_IF_PRESENT = (
+    "cons",
+    "bq",
+    "64to32",
+)
+
 OPTIONAL_ARCHIVES = {
     "peigs": ("libpeigs.a", "libpeigs.so", "libpeigs.dylib"),
     "peigs_comm": ("libpeigs_comm.a", "libpeigs_comm.so", "libpeigs_comm.dylib"),
@@ -13,6 +24,9 @@ OPTIONAL_ARCHIVES = {
 def utility_libs(root: Path, target: str) -> list[str]:
     libdir = root / "lib" / target
     libs = ["-lperfm"]
+    for name in ALWAYS_IF_PRESENT:
+        if (libdir / f"lib{name}.a").exists() or (libdir / f"lib{name}.so").exists():
+            libs.append(f"-l{name}")
     for name, archive_names in OPTIONAL_ARCHIVES.items():
         if any((libdir / archive_name).exists() for archive_name in archive_names):
             libs.append(f"-l{name}")

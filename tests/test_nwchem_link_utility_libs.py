@@ -54,6 +54,22 @@ class NWChemLinkUtilityLibsTest(unittest.TestCase):
                 ["-lperfm", "-lpeigs_comm"],
             )
 
+    def test_includes_always_linked_support_archives_when_present(self):
+        """cons/bq/64to32 are required for shared libnwchemc even if not in
+        NW_MODULE_LIBS for small module sets."""
+        link_libs = load_link_libs()
+        with TemporaryDirectory(prefix="nwchemc-link-libs-") as root_name:
+            root = Path(root_name)
+            libdir = root / "lib/LINUX64"
+            libdir.mkdir(parents=True)
+            for name in ("libcons.a", "libbq.a", "lib64to32.a"):
+                (libdir / name).write_bytes(b"archive")
+
+            self.assertEqual(
+                link_libs.utility_libs(root, "LINUX64"),
+                ["-lperfm", "-lcons", "-lbq", "-l64to32"],
+            )
+
     def test_cli_emits_shell_split_list(self):
         with TemporaryDirectory(prefix="nwchemc-link-libs-") as root_name:
             root = Path(root_name)
