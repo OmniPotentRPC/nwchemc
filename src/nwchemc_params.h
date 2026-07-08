@@ -409,6 +409,11 @@ int nwchemc_params_extract_direct_dft_extended(
     double *gradient_conv, int *odft, int *diis, int *nfock,
     double *level_shift, capn_text *vectors_input, capn_text *vectors_output);
 
+/** DFT dispersion field (disp enabled/vdw/s6) for RTDB dft:disp / dft:ivdw. */
+int nwchemc_params_extract_direct_dft_disp(NWChemParams_ptr params,
+                                           int *has_disp, int *vdw,
+                                           double *s6);
+
 int nwchemc_params_extract_direct_property(
     NWChemParams_ptr params, int *dipole, int *mulliken, int *quadrupole,
     int *octupole, int *esp, int *efield, int *efield_grad,

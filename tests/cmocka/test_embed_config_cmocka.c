@@ -76,6 +76,7 @@ static const char *g_force_step_changed_species_path = NULL;
 static const char *g_force_step_state_path = NULL;
 static const char *g_tce_methods_path = NULL;
 static const char *g_ccsd_energy_path = NULL;
+static const char *g_new_stanzas_path = NULL;
 static const char *g_common_overlay_path = NULL;
 static const char *g_common_planewave_path = NULL;
 static const char *g_common_reject_path = NULL;
@@ -7318,6 +7319,44 @@ static void test_embed_promotes_classic_ccsd_controls(void **state) {
   free(message);
 }
 
+
+/* bzcx: cosmo stanza fields promote to RTDB via extract+promo on apply path. */
+static void test_embed_promotes_cosmo_rtdb_keys(void **state) {
+  (void)state;
+  assert_non_null(g_new_stanzas_path);
+  reset_embed_captures();
+  size_t message_size = 0;
+  unsigned char *message = read_file(g_new_stanzas_path, &message_size);
+  assert_non_null(message);
+  /* set_params runs apply_config_to_embed (promo) without needing geometry. */
+  assert_int_equal(nwchemc_set_params(message, message_size), 0);
+  {
+    int idx = find_typed_set_key("cosmo:dielec");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 78.4) < 1e-9);
+  }
+  {
+    int idx = find_typed_set_key("cosmo:rsolv");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.5) < 1e-12);
+  }
+  assert_set_string("cosmo:solvent", "water");
+  assert_typed_set_scalar("cosmo:do_cosmo_smd",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  /* DFT dispersion field (k4ws/bzcx slice): promo dft:disp + dft:ivdw. */
+  assert_typed_set_scalar("dft:disp", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("dft:ivdw", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "3");
+  {
+    int idx = find_typed_set_key("dft:vdw");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 1.0) < 1e-12);
+  }
+  free(message);
+}
+
 /* theory=ccsd params: selected_theory stays "ccsd" (not rewritten to dft/scf). */
 static void test_embed_promotes_theory_ccsd_energy_controls(void **state) {
   (void)state;
@@ -7405,12 +7444,14 @@ int main(int argc, char **argv) {
   g_brillouin_monkhorst_default_path = fixture_path(argv[1], "nwchem_params_brillouin_monkhorst_default.bin");
   g_brillouin_dos_grid_default_path = fixture_path(argv[1], "nwchem_params_brillouin_dos_grid_default.bin");
   g_ccsd_energy_path = fixture_path(argv[1], "nwchem_params_ccsd_energy.bin");
+  g_new_stanzas_path = fixture_path(argv[1], "nwchem_params_new_stanzas.bin");
   g_common_overlay_path = fixture_path(argv[1], "potential_config_common_overlay.bin");
   g_common_planewave_path =
       fixture_path(argv[1], "potential_config_common_planewave.bin");
   g_common_reject_path = fixture_path(argv[1], "potential_config_common_reject.bin");
 
   const struct CMUnitTest tests[] = {
+      cmocka_unit_test(test_embed_promotes_cosmo_rtdb_keys),
       cmocka_unit_test(test_embed_promotes_classic_ccsd_controls),
       cmocka_unit_test(test_embed_promotes_theory_ccsd_energy_controls),
       cmocka_unit_test(

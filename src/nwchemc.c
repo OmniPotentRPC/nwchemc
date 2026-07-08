@@ -1831,6 +1831,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &dft_odft, &dft_diis, &dft_nfock, &dft_level_shift, &dft_vectors_in,
           &dft_vectors_out) != 0)
     return -1;
+  int dft_has_disp = 0;
+  int dft_disp_vdw = 0;
+  double dft_disp_s6 = 0.0;
+  if (nwchemc_params_extract_direct_dft_disp(params_root, &dft_has_disp,
+                                             &dft_disp_vdw, &dft_disp_s6) != 0)
+    return -1;
   int prop_dipole = 0, prop_mulliken = 0, prop_quad = 0, prop_oct = 0;
   int prop_esp = 0, prop_efield = 0, prop_efield_grad = 0, prop_edens = 0;
   int prop_sdens = 0, prop_spop = 0, prop_shield = 0, prop_hyp = 0, prop_pol = 0;
@@ -4556,6 +4562,14 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     }
     PROMO_STR("dft:input vectors", dft_vectors_in);
     PROMO_STR("dft:output vectors", dft_vectors_out);
+    /* Native DFT stanza dispersion field → RTDB (parity with common overlay). */
+    if (dft_has_disp) {
+      PROMO_LOG("dft:disp", 1);
+      if (dft_disp_vdw > 0)
+        PROMO_INT("dft:ivdw", dft_disp_vdw);
+      if (dft_disp_s6 > 0.0)
+        PROMO_DBL("dft:vdw", dft_disp_s6);
+    }
 
     PROMO_PROP("prop:dipole", prop_dipole);
     PROMO_PROP("prop:mulliken", prop_mulliken);

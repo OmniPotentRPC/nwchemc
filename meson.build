@@ -578,6 +578,7 @@ if get_option('with_tests')
     args: [meson.current_build_dir()],
     depends: [
       nwchem_direct_dft_params_bin,
+      nwchem_params_new_stanzas_bin,
       nwchem_config_options_params_bin,
       nwchem_pspspin_params_bin,
       nwchem_pspspin_many_params_bin,

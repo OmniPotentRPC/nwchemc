@@ -8806,6 +8806,41 @@ int nwchemc_params_extract_direct_dft_extended(
   return 0;
 }
 
+int nwchemc_params_extract_direct_dft_disp(NWChemParams_ptr params,
+                                           int *has_disp, int *vdw,
+                                           double *s6) {
+  if (params.p.type == CAPN_NULL || !has_disp || !vdw || !s6)
+    return -1;
+  *has_disp = 0;
+  *vdw = 0;
+  *s6 = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_dft || stanza.dft.p.type == CAPN_NULL)
+      continue;
+    struct NWChemDftStanza dft;
+    read_NWChemDftStanza(&dft, stanza.dft);
+    if (dft.disp.p.type == CAPN_NULL)
+      continue;
+    struct NWChemDftDisp disp;
+    read_NWChemDftDisp(&disp, dft.disp);
+    if (!disp.enabled)
+      continue;
+    *has_disp = 1;
+    *vdw = disp.vdw > 0 ? disp.vdw : 3;
+    if (disp.s6 > 0.0)
+      *s6 = disp.s6;
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_property(
     NWChemParams_ptr params, int *dipole, int *mulliken, int *quadrupole,
     int *octupole, int *esp, int *efield, int *efield_grad,
