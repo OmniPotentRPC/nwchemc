@@ -7354,6 +7354,22 @@ static void test_embed_promotes_cosmo_rtdb_keys(void **state) {
     assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
     assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 1.0) < 1e-12);
   }
+  /* esp + constraints from the same new_stanzas fixture (bzcx slice). */
+  assert_typed_set_scalar("esp:recalculate", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  {
+    int idx = find_typed_set_key("esp:spacing");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.2) < 1e-12);
+  }
+  assert_typed_set_scalar("esp:restrain", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("esp:hfree", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("constraints:clear", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("constraints:ncons", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
+                          "2");
   free(message);
 }
 
