@@ -1,4 +1,5 @@
 Wire public **capnp-fortran** into the embed apply path: Fortran decodes
-serialized `NWChemParams` for the SCF family (maxiter/thresh/tol2e) so the
-exploded `nwchemc_embed_set_scf_direct` setter is no longer used on that
-path. C ABI sizing/results still use c-capnproto.
+serialized `NWChemParams` for config, SCF, DFT, driver, NWPW cutoffs, basis,
+Brillouin, pseudopotential, and set stanzas via `nwchemc_embed_apply_params`.
+Exploded `set_*_direct` setters remain for CommonMethodSpec overlay only.
+C still renders `input_blocks` and expands NWPW/etc. into typed RTDB packs.

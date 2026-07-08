@@ -12,10 +12,35 @@ module nwchem_embed_c_api
   use, intrinsic :: iso_c_binding, only: &
       c_char, c_double, c_int, c_long_long, c_null_char
   use, intrinsic :: iso_fortran_env, only: real64
-  ! SCF knobs live in nwchemc_embed_apply_params (capnp-fortran decode path).
+  ! Config knobs live in nwchemc_embed_apply_params (capnp-fortran decode path).
   use nwchemc_embed_apply_params_mod, only: &
       applied_scf_has_options, applied_scf_maxiter, &
-      applied_scf_thresh, applied_scf_tol2e
+      applied_scf_thresh, applied_scf_tol2e, &
+      applied_basis, applied_theory, applied_scf_type, &
+      applied_input_blocks, applied_charge, applied_mult, &
+      applied_dft_xc, applied_dft_direct, applied_dft_smear_on, &
+      applied_dft_smear_sigma, applied_dft_smear_spinset, &
+      applied_driver_has_options, applied_driver_maxiter, &
+      applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+      applied_driver_grms_tol, applied_driver_xmax_tol, &
+      applied_driver_xrms_tol, &
+      applied_nwpw_has_options, applied_nwpw_energy_cutoff, &
+      applied_nwpw_wavefunction_cutoff, applied_nwpw_ewald_rcut, &
+      applied_nwpw_ewald_ncut, &
+      applied_brillouin_has_options, applied_brillouin_zone_name, &
+      applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+      applied_brillouin_kvector_count, applied_brillouin_kvectors, &
+      applied_brillouin_dos_zone_count, applied_brillouin_dos_zone_names, &
+      applied_brillouin_dos_zone_grids, &
+      applied_psp_count, applied_psp_elements, applied_psp_names, &
+      applied_psp_types, &
+      applied_set_string_count, applied_set_keys, applied_set_values, &
+      applied_typed_set_count, applied_typed_set_keys, &
+      applied_typed_set_types, applied_typed_set_value_counts, &
+      applied_typed_set_values, &
+      applied_basis_library_root, applied_basis_angular_kind, &
+      applied_basis_segment_mode, applied_basis_legacy_spherical, &
+      applied_basis_ecp
   implicit none
   private
 
@@ -66,25 +91,7 @@ module nwchem_embed_c_api
   logical, save :: runtime_finalized = .false.
   integer, save :: rtdb_handle = -1
   real(real64), save :: last_task_energy_h = 0.0_real64
-  character(len=64), save :: cfg_basis = 'sto-3g'
-  character(len=64), save :: cfg_theory = 'scf'
-  character(len=64), save :: cfg_scf = 'rhf'
-  character(len=4096), save :: cfg_input_blocks = ' '
-  integer, save :: cfg_charge = 0
-  integer, save :: cfg_mult = 1
-  ! Direct DFT knobs (Cap'n Proto stanza; applied via RTDB in legacy eval path).
-  character(len=64), save :: cfg_dft_xc = ' '
-  integer, save :: cfg_dft_direct = 0
-  integer, save :: cfg_dft_smear_on = 0
-  real(real64), save :: cfg_dft_smear_sigma = 0.0_real64
-  integer, save :: cfg_dft_smear_spinset = 1
-  integer, save :: cfg_driver_has_options = 0
-  integer, save :: cfg_driver_maxiter = 0
-  integer, save :: cfg_driver_tolerance_mode = 0
-  real(real64), save :: cfg_driver_gmax_tol = 0.0_real64
-  real(real64), save :: cfg_driver_grms_tol = 0.0_real64
-  real(real64), save :: cfg_driver_xmax_tol = 0.0_real64
-  real(real64), save :: cfg_driver_xrms_tol = 0.0_real64
+  ! Config state is applied_* from nwchemc_embed_apply_params_mod.
   integer, parameter :: max_embed_pseudopotentials = 64
   integer, parameter :: psp_element_len = 16
   integer, parameter :: psp_name_len = 256
@@ -92,30 +99,6 @@ module nwchem_embed_c_api
   integer, parameter :: max_embed_set_values = 64
   integer, parameter :: set_key_len = 128
   integer, parameter :: set_value_len = 256
-  integer, save :: cfg_psp_count = 0
-  character(len=psp_element_len), save :: cfg_psp_elements(max_embed_pseudopotentials) = ' '
-  character(len=psp_name_len), save :: cfg_psp_names(max_embed_pseudopotentials) = ' '
-  integer, save :: cfg_psp_types(max_embed_pseudopotentials) = 0
-  integer, save :: cfg_set_string_count = 0
-  character(len=set_key_len), save :: cfg_set_keys(max_embed_set_strings) = ' '
-  character(len=set_value_len), save :: cfg_set_values(max_embed_set_strings) = ' '
-  integer, save :: cfg_typed_set_count = 0
-  character(len=set_key_len), save :: cfg_typed_set_keys(max_embed_set_strings) = ' '
-  integer, save :: cfg_typed_set_types(max_embed_set_strings) = 0
-  integer, save :: cfg_typed_set_value_counts(max_embed_set_strings) = 0
-  character(len=set_value_len), save :: cfg_typed_set_values(max_embed_set_values, max_embed_set_strings) = ' '
-  integer, save :: cfg_brillouin_has_options = 0
-  character(len=64), save :: cfg_brillouin_zone_name = 'zone_default'
-  integer, save :: cfg_brillouin_monkhorst_pack(3) = 0
-  integer, save :: cfg_brillouin_max_kpoints_print = 0
-  integer, save :: cfg_brillouin_kvector_count = 0
-  real(real64), allocatable, save :: cfg_brillouin_kvectors(:)
-  integer, save :: cfg_brillouin_dos_zone_count = 0
-  character(len=64), save :: &
-      cfg_brillouin_dos_zone_names(max_embed_set_strings) = ' '
-  integer, save :: &
-      cfg_brillouin_dos_zone_grids(3, max_embed_set_strings) = 0
-
   ! Legacy NWChem helpers (fixed-form; no bind(C))
   interface
     subroutine nwchem_legacy_init(rtdb, ok, owns_mpi)
@@ -812,12 +795,12 @@ contains
     if (len_trim(sstr) == 0) sstr = 'rhf'
     ! Cap'n Proto theory / scfType are independent; no alias rewrite here.
 
-    cfg_basis = bstr
-    cfg_theory = tstr
-    cfg_scf = sstr
-    cfg_input_blocks = iblocks
-    cfg_charge = int(charge)
-    cfg_mult = max(1, int(mult))
+    applied_basis = bstr
+    applied_theory = tstr
+    applied_scf_type = sstr
+    applied_input_blocks = iblocks
+    applied_charge = int(charge)
+    applied_mult = max(1, int(mult))
 
     ! Evaluation calls write method state after numeric geometry setup.
     rc = 0_c_int
@@ -881,7 +864,7 @@ contains
   end function nwchemc_embed_set_basis_direct
 
   !> Store direct DFT options extracted from Cap'n Proto (xc/direct/smear).
-  !> Promoted xc updates cfg_scf; numeric DFT knobs are applied through RTDB.
+  !> Promoted xc updates applied_scf_type; numeric DFT knobs are applied through RTDB.
   function nwchemc_embed_set_dft_direct(xc, xc_len, direct_enabled, &
       smearing_enabled, smear_sigma_hartree, smearing_spinset) result(rc) &
       bind(C, name='nwchemc_embed_set_dft_direct')
@@ -897,14 +880,14 @@ contains
     rc = 0_c_int
     call c_chars_to_f(xc, xc_len, xcstr)
     if (len_trim(xcstr) > 0) then
-      cfg_dft_xc = xcstr
-      cfg_scf = xcstr
-      ! Do not rewrite cfg_theory from XC; theory is set only via set_config.
+      applied_dft_xc = xcstr
+      applied_scf_type = xcstr
+      ! Do not rewrite applied_theory from XC; theory is set only via set_config.
     end if
-    cfg_dft_direct = int(direct_enabled)
-    cfg_dft_smear_on = int(smearing_enabled)
-    cfg_dft_smear_sigma = real(smear_sigma_hartree, real64)
-    cfg_dft_smear_spinset = int(smearing_spinset)
+    applied_dft_direct = int(direct_enabled)
+    applied_dft_smear_on = int(smearing_enabled)
+    applied_dft_smear_sigma = real(smear_sigma_hartree, real64)
+    applied_dft_smear_spinset = int(smearing_spinset)
   end function nwchemc_embed_set_dft_direct
 
   !> Store structured driver scalar controls extracted from Cap'n Proto.
@@ -920,18 +903,19 @@ contains
     real(c_double), intent(in), value :: xrms_tol
     integer(c_int) :: rc
 
-    cfg_driver_has_options = int(has_options)
-    cfg_driver_maxiter = int(maxiter)
-    cfg_driver_tolerance_mode = int(tolerance_mode)
-    cfg_driver_gmax_tol = real(gmax_tol, real64)
-    cfg_driver_grms_tol = real(grms_tol, real64)
-    cfg_driver_xmax_tol = real(xmax_tol, real64)
-    cfg_driver_xrms_tol = real(xrms_tol, real64)
+    applied_driver_has_options = int(has_options)
+    applied_driver_maxiter = int(maxiter)
+    applied_driver_tolerance_mode = int(tolerance_mode)
+    applied_driver_gmax_tol = real(gmax_tol, real64)
+    applied_driver_grms_tol = real(grms_tol, real64)
+    applied_driver_xmax_tol = real(xmax_tol, real64)
+    applied_driver_xrms_tol = real(xrms_tol, real64)
     rc = 0_c_int
   end function nwchemc_embed_set_driver_direct
 
-  !> Confirm structured NWPW cutoff controls are present on the direct path.
-  !> The C layer expands these controls into typed RTDB set entries.
+  !> Store structured NWPW cutoff controls (common-overlay / legacy direct).
+  !> Serialized NWChemParams path uses apply_params; C still expands NWPW
+  !> knobs into typed RTDB set entries for the promo path.
   function nwchemc_embed_set_nwpw_direct(has_options, energy_cutoff, &
       wavefunction_cutoff, ewald_rcut, ewald_ncut) result(rc) &
       bind(C, name='nwchemc_embed_set_nwpw_direct')
@@ -946,9 +930,14 @@ contains
         wavefunction_cutoff < 0.0_c_double .or. &
         ewald_rcut < 0.0_c_double .or. ewald_ncut < 0) then
       rc = -1_c_int
-    else
-      rc = 0_c_int
+      return
     end if
+    applied_nwpw_has_options = int(has_options)
+    applied_nwpw_energy_cutoff = real(energy_cutoff, real64)
+    applied_nwpw_wavefunction_cutoff = real(wavefunction_cutoff, real64)
+    applied_nwpw_ewald_rcut = real(ewald_rcut, real64)
+    applied_nwpw_ewald_ncut = int(ewald_ncut)
+    rc = 0_c_int
   end function nwchemc_embed_set_nwpw_direct
 
   !> Store structured Brillouin-zone controls for direct RTDB setup.
@@ -974,21 +963,21 @@ contains
         kvector_count < 0) return
     call c_chars_to_f(zone_name, zone_name_len, zname)
     if (len_trim(zname) == 0) zname = 'zone_default'
-    if (allocated(cfg_brillouin_kvectors)) deallocate (cfg_brillouin_kvectors)
+    if (allocated(applied_brillouin_kvectors)) deallocate (applied_brillouin_kvectors)
     nvalues = 4 * int(kvector_count)
-    allocate (cfg_brillouin_kvectors(max(1, nvalues)), stat=alloc_status)
+    allocate (applied_brillouin_kvectors(max(1, nvalues)), stat=alloc_status)
     if (alloc_status /= 0) return
-    cfg_brillouin_kvectors = 0.0_real64
+    applied_brillouin_kvectors = 0.0_real64
     do i = 1, nvalues
-      cfg_brillouin_kvectors(i) = real(kvector_values(i), real64)
+      applied_brillouin_kvectors(i) = real(kvector_values(i), real64)
     end do
-    cfg_brillouin_has_options = int(has_options)
-    cfg_brillouin_zone_name = zname
-    cfg_brillouin_monkhorst_pack(1) = int(monkhorst_pack_x)
-    cfg_brillouin_monkhorst_pack(2) = int(monkhorst_pack_y)
-    cfg_brillouin_monkhorst_pack(3) = int(monkhorst_pack_z)
-    cfg_brillouin_max_kpoints_print = int(max_kpoints_print)
-    cfg_brillouin_kvector_count = int(kvector_count)
+    applied_brillouin_has_options = int(has_options)
+    applied_brillouin_zone_name = zname
+    applied_brillouin_monkhorst_pack(1) = int(monkhorst_pack_x)
+    applied_brillouin_monkhorst_pack(2) = int(monkhorst_pack_y)
+    applied_brillouin_monkhorst_pack(3) = int(monkhorst_pack_z)
+    applied_brillouin_max_kpoints_print = int(max_kpoints_print)
+    applied_brillouin_kvector_count = int(kvector_count)
     rc = 0_c_int
   end function nwchemc_embed_set_brillouin_zone
 
@@ -1007,19 +996,19 @@ contains
     n = int(count)
     if (n < 0 .or. n > max_embed_set_strings) return
 
-    cfg_brillouin_dos_zone_count = n
-    cfg_brillouin_dos_zone_names = ' '
-    cfg_brillouin_dos_zone_grids = 0
+    applied_brillouin_dos_zone_count = n
+    applied_brillouin_dos_zone_names = ' '
+    applied_brillouin_dos_zone_grids = 0
     do i = 1, n
       call c_chars_to_f(zone_names((i - 1) * 64 + 1), 64_c_int, &
-          cfg_brillouin_dos_zone_names(i))
-      cfg_brillouin_dos_zone_grids(1, i) = int(zone_grids(3 * (i - 1) + 1))
-      cfg_brillouin_dos_zone_grids(2, i) = int(zone_grids(3 * (i - 1) + 2))
-      cfg_brillouin_dos_zone_grids(3, i) = int(zone_grids(3 * (i - 1) + 3))
+          applied_brillouin_dos_zone_names(i))
+      applied_brillouin_dos_zone_grids(1, i) = int(zone_grids(3 * (i - 1) + 1))
+      applied_brillouin_dos_zone_grids(2, i) = int(zone_grids(3 * (i - 1) + 2))
+      applied_brillouin_dos_zone_grids(3, i) = int(zone_grids(3 * (i - 1) + 3))
     end do
     if (rtdb_ready .and. n > 0) then
       call nwchemc_store_brillouin_dos_zones(rtdb_handle, n, &
-          cfg_brillouin_dos_zone_names, cfg_brillouin_dos_zone_grids, &
+          applied_brillouin_dos_zone_names, applied_brillouin_dos_zone_grids, &
           errmsg, ok)
       if (.not. ok) return
     end if
@@ -1043,20 +1032,20 @@ contains
     n = int(count)
     if (n < 0 .or. n > max_embed_pseudopotentials) return
 
-    cfg_psp_count = n
-    cfg_psp_elements = ' '
-    cfg_psp_names = ' '
-    cfg_psp_types = 0
+    applied_psp_count = n
+    applied_psp_elements = ' '
+    applied_psp_names = ' '
+    applied_psp_types = 0
     do i = 1, n
       call c_chars_to_f(elements((i - 1) * psp_element_len + 1), &
-          int(psp_element_len, c_int), cfg_psp_elements(i))
+          int(psp_element_len, c_int), applied_psp_elements(i))
       call c_chars_to_f(library_names((i - 1) * psp_name_len + 1), &
-          int(psp_name_len, c_int), cfg_psp_names(i))
-      cfg_psp_types(i) = int(library_types(i))
+          int(psp_name_len, c_int), applied_psp_names(i))
+      applied_psp_types(i) = int(library_types(i))
     end do
     if (rtdb_ready .and. n > 0) then
       call nwchemc_store_pseudopotentials(rtdb_handle, n, &
-          cfg_psp_elements, cfg_psp_types, cfg_psp_names, errmsg, ok)
+          applied_psp_elements, applied_psp_types, applied_psp_names, errmsg, ok)
       if (.not. ok) return
     end if
     rc = 0_c_int
@@ -1077,18 +1066,18 @@ contains
     n = int(count)
     if (n < 0 .or. n > max_embed_set_strings) return
 
-    cfg_set_string_count = n
-    cfg_set_keys = ' '
-    cfg_set_values = ' '
+    applied_set_string_count = n
+    applied_set_keys = ' '
+    applied_set_values = ' '
     do i = 1, n
       call c_chars_to_f(keys((i - 1) * set_key_len + 1), &
-          int(set_key_len, c_int), cfg_set_keys(i))
+          int(set_key_len, c_int), applied_set_keys(i))
       call c_chars_to_f(values((i - 1) * set_value_len + 1), &
-          int(set_value_len, c_int), cfg_set_values(i))
+          int(set_value_len, c_int), applied_set_values(i))
     end do
     if (rtdb_ready .and. n > 0) then
-      call nwchemc_apply_direct_string_sets(rtdb_handle, n, cfg_set_keys, &
-          cfg_set_values, errmsg, ok)
+      call nwchemc_apply_direct_string_sets(rtdb_handle, n, applied_set_keys, &
+          applied_set_values, errmsg, ok)
       if (.not. ok) return
     end if
     rc = 0_c_int
@@ -1111,29 +1100,29 @@ contains
     n = int(count)
     if (n < 0 .or. n > max_embed_set_strings) return
 
-    cfg_typed_set_count = n
-    cfg_typed_set_keys = ' '
-    cfg_typed_set_types = 0
-    cfg_typed_set_value_counts = 0
-    cfg_typed_set_values = ' '
+    applied_typed_set_count = n
+    applied_typed_set_keys = ' '
+    applied_typed_set_types = 0
+    applied_typed_set_value_counts = 0
+    applied_typed_set_values = ' '
     do i = 1, n
       nvalues = int(value_counts(i))
       if (nvalues <= 0 .or. nvalues > max_embed_set_values) return
       call c_chars_to_f(keys((i - 1) * set_key_len + 1), &
-          int(set_key_len, c_int), cfg_typed_set_keys(i))
-      cfg_typed_set_types(i) = int(value_types(i))
-      cfg_typed_set_value_counts(i) = nvalues
+          int(set_key_len, c_int), applied_typed_set_keys(i))
+      applied_typed_set_types(i) = int(value_types(i))
+      applied_typed_set_value_counts(i) = nvalues
       do j = 1, nvalues
         offset = ((i - 1) * max_embed_set_values + (j - 1)) * &
             set_value_len + 1
         call c_chars_to_f(values(offset), int(set_value_len, c_int), &
-            cfg_typed_set_values(j, i))
+            applied_typed_set_values(j, i))
       end do
     end do
     if (rtdb_ready .and. n > 0) then
       call nwchemc_apply_direct_typed_sets(rtdb_handle, n, &
-          cfg_typed_set_keys, cfg_typed_set_types, &
-          cfg_typed_set_value_counts, cfg_typed_set_values, errmsg, ok)
+          applied_typed_set_keys, applied_typed_set_types, &
+          applied_typed_set_value_counts, applied_typed_set_values, errmsg, ok)
       if (.not. ok) return
     end if
     rc = 0_c_int
@@ -1234,20 +1223,20 @@ contains
       return
     end if
     call nwchem_legacy_energy_only(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, msg, ok)
 
     call set_c_errmsg(errmsg, errmsg_len, trim(msg))
@@ -1354,20 +1343,20 @@ contains
       return
     end if
     call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, grad, msg, ok)
 
     do i = 1, 3 * n
@@ -1481,20 +1470,20 @@ contains
       return
     end if
     call nwchem_legacy_dipole(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, dipole, msg, ok)
 
     do i = 1, 3
@@ -1610,20 +1599,20 @@ contains
       return
     end if
     call nwchem_legacy_polarizability(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, polarizability, msg, ok)
 
     do i = 1, 12
@@ -1739,20 +1728,20 @@ contains
       return
     end if
     call nwchem_legacy_quadrupole(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, quadrupole, msg, ok)
 
     do i = 1, 6
@@ -1865,20 +1854,20 @@ contains
       return
     end if
     call nwchem_legacy_stress(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, stress, msg, ok)
 
     do i = 1, 9
@@ -1990,20 +1979,20 @@ contains
       return
     end if
     call nwchem_legacy_optimize(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, optpos, msg, ok)
 
     do i = 1, 3 * n
@@ -2261,20 +2250,20 @@ contains
       return
     end if
     call nwchem_legacy_frequencies(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, freq, intensity, modes, int(read_modes), projected_freq, &
         projected_intensity, int(read_projected), thermochemistry, &
         int(read_thermo), msg, ok)
@@ -2399,20 +2388,20 @@ contains
       return
     end if
     call nwchem_legacy_hessian(rtdb_handle, n, pos, z, cell, &
-        int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
-        int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        int(has_cell), applied_basis, applied_theory, applied_scf_type, applied_input_blocks, &
+        int(charge), max(1, int(mult)), applied_dft_direct, applied_dft_smear_on, &
+        applied_dft_smear_sigma, applied_dft_smear_spinset, applied_scf_has_options, &
         applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
-        cfg_driver_has_options, cfg_driver_maxiter, &
-        cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
-        cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
-        cfg_psp_count, cfg_psp_elements, cfg_psp_types, cfg_psp_names, &
-        cfg_set_string_count, cfg_set_keys, cfg_set_values, &
-        cfg_typed_set_count, cfg_typed_set_keys, cfg_typed_set_types, &
-        cfg_typed_set_value_counts, cfg_typed_set_values, &
-        cfg_brillouin_has_options, cfg_brillouin_zone_name, &
-        cfg_brillouin_monkhorst_pack, cfg_brillouin_max_kpoints_print, &
-        cfg_brillouin_kvector_count, cfg_brillouin_kvectors, &
+        applied_driver_has_options, applied_driver_maxiter, &
+        applied_driver_tolerance_mode, applied_driver_gmax_tol, &
+        applied_driver_grms_tol, applied_driver_xmax_tol, applied_driver_xrms_tol, &
+        applied_psp_count, applied_psp_elements, applied_psp_types, applied_psp_names, &
+        applied_set_string_count, applied_set_keys, applied_set_values, &
+        applied_typed_set_count, applied_typed_set_keys, applied_typed_set_types, &
+        applied_typed_set_value_counts, applied_typed_set_values, &
+        applied_brillouin_has_options, applied_brillouin_zone_name, &
+        applied_brillouin_monkhorst_pack, applied_brillouin_max_kpoints_print, &
+        applied_brillouin_kvector_count, applied_brillouin_kvectors, &
         energy_h, hess, msg, ok)
 
     do i = 1, n2
@@ -2431,13 +2420,13 @@ contains
   logical function ensure_brillouin_kvectors()
     integer :: alloc_status
     ensure_brillouin_kvectors = .true.
-    if (allocated(cfg_brillouin_kvectors)) return
-    allocate (cfg_brillouin_kvectors(1), stat=alloc_status)
+    if (allocated(applied_brillouin_kvectors)) return
+    allocate (applied_brillouin_kvectors(1), stat=alloc_status)
     if (alloc_status /= 0) then
       ensure_brillouin_kvectors = .false.
       return
     end if
-    cfg_brillouin_kvectors = 0.0_real64
+    applied_brillouin_kvectors = 0.0_real64
   end function ensure_brillouin_kvectors
 
   subroutine c_chars_to_f(cbuf, clen, fstr)

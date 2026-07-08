@@ -48,11 +48,29 @@ extern int nwchemc_embed_set_basis_direct(int library_root, int angular_kind,
                                           const char *elem_libs);
 extern int nwchemc_embed_set_scf_direct(int has_options, int maxiter,
                                         double thresh, double tol2e);
-/* Fortran-side Cap'n Proto decode (capnp-fortran) for migrated families. */
+/* Fortran-side Cap'n Proto decode (capnp-fortran) for all exploded families. */
 extern int nwchemc_embed_apply_params(const void *params_capnp,
-                                      size_t params_capnp_size_bytes);
+                                      size_t params_capnp_size_bytes,
+                                      const char *input_blocks,
+                                      int input_blocks_len);
 extern int nwchemc_embed_get_scf_direct(int *has_options, int *maxiter,
                                         double *thresh, double *tol2e);
+extern int nwchemc_embed_get_config(char *basis, int basis_len, char *theory,
+                                    int theory_len, char *scf_type, int scf_len,
+                                    int *charge, int *mult);
+extern int nwchemc_embed_get_dft_direct(char *xc, int xc_len,
+                                        int *direct_enabled,
+                                        int *smearing_enabled,
+                                        double *smear_sigma_hartree,
+                                        int *smearing_spinset);
+extern int nwchemc_embed_get_driver_direct(int *has_options, int *maxiter,
+                                           int *tolerance_mode, double *gmax_tol,
+                                           double *grms_tol, double *xmax_tol,
+                                           double *xrms_tol);
+extern int nwchemc_embed_get_nwpw_direct(int *has_options,
+                                         double *energy_cutoff,
+                                         double *wavefunction_cutoff,
+                                         double *ewald_rcut, int *ewald_ncut);
 extern int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
                                            int tolerance_mode,
                                            double gmax_tol, double grms_tol,
@@ -4334,12 +4352,17 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   g_active_session = NULL;
   int ch = params->charge;
   int mult = params->multiplicity > 0 ? params->multiplicity : 1;
-  int basis_len = 0;
-  const char *basis = text_or_with_len(params->basis, "sto-3g", &basis_len);
-  if (nwchemc_embed_set_config(basis, basis_len, theory, theory_len, scf_type,
-                               scf_len, &ch, &mult, input_blocks,
-                               cstr_len(input_blocks)) != 0)
+  /* All exploded-setter families: Fortran capnp-fortran decode from wire
+   * bytes. input_blocks is still C-rendered (promoted stanzas stripped). */
+  if (!params_capnp || params_capnp_size_bytes == 0)
     return -1;
+  if (nwchemc_embed_apply_params(params_capnp, params_capnp_size_bytes,
+                                 input_blocks, cstr_len(input_blocks)) != 0)
+    return -1;
+  /* RTDB-touching packs still go through bind(C) flush helpers: C expands
+   * NWPW/etc. into typed RTDB entries; Fortran already holds structured
+   * decode for getters. Pseudopotentials / Brillouin / set stanzas flush
+   * RTDB via the existing setters (same wire outcome as before). */
   if (nwchemc_embed_set_pseudopotentials(
           packed_psp_elements, psp_types, packed_psp_names, (int)psp_count) !=
       0)
@@ -4351,57 +4374,56 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           packed_typed_set_keys, typed_set_types, typed_set_value_counts,
           packed_typed_set_values, (int)typed_set_count) != 0)
     return -1;
-  int brillouin_zone_name_len = 0;
-  const char *brillouin_zone_name_text =
-      text_or_with_len(brillouin_zone_name, "zone_default",
-                       &brillouin_zone_name_len);
-  double no_brillouin_kvectors[1] = {0.0};
-  double *brillouin_kvectors = NULL;
-  const double *brillouin_kvectors_arg = no_brillouin_kvectors;
-  if (brillouin_kvector_count > 0) {
-    if (brillouin_kvector_count > (size_t)INT_MAX ||
-        brillouin_kvector_count > SIZE_MAX / (4 * sizeof(double)))
-      return -1;
-    brillouin_kvectors =
-        malloc(4 * brillouin_kvector_count * sizeof(*brillouin_kvectors));
-    if (!brillouin_kvectors)
-      return -1;
-    size_t filled_kvectors = 0;
-    if (nwchemc_params_extract_direct_brillouin_zone(
-            params_root, &brillouin_has_options, &brillouin_zone_name,
-            brillouin_monkhorst_pack, &brillouin_max_kpoints_print,
-            brillouin_kvectors, brillouin_kvector_count,
-            &filled_kvectors) != 0 ||
-        filled_kvectors != brillouin_kvector_count) {
+  {
+    int brillouin_zone_name_len = 0;
+    const char *brillouin_zone_name_text =
+        text_or_with_len(brillouin_zone_name, "zone_default",
+                         &brillouin_zone_name_len);
+    double no_brillouin_kvectors[1] = {0.0};
+    double *brillouin_kvectors = NULL;
+    const double *brillouin_kvectors_arg = no_brillouin_kvectors;
+    if (brillouin_kvector_count > 0) {
+      if (brillouin_kvector_count > (size_t)INT_MAX ||
+          brillouin_kvector_count > SIZE_MAX / (4 * sizeof(double)))
+        return -1;
+      brillouin_kvectors =
+          malloc(4 * brillouin_kvector_count * sizeof(*brillouin_kvectors));
+      if (!brillouin_kvectors)
+        return -1;
+      size_t filled_kvectors = 0;
+      if (nwchemc_params_extract_direct_brillouin_zone(
+              params_root, &brillouin_has_options, &brillouin_zone_name,
+              brillouin_monkhorst_pack, &brillouin_max_kpoints_print,
+              brillouin_kvectors, brillouin_kvector_count,
+              &filled_kvectors) != 0 ||
+          filled_kvectors != brillouin_kvector_count) {
+        free(brillouin_kvectors);
+        return -1;
+      }
+      brillouin_kvectors_arg = brillouin_kvectors;
+    }
+    if (nwchemc_embed_set_brillouin_zone(
+            brillouin_has_options, brillouin_zone_name_text,
+            brillouin_zone_name_len, brillouin_monkhorst_pack[0],
+            brillouin_monkhorst_pack[1], brillouin_monkhorst_pack[2],
+            brillouin_max_kpoints_print, brillouin_kvectors_arg,
+            (int)brillouin_kvector_count) != 0) {
       free(brillouin_kvectors);
       return -1;
     }
-    brillouin_kvectors_arg = brillouin_kvectors;
-  }
-  if (nwchemc_embed_set_brillouin_zone(
-          brillouin_has_options, brillouin_zone_name_text,
-          brillouin_zone_name_len, brillouin_monkhorst_pack[0],
-          brillouin_monkhorst_pack[1], brillouin_monkhorst_pack[2],
-          brillouin_max_kpoints_print, brillouin_kvectors_arg,
-          (int)brillouin_kvector_count) != 0) {
     free(brillouin_kvectors);
-    return -1;
   }
-  free(brillouin_kvectors);
   if (nwchemc_embed_set_brillouin_dos_zones(
           packed_brillouin_dos_zone_names, brillouin_dos_zone_grids,
           (int)brillouin_dos_zone_count) != 0)
     return -1;
-  if (nwchemc_embed_set_nwpw_direct(nwpw_has_options, nwpw_energy_cutoff,
-                                    nwpw_wavefunction_cutoff,
-                                    nwpw_ewald_rcut, nwpw_ewald_ncut) != 0)
-    return -1;
-  /* SCF family: Fortran capnp-fortran decode from the same wire bytes (not
-   * exploded set_scf_direct). scf_* locals above still feed RTDB promo. */
-  if (!params_capnp || params_capnp_size_bytes == 0)
-    return -1;
-  if (nwchemc_embed_apply_params(params_capnp, params_capnp_size_bytes) != 0)
-    return -1;
+  (void)ch;
+  (void)mult;
+  (void)nwpw_has_options;
+  (void)nwpw_energy_cutoff;
+  (void)nwpw_wavefunction_cutoff;
+  (void)nwpw_ewald_rcut;
+  (void)nwpw_ewald_ncut;
   /* Promote maximally-typed stanza knobs via RTDB (embed render omits them).
    * DFT grid and SCF noprint stay text-only where no stable RTDB key exists.
    * Capacity shares NWCHEMC_DIRECT_SET_MAX with the main typed-set path. */
@@ -4658,38 +4680,19 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                       (int)promo_count) != 0)
       return -1;
   }
-  if (nwchemc_embed_set_driver_direct(driver_has_options, driver_maxiter,
-                                      driver_tolerance_mode, driver_gmax_tol,
-                                      driver_grms_tol, driver_xmax_tol,
-                                      driver_xrms_tol) != 0)
-    return -1;
-  if (nwchemc_embed_set_dft_direct(
-          dft_xc.str ? dft_xc.str : "", dft_xc.str ? (int)dft_xc.len : 0,
-          dft_direct, dft_smear_on, dft_smear_sigma, dft_smear_spinset) != 0)
-    return -1;
-  {
-    int library_root = 0;
-    int angular_kind = 0;
-    int segment_mode = 0;
-    int legacy_spherical = 0;
-    capn_text ecp = {0};
-    enum { BASIS_ELEM_MAX = 64, BASIS_TAG_LEN = 16, BASIS_LIB_LEN = 64 };
-    char elem_tags[BASIS_ELEM_MAX * BASIS_TAG_LEN];
-    char elem_libs[BASIS_ELEM_MAX * BASIS_LIB_LEN];
-    size_t elem_count = 0;
-    memset(elem_tags, 0, sizeof(elem_tags));
-    memset(elem_libs, 0, sizeof(elem_libs));
-    if (nwchemc_params_extract_direct_basis(
-            params_root, &library_root, &angular_kind, &segment_mode,
-            &legacy_spherical, &ecp, elem_tags, BASIS_TAG_LEN, elem_libs,
-            BASIS_LIB_LEN, BASIS_ELEM_MAX, &elem_count) != 0)
-      return -1;
-    if (nwchemc_embed_set_basis_direct(
-            library_root, angular_kind, segment_mode, legacy_spherical,
-            ecp.str ? ecp.str : "", ecp.str ? (int)ecp.len : 0, (int)elem_count,
-            elem_tags, elem_libs) != 0)
-      return -1;
-  }
+  /* driver/dft/basis applied via nwchemc_embed_apply_params above. */
+  (void)driver_has_options;
+  (void)driver_maxiter;
+  (void)driver_tolerance_mode;
+  (void)driver_gmax_tol;
+  (void)driver_grms_tol;
+  (void)driver_xmax_tol;
+  (void)driver_xrms_tol;
+  (void)dft_xc;
+  (void)dft_direct;
+  (void)dft_smear_on;
+  (void)dft_smear_sigma;
+  (void)dft_smear_spinset;
   return 0;
 }
 
