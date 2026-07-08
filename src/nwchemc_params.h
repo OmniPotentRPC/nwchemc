@@ -80,6 +80,12 @@ int nwchemc_params_extract_direct_constraints(NWChemParams_ptr params,
                                               int *has_options, int *clear,
                                               int *constraint_count);
 
+/* Relativistic stanza → method enum + zora cutoff (RTDB promo keys). */
+int nwchemc_params_extract_direct_relativistic(NWChemParams_ptr params,
+                                               int *has_options, int *method,
+                                               int *spin_orbit, double *cutoff,
+                                               int *dk_order);
+
 /* Presence of remaining structured InputStanza kinds + Kind_module enum IDs.
  * module_ids[] holds NWChemModuleName values from kind=module stanzas. */
 enum { NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES = 128 };

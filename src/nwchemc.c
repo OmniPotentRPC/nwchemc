@@ -1864,6 +1864,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
   if (nwchemc_params_extract_direct_constraints(params_root, &cons_has,
                                                 &cons_clear, &cons_count) != 0)
     return -1;
+  int rel_has = 0, rel_method = NWChemRelativisticStanza_Method_none;
+  int rel_spin_orbit = 0, rel_dk_order = 0;
+  double rel_cutoff = 0.0;
+  if (nwchemc_params_extract_direct_relativistic(
+          params_root, &rel_has, &rel_method, &rel_spin_orbit, &rel_cutoff,
+          &rel_dk_order) != 0)
+    return -1;
   int mp2_freeze_core = 0, mp2_freeze_virt = 0, mp2_tight = 0;
   double mp2_aotol2e = 0.0, mp2_aotol2e_fock = 0.0, mp2_backtol = 0.0;
   double mp2_fss = 0.0, mp2_fos = 0.0, mp2_scratch = 0.0;
@@ -4606,6 +4613,21 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
       PROMO_LOG("constraints:clear", 1);
     if (cons_has && cons_count > 0)
       PROMO_INT("constraints:ncons", cons_count);
+    /* Relativistic stanza → same RTDB logicals as common-overlay relativity. */
+    if (rel_has && rel_method == NWChemRelativisticStanza_Method_zora) {
+      PROMO_LOG("zora", 1);
+      PROMO_LOG("zora:calc", 1);
+      if (rel_spin_orbit)
+        PROMO_LOG("zora:so", 1);
+      if (rel_cutoff > 0.0)
+        PROMO_DBL("zora:cutoff", rel_cutoff);
+    } else if (rel_has && rel_method == NWChemRelativisticStanza_Method_dk) {
+      PROMO_LOG("doug_kroll", 1);
+      if (rel_dk_order > 0)
+        PROMO_INT("doug_kroll:order", rel_dk_order);
+    } else if (rel_has && rel_method == NWChemRelativisticStanza_Method_x2c) {
+      PROMO_LOG("x2c", 1);
+    }
 
     if (mp2_freeze_core > 0)
       PROMO_INT("mp2:number frozen core", mp2_freeze_core);

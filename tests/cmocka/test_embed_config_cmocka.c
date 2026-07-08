@@ -7370,6 +7370,16 @@ static void test_embed_promotes_cosmo_rtdb_keys(void **state) {
                           "true");
   assert_typed_set_scalar("constraints:ncons", NWCHEMC_DIRECT_SET_VALUE_INTEGER,
                           "2");
+  /* Relativistic stanza: method=zora, cutoff=1e-30 (bzcx extract+promo). */
+  assert_typed_set_scalar("zora", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("zora:calc", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  {
+    int idx = find_typed_set_key("zora:cutoff");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 1.0e-30) <
+                1e-40);
+  }
   free(message);
 }
 

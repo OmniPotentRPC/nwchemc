@@ -5516,6 +5516,45 @@ int nwchemc_params_extract_direct_constraints(NWChemParams_ptr params,
   return 0;
 }
 
+int nwchemc_params_extract_direct_relativistic(NWChemParams_ptr params,
+                                               int *has_options, int *method,
+                                               int *spin_orbit, double *cutoff,
+                                               int *dk_order) {
+  if (params.p.type == CAPN_NULL || !has_options || !method || !spin_orbit ||
+      !cutoff || !dk_order)
+    return -1;
+  *has_options = 0;
+  *method = NWChemRelativisticStanza_Method_none;
+  *spin_orbit = 0;
+  *cutoff = 0.0;
+  *dk_order = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_relativistic ||
+        stanza.relativistic.p.type == CAPN_NULL)
+      continue;
+    struct NWChemRelativisticStanza rel;
+    read_NWChemRelativisticStanza(&rel, stanza.relativistic);
+    if (rel.method == NWChemRelativisticStanza_Method_none)
+      continue;
+    *has_options = 1;
+    *method = (int)rel.method;
+    *spin_orbit = rel.spinOrbit ? 1 : 0;
+    if (rel.cutoff > 0.0)
+      *cutoff = rel.cutoff;
+    if (rel.dkOrder > 0)
+      *dk_order = rel.dkOrder;
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_structured_presence(
     NWChemParams_ptr params, NwchemcStructuredPresence *out) {
   if (params.p.type == CAPN_NULL || !out)
