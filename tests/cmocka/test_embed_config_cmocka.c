@@ -7380,6 +7380,26 @@ static void test_embed_promotes_cosmo_rtdb_keys(void **state) {
     assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 1.0e-30) <
                 1e-40);
   }
+  /* SMD stanza (after cosmo promo): solvent ethanol + sola; do_cosmo_smd on.
+   * cosmo:solvent may be overwritten by smd extract when both present. */
+  assert_typed_set_scalar("cosmo:do_cosmo_smd",
+                          NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  {
+    int idx = find_typed_set_key("cosmo:sola");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.37) < 1e-12);
+  }
+  /* SMD solvent ethanol is applied (may be second cosmo:solvent after water). */
+  {
+    int found_ethanol = 0;
+    for (int i = 0; i < g_set_string_count && i < 64; ++i) {
+      if (strcmp(g_set_keys[i], "cosmo:solvent") == 0 &&
+          strcmp(g_set_values[i], "ethanol") == 0)
+        found_ethanol = 1;
+    }
+    assert_int_equal(found_ethanol, 1);
+  }
   free(message);
 }
 

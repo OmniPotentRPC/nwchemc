@@ -1871,6 +1871,13 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           params_root, &rel_has, &rel_method, &rel_spin_orbit, &rel_cutoff,
           &rel_dk_order) != 0)
     return -1;
+  int smd_has = 0;
+  capn_text smd_solvent = {0};
+  double smd_sola = 0.0, smd_solb = 0.0, smd_soln = 0.0, smd_solg = 0.0;
+  if (nwchemc_params_extract_direct_smd(params_root, &smd_has, &smd_solvent,
+                                        &smd_sola, &smd_solb, &smd_soln,
+                                        &smd_solg) != 0)
+    return -1;
   int mp2_freeze_core = 0, mp2_freeze_virt = 0, mp2_tight = 0;
   double mp2_aotol2e = 0.0, mp2_aotol2e_fock = 0.0, mp2_backtol = 0.0;
   double mp2_fss = 0.0, mp2_fos = 0.0, mp2_scratch = 0.0;
@@ -4628,6 +4635,19 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
     } else if (rel_has && rel_method == NWChemRelativisticStanza_Method_x2c) {
       PROMO_LOG("x2c", 1);
     }
+    /* SMD stanza → cosmo_input.F RTDB keys (do_cosmo_smd + sola/solb/…). */
+    if (smd_has)
+      PROMO_LOG("cosmo:do_cosmo_smd", 1);
+    if (smd_has && smd_solvent.len > 0)
+      PROMO_STR("cosmo:solvent", smd_solvent);
+    if (smd_has && smd_sola > 0.0)
+      PROMO_DBL("cosmo:sola", smd_sola);
+    if (smd_has && smd_solb > 0.0)
+      PROMO_DBL("cosmo:solb", smd_solb);
+    if (smd_has && smd_soln > 0.0)
+      PROMO_DBL("cosmo:soln", smd_soln);
+    if (smd_has && smd_solg > 0.0)
+      PROMO_DBL("cosmo:solg", smd_solg);
 
     if (mp2_freeze_core > 0)
       PROMO_INT("mp2:number frozen core", mp2_freeze_core);

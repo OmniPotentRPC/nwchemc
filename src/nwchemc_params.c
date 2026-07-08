@@ -5555,6 +5555,57 @@ int nwchemc_params_extract_direct_relativistic(NWChemParams_ptr params,
   return 0;
 }
 
+int nwchemc_params_extract_direct_smd(NWChemParams_ptr params, int *has_options,
+                                      capn_text *solvent, double *sola,
+                                      double *solb, double *soln, double *solg) {
+  if (params.p.type == CAPN_NULL || !has_options || !solvent || !sola || !solb ||
+      !soln || !solg)
+    return -1;
+  *has_options = 0;
+  solvent->str = NULL;
+  solvent->len = 0;
+  *sola = 0.0;
+  *solb = 0.0;
+  *soln = 0.0;
+  *solg = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_smd ||
+        stanza.smd.p.type == CAPN_NULL)
+      continue;
+    struct NWChemSmdStanza smd;
+    read_NWChemSmdStanza(&smd, stanza.smd);
+    if (smd.solvent.len > 0) {
+      *has_options = 1;
+      *solvent = smd.solvent;
+    }
+    if (smd.sola > 0.0) {
+      *has_options = 1;
+      *sola = smd.sola;
+    }
+    if (smd.solb > 0.0) {
+      *has_options = 1;
+      *solb = smd.solb;
+    }
+    if (smd.soln > 0.0) {
+      *has_options = 1;
+      *soln = smd.soln;
+    }
+    if (smd.solg > 0.0) {
+      *has_options = 1;
+      *solg = smd.solg;
+    }
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_structured_presence(
     NWChemParams_ptr params, NwchemcStructuredPresence *out) {
   if (params.p.type == CAPN_NULL || !out)

@@ -86,6 +86,11 @@ int nwchemc_params_extract_direct_relativistic(NWChemParams_ptr params,
                                                int *spin_orbit, double *cutoff,
                                                int *dk_order);
 
+/* SMD stanza → cosmo:do_cosmo_smd + solvent descriptors (cosmo_input.F keys). */
+int nwchemc_params_extract_direct_smd(NWChemParams_ptr params, int *has_options,
+                                      capn_text *solvent, double *sola,
+                                      double *solb, double *soln, double *solg);
+
 /* Presence of remaining structured InputStanza kinds + Kind_module enum IDs.
  * module_ids[] holds NWChemModuleName values from kind=module stanzas. */
 enum { NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES = 128 };
