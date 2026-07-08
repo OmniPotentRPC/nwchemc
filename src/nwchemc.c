@@ -48,6 +48,11 @@ extern int nwchemc_embed_set_basis_direct(int library_root, int angular_kind,
                                           const char *elem_libs);
 extern int nwchemc_embed_set_scf_direct(int has_options, int maxiter,
                                         double thresh, double tol2e);
+/* Fortran-side Cap'n Proto decode (capnp-fortran) for migrated families. */
+extern int nwchemc_embed_apply_params(const void *params_capnp,
+                                      size_t params_capnp_size_bytes);
+extern int nwchemc_embed_get_scf_direct(int *has_options, int *maxiter,
+                                        double *thresh, double *tol2e);
 extern int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
                                            int tolerance_mode,
                                            double gmax_tol, double grms_tol,
@@ -1734,7 +1739,9 @@ static void apply_env_hints(const struct NWChemParams *params) {
 }
 
 static int apply_config_to_embed(NWChemParams_ptr params_root,
-                                 const struct NWChemParams *params) {
+                                 const struct NWChemParams *params,
+                                 const void *params_capnp,
+                                 size_t params_capnp_size_bytes) {
   if (params && params->enginePath.len > 0)
     return -1;
 
@@ -1771,6 +1778,12 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                         &scf_wavefunction, &scf_nopen,
                                         &scf_has_nopen) != 0)
     return -1;
+  /* maxiter/thresh/tol2e applied via nwchemc_embed_apply_params (Fortran);
+   * locals only suppress unused-var until promo of scalars also migrates. */
+  (void)scf_has_options;
+  (void)scf_maxiter;
+  (void)scf_thresh;
+  (void)scf_tol2e;
   capn_text scf_vectors_in = {0};
   capn_text scf_vectors_out = {0};
   int scf_diis = NWChemToggle_unspecified;
@@ -4383,8 +4396,11 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                     nwpw_wavefunction_cutoff,
                                     nwpw_ewald_rcut, nwpw_ewald_ncut) != 0)
     return -1;
-  if (nwchemc_embed_set_scf_direct(scf_has_options, scf_maxiter, scf_thresh,
-                                   scf_tol2e) != 0)
+  /* SCF family: Fortran capnp-fortran decode from the same wire bytes (not
+   * exploded set_scf_direct). scf_* locals above still feed RTDB promo. */
+  if (!params_capnp || params_capnp_size_bytes == 0)
+    return -1;
+  if (nwchemc_embed_apply_params(params_capnp, params_capnp_size_bytes) != 0)
     return -1;
   /* Promote maximally-typed stanza knobs via RTDB (embed render omits them).
    * DFT grid and SCF noprint stay text-only where no stable RTDB key exists.
@@ -4691,7 +4707,8 @@ int nwchemc_set_params(const void *params_capnp,
   }
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_store_error("apply NWChemParams to embed failed");
     nwchemc_params_release(&arena);
     return -1;
@@ -4732,7 +4749,8 @@ NWChemCResult nwchemc_energy_gradient(
 
     struct NWChemParams params;
     read_NWChemParams(&params, params_root);
-    if (apply_config_to_embed(params_root, &params) != 0) {
+    if (apply_config_to_embed(params_root, &params, params_capnp,
+                              params_capnp_size_bytes) != 0) {
       nwchemc_params_release(&arena);
       snprintf(r.message, sizeof(r.message), "embed config failed");
       return r;
@@ -4785,7 +4803,8 @@ NWChemCResult nwchemc_energy(
 
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
@@ -4852,7 +4871,8 @@ NWChemCResult nwchemc_hessian(
 
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
@@ -4908,7 +4928,8 @@ NWChemCResult nwchemc_dipole(
 
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
@@ -4961,7 +4982,8 @@ NWChemCResult nwchemc_polarizability(
 
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
@@ -5013,7 +5035,8 @@ NWChemCResult nwchemc_quadrupole(
 
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
@@ -5091,7 +5114,8 @@ NWChemCResult nwchemc_optimize(
 
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
@@ -5144,7 +5168,8 @@ NWChemCResult nwchemc_frequencies(
 
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  if (apply_config_to_embed(params_root, &params) != 0) {
+  if (apply_config_to_embed(params_root, &params, params_capnp,
+                            params_capnp_size_bytes) != 0) {
     nwchemc_params_release(&arena);
     snprintf(r.message, sizeof(r.message), "embed config failed");
     return r;
@@ -5850,10 +5875,25 @@ static int apply_common_bytes_to_embed(const unsigned char *bytes,
   return rc;
 }
 
-static int apply_root_to_embed(NWChemParams_ptr params_root) {
+static int write_ptr_root_flat(capn_ptr struct_ptr, unsigned char **out_capnp,
+                               size_t *out_capnp_size_bytes);
+
+static int apply_root_to_embed(NWChemParams_ptr params_root,
+                               const void *params_capnp,
+                               size_t params_capnp_size_bytes) {
   struct NWChemParams params;
   read_NWChemParams(&params, params_root);
-  return apply_config_to_embed(params_root, &params);
+  if (params_capnp && params_capnp_size_bytes > 0)
+    return apply_config_to_embed(params_root, &params, params_capnp,
+                                 params_capnp_size_bytes);
+  /* Nested PotentialConfig.nwchem has no top-level frame; re-frame flat. */
+  unsigned char *flat = NULL;
+  size_t flat_size = 0;
+  if (write_ptr_root_flat(params_root.p, &flat, &flat_size) != 0)
+    return -1;
+  int rc = apply_config_to_embed(params_root, &params, flat, flat_size);
+  free(flat);
+  return rc;
 }
 
 static int apply_message_to_embed(const void *params_capnp,
@@ -5863,7 +5903,8 @@ static int apply_message_to_embed(const void *params_capnp,
   if (nwchemc_params_root(params_capnp, params_capnp_size_bytes, &arena,
                           &params_root) != 0)
     return -1;
-  int rc = apply_root_to_embed(params_root);
+  int rc = apply_root_to_embed(params_root, params_capnp,
+                               params_capnp_size_bytes);
   nwchemc_params_release(&arena);
   return rc;
 }
@@ -6011,7 +6052,7 @@ int nwchemc_configure(const void *config_capnp,
     nwchemc_params_release(&arena);
     return 0;
   }
-  int rc = apply_root_to_embed(params_root);
+  int rc = apply_root_to_embed(params_root, NULL, 0);
   if (rc == 0)
     g_active_session = NULL;
   else
@@ -6073,7 +6114,8 @@ static int session_apply_config(NWChemCSession *session) {
       g_active_session = NULL;
     return -1;
   }
-  if (apply_root_to_embed(session->params_root) != 0) {
+  if (apply_root_to_embed(session->params_root, session->params_bytes,
+                          session->params_size) != 0) {
     session->configured = 0;
     if (g_active_session == session)
       g_active_session = NULL;

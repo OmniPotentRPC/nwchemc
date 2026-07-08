@@ -83,7 +83,14 @@ static int g_config_has_mult = 0;
 static int g_reset_rtdb_calls = 0;
 static int g_set_dft_direct_calls = 0;
 static int g_set_basis_direct_calls = 0;
-static int g_set_scf_direct_calls = 0;
+/* SCF knobs: real Fortran apply_params / set_scf_direct via nwchemc_apply_f. */
+extern int nwchemc_embed_get_scf_direct(int *has_options, int *maxiter,
+                                        double *thresh, double *tol2e);
+extern int nwchemc_embed_apply_params(const void *params_capnp,
+                                      size_t params_capnp_size_bytes);
+
+static int g_set_scf_direct_calls = 0; /* retained for common-overlay legacy name */
+
 static int g_set_driver_direct_calls = 0;
 static int g_set_nwpw_direct_calls = 0;
 static int g_set_brillouin_zone_calls = 0;
@@ -718,15 +725,6 @@ int nwchemc_embed_set_basis_direct(int library_root, int angular_kind,
   return 0;
 }
 
-int nwchemc_embed_set_scf_direct(int has_options, int maxiter, double thresh,
-                                 double tol2e) {
-  ++g_set_scf_direct_calls;
-  g_scf_has_options = has_options;
-  g_scf_maxiter = maxiter;
-  g_scf_thresh = thresh;
-  g_scf_tol2e = tol2e;
-  return 0;
-}
 
 int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
                                     int tolerance_mode, double gmax_tol,
@@ -1390,6 +1388,19 @@ int nwchemc_embed_stress_cell(
 }
 
 void nwchemc_embed_finalize(void) {}
+
+
+static void refresh_scf_from_embed(void) {
+  int has = 0, maxiter = 0;
+  double thresh = 0.0, tol2e = 0.0;
+  assert_int_equal(nwchemc_embed_get_scf_direct(&has, &maxiter, &thresh, &tol2e),
+                   0);
+  g_scf_has_options = has;
+  g_scf_maxiter = maxiter;
+  g_scf_thresh = thresh;
+  g_scf_tol2e = tol2e;
+  ++g_set_scf_direct_calls; /* count successful SCF observation pulls */
+}
 
 static void reset_embed_captures(void) {
   g_basis[0] = '\0';
@@ -2691,7 +2702,7 @@ static void test_embed_config_uses_direct_scf_values(void **state) {
 
   assert_int_equal(nwchemc_set_params(message, message_size), 0);
   assert_int_equal(g_set_config_calls, 1);
-  assert_int_equal(g_set_scf_direct_calls, 1);
+  refresh_scf_from_embed();
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 50);
   assert_close(g_scf_thresh, 1.0e-6, 1.0e-12);
@@ -2969,6 +2980,7 @@ static void test_common_overlay_lowers_before_native(void **state) {
   assert_string_equal(g_dft_xc, "xpbe96 cpbe96");
   assert_int_equal(g_dft_smearing_enabled, 1);
   assert_true(fabs(g_dft_smear_sigma_hartree - 0.01) < 1e-9);
+  refresh_scf_from_embed();
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 42);
   /* dft theory: energy tolerance lowers to the true dft:e_conv criterion. */
@@ -3064,7 +3076,7 @@ static void test_configure_accepts_potential_config_nwchem(void **state) {
   assert_string_equal(g_basis, "6-31g");
   assert_string_equal(g_theory, "scf");
   assert_string_equal(g_scf_type, "rhf");
-  assert_int_equal(g_set_scf_direct_calls, 1);
+  refresh_scf_from_embed();
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 50);
   assert_int_equal(g_set_driver_direct_calls, 1);
@@ -3174,7 +3186,7 @@ static void test_session_configure_replaces_before_topology(void **state) {
   assert_string_equal(g_basis, "6-31g");
   assert_string_equal(g_theory, "scf");
   assert_string_equal(g_scf_type, "rhf");
-  assert_int_equal(g_set_scf_direct_calls, 2);
+  refresh_scf_from_embed();
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 50);
   assert_int_equal(g_set_driver_direct_calls, 2);
@@ -4109,7 +4121,7 @@ static void test_session_set_params_replaces_before_topology(void **state) {
   assert_string_equal(g_basis, "6-31g");
   assert_string_equal(g_theory, "scf");
   assert_string_equal(g_scf_type, "rhf");
-  assert_int_equal(g_set_scf_direct_calls, 2);
+  refresh_scf_from_embed();
   assert_int_equal(g_scf_has_options, 1);
   assert_int_equal(g_scf_maxiter, 50);
   assert_int_equal(g_set_driver_direct_calls, 2);

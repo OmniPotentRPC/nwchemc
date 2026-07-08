@@ -12,6 +12,10 @@ module nwchem_embed_c_api
   use, intrinsic :: iso_c_binding, only: &
       c_char, c_double, c_int, c_long_long, c_null_char
   use, intrinsic :: iso_fortran_env, only: real64
+  ! SCF knobs live in nwchemc_embed_apply_params (capnp-fortran decode path).
+  use nwchemc_embed_apply_params_mod, only: &
+      applied_scf_has_options, applied_scf_maxiter, &
+      applied_scf_thresh, applied_scf_tol2e
   implicit none
   private
 
@@ -24,7 +28,6 @@ module nwchem_embed_c_api
   public :: nwchemc_embed_set_config
   public :: nwchemc_embed_set_dft_direct
   public :: nwchemc_embed_set_basis_direct
-  public :: nwchemc_embed_set_scf_direct
   public :: nwchemc_embed_set_driver_direct
   public :: nwchemc_embed_set_nwpw_direct
   public :: nwchemc_embed_set_brillouin_zone
@@ -75,10 +78,6 @@ module nwchem_embed_c_api
   integer, save :: cfg_dft_smear_on = 0
   real(real64), save :: cfg_dft_smear_sigma = 0.0_real64
   integer, save :: cfg_dft_smear_spinset = 1
-  integer, save :: cfg_scf_has_options = 0
-  integer, save :: cfg_scf_maxiter = 0
-  real(real64), save :: cfg_scf_thresh = 0.0_real64
-  real(real64), save :: cfg_scf_tol2e = 0.0_real64
   integer, save :: cfg_driver_has_options = 0
   integer, save :: cfg_driver_maxiter = 0
   integer, save :: cfg_driver_tolerance_mode = 0
@@ -908,22 +907,6 @@ contains
     cfg_dft_smear_spinset = int(smearing_spinset)
   end function nwchemc_embed_set_dft_direct
 
-  !> Store structured SCF scalar controls extracted from Cap'n Proto.
-  function nwchemc_embed_set_scf_direct(has_options, maxiter, thresh, &
-      tol2e) result(rc) bind(C, name='nwchemc_embed_set_scf_direct')
-    integer(c_int), intent(in), value :: has_options
-    integer(c_int), intent(in), value :: maxiter
-    real(c_double), intent(in), value :: thresh
-    real(c_double), intent(in), value :: tol2e
-    integer(c_int) :: rc
-
-    cfg_scf_has_options = int(has_options)
-    cfg_scf_maxiter = int(maxiter)
-    cfg_scf_thresh = real(thresh, real64)
-    cfg_scf_tol2e = real(tol2e, real64)
-    rc = 0_c_int
-  end function nwchemc_embed_set_scf_direct
-
   !> Store structured driver scalar controls extracted from Cap'n Proto.
   function nwchemc_embed_set_driver_direct(has_options, maxiter, &
       tolerance_mode, gmax_tol, grms_tol, xmax_tol, xrms_tol) result(rc) &
@@ -1253,8 +1236,8 @@ contains
     call nwchem_legacy_energy_only(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -1373,8 +1356,8 @@ contains
     call nwchem_legacy_energy_grad(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -1500,8 +1483,8 @@ contains
     call nwchem_legacy_dipole(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -1629,8 +1612,8 @@ contains
     call nwchem_legacy_polarizability(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -1758,8 +1741,8 @@ contains
     call nwchem_legacy_quadrupole(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -1884,8 +1867,8 @@ contains
     call nwchem_legacy_stress(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -2009,8 +1992,8 @@ contains
     call nwchem_legacy_optimize(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -2280,8 +2263,8 @@ contains
     call nwchem_legacy_frequencies(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &
@@ -2418,8 +2401,8 @@ contains
     call nwchem_legacy_hessian(rtdb_handle, n, pos, z, cell, &
         int(has_cell), cfg_basis, cfg_theory, cfg_scf, cfg_input_blocks, &
         int(charge), max(1, int(mult)), cfg_dft_direct, cfg_dft_smear_on, &
-        cfg_dft_smear_sigma, cfg_dft_smear_spinset, cfg_scf_has_options, &
-        cfg_scf_maxiter, cfg_scf_thresh, cfg_scf_tol2e, &
+        cfg_dft_smear_sigma, cfg_dft_smear_spinset, applied_scf_has_options, &
+        applied_scf_maxiter, applied_scf_thresh, applied_scf_tol2e, &
         cfg_driver_has_options, cfg_driver_maxiter, &
         cfg_driver_tolerance_mode, cfg_driver_gmax_tol, &
         cfg_driver_grms_tol, cfg_driver_xmax_tol, cfg_driver_xrms_tol, &

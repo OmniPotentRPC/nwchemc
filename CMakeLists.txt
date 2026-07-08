@@ -127,6 +127,90 @@ if(NWCHEMC_NEEDS_CAPNP_C)
     )
   endif()
 
+  # Public capnp-fortran: Fortran decode of NWChemParams (SCF family first).
+  set(CAPNP_FORTRAN_PIN "3497d88abb5daf92e649a0cd7066237169bf4758")
+  set(CAPNP_FORTRAN_ROOT
+    "${CMAKE_CURRENT_SOURCE_DIR}/subprojects/capnp-fortran-0.1.0"
+  )
+  if(NOT EXISTS "${CAPNP_FORTRAN_ROOT}/src/capnp.f90")
+    message(STATUS "Fetching capnp-fortran ${CAPNP_FORTRAN_PIN}")
+    execute_process(
+      COMMAND
+        "${CMAKE_COMMAND}" -E make_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/subprojects"
+      COMMAND
+        git clone --depth 1
+        "https://github.com/HaoZeke/capnp-fortran.git"
+        "${CAPNP_FORTRAN_ROOT}"
+      RESULT_VARIABLE _capnp_f_clone_rc
+    )
+    if(NOT _capnp_f_clone_rc EQUAL 0)
+      message(FATAL_ERROR "Failed to clone capnp-fortran into subprojects/")
+    endif()
+    execute_process(
+      COMMAND git -C "${CAPNP_FORTRAN_ROOT}" checkout "${CAPNP_FORTRAN_PIN}"
+      RESULT_VARIABLE _capnp_f_co_rc
+    )
+    if(NOT _capnp_f_co_rc EQUAL 0)
+      message(FATAL_ERROR "Failed to checkout capnp-fortran ${CAPNP_FORTRAN_PIN}")
+    endif()
+  endif()
+  set(CAPNP_F_SOURCES
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_kinds.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_endian.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_pointer.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_arena.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_message.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_packed.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_union.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_serialize.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_stream.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_canonical.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_cabi.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_posix.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_rpc_transport.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/rpc_capnp.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/rpc_twoparty_capnp.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_rpc.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_schema.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/capnp_dynamic.f90"
+    "${CAPNP_FORTRAN_ROOT}/src/stream_capnp.f90"
+  )
+  add_library(capnp_f STATIC ${CAPNP_F_SOURCES})
+  set_target_properties(capnp_f PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  add_executable(capnpc-fortran
+    "${CAPNP_FORTRAN_ROOT}/app/capnpc_emit.f90"
+    "${CAPNP_FORTRAN_ROOT}/app/main.f90"
+  )
+  target_link_libraries(capnpc-fortran PRIVATE capnp_f)
+  set(NWCHEMC_POTENTIALS_CAPNP_F
+    "${CMAKE_CURRENT_BINARY_DIR}/potentials_capnp.f90"
+  )
+  add_custom_command(
+    OUTPUT "${NWCHEMC_POTENTIALS_CAPNP_F}"
+    COMMAND
+      "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/capnpc_fortran_compile.py"
+      "${CAPNP_EXECUTABLE}"
+      "$<TARGET_FILE:capnpc-fortran>"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema"
+      "${CMAKE_CURRENT_BINARY_DIR}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "${NWCHEMC_POTENTIALS_CAPNP_F}"
+    DEPENDS
+      capnpc-fortran
+      "${CMAKE_CURRENT_SOURCE_DIR}/schema/Potentials.capnp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/capnpc_fortran_compile.py"
+    VERBATIM
+  )
+  add_library(nwchemc_apply_f STATIC
+    "${NWCHEMC_POTENTIALS_CAPNP_F}"
+    src/nwchemc_embed_apply_params.f90
+  )
+  target_link_libraries(nwchemc_apply_f PUBLIC capnp_f)
+  set_target_properties(nwchemc_apply_f PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
   # Capabilities lives in its own object so nwchemc_params consumers without a
   # backend (nwchemc.c or nwchemc_stub.c) never pull the getter symbols.
   add_library(nwchemc_params STATIC
@@ -281,6 +365,7 @@ if(NWCHEMC_WITH_NWCHEM)
     src/nwchemc_capabilities.c
     src/nwchem_embed_c_api.f90
   )
+  target_link_libraries(nwchemc PRIVATE nwchemc_apply_f)
   set_target_properties(nwchemc PROPERTIES
     VERSION "${PROJECT_VERSION}"
     SOVERSION "${PROJECT_VERSION_MAJOR}"
@@ -1022,8 +1107,10 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
   )
   target_link_libraries(test_embed_config_cmocka PRIVATE
     nwchemc_params
+    nwchemc_apply_f
     PkgConfig::CMOCKA
   )
+  set_property(TARGET test_embed_config_cmocka PROPERTY LINKER_LANGUAGE Fortran)
   target_compile_definitions(test_embed_config_cmocka PRIVATE
     NWCHEMC_HAS_NWCHEM=1
   )

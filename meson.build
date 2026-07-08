@@ -60,6 +60,7 @@ if has_nwchem
     error('NWChem embed root validation failed')
   endif
 endif
+nwchemc_apply_f_dep = []
 if need_capnp_c
   capnp = find_program('capnp')
   # b_sanitize=none: sanitizer lanes cover first-party code; the vendored
@@ -79,6 +80,36 @@ if need_capnp_c
   # Needs a linked backend (nwchemc.c or nwchemc_stub.c) for the getters, so
   # it stays out of nwchemc_params_sources (whose consumers may link neither).
   nwchemc_capabilities_sources = ['src/nwchemc_capabilities.c']
+
+  # Public capnp-fortran: decode NWChemParams in Fortran (migrate exploded setters).
+  capnp_fortran_proj = subproject('capnp-fortran')
+  capnp_fortran_dep = capnp_fortran_proj.get_variable('capnp_fortran_dep')
+  capnpc_fortran = capnp_fortran_proj.get_variable('capnpc_fortran')
+  potentials_capnp_f = custom_target(
+    'potentials-capnp-f',
+    input: meson.current_source_dir() / 'schema' / 'Potentials.capnp',
+    output: 'potentials_capnp.f90',
+    command: [
+      python,
+      meson.current_source_dir() / 'tools' / 'capnpc_fortran_compile.py',
+      capnp,
+      capnpc_fortran,
+      meson.current_source_dir() / 'schema',
+      '@OUTDIR@',
+      '@INPUT@',
+      '@OUTPUT@',
+    ],
+  )
+  nwchemc_apply_f = static_library(
+    'nwchemc_apply_f',
+    [potentials_capnp_f, 'src/nwchemc_embed_apply_params.f90'],
+    dependencies: capnp_fortran_dep,
+    install: false,
+  )
+  nwchemc_apply_f_dep = declare_dependency(
+    link_with: nwchemc_apply_f,
+    dependencies: capnp_fortran_dep,
+  )
 endif
 
 nwchemc_features = static_library(
@@ -244,7 +275,7 @@ if has_nwchem
     ['src/nwchemc.c', 'src/nwchem_embed_c_api.f90'] + nwchemc_params_sources +
     nwchemc_capabilities_sources,
     include_directories: [inc] + nwchemc_params_includes,
-    dependencies: nwchemc_params_deps,
+    dependencies: nwchemc_params_deps + [nwchemc_apply_f_dep],
     c_args: nwchem_c_args,
     fortran_args: nwchem_f90_args,
     link_whole: nwchemc_legacy,
@@ -540,8 +571,9 @@ if get_option('with_tests')
       'test_embed_config_cmocka',
       ['tests/cmocka/test_embed_config_cmocka.c', 'src/nwchemc.c'] + nwchemc_params_sources,
       include_directories: [inc] + nwchemc_params_includes,
-      dependencies: nwchemc_params_deps + [cmocka_dep],
+      dependencies: nwchemc_params_deps + [cmocka_dep, nwchemc_apply_f_dep],
       c_args: common_c_args + ['-DNWCHEMC_HAS_NWCHEM=1'],
+      link_language: 'fortran',
     ),
     args: [meson.current_build_dir()],
     depends: [
@@ -595,8 +627,9 @@ if get_option('with_tests')
     ['tests/test_calculator_result_writers.c', 'src/nwchemc.c'] +
     nwchemc_params_sources,
     include_directories: [inc] + nwchemc_params_includes,
-    dependencies: nwchemc_params_deps + [cmocka_dep],
+    dependencies: nwchemc_params_deps + [cmocka_dep, nwchemc_apply_f_dep],
     c_args: common_c_args + ['-DNWCHEMC_HAS_NWCHEM=1'],
+    link_language: 'fortran',
   )
   test(
     'calculator-result-writers',

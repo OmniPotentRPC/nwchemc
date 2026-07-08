@@ -49,11 +49,7 @@ int nwchemc_embed_set_basis_direct(int library_root, int angular_kind,
   (void)elem_n; (void)elem_tags; (void)elem_libs;
   return 0;
 }
-int nwchemc_embed_set_scf_direct(int has_options, int maxiter, double thresh,
-                                 double tol2e) {
-  (void)has_options; (void)maxiter; (void)thresh; (void)tol2e;
-  return 0;
-}
+/* set_scf_direct / apply_params provided by nwchemc_apply_f (capnp-fortran). */
 int nwchemc_embed_set_driver_direct(int has_options, int maxiter,
                                     int tolerance_mode, double gmax_tol,
                                     double grms_tol, double xmax_tol,
