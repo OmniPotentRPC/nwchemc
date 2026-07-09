@@ -53,66 +53,68 @@ module nwchemc_embed_apply_params_mod
   character(len=64), save :: applied_theory = 'scf'
   character(len=64), save :: applied_scf_type = 'rhf'
   character(len=4096), save :: applied_input_blocks = ' '
-  integer, save :: applied_charge = 0
-  integer, save :: applied_mult = 1
+  ! int64: NWChem F77 embed is built with -fdefault-integer-8; keep applied_*
+  ! kind-stable independent of whether this TU also uses default-integer-8.
+  integer(int64), save :: applied_charge = 0_int64
+  integer(int64), save :: applied_mult = 1_int64
   character(len=64), save :: applied_dft_xc = ' '
-  integer, save :: applied_dft_direct = 0
-  integer, save :: applied_dft_smear_on = 0
+  integer(int64), save :: applied_dft_direct = 0_int64
+  integer(int64), save :: applied_dft_smear_on = 0_int64
   real(real64), save :: applied_dft_smear_sigma = 0.0_real64
-  integer, save :: applied_dft_smear_spinset = 1
-  integer, save :: applied_scf_has_options = 0
-  integer, save :: applied_scf_maxiter = 0
+  integer(int64), save :: applied_dft_smear_spinset = 1_int64
+  integer(int64), save :: applied_scf_has_options = 0_int64
+  integer(int64), save :: applied_scf_maxiter = 0_int64
   real(real64), save :: applied_scf_thresh = 0.0_real64
   real(real64), save :: applied_scf_tol2e = 0.0_real64
-  integer, save :: applied_driver_has_options = 0
-  integer, save :: applied_driver_maxiter = 0
-  integer, save :: applied_driver_tolerance_mode = 0
+  integer(int64), save :: applied_driver_has_options = 0_int64
+  integer(int64), save :: applied_driver_maxiter = 0_int64
+  integer(int64), save :: applied_driver_tolerance_mode = 0_int64
   real(real64), save :: applied_driver_gmax_tol = 0.0_real64
   real(real64), save :: applied_driver_grms_tol = 0.0_real64
   real(real64), save :: applied_driver_xmax_tol = 0.0_real64
   real(real64), save :: applied_driver_xrms_tol = 0.0_real64
-  integer, save :: applied_nwpw_has_options = 0
+  integer(int64), save :: applied_nwpw_has_options = 0_int64
   real(real64), save :: applied_nwpw_energy_cutoff = 0.0_real64
   real(real64), save :: applied_nwpw_wavefunction_cutoff = 0.0_real64
   real(real64), save :: applied_nwpw_ewald_rcut = 0.0_real64
-  integer, save :: applied_nwpw_ewald_ncut = 0
-  integer, save :: applied_basis_library_root = 0
-  integer, save :: applied_basis_angular_kind = 0
-  integer, save :: applied_basis_segment_mode = 0
-  integer, save :: applied_basis_legacy_spherical = 0
+  integer(int64), save :: applied_nwpw_ewald_ncut = 0_int64
+  integer(int64), save :: applied_basis_library_root = 0_int64
+  integer(int64), save :: applied_basis_angular_kind = 0_int64
+  integer(int64), save :: applied_basis_segment_mode = 0_int64
+  integer(int64), save :: applied_basis_legacy_spherical = 0_int64
   character(len=64), save :: applied_basis_ecp = ' '
-  integer, save :: applied_brillouin_has_options = 0
+  integer(int64), save :: applied_brillouin_has_options = 0_int64
   character(len=64), save :: applied_brillouin_zone_name = 'zone_default'
-  integer, save :: applied_brillouin_monkhorst_pack(3) = 0
-  integer, save :: applied_brillouin_max_kpoints_print = 0
-  integer, save :: applied_brillouin_kvector_count = 0
+  integer(int64), save :: applied_brillouin_monkhorst_pack(3) = 0_int64
+  integer(int64), save :: applied_brillouin_max_kpoints_print = 0_int64
+  integer(int64), save :: applied_brillouin_kvector_count = 0_int64
   real(real64), allocatable, save :: applied_brillouin_kvectors(:)
-  integer, save :: applied_brillouin_dos_zone_count = 0
+  integer(int64), save :: applied_brillouin_dos_zone_count = 0_int64
   character(len=64), save :: applied_brillouin_dos_zone_names(512) = ' '
-  integer, save :: applied_brillouin_dos_zone_grids(3, 512) = 0
+  integer(int64), save :: applied_brillouin_dos_zone_grids(3, 512) = 0_int64
   integer, parameter :: max_psp = 64
   integer, parameter :: psp_element_len = 16
   integer, parameter :: psp_name_len = 256
-  integer, save :: applied_psp_count = 0
+  integer(int64), save :: applied_psp_count = 0_int64
   character(len=psp_element_len), save :: applied_psp_elements(max_psp) = ' '
   character(len=psp_name_len), save :: applied_psp_names(max_psp) = ' '
-  integer, save :: applied_psp_types(max_psp) = 0
+  integer(int64), save :: applied_psp_types(max_psp) = 0_int64
   integer, parameter :: max_sets = 512
   integer, parameter :: max_set_vals = 64
   integer, parameter :: set_key_len = 128
   integer, parameter :: set_value_len = 256
-  integer, save :: applied_set_string_count = 0
+  integer(int64), save :: applied_set_string_count = 0_int64
   character(len=set_key_len), save :: applied_set_keys(max_sets) = ' '
   character(len=set_value_len), save :: applied_set_values(max_sets) = ' '
-  integer, save :: applied_typed_set_count = 0
+  integer(int64), save :: applied_typed_set_count = 0_int64
   character(len=set_key_len), save :: applied_typed_set_keys(max_sets) = ' '
-  integer, save :: applied_typed_set_types(max_sets) = 0
-  integer, save :: applied_typed_set_value_counts(max_sets) = 0
+  integer(int64), save :: applied_typed_set_types(max_sets) = 0_int64
+  integer(int64), save :: applied_typed_set_value_counts(max_sets) = 0_int64
   character(len=set_value_len), save :: &
       applied_typed_set_values(max_set_vals, max_sets) = ' '
-  integer, parameter :: DRIVER_TOL_NONE = 0
-  integer, parameter :: DRIVER_TOL_TIGHT = 1
-  integer, parameter :: DRIVER_TOL_LOOSE = 2
+  integer(int64), parameter :: DRIVER_TOL_NONE = 0_int64
+  integer(int64), parameter :: DRIVER_TOL_TIGHT = 1_int64
+  integer(int64), parameter :: DRIVER_TOL_LOOSE = 2_int64
 
 contains
 

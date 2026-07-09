@@ -184,10 +184,15 @@ if has_nwchem
     '-I' + nwchem_root + '/src/include',
     '-I' + nwchem_root + '/src/tools/install/include',
   ]
+  # -fallow-argument-mismatch: NWChem F77 entry points use default integer=8
+  # while the C-interop F90 layer keeps selected integer(c_int)/int() values as
+  # kind 4; gfortran 14+ promotes that mismatch to an error.
   nwchem_f90_args = [
     '-DNWCHEMC_HAS_NWCHEM=1',
     '-fdefault-integer-8',
     '-ffast-math',
+    '-std=legacy',
+    '-fallow-argument-mismatch',
   ]
   nwchem_legacy_args = [
     '-DNWCHEMC_HAS_NWCHEM=1',
@@ -199,6 +204,7 @@ if has_nwchem
     '-fdefault-integer-8',
     '-ffast-math',
     '-std=legacy',
+    '-fallow-argument-mismatch',
     '-DGFORTRAN',
     '-DLINUX64',
     '-DEXT_INT',

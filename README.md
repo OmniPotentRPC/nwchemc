@@ -918,7 +918,19 @@ meson setup build-nwchem-shared \
 
 If the shared link probe reports `relocation R_X86_64_PC32 ... can not be used
 when making a shared object`, use the static build above or rebuild the NWChem
-archives with PIC flags for the target.
+archives with PIC flags for the target:
+
+```bash
+export NWCHEM_TOP=/path/to/nwchem
+export MPI_LOC=/path/to/openmpi   # if FORCE_MPI_ENV is required
+./tools/rebuild_nwchem_pic.sh     # EXTRA_FOPTIONS=-fPIC + GA CFLAGS_FORGA=-fPIC
+meson setup build-nwchem-shared \
+  -Dwith_nwchem=true \
+  -Dnwchem_root="$NWCHEM_TOP" \
+  -Dnwchem_target="$NWCHEM_TARGET" \
+  -Ddefault_library=shared
+meson compile -C build-nwchem-shared
+```
 
 ### CLI and embed comparison
 
