@@ -1901,6 +1901,15 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           &dplot_norb, dplot_orbs, sizeof(dplot_orbs) / sizeof(dplot_orbs[0]),
           dplot_lim, &dplot_has_lim) != 0)
     return -1;
+  int neb_has = 0, neb_nbeads = 0, neb_steps = 0, neb_nhist = 0;
+  int neb_algorithm = 0, neb_reset = 0, neb_convergence = 0;
+  double neb_kbeads = 0.0, neb_stepsize = 0.0, neb_trust = 0.0;
+  double neb_gmax = 0.0, neb_grms = 0.0, neb_xmax = 0.0, neb_xrms = 0.0;
+  if (nwchemc_params_extract_direct_neb(
+          params_root, &neb_has, &neb_nbeads, &neb_kbeads, &neb_steps,
+          &neb_stepsize, &neb_trust, &neb_nhist, &neb_algorithm, &neb_reset,
+          &neb_convergence, &neb_gmax, &neb_grms, &neb_xmax, &neb_xrms) != 0)
+    return -1;
   int mp2_freeze_core = 0, mp2_freeze_virt = 0, mp2_tight = 0;
   double mp2_aotol2e = 0.0, mp2_aotol2e_fock = 0.0, mp2_backtol = 0.0;
   double mp2_fss = 0.0, mp2_fos = 0.0, mp2_scratch = 0.0;
@@ -4718,6 +4727,59 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
               promo_value_storage, "dplot:Ext_From_To", dplot_lim, 6) != 0)
         return -1;
+    }
+    /* NEB → optim/neb/neb_input.F RTDB keys. */
+    if (neb_has && neb_nbeads > 0)
+      PROMO_INT("neb:nbeads", neb_nbeads);
+    if (neb_has && neb_kbeads > 0.0)
+      PROMO_DBL("neb:kbeads", neb_kbeads);
+    if (neb_has && neb_steps > 0)
+      PROMO_INT("neb:steps", neb_steps);
+    if (neb_has && neb_stepsize > 0.0)
+      PROMO_DBL("neb:stepsize", neb_stepsize);
+    if (neb_has && neb_trust > 0.0)
+      PROMO_DBL("neb:trust", neb_trust);
+    if (neb_has && neb_nhist > 0)
+      PROMO_INT("neb:m", neb_nhist);
+    if (neb_has && neb_algorithm > 0)
+      PROMO_INT("neb:algorithm", neb_algorithm);
+    if (neb_has && neb_reset)
+      PROMO_LOG("neb:nebnew", 1);
+    /* Merge convergence preset with explicit tolerances (one PROMO each). */
+    if (neb_has) {
+      double pgmax = 0.0, pgrms = 0.0, pxmax = 0.0, pxrms = 0.0;
+      if (neb_convergence == NWChemNebStanza_Convergence_loose) {
+        pgmax = 0.0045;
+        pgrms = 0.0030;
+        pxmax = 0.0054;
+        pxrms = 0.0036;
+      } else if (neb_convergence == NWChemNebStanza_Convergence_default) {
+        pgmax = 0.00045;
+        pgrms = 0.00030;
+        pxmax = 0.0018;
+        pxrms = 0.0012;
+      } else if (neb_convergence == NWChemNebStanza_Convergence_tight) {
+        pgmax = 0.00015;
+        pgrms = 0.00001;
+        pxmax = 0.00006;
+        pxrms = 0.00004;
+      }
+      if (neb_gmax > 0.0)
+        pgmax = neb_gmax;
+      if (neb_grms > 0.0)
+        pgrms = neb_grms;
+      if (neb_xmax > 0.0)
+        pxmax = neb_xmax;
+      if (neb_xrms > 0.0)
+        pxrms = neb_xrms;
+      if (pgmax > 0.0)
+        PROMO_DBL("neb:gmax", pgmax);
+      if (pgrms > 0.0)
+        PROMO_DBL("neb:grms", pgrms);
+      if (pxmax > 0.0)
+        PROMO_DBL("neb:xmax", pxmax);
+      if (pxrms > 0.0)
+        PROMO_DBL("neb:xrms", pxrms);
     }
 
     if (mp2_freeze_core > 0)

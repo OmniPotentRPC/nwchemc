@@ -5779,6 +5779,100 @@ int nwchemc_params_extract_direct_dplot(NWChemParams_ptr params,
   return 0;
 }
 
+int nwchemc_params_extract_direct_neb(NWChemParams_ptr params, int *has_options,
+                                      int *nbeads, double *kbeads, int *steps,
+                                      double *stepsize, double *trust, int *nhist,
+                                      int *algorithm, int *reset,
+                                      int *convergence, double *gmax,
+                                      double *grms, double *xmax, double *xrms) {
+  if (params.p.type == CAPN_NULL || !has_options || !nbeads || !kbeads ||
+      !steps || !stepsize || !trust || !nhist || !algorithm || !reset ||
+      !convergence || !gmax || !grms || !xmax || !xrms)
+    return -1;
+  *has_options = 0;
+  *nbeads = 0;
+  *kbeads = 0.0;
+  *steps = 0;
+  *stepsize = 0.0;
+  *trust = 0.0;
+  *nhist = 0;
+  *algorithm = 0;
+  *reset = 0;
+  *convergence = NWChemNebStanza_Convergence_unspecified;
+  *gmax = 0.0;
+  *grms = 0.0;
+  *xmax = 0.0;
+  *xrms = 0.0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_neb ||
+        stanza.neb.p.type == CAPN_NULL)
+      continue;
+    struct NWChemNebStanza neb;
+    read_NWChemNebStanza(&neb, stanza.neb);
+    if (neb.nbeads > 0) {
+      *has_options = 1;
+      *nbeads = neb.nbeads;
+    }
+    if (neb.kbeads > 0.0) {
+      *has_options = 1;
+      *kbeads = neb.kbeads;
+    }
+    if (neb.maxiter > 0) {
+      *has_options = 1;
+      *steps = neb.maxiter;
+    }
+    if (neb.stepsize > 0.0) {
+      *has_options = 1;
+      *stepsize = neb.stepsize;
+    }
+    if (neb.trust > 0.0) {
+      *has_options = 1;
+      *trust = neb.trust;
+    }
+    if (neb.nhist > 0) {
+      *has_options = 1;
+      *nhist = neb.nhist;
+    }
+    if (neb.algorithm > 0) {
+      *has_options = 1;
+      *algorithm = neb.algorithm;
+    }
+    if (neb.reset) {
+      *has_options = 1;
+      *reset = 1;
+    }
+    if (neb.convergence != NWChemNebStanza_Convergence_unspecified) {
+      *has_options = 1;
+      *convergence = (int)neb.convergence;
+    }
+    if (neb.gmax > 0.0) {
+      *has_options = 1;
+      *gmax = neb.gmax;
+    }
+    if (neb.grms > 0.0) {
+      *has_options = 1;
+      *grms = neb.grms;
+    }
+    if (neb.xmax > 0.0) {
+      *has_options = 1;
+      *xmax = neb.xmax;
+    }
+    if (neb.xrms > 0.0) {
+      *has_options = 1;
+      *xrms = neb.xrms;
+    }
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_structured_presence(
     NWChemParams_ptr params, NwchemcStructuredPresence *out) {
   if (params.p.type == CAPN_NULL || !out)

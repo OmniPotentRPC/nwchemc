@@ -110,6 +110,15 @@ int nwchemc_params_extract_direct_dplot(NWChemParams_ptr params,
                                         size_t orb_capacity, double *limit_xyz,
                                         int *has_limit_xyz);
 
+/* NEB → neb:nbeads / kbeads / steps / stepsize / trust / m / algorithm /
+ * nebnew / gmax|grms|xmax|xrms (optim/neb/neb_input.F keys). */
+int nwchemc_params_extract_direct_neb(NWChemParams_ptr params, int *has_options,
+                                      int *nbeads, double *kbeads, int *steps,
+                                      double *stepsize, double *trust, int *nhist,
+                                      int *algorithm, int *reset,
+                                      int *convergence, double *gmax,
+                                      double *grms, double *xmax, double *xrms);
+
 /* Presence of remaining structured InputStanza kinds + Kind_module enum IDs.
  * module_ids[] holds NWChemModuleName values from kind=module stanzas. */
 enum { NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES = 128 };

@@ -7474,6 +7474,47 @@ static void test_embed_promotes_cosmo_rtdb_keys(void **state) {
     assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
     assert_true(g_typed_set_value_counts[idx] >= 6);
   }
+  /* NEB stanza: beads, springs, steps, algorithm, tight+xrms (neb_input.F). */
+  assert_typed_set_scalar("neb:nbeads", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "12");
+  assert_typed_set_scalar("neb:steps", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "25");
+  assert_typed_set_scalar("neb:algorithm", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  {
+    int idx = find_typed_set_key("neb:kbeads");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.15) < 1e-12);
+  }
+  {
+    int idx = find_typed_set_key("neb:stepsize");
+    assert_true(idx >= 0);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.6) < 1e-12);
+  }
+  {
+    int idx = find_typed_set_key("neb:trust");
+    assert_true(idx >= 0);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.2) < 1e-12);
+  }
+  {
+    int idx = find_typed_set_key("neb:gmax");
+    assert_true(idx >= 0);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.00015) < 1e-12);
+  }
+  {
+    int idx = find_typed_set_key("neb:grms");
+    assert_true(idx >= 0);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 1.0e-5) < 1e-14);
+  }
+  {
+    int idx = find_typed_set_key("neb:xmax");
+    assert_true(idx >= 0);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 6.0e-5) < 1e-14);
+  }
+  {
+    int idx = find_typed_set_key("neb:xrms");
+    assert_true(idx >= 0);
+    /* Explicit xrms overrides tight preset (0.00004). */
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 0.001) < 1e-12);
+  }
   free(message);
 }
 
