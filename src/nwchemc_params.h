@@ -91,6 +91,12 @@ int nwchemc_params_extract_direct_smd(NWChemParams_ptr params, int *has_options,
                                       capn_text *solvent, double *sola,
                                       double *solb, double *soln, double *solg);
 
+/* Vib/freq stanza → vib:temperature / animate / reuse (vib_input.F keys). */
+int nwchemc_params_extract_direct_vib(NWChemParams_ptr params, int *has_options,
+                                      int *animate, int *reuse,
+                                      capn_text *reuse_file, double *temps,
+                                      size_t temp_capacity, size_t *temp_count);
+
 /* Presence of remaining structured InputStanza kinds + Kind_module enum IDs.
  * module_ids[] holds NWChemModuleName values from kind=module stanzas. */
 enum { NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES = 128 };

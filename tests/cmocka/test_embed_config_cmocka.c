@@ -7400,6 +7400,28 @@ static void test_embed_promotes_cosmo_rtdb_keys(void **state) {
     }
     assert_int_equal(found_ethanol, 1);
   }
+  /* Vib stanza: animate + reuse file + temperature list (vib_input.F keys). */
+  assert_typed_set_scalar("vib:animate", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  assert_typed_set_scalar("vib:reuse", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  {
+    int found_hess = 0;
+    for (int i = 0; i < g_set_string_count && i < 64; ++i) {
+      if (strcmp(g_set_keys[i], "vib:reuse_hessian_file") == 0 &&
+          strcmp(g_set_values[i], "old.hess") == 0)
+        found_hess = 1;
+    }
+    assert_int_equal(found_hess, 1);
+  }
+  {
+    int idx = find_typed_set_key("vib:temperature");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(g_typed_set_value_counts[idx] >= 3);
+    assert_true(fabs(strtod(g_typed_set_values[idx][0], NULL) - 200.0) < 1e-9);
+    assert_true(fabs(strtod(g_typed_set_values[idx][1], NULL) - 298.15) < 1e-9);
+    assert_true(fabs(strtod(g_typed_set_values[idx][2], NULL) - 400.0) < 1e-9);
+  }
   free(message);
 }
 

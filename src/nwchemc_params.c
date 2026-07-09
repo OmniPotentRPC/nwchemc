@@ -5606,6 +5606,61 @@ int nwchemc_params_extract_direct_smd(NWChemParams_ptr params, int *has_options,
   return 0;
 }
 
+int nwchemc_params_extract_direct_vib(NWChemParams_ptr params, int *has_options,
+                                      int *animate, int *reuse,
+                                      capn_text *reuse_file, double *temps,
+                                      size_t temp_capacity, size_t *temp_count) {
+  if (params.p.type == CAPN_NULL || !has_options || !animate || !reuse ||
+      !reuse_file || !temp_count)
+    return -1;
+  *has_options = 0;
+  *animate = 0;
+  *reuse = 0;
+  reuse_file->str = NULL;
+  reuse_file->len = 0;
+  *temp_count = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_vib ||
+        stanza.vib.p.type == CAPN_NULL)
+      continue;
+    struct NWChemVibStanza vib;
+    read_NWChemVibStanza(&vib, stanza.vib);
+    if (vib.animate) {
+      *has_options = 1;
+      *animate = 1;
+    }
+    if (vib.reuse.len > 0) {
+      *has_options = 1;
+      *reuse = 1;
+      *reuse_file = vib.reuse;
+    }
+    capn_list64 vib_temps = vib.temperatures;
+    capn_resolve(&vib_temps.p);
+    int ntemps = list64_len(vib_temps);
+    if (ntemps < 0)
+      return -1;
+    if (ntemps > 0 && temps && temp_capacity > 0) {
+      *has_options = 1;
+      size_t copy = (size_t)ntemps < temp_capacity ? (size_t)ntemps : temp_capacity;
+      for (size_t t = 0; t < copy; ++t)
+        temps[t] = capn_to_f64(capn_get64(vib_temps, (int)t));
+      *temp_count = copy;
+    } else if (ntemps > 0) {
+      *has_options = 1;
+      *temp_count = (size_t)ntemps;
+    }
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_structured_presence(
     NWChemParams_ptr params, NwchemcStructuredPresence *out) {
   if (params.p.type == CAPN_NULL || !out)

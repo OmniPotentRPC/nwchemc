@@ -1878,6 +1878,15 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
                                         &smd_sola, &smd_solb, &smd_soln,
                                         &smd_solg) != 0)
     return -1;
+  int vib_has = 0, vib_animate = 0, vib_reuse = 0;
+  capn_text vib_reuse_file = {0};
+  double vib_temps[16];
+  size_t vib_temp_count = 0;
+  if (nwchemc_params_extract_direct_vib(
+          params_root, &vib_has, &vib_animate, &vib_reuse, &vib_reuse_file,
+          vib_temps, sizeof(vib_temps) / sizeof(vib_temps[0]),
+          &vib_temp_count) != 0)
+    return -1;
   int mp2_freeze_core = 0, mp2_freeze_virt = 0, mp2_tight = 0;
   double mp2_aotol2e = 0.0, mp2_aotol2e_fock = 0.0, mp2_backtol = 0.0;
   double mp2_fss = 0.0, mp2_fos = 0.0, mp2_scratch = 0.0;
@@ -4648,6 +4657,21 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
       PROMO_DBL("cosmo:soln", smd_soln);
     if (smd_has && smd_solg > 0.0)
       PROMO_DBL("cosmo:solg", smd_solg);
+    /* Vib/freq stanza → vib_input.F RTDB keys. */
+    if (vib_has && vib_animate)
+      PROMO_LOG("vib:animate", 1);
+    if (vib_has && vib_reuse)
+      PROMO_LOG("vib:reuse", 1);
+    if (vib_has && vib_reuse_file.len > 0)
+      PROMO_STR("vib:reuse_hessian_file", vib_reuse_file);
+    if (vib_has && vib_temp_count > 0) {
+      if (append_direct_double_values(
+              promo_keys, promo_types, promo_counts, promo_vals, PROMO_CAP,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
+              promo_value_storage, "vib:temperature", vib_temps,
+              (int)vib_temp_count) != 0)
+        return -1;
+    }
 
     if (mp2_freeze_core > 0)
       PROMO_INT("mp2:number frozen core", mp2_freeze_core);
