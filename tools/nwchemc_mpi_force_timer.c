@@ -77,13 +77,49 @@ int main(int argc, char **argv) {
   finalize_fn finalize = NULL;
   const char *params_path;
   const char *libpath;
-  const int n_atoms = 2;
-  const int atomic_numbers[2] = {1, 1};
-  const double positions_ang[6] = {0.0, 0.0, -0.3707, 0.0, 0.0, 0.3707};
-  double grad[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  /* Geometry: env NWCHEMC_TIMER_SYSTEM=h2 (default) | water */
+  const char *system_name =
+      getenv("NWCHEMC_TIMER_SYSTEM") ? getenv("NWCHEMC_TIMER_SYSTEM") : "h2";
+  int n_atoms = 2;
+  int atomic_numbers_store[16];
+  double positions_ang_store[48];
+  double grad_store[48];
+  const int *atomic_numbers = atomic_numbers_store;
+  const double *positions_ang = positions_ang_store;
+  double *grad = grad_store;
   double t0, t1, maxg;
-  int i, rc = 1;
+  int i, rc = 1, ncoord;
   NWChemCResult result;
+
+  if (strcmp(system_name, "water") == 0) {
+    n_atoms = 3;
+    atomic_numbers_store[0] = 8;
+    atomic_numbers_store[1] = 1;
+    atomic_numbers_store[2] = 1;
+    /* Match tools large-scale water_scf_gradient.nw */
+    positions_ang_store[0] = 0.0;
+    positions_ang_store[1] = 0.0;
+    positions_ang_store[2] = 0.1173;
+    positions_ang_store[3] = 0.0;
+    positions_ang_store[4] = 0.7572;
+    positions_ang_store[5] = -0.4692;
+    positions_ang_store[6] = 0.0;
+    positions_ang_store[7] = -0.7572;
+    positions_ang_store[8] = -0.4692;
+  } else {
+    n_atoms = 2;
+    atomic_numbers_store[0] = 1;
+    atomic_numbers_store[1] = 1;
+    positions_ang_store[0] = 0.0;
+    positions_ang_store[1] = 0.0;
+    positions_ang_store[2] = -0.3707;
+    positions_ang_store[3] = 0.0;
+    positions_ang_store[4] = 0.0;
+    positions_ang_store[5] = 0.3707;
+  }
+  ncoord = n_atoms * 3;
+  for (i = 0; i < ncoord; ++i)
+    grad_store[i] = 0.0;
 
   mpi_err = MPI_Init(&argc, &argv);
   if (mpi_err != MPI_SUCCESS) {
@@ -147,16 +183,16 @@ int main(int argc, char **argv) {
   params = NULL;
 
   maxg = 0.0;
-  for (i = 0; i < 6; ++i) {
+  for (i = 0; i < ncoord; ++i) {
     double a = fabs(grad[i]);
     if (a > maxg)
       maxg = a;
   }
 
   if (rank == 0) {
-    printf("nwchemc_mpi_force ranks=%d wall_s=%.6f energy_h=%.12g maxabs_g=%.6e "
-           "ok=%d msg=%s\n",
-           nprocs, t1 - t0, result.energy_h, maxg, result.ok,
+    printf("nwchemc_mpi_force system=%s ranks=%d wall_s=%.6f energy_h=%.12g "
+           "maxabs_g=%.6e ok=%d msg=%s\n",
+           system_name, nprocs, t1 - t0, result.energy_h, maxg, result.ok,
            result.message[0] ? result.message : "");
     fflush(stdout);
   }
