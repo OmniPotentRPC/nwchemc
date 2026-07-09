@@ -3,11 +3,13 @@
  * Usage:
  *   mpirun -np P nwchemc_mpi_force_timer params.bin [libnwchemc.so]
  *
- * Rank 0 prints one machine-readable line:
- *   nwchemc_mpi_force ranks=P wall_s=... energy_h=... maxabs_g=... ok=... msg=...
+ * Geometry (priority order):
+ *   1) NWCHEMC_TIMER_GEOM=path  — text file: first line n_atoms, then
+ *      "Z x y z" per atom (Angstrom)
+ *   2) NWCHEMC_TIMER_SYSTEM=h2|water|benzene (built-in)
  *
- * Requires host MPI (Open MPI). Embed may co-own GA/MPI via pbeginf; calling
- * MPI_Init here before dlopen matches the shipped multi-rank test contract.
+ * Rank 0 prints:
+ *   nwchemc_mpi_force system=... ranks=P wall_s=... energy_h=... maxabs_g=... ok=... msg=...
  */
 #include <dlfcn.h>
 #include <math.h>
@@ -17,7 +19,6 @@
 #include <string.h>
 #include <time.h>
 
-/* Must match include/nwchemc.h NWChemCResult (message[512]). */
 typedef struct {
   int ok;
   double energy_h;
@@ -36,7 +37,7 @@ static double wall_seconds(void) {
   return (double)ts.tv_sec + 1e-9 * (double)ts.tv_nsec;
 }
 
-static unsigned char *read_file(const char *path, size_t *size) {
+static unsigned char *read_all(const char *path, size_t *size) {
   FILE *fp = fopen(path, "rb");
   long n;
   unsigned char *buf;
@@ -67,6 +68,92 @@ static unsigned char *read_file(const char *path, size_t *size) {
   return buf;
 }
 
+/* Load geom file: n_atoms\n Z x y z ...  Returns 0 on success. */
+static int load_geom_file(const char *path, int *n_atoms, int **Z, double **xyz) {
+  FILE *fp = fopen(path, "r");
+  int n, i, z;
+  double x, y, zz;
+  if (!fp)
+    return -1;
+  if (fscanf(fp, "%d", &n) != 1 || n < 1 || n > 512) {
+    fclose(fp);
+    return -1;
+  }
+  *Z = (int *)calloc((size_t)n, sizeof(int));
+  *xyz = (double *)calloc((size_t)n * 3u, sizeof(double));
+  if (!*Z || !*xyz) {
+    free(*Z);
+    free(*xyz);
+    fclose(fp);
+    return -1;
+  }
+  for (i = 0; i < n; ++i) {
+    if (fscanf(fp, "%d %lf %lf %lf", &z, &x, &y, &zz) != 4) {
+      free(*Z);
+      free(*xyz);
+      fclose(fp);
+      return -1;
+    }
+    (*Z)[i] = z;
+    (*xyz)[3 * i] = x;
+    (*xyz)[3 * i + 1] = y;
+    (*xyz)[3 * i + 2] = zz;
+  }
+  fclose(fp);
+  *n_atoms = n;
+  return 0;
+}
+
+static void fill_builtin(const char *name, int *n_atoms, int *Z, double *xyz) {
+  if (strcmp(name, "water") == 0) {
+    *n_atoms = 3;
+    Z[0] = 8;
+    Z[1] = 1;
+    Z[2] = 1;
+    xyz[0] = 0.0;
+    xyz[1] = 0.0;
+    xyz[2] = 0.1173;
+    xyz[3] = 0.0;
+    xyz[4] = 0.7572;
+    xyz[5] = -0.4692;
+    xyz[6] = 0.0;
+    xyz[7] = -0.7572;
+    xyz[8] = -0.4692;
+  } else if (strcmp(name, "benzene") == 0) {
+    /* Planar benzene, C-C ~1.39 A, C-H ~1.09 A (Angstrom). */
+    *n_atoms = 12;
+    {
+      const double cc = 1.397;
+      const double ch = 1.084;
+      int i;
+      for (i = 0; i < 6; ++i) {
+        double a = (3.14159265358979323846 / 3.0) * (double)i;
+        double cx = cc * cos(a);
+        double cy = cc * sin(a);
+        Z[i] = 6;
+        xyz[3 * i] = cx;
+        xyz[3 * i + 1] = cy;
+        xyz[3 * i + 2] = 0.0;
+        Z[6 + i] = 1;
+        xyz[3 * (6 + i)] = (cc + ch) * cos(a);
+        xyz[3 * (6 + i) + 1] = (cc + ch) * sin(a);
+        xyz[3 * (6 + i) + 2] = 0.0;
+      }
+    }
+  } else {
+    /* h2 default */
+    *n_atoms = 2;
+    Z[0] = 1;
+    Z[1] = 1;
+    xyz[0] = 0.0;
+    xyz[1] = 0.0;
+    xyz[2] = -0.3707;
+    xyz[3] = 0.0;
+    xyz[4] = 0.0;
+    xyz[5] = 0.3707;
+  }
+}
+
 int main(int argc, char **argv) {
   int rank = 0, nprocs = 1, mpi_err;
   size_t params_size = 0;
@@ -77,49 +164,20 @@ int main(int argc, char **argv) {
   finalize_fn finalize = NULL;
   const char *params_path;
   const char *libpath;
-  /* Geometry: env NWCHEMC_TIMER_SYSTEM=h2 (default) | water */
+  const char *geom_path = getenv("NWCHEMC_TIMER_GEOM");
   const char *system_name =
       getenv("NWCHEMC_TIMER_SYSTEM") ? getenv("NWCHEMC_TIMER_SYSTEM") : "h2";
-  int n_atoms = 2;
-  int atomic_numbers_store[16];
-  double positions_ang_store[48];
-  double grad_store[48];
-  const int *atomic_numbers = atomic_numbers_store;
-  const double *positions_ang = positions_ang_store;
-  double *grad = grad_store;
+  int n_atoms = 0;
+  int *atomic_numbers = NULL;
+  double *positions_ang = NULL;
+  double *grad = NULL;
+  int heap_geom = 0;
+  int Z_store[64];
+  double xyz_store[192];
+  double grad_store[192];
   double t0, t1, maxg;
   int i, rc = 1, ncoord;
   NWChemCResult result;
-
-  if (strcmp(system_name, "water") == 0) {
-    n_atoms = 3;
-    atomic_numbers_store[0] = 8;
-    atomic_numbers_store[1] = 1;
-    atomic_numbers_store[2] = 1;
-    /* Match tools large-scale water_scf_gradient.nw */
-    positions_ang_store[0] = 0.0;
-    positions_ang_store[1] = 0.0;
-    positions_ang_store[2] = 0.1173;
-    positions_ang_store[3] = 0.0;
-    positions_ang_store[4] = 0.7572;
-    positions_ang_store[5] = -0.4692;
-    positions_ang_store[6] = 0.0;
-    positions_ang_store[7] = -0.7572;
-    positions_ang_store[8] = -0.4692;
-  } else {
-    n_atoms = 2;
-    atomic_numbers_store[0] = 1;
-    atomic_numbers_store[1] = 1;
-    positions_ang_store[0] = 0.0;
-    positions_ang_store[1] = 0.0;
-    positions_ang_store[2] = -0.3707;
-    positions_ang_store[3] = 0.0;
-    positions_ang_store[4] = 0.0;
-    positions_ang_store[5] = 0.3707;
-  }
-  ncoord = n_atoms * 3;
-  for (i = 0; i < ncoord; ++i)
-    grad_store[i] = 0.0;
 
   mpi_err = MPI_Init(&argc, &argv);
   if (mpi_err != MPI_SUCCESS) {
@@ -131,16 +189,45 @@ int main(int argc, char **argv) {
 
   if (argc < 2) {
     if (rank == 0)
-      fprintf(stderr, "usage: %s params.bin [libnwchemc.so]\n", argv[0]);
+      fprintf(stderr,
+              "usage: %s params.bin [libnwchemc.so]\n"
+              "  NWCHEMC_TIMER_SYSTEM=h2|water|benzene\n"
+              "  or NWCHEMC_TIMER_GEOM=file (n_atoms then Z x y z lines)\n",
+              argv[0]);
     MPI_Finalize();
     return 2;
   }
+
+  if (geom_path && geom_path[0]) {
+    if (load_geom_file(geom_path, &n_atoms, &atomic_numbers, &positions_ang) !=
+        0) {
+      if (rank == 0)
+        fprintf(stderr, "failed to load geom %s\n", geom_path);
+      MPI_Finalize();
+      return 1;
+    }
+    heap_geom = 1;
+    system_name = geom_path;
+    grad = (double *)calloc((size_t)n_atoms * 3u, sizeof(double));
+    if (!grad) {
+      MPI_Finalize();
+      return 1;
+    }
+  } else {
+    atomic_numbers = Z_store;
+    positions_ang = xyz_store;
+    fill_builtin(system_name, &n_atoms, Z_store, xyz_store);
+    grad = grad_store;
+    memset(grad_store, 0, sizeof(grad_store));
+  }
+  ncoord = n_atoms * 3;
+
   params_path = argv[1];
   libpath = (argc >= 3) ? argv[2] : getenv("NWCHEMC_LIBRARY");
   if (!libpath || !libpath[0])
     libpath = "libnwchemc.so";
 
-  params = read_file(params_path, &params_size);
+  params = read_all(params_path, &params_size);
   if (!params) {
     if (rank == 0)
       fprintf(stderr, "failed to read %s\n", params_path);
@@ -161,14 +248,14 @@ int main(int argc, char **argv) {
   finalize = (finalize_fn)dlsym(h, "nwchemc_finalize");
   if (!available || !energy_gradient) {
     if (rank == 0)
-      fprintf(stderr, "missing nwchemc_available / nwchemc_energy_gradient\n");
+      fprintf(stderr, "missing nwchemc symbols\n");
     free(params);
     MPI_Finalize();
     return 1;
   }
   if (!available()) {
     if (rank == 0)
-      fprintf(stderr, "nwchemc_available() returned 0\n");
+      fprintf(stderr, "nwchemc_available()=0\n");
     free(params);
     MPI_Finalize();
     return 1;
@@ -180,7 +267,6 @@ int main(int argc, char **argv) {
                            params_size, grad);
   t1 = wall_seconds();
   free(params);
-  params = NULL;
 
   maxg = 0.0;
   for (i = 0; i < ncoord; ++i) {
@@ -190,15 +276,20 @@ int main(int argc, char **argv) {
   }
 
   if (rank == 0) {
-    printf("nwchemc_mpi_force system=%s ranks=%d wall_s=%.6f energy_h=%.12g "
-           "maxabs_g=%.6e ok=%d msg=%s\n",
-           system_name, nprocs, t1 - t0, result.energy_h, maxg, result.ok,
-           result.message[0] ? result.message : "");
+    printf("nwchemc_mpi_force system=%s n_atoms=%d ranks=%d wall_s=%.6f "
+           "energy_h=%.12g maxabs_g=%.6e ok=%d msg=%s\n",
+           system_name, n_atoms, nprocs, t1 - t0, result.energy_h, maxg,
+           result.ok, result.message[0] ? result.message : "");
     fflush(stdout);
   }
 
   if (finalize)
     finalize();
+  if (heap_geom) {
+    free(atomic_numbers);
+    free(positions_ang);
+    free(grad);
+  }
 
   rc = (result.ok && isfinite(result.energy_h) && isfinite(maxg)) ? 0 : 1;
   MPI_Finalize();

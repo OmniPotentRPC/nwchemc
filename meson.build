@@ -1594,5 +1594,18 @@ if get_option('with_tests')
         is_parallel: false,
       )
     endif
+    # Strong-scaling timer (dlopen libnwchemc); build whenever MPI C headers exist.
+    mpi_c_dep = dependency('mpi', language: 'c', required: false)
+    if not mpi_c_dep.found()
+      mpi_c_dep = cc.find_library('mpi', required: false)
+    endif
+    if mpi_c_dep.found()
+      nwchemc_mpi_force_timer = executable(
+        'nwchemc_mpi_force_timer',
+        'tools/nwchemc_mpi_force_timer.c',
+        dependencies: [mpi_c_dep, cc.find_library('dl', required: true)],
+        install: false,
+      )
+    endif
   endif
 endif
