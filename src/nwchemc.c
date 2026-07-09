@@ -1887,6 +1887,20 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
           vib_temps, sizeof(vib_temps) / sizeof(vib_temps[0]),
           &vib_temp_count) != 0)
     return -1;
+  int bq_has = 0, bq_forces = 0, bq_ncharges = 0;
+  capn_text bq_units = {0}, bq_load = {0};
+  if (nwchemc_params_extract_direct_bq(params_root, &bq_has, &bq_forces,
+                                       &bq_ncharges, &bq_units, &bq_load) != 0)
+    return -1;
+  int dplot_has = 0, dplot_lgauss = 0, dplot_norb = 0, dplot_has_lim = 0;
+  capn_text dplot_gauss = {0}, dplot_spin = {0};
+  int dplot_orbs[16];
+  double dplot_lim[6];
+  if (nwchemc_params_extract_direct_dplot(
+          params_root, &dplot_has, &dplot_lgauss, &dplot_gauss, &dplot_spin,
+          &dplot_norb, dplot_orbs, sizeof(dplot_orbs) / sizeof(dplot_orbs[0]),
+          dplot_lim, &dplot_has_lim) != 0)
+    return -1;
   int mp2_freeze_core = 0, mp2_freeze_virt = 0, mp2_tight = 0;
   double mp2_aotol2e = 0.0, mp2_aotol2e_fock = 0.0, mp2_backtol = 0.0;
   double mp2_fss = 0.0, mp2_fos = 0.0, mp2_scratch = 0.0;
@@ -4670,6 +4684,39 @@ static int apply_config_to_embed(NWChemParams_ptr params_root,
               NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
               promo_value_storage, "vib:temperature", vib_temps,
               (int)vib_temp_count) != 0)
+        return -1;
+    }
+    /* BQ → bq_input.F keys. */
+    if (bq_has && bq_forces)
+      PROMO_LOG("bq:force", 1);
+    if (bq_has && bq_ncharges > 0)
+      PROMO_INT("bq:ncharges", bq_ncharges);
+    if (bq_has && bq_units.len > 0)
+      PROMO_STR("bq:units", bq_units);
+    if (bq_has && bq_load.len > 0)
+      PROMO_STR("bq:load_file", bq_load);
+    /* DPLOT → dplot_input.F keys. */
+    if (dplot_has && dplot_lgauss)
+      PROMO_LOG("dplot:lgaussian", 1);
+    if (dplot_has && dplot_gauss.len > 0)
+      PROMO_STR("dplot:File_Out", dplot_gauss);
+    if (dplot_has && dplot_spin.len > 0)
+      PROMO_STR("dplot:Spin", dplot_spin);
+    if (dplot_has && dplot_norb > 0)
+      PROMO_INT("dplot:nOrb", dplot_norb);
+    if (dplot_has && dplot_norb > 0) {
+      size_t ncopy = dplot_norb > 16 ? 16u : (size_t)dplot_norb;
+      if (append_direct_integer_values(
+              promo_keys, promo_types, promo_counts, promo_vals, PROMO_CAP,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
+              promo_value_storage, "dplot:OrbNo", dplot_orbs, ncopy) != 0)
+        return -1;
+    }
+    if (dplot_has && dplot_has_lim) {
+      if (append_direct_double_values(
+              promo_keys, promo_types, promo_counts, promo_vals, PROMO_CAP,
+              NWCHEMC_DIRECT_SET_VALUE_MAX, &promo_count, promo_key_storage,
+              promo_value_storage, "dplot:Ext_From_To", dplot_lim, 6) != 0)
         return -1;
     }
 

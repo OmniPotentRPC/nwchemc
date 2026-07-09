@@ -5661,6 +5661,124 @@ int nwchemc_params_extract_direct_vib(NWChemParams_ptr params, int *has_options,
   return 0;
 }
 
+int nwchemc_params_extract_direct_bq(NWChemParams_ptr params, int *has_options,
+                                     int *forces, int *ncharges,
+                                     capn_text *units, capn_text *load_file) {
+  if (params.p.type == CAPN_NULL || !has_options || !forces || !ncharges ||
+      !units || !load_file)
+    return -1;
+  *has_options = 0;
+  *forces = 0;
+  *ncharges = 0;
+  units->str = NULL;
+  units->len = 0;
+  load_file->str = NULL;
+  load_file->len = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_bq || stanza.bq.p.type == CAPN_NULL)
+      continue;
+    struct NWChemBqStanza bq;
+    read_NWChemBqStanza(&bq, stanza.bq);
+    int nc = struct_list_len(&bq.charges.p);
+    if (nc < 0)
+      return -1;
+    if (bq.forces) {
+      *has_options = 1;
+      *forces = 1;
+    }
+    if (nc > 0) {
+      *has_options = 1;
+      *ncharges = nc;
+    }
+    if (bq.units.len > 0) {
+      *has_options = 1;
+      *units = bq.units;
+    }
+    if (bq.loadFile.len > 0) {
+      *has_options = 1;
+      *load_file = bq.loadFile;
+    }
+  }
+  return 0;
+}
+
+int nwchemc_params_extract_direct_dplot(NWChemParams_ptr params,
+                                        int *has_options, int *lgaussian,
+                                        capn_text *gaussian_file, capn_text *spin,
+                                        int *norb, int *orbitals,
+                                        size_t orb_capacity, double *limit_xyz,
+                                        int *has_limit_xyz) {
+  if (params.p.type == CAPN_NULL || !has_options || !lgaussian || !gaussian_file ||
+      !spin || !norb || !has_limit_xyz)
+    return -1;
+  *has_options = 0;
+  *lgaussian = 0;
+  gaussian_file->str = NULL;
+  gaussian_file->len = 0;
+  spin->str = NULL;
+  spin->len = 0;
+  *norb = 0;
+  *has_limit_xyz = 0;
+
+  struct NWChemParams view;
+  read_NWChemParams(&view, params);
+  int n = struct_list_len(&view.inputStanzas.p);
+  if (n < 0)
+    return -1;
+  for (int i = 0; i < n; ++i) {
+    struct NWChemInputStanza stanza;
+    get_NWChemInputStanza(&stanza, view.inputStanzas, i);
+    if (stanza.kind != NWChemInputStanza_Kind_dplot ||
+        stanza.dplot.p.type == CAPN_NULL)
+      continue;
+    struct NWChemDplotStanza dplot;
+    read_NWChemDplotStanza(&dplot, stanza.dplot);
+    if (dplot.gaussianCube.len > 0) {
+      *has_options = 1;
+      *lgaussian = 1;
+      *gaussian_file = dplot.gaussianCube;
+    }
+    if (dplot.spin.len > 0) {
+      *has_options = 1;
+      *spin = dplot.spin;
+    }
+    capn_list32 orbs = dplot.orbitals;
+    capn_resolve(&orbs.p);
+    int no = list32_len(orbs);
+    if (no < 0)
+      return -1;
+    if (no > 0) {
+      *has_options = 1;
+      *norb = no;
+      if (orbitals && orb_capacity > 0) {
+        size_t copy = (size_t)no < orb_capacity ? (size_t)no : orb_capacity;
+        for (size_t o = 0; o < copy; ++o)
+          orbitals[o] = (int)capn_get32(orbs, (int)o);
+      }
+    }
+    capn_list64 limits = dplot.limitXyz;
+    capn_resolve(&limits.p);
+    int nl = list64_len(limits);
+    if (nl < 0)
+      return -1;
+    if (nl >= 6 && limit_xyz) {
+      *has_options = 1;
+      *has_limit_xyz = 1;
+      for (int j = 0; j < 6; ++j)
+        limit_xyz[j] = capn_to_f64(capn_get64(limits, j));
+    }
+  }
+  return 0;
+}
+
 int nwchemc_params_extract_direct_structured_presence(
     NWChemParams_ptr params, NwchemcStructuredPresence *out) {
   if (params.p.type == CAPN_NULL || !out)

@@ -7422,6 +7422,58 @@ static void test_embed_promotes_cosmo_rtdb_keys(void **state) {
     assert_true(fabs(strtod(g_typed_set_values[idx][1], NULL) - 298.15) < 1e-9);
     assert_true(fabs(strtod(g_typed_set_values[idx][2], NULL) - 400.0) < 1e-9);
   }
+  /* BQ stanza: force + one charge + units + load file (bq_input.F keys). */
+  assert_typed_set_scalar("bq:force", NWCHEMC_DIRECT_SET_VALUE_LOGICAL, "true");
+  assert_typed_set_scalar("bq:ncharges", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "1");
+  {
+    int found_u = 0, found_l = 0;
+    for (int i = 0; i < g_set_string_count && i < 64; ++i) {
+      if (strcmp(g_set_keys[i], "bq:units") == 0 &&
+          strcmp(g_set_values[i], "angstroms") == 0)
+        found_u = 1;
+      if (strcmp(g_set_keys[i], "bq:load_file") == 0 &&
+          strcmp(g_set_values[i], "charges.xyz") == 0)
+        found_l = 1;
+    }
+    assert_int_equal(found_u, 1);
+    assert_int_equal(found_l, 1);
+  }
+  /* DPLOT stanza: gaussian cube + spin + orbitals + limitxyz. */
+  assert_typed_set_scalar("dplot:lgaussian", NWCHEMC_DIRECT_SET_VALUE_LOGICAL,
+                          "true");
+  {
+    int found = 0;
+    for (int i = 0; i < g_set_string_count && i < 64; ++i) {
+      if (strcmp(g_set_keys[i], "dplot:File_Out") == 0 &&
+          strcmp(g_set_values[i], "density.cube") == 0)
+        found = 1;
+    }
+    assert_int_equal(found, 1);
+  }
+  {
+    int found = 0;
+    for (int i = 0; i < g_set_string_count && i < 64; ++i) {
+      if (strcmp(g_set_keys[i], "dplot:Spin") == 0 &&
+          strcmp(g_set_values[i], "total") == 0)
+        found = 1;
+    }
+    assert_int_equal(found, 1);
+  }
+  assert_typed_set_scalar("dplot:nOrb", NWCHEMC_DIRECT_SET_VALUE_INTEGER, "2");
+  {
+    int idx = find_typed_set_key("dplot:OrbNo");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_INTEGER);
+    assert_true(g_typed_set_value_counts[idx] >= 2);
+    assert_string_equal(g_typed_set_values[idx][0], "3");
+    assert_string_equal(g_typed_set_values[idx][1], "4");
+  }
+  {
+    int idx = find_typed_set_key("dplot:Ext_From_To");
+    assert_true(idx >= 0);
+    assert_int_equal(g_typed_set_types[idx], NWCHEMC_DIRECT_SET_VALUE_DOUBLE);
+    assert_true(g_typed_set_value_counts[idx] >= 6);
+  }
   free(message);
 }
 

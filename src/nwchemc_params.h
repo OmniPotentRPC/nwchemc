@@ -97,6 +97,19 @@ int nwchemc_params_extract_direct_vib(NWChemParams_ptr params, int *has_options,
                                       capn_text *reuse_file, double *temps,
                                       size_t temp_capacity, size_t *temp_count);
 
+/* BQ external charges → bq:force / ncharges / load (bq_input.F keys). */
+int nwchemc_params_extract_direct_bq(NWChemParams_ptr params, int *has_options,
+                                     int *forces, int *ncharges,
+                                     capn_text *units, capn_text *load_file);
+
+/* DPLOT → dplot:lgaussian / Spin / nOrb / File_Out (dplot_input.F keys). */
+int nwchemc_params_extract_direct_dplot(NWChemParams_ptr params,
+                                        int *has_options, int *lgaussian,
+                                        capn_text *gaussian_file, capn_text *spin,
+                                        int *norb, int *orbitals,
+                                        size_t orb_capacity, double *limit_xyz,
+                                        int *has_limit_xyz);
+
 /* Presence of remaining structured InputStanza kinds + Kind_module enum IDs.
  * module_ids[] holds NWChemModuleName values from kind=module stanzas. */
 enum { NWCHEMC_STRUCTURED_PRESENCE_MAX_MODULES = 128 };
