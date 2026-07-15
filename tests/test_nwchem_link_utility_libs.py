@@ -94,6 +94,22 @@ class NWChemLinkUtilityLibsTest(unittest.TestCase):
 
             self.assertEqual(proc.stdout.strip(), "-lperfm -lpeigs -lpeigs_comm")
 
+    def test_includes_libxc_when_nwc_archives_present(self):
+        link_libs = load_link_libs()
+        with TemporaryDirectory(prefix="nwchemc-link-libs-") as root_name:
+            root = Path(root_name)
+            (root / "lib/LINUX64").mkdir(parents=True)
+            libxc = root / "src/libext/libxc/install/lib"
+            libxc.mkdir(parents=True)
+            (libxc / "libnwc_xc.a").write_bytes(b"archive")
+            (libxc / "libnwc_xcf03.a").write_bytes(b"archive")
+
+            got = link_libs.utility_libs(root, "LINUX64")
+            self.assertEqual(got[0], f"-L{libxc}")
+            self.assertIn("-lnwc_xcf03", got)
+            self.assertIn("-lnwc_xc", got)
+            self.assertIn("-lperfm", got)
+
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())

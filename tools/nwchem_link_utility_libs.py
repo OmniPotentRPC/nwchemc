@@ -30,6 +30,17 @@ def utility_libs(root: Path, target: str) -> list[str]:
     for name, archive_names in OPTIONAL_ARCHIVES.items():
         if any((libdir / archive_name).exists() for archive_name in archive_names):
             libs.append(f"-l{name}")
+    # USE_LIBXC builds leave nwc_xc / nwc_xcf03 under libext/libxc/install/lib.
+    # nwdft objects (nwchem_libxc_*) need these on the shared libnwchemc link line.
+    libxc_dir = root / "src" / "libext" / "libxc" / "install" / "lib"
+    has_nwc = (libxc_dir / "libnwc_xc.a").exists() or (libxc_dir / "libnwc_xc.so").exists()
+    has_plain = (libxc_dir / "libxc.a").exists() or (libxc_dir / "libxc.so").exists()
+    if has_nwc or has_plain:
+        libs = [f"-L{libxc_dir}"] + libs
+        if has_nwc:
+            libs.extend(["-lnwc_xcf03", "-lnwc_xc"])
+        else:
+            libs.extend(["-lxcf03", "-lxc"])
     return libs
 
 
