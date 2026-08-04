@@ -449,9 +449,15 @@ C     Prefer prior movecs after first force (warm SCF density).
          endif
       endif
       if (.not. task_gradient(rtdb)) then
-         errmsg = 'task_gradient failed'
-         warm_n = -1
-         return
+C        Recovery rung: a warm start from another geometry's movecs can
+C        diverge where a cold atomic guess converges. Retry once from the
+C        atomic guess before reporting failure.
+         status = rtdb_cput(rtdb, 'scf:input vectors', 1, 'atomic')
+         if (.not. task_gradient(rtdb)) then
+            errmsg = 'task_gradient failed (warm and atomic guess)'
+            warm_n = -1
+            return
+         endif
       endif
       warm_n = n_atoms
       call nwchemc_fetch_task_energy(rtdb, theory_name, energy_h,
