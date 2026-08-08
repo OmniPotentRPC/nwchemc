@@ -30,6 +30,7 @@ platforms = ["linux-64"]
 [feature.nwchem-embed.dependencies]
 openmpi = ">=4.1,<6"
 make = ">=4"
+git = "*"
 
 [feature.docs]
 platforms = ["linux-64"]
