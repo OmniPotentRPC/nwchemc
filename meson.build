@@ -1388,7 +1388,7 @@ if get_option('with_tests')
       include_directories: inc,
       dependencies: [cmocka_dep],
       link_with: nwchemc_legacy,
-      link_args: nwchem_link_args,
+      link_args: nwchem_link_args + ['-Wl,--allow-multiple-definition'],
       c_args: common_c_args,
       fortran_args: nwchem_legacy_args,
     )
@@ -1414,7 +1414,7 @@ if get_option('with_tests')
       include_directories: [inc] + nwchemc_params_includes,
       dependencies: [cmocka_dep] + nwchemc_params_deps,
       link_with: nwchemc_legacy,
-      link_args: nwchem_link_args,
+      link_args: nwchem_link_args + ['-Wl,--allow-multiple-definition'],
       c_args: common_c_args,
       fortran_args: nwchem_legacy_args,
     )
