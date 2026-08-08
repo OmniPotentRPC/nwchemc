@@ -9,6 +9,7 @@ version = "1.2.0"
 [environments]
 docs = { features = ["docs"] }
 nwchem-runtime = { features = ["nwchem-runtime"] }
+nwchem-embed = { features = ["nwchem-embed"] }
 
 [dependencies]
 capnproto = ">=1.0.2,<2"
@@ -20,6 +21,15 @@ fprettify = ">=0.3.7,<1"
 meson = ">=1.5.2,<2"
 pkgconf = ">=2.5.1,<3"
 python = ">=3.10,<4"
+
+[feature.nwchem-embed]
+# Toolchain for building the NWChem SDK tree the embed links against.
+# NWChem 7.2 requires USE_MPI and an mpif90 on PATH even for single-rank use.
+platforms = ["linux-64"]
+
+[feature.nwchem-embed.dependencies]
+openmpi = ">=4.1,<6"
+make = ">=4"
 
 [feature.docs]
 platforms = ["linux-64"]
