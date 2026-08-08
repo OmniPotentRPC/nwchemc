@@ -1609,7 +1609,11 @@ if get_option('with_tests')
       nwchemc_mpi_force_timer = executable(
         'nwchemc_mpi_force_timer',
         'tools/nwchemc_mpi_force_timer.c',
-        dependencies: [mpi_c_dep, cc.find_library('dl', required: true)],
+        dependencies: [
+          mpi_c_dep,
+          cc.find_library('dl', required: true),
+          cc.find_library('m', required: false),
+        ],
         install: false,
       )
     endif
