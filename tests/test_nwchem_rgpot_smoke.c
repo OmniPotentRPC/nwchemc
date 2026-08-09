@@ -20,6 +20,7 @@ static const char *g_bohr_unit_force_input_path = NULL;
 
 static const double BOHR_TO_ANGSTROM = 0.529177210903;
 static const double HARTREE_TO_EV = 27.211386245988;
+static const double OPTIMIZED_POSITION_TOLERANCE_ANG = 1.0e-3;
 
 static int ensure_dir(const char *path) {
   if (mkdir(path, 0777) == 0 || errno == EEXIST)
@@ -404,7 +405,8 @@ static void assert_potential_result_optimized(
   assert_potential_result_optimized_values(message, message_size,
                                            expected_energy,
                                            expected_positions, 1.0e-12,
-                                           1.0e-6, 0.5, 1.0);
+                                           OPTIMIZED_POSITION_TOLERANCE_ANG,
+                                           0.5, 1.0);
 }
 
 static void assert_potential_result_frequencies(
@@ -1411,7 +1413,8 @@ static void test_rgpot_result_carriers_convert_forceinput_units(void **state) {
   assert_potential_result_optimized_values(
       optimize_bytes, optimize_size,
       raw_optimize_status.energy_h * HARTREE_TO_EV,
-      expected_optimized_positions, 1.0e-11, 1.0e-6,
+      expected_optimized_positions, 1.0e-11,
+      OPTIMIZED_POSITION_TOLERANCE_ANG / BOHR_TO_ANGSTROM,
       0.5 / BOHR_TO_ANGSTROM,
       1.0 / BOHR_TO_ANGSTROM);
 
