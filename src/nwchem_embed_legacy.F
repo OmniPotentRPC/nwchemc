@@ -340,7 +340,6 @@ C     NWChem RTDB-facing APIs; user stanzas still use NWChem input handlers.
       character*(*) errmsg
       character*255 vectors_in
       integer n3, i
-      integer l_grad, k_grad
       integer warm_n
       logical status, have_movecs, warm_ok
       save warm_n
@@ -466,32 +465,15 @@ C        atomic guess before reporting failure.
          errmsg = 'rtdb_get task/postscf energy failed'
          return
       endif
-      if (.not. ma_push_get(mt_dbl, n3, 'nwchemc_g', l_grad,
-     $     k_grad)) then
-         errmsg = 'ma_push_get grad failed'
-         return
-      endif
       if (.not. rtdb_get(rtdb, 'task:gradient', mt_dbl, n3,
-     $        dbl_mb(k_grad))) then
+     $        grad_h_bohr)) then
          if (.not. rtdb_get(rtdb, 'scf:gradient', mt_dbl, n3,
-     $           dbl_mb(k_grad))) then
-            do i = 1, n3
-               grad_h_bohr(i) = 0.0d0
-            enddo
-            errmsg = 'rtdb_get gradient failed; grad zeroed'
-         else
-            do i = 1, n3
-               grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
-            enddo
-            errmsg = 'ok'
+     $           grad_h_bohr)) then
+            errmsg = 'rtdb_get gradient failed'
+            return
          endif
-      else
-         do i = 1, n3
-            grad_h_bohr(i) = dbl_mb(k_grad + i - 1)
-         enddo
-         errmsg = 'ok'
       endif
-      status = ma_pop_stack(l_grad)
+      errmsg = 'ok'
       ok = 0
       return
       end
@@ -3484,4 +3466,3 @@ C     and ga_initialize_ltd in embed init (see nwchem_legacy_init).
       ga_create_JKblocked = g_a
       return
       end
-
