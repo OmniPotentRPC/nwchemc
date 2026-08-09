@@ -227,6 +227,12 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
             for method in ("ccsd", "tce", "selci"):
                 self.assertNotIn(f"nwchem-energy-forces-{method}", names)
                 self.assertNotIn(f"nwchem-postscf-energy-{method}", names)
+            for name in (
+                "nwchem-nwpw-rtdb",
+                "nwchem-configured-nwpw-rtdb",
+                "nwchem-brillouin-dos-zones-rtdb",
+            ):
+                self.assertNotIn(name, names)
 
     def test_cmake_rejects_runtime_prefix_with_embed_guidance(self):
         with TemporaryDirectory(dir=SCRATCH) as tmp_name:
