@@ -1178,7 +1178,12 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     endif()
     set(NWCHEMC_NWCHEM_TEST_ENV)
     if(NWCHEMC_NWCHEM_TEST_MPI_RANKS GREATER 1)
-      find_program(MPIRUN_EXECUTABLE mpirun REQUIRED)
+      find_program(MPIRUN_EXECUTABLE
+        NAMES mpirun
+        PATHS ENV PATH
+        NO_DEFAULT_PATH
+        REQUIRED
+      )
       list(APPEND NWCHEMC_NWCHEM_TEST_ENV
         "OMPI_MCA_prte_create_session_dirs=true"
       )
