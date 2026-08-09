@@ -24,7 +24,7 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
         (root / "bin/nwchem").write_text("#!/bin/sh\n")
         return root
 
-    def build_tree_skeleton(self, parent: Path) -> Path:
+    def build_tree_skeleton(self, parent: Path, module_libs: str = "") -> Path:
         root = parent / "nwchem-build"
         for rel in [
             "src/config",
@@ -39,7 +39,7 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
         ]:
             (root / rel).mkdir(parents=True)
         (root / "src/config/nwchem_config.h").write_text(
-            "NW_MODULE_LIBS =\n", encoding="utf-8"
+            f"NW_MODULE_LIBS = {module_libs}\n", encoding="utf-8"
         )
         ga_config = root / "src/tools/install/bin/ga-config"
         ga_config.write_text(
@@ -180,6 +180,53 @@ class BuildEmbedRootProbeTest(unittest.TestCase):
                 [str(mpirun), "-np", "2"],
             )
             self.assertIn("test_nwchem_energy_gradient", command[3])
+
+    def test_meson_registers_only_tests_supported_by_nwchem_modules(self):
+        with TemporaryDirectory(dir=SCRATCH) as tmp_name:
+            tmp = Path(tmp_name)
+            root = self.build_tree_skeleton(
+                tmp,
+                "-lddscf -lnwdft -lrimp2 -lmcscf -lmp2",
+            )
+            build = tmp / "meson-module-test-build"
+            meson = os.environ.get("MESON", "meson")
+
+            proc = subprocess.run(
+                [
+                    meson,
+                    "setup",
+                    str(build),
+                    "-Dwith_nwchem=true",
+                    "-Dwith_tests=true",
+                    "-Ddefault_library=static",
+                    f"-Dnwchem_root={root}",
+                    "-Dnwchem_target=LINUX64",
+                ],
+                cwd=ROOT,
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=self.env(),
+            )
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+            tests = subprocess.run(
+                [meson, "introspect", "--tests", str(build)],
+                check=True,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=self.env(),
+            )
+            names = {entry["name"] for entry in json.loads(tests.stdout)}
+
+            for method in ("dft", "rimp2", "mcscf"):
+                self.assertIn(f"nwchem-energy-forces-{method}", names)
+                self.assertIn(f"nwchem-postscf-energy-{method}", names)
+            for method in ("ccsd", "tce", "selci"):
+                self.assertNotIn(f"nwchem-energy-forces-{method}", names)
+                self.assertNotIn(f"nwchem-postscf-energy-{method}", names)
 
     def test_cmake_rejects_runtime_prefix_with_embed_guidance(self):
         with TemporaryDirectory(dir=SCRATCH) as tmp_name:
