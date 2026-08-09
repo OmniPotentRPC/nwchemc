@@ -417,6 +417,8 @@ if(NWCHEMC_WITH_NWCHEM)
     nwchemc
     nwchemc_legacy
     nwchemc_params
+    nwchemc_apply_f
+    capnp_f
     capnp_c_runtime
     EXPORT nwchemcTargets
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
