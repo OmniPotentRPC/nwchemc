@@ -1193,43 +1193,47 @@ if get_option('with_tests')
       ],
     )
     foreach forces_case : [
-      ['scf', nwchem_params_h2_scf_bin],
-      ['dft', nwchem_params_h2_dft_bin],
-      ['mp2', nwchem_params_h2_mp2_bin],
-      ['rimp2', nwchem_params_h2_rimp2_bin],
-      ['ccsd', nwchem_params_h2_ccsd_bin],
-      ['tce', nwchem_params_h2_tce_bin],
-      ['tddft', nwchem_params_h2_tddft_bin],
-      ['mcscf', nwchem_params_h2_mcscf_bin],
-      ['sodft', nwchem_params_h2_sodft_bin],
-      ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
-      ['selci', nwchem_params_h2_selci_bin],
-      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
-      ['tce-cisd', nwchem_params_h2_tce_cisd_bin],
-      ['tce-ccd', nwchem_params_h2_tce_ccd_bin],
-      ['tce-mbpt2', nwchem_params_h2_tce_mbpt2_bin],
+      ['scf', nwchem_params_h2_scf_bin, '-lddscf'],
+      ['dft', nwchem_params_h2_dft_bin, '-lnwdft'],
+      ['mp2', nwchem_params_h2_mp2_bin, '-lmp2'],
+      ['rimp2', nwchem_params_h2_rimp2_bin, '-lrimp2'],
+      ['ccsd', nwchem_params_h2_ccsd_bin, '-lccsd'],
+      ['tce', nwchem_params_h2_tce_bin, '-ltce'],
+      ['tddft', nwchem_params_h2_tddft_bin, '-lnwdft'],
+      ['mcscf', nwchem_params_h2_mcscf_bin, '-lmcscf'],
+      ['sodft', nwchem_params_h2_sodft_bin, '-lnwdft'],
+      ['direct-mp2', nwchem_params_h2_direct_mp2_bin, '-lmp2'],
+      ['selci', nwchem_params_h2_selci_bin, '-lselci'],
+      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin, '-ltce'],
+      ['tce-cisd', nwchem_params_h2_tce_cisd_bin, '-ltce'],
+      ['tce-ccd', nwchem_params_h2_tce_ccd_bin, '-ltce'],
+      ['tce-mbpt2', nwchem_params_h2_tce_mbpt2_bin, '-ltce'],
     ]
-      test(
-        'nwchem-energy-forces-' + forces_case[0],
-        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_forces_test,
-        args: nwchem_test_mpi_ranks > 1
-          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, forces_case[0], forces_case[1]]
-          : [forces_case[0], forces_case[1]],
-        env: nwchem_test_mpi_env,
-        is_parallel: false,
-        timeout: 600,
-      )
+      if nwchem_module_libs.contains(forces_case[2])
+        test(
+          'nwchem-energy-forces-' + forces_case[0],
+          nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_forces_test,
+          args: nwchem_test_mpi_ranks > 1
+            ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, forces_case[0], forces_case[1]]
+            : [forces_case[0], forces_case[1]],
+          env: nwchem_test_mpi_env,
+          is_parallel: false,
+          timeout: 600,
+        )
+      endif
     endforeach
     # Backward-compatible alias for prior SCF-only target name.
-    test(
-      'nwchem-energy-forces',
-      nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_forces_test,
-      args: nwchem_test_mpi_ranks > 1
-        ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, 'scf', nwchem_params_h2_scf_bin]
-        : ['scf', nwchem_params_h2_scf_bin],
-      env: nwchem_test_mpi_env,
-      is_parallel: false,
-    )
+    if nwchem_module_libs.contains('-lddscf')
+      test(
+        'nwchem-energy-forces',
+        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_energy_forces_test,
+        args: nwchem_test_mpi_ranks > 1
+          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_energy_forces_test, 'scf', nwchem_params_h2_scf_bin]
+          : ['scf', nwchem_params_h2_scf_bin],
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+      )
+    endif
 
     nwchem_optimize_freq_test = executable(
       'test_nwchem_optimize_freq',
@@ -1297,43 +1301,45 @@ if get_option('with_tests')
       ],
     )
     foreach postscf : [
-      ['ccsd', nwchem_params_h2_ccsd_bin],
-      ['mp2', nwchem_params_h2_mp2_bin],
-      ['tce', nwchem_params_h2_tce_bin],
-      ['dft', nwchem_params_h2_dft_bin],
-      ['rimp2', nwchem_params_h2_rimp2_bin],
-      ['tce-ccsdt', nwchem_params_h2_tce_ccsdt_bin],
-      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin],
-      ['tddft', nwchem_params_h2_tddft_bin],
-      ['mcscf', nwchem_params_h2_mcscf_bin],
-      ['sodft', nwchem_params_h2_sodft_bin],
-      ['direct-mp2', nwchem_params_h2_direct_mp2_bin],
-      ['selci', nwchem_params_h2_selci_bin],
-      ['ccsd-t', nwchem_params_h2_ccsd_t_bin],
-      ['tce-ccd', nwchem_params_h2_tce_ccd_bin],
-      ['tce-cisd', nwchem_params_h2_tce_cisd_bin],
-      ['tce-mbpt2', nwchem_params_h2_tce_mbpt2_bin],
-      ['tce-ccsdt-iter', nwchem_params_h2_tce_ccsdt_iter_bin],
-      ['tce-cc2', nwchem_params_h2_tce_cc2_bin],
-      ['tce-cr-ccsdt', nwchem_params_h2_tce_cr_ccsdt_bin],
-      ['tce-lccsd', nwchem_params_h2_tce_lccsd_bin],
-      ['tce-mbpt4', nwchem_params_h2_tce_mbpt4_bin],
-      ['tce-lambda', nwchem_params_h2_tce_lambda_bin],
-      ['tce-lccd', nwchem_params_h2_tce_lccd_bin],
-      ['tce-mbpt3', nwchem_params_h2_tce_mbpt3_bin],
-      ['tce-cisdt', nwchem_params_h2_tce_cisdt_bin],
-      ['tce-ccsdt-bt', nwchem_params_h2_tce_ccsdt_bt_bin],
+      ['ccsd', nwchem_params_h2_ccsd_bin, '-lccsd'],
+      ['mp2', nwchem_params_h2_mp2_bin, '-lmp2'],
+      ['tce', nwchem_params_h2_tce_bin, '-ltce'],
+      ['dft', nwchem_params_h2_dft_bin, '-lnwdft'],
+      ['rimp2', nwchem_params_h2_rimp2_bin, '-lrimp2'],
+      ['tce-ccsdt', nwchem_params_h2_tce_ccsdt_bin, '-ltce'],
+      ['tce-mrcc', nwchem_params_h2_tce_mrcc_bin, '-ltce'],
+      ['tddft', nwchem_params_h2_tddft_bin, '-lnwdft'],
+      ['mcscf', nwchem_params_h2_mcscf_bin, '-lmcscf'],
+      ['sodft', nwchem_params_h2_sodft_bin, '-lnwdft'],
+      ['direct-mp2', nwchem_params_h2_direct_mp2_bin, '-lmp2'],
+      ['selci', nwchem_params_h2_selci_bin, '-lselci'],
+      ['ccsd-t', nwchem_params_h2_ccsd_t_bin, '-lccsd'],
+      ['tce-ccd', nwchem_params_h2_tce_ccd_bin, '-ltce'],
+      ['tce-cisd', nwchem_params_h2_tce_cisd_bin, '-ltce'],
+      ['tce-mbpt2', nwchem_params_h2_tce_mbpt2_bin, '-ltce'],
+      ['tce-ccsdt-iter', nwchem_params_h2_tce_ccsdt_iter_bin, '-ltce'],
+      ['tce-cc2', nwchem_params_h2_tce_cc2_bin, '-ltce'],
+      ['tce-cr-ccsdt', nwchem_params_h2_tce_cr_ccsdt_bin, '-ltce'],
+      ['tce-lccsd', nwchem_params_h2_tce_lccsd_bin, '-ltce'],
+      ['tce-mbpt4', nwchem_params_h2_tce_mbpt4_bin, '-ltce'],
+      ['tce-lambda', nwchem_params_h2_tce_lambda_bin, '-ltce'],
+      ['tce-lccd', nwchem_params_h2_tce_lccd_bin, '-ltce'],
+      ['tce-mbpt3', nwchem_params_h2_tce_mbpt3_bin, '-ltce'],
+      ['tce-cisdt', nwchem_params_h2_tce_cisdt_bin, '-ltce'],
+      ['tce-ccsdt-bt', nwchem_params_h2_tce_ccsdt_bt_bin, '-ltce'],
     ]
-      test(
-        'nwchem-postscf-energy-' + postscf[0],
-        nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_postscf_energy_test,
-        args: nwchem_test_mpi_ranks > 1
-          ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_postscf_energy_test, postscf[0], postscf[1]]
-          : [postscf[0], postscf[1]],
-        env: nwchem_test_mpi_env,
-        is_parallel: false,
-        timeout: 600,
-      )
+      if nwchem_module_libs.contains(postscf[2])
+        test(
+          'nwchem-postscf-energy-' + postscf[0],
+          nwchem_test_mpi_ranks > 1 ? nwchem_test_mpirun : nwchem_postscf_energy_test,
+          args: nwchem_test_mpi_ranks > 1
+            ? ['-np', nwchem_test_mpi_ranks.to_string(), nwchem_postscf_energy_test, postscf[0], postscf[1]]
+            : [postscf[0], postscf[1]],
+          env: nwchem_test_mpi_env,
+          is_parallel: false,
+          timeout: 600,
+        )
+      endif
     endforeach
     nwchem_session_result_test = executable(
       'test_nwchem_session_result',
