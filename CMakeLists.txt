@@ -310,7 +310,10 @@ if(NWCHEMC_WITH_NWCHEM)
   foreach(_mpi_dir /usr/lib /usr/lib64 /usr/local/lib)
     file(GLOB _mpi_libs "${_mpi_dir}/libmpi.so*")
     if(_mpi_libs)
-      list(APPEND MPI_LIBDIRS "-L${_mpi_dir}")
+      list(APPEND MPI_LIBDIRS
+        "-L${_mpi_dir}"
+        "-Wl,-rpath-link,${_mpi_dir}"
+      )
     endif()
   endforeach()
 
