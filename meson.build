@@ -174,7 +174,7 @@ if has_nwchem
     python,
     [
       '-c',
-      'import pathlib; dirs = ["/usr/lib", "/usr/lib64", "/usr/local/lib"]; print(" ".join(flag for d in dirs if any(pathlib.Path(d).glob("libmpi.so*")) for flag in ("-L" + d, "-Wl,-rpath-link," + d)))',
+      'import pathlib; dirs = ["/usr/lib", "/usr/lib64", "/usr/local/lib"]; print(" ".join("-Wl,-rpath-link," + d for d in dirs if any(pathlib.Path(d).glob("libmpi.so*"))))',
     ],
     check: true,
   ).stdout().strip().split()
