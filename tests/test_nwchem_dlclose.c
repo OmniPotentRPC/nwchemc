@@ -1,5 +1,6 @@
 #include <dlfcn.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef int (*available_fn)(void);
 typedef void (*finalize_fn)(void);
@@ -16,12 +17,18 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  available_fn available = (available_fn)dlsym(handle, "nwchemc_available");
-  finalize_fn finalize = (finalize_fn)dlsym(handle, "nwchemc_finalize");
-  if (!available || !finalize) {
+  void *available_symbol = dlsym(handle, "nwchemc_available");
+  void *finalize_symbol = dlsym(handle, "nwchemc_finalize");
+  if (!available_symbol || !finalize_symbol ||
+      sizeof(available_fn) != sizeof(available_symbol) ||
+      sizeof(finalize_fn) != sizeof(finalize_symbol)) {
     fprintf(stderr, "missing lifecycle symbols\n");
     return 1;
   }
+  available_fn available = NULL;
+  finalize_fn finalize = NULL;
+  memcpy(&available, &available_symbol, sizeof(available));
+  memcpy(&finalize, &finalize_symbol, sizeof(finalize));
   if (available() != 1) {
     fprintf(stderr, "embedded runtime is unavailable\n");
     return 1;

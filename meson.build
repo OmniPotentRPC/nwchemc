@@ -682,7 +682,8 @@ if get_option('with_tests')
       test(
         'nwchem-dlclose',
         nwchem_dlclose_test,
-        args: [nwchemc],
+        args: [nwchemc.full_path()],
+        depends: nwchemc,
         suite: ['nwchem', 'abi'],
         workdir: meson.current_build_dir(),
         env: nwchem_test_mpi_env,
