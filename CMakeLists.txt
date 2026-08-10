@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(nwchemc VERSION 1.2.0 LANGUAGES C Fortran)
+project(nwchemc VERSION 1.3.0 LANGUAGES C Fortran)
 
 include(CTest)
 include(GNUInstallDirs)
