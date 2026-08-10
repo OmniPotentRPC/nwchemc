@@ -415,6 +415,14 @@ if(NWCHEMC_WITH_NWCHEM)
     nwchemc_params
     ${NWCHEM_LINK_ITEMS}
   )
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    # The embed interposition symbol must take precedence over NWChem moints.
+    if(NWCHEMC_BUILD_SHARED)
+      target_link_options(nwchemc PRIVATE "LINKER:--allow-multiple-definition")
+    else()
+      target_link_options(nwchemc INTERFACE "LINKER:--allow-multiple-definition")
+    endif()
+  endif()
 
   install(TARGETS
     nwchemc
