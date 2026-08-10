@@ -672,6 +672,24 @@ if get_option('with_tests')
       nwchem_test_mpirun = find_program('mpirun', required: true)
       nwchem_test_mpi_env += ['OMPI_MCA_prte_create_session_dirs=true']
     endif
+    if builds_shared_nwchemc and host_machine.system() != 'windows'
+      nwchem_dlclose_test = executable(
+        'test_nwchem_dlclose',
+        'tests/test_nwchem_dlclose.c',
+        dependencies: cc.find_library('dl', required: true),
+        c_args: common_c_args,
+      )
+      test(
+        'nwchem-dlclose',
+        nwchem_dlclose_test,
+        args: [nwchemc],
+        suite: ['nwchem', 'abi'],
+        workdir: meson.current_build_dir(),
+        env: nwchem_test_mpi_env,
+        is_parallel: false,
+        timeout: 120,
+      )
+    endif
     params_conf = configuration_data()
     params_conf.set('NWCHEM_ROOT', nwchem_root)
     params_conf.set('NWCHEMC_TEST_SCRATCH', test_scratch_dir)
