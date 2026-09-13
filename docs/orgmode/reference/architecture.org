@@ -13,7 +13,7 @@
 - ~src/nwchemc.c~ applies persistent session parameters to the embed bridge and
   calls the energy, gradient, force, Hessian, property, stress, optimization,
   or frequency entry point.
-- ~src/nwchem_embed_c_api.f90~ owns the ISO C binding layer and saved NWChem
+- ~src/nwchem_embed_c_api.f90~ is the ISO C binding layer and saved NWChem
   runtime configuration.
 - ~src/nwchem_embed_legacy.F~ calls the fixed-form NWChem routines that set up
   RTDB, store numeric geometry and library basis records, and evaluate

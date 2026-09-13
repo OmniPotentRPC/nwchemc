@@ -315,7 +315,7 @@ coordinates, cell data, atom numbers, and requested units.
 ~nwchemc_calculate_stress~, ~nwchemc_calculate_optimize~, and
 ~nwchemc_calculate_frequencies~ are one-shot wrappers around the same session
 ForceInput validation and direct numeric geometry path.
-The session owns the topology invariant. A caller that changes atom count or
+The session keeps the topology invariant. A caller that changes atom count or
 species ordering is rejected before NWChem evaluation.
 ~nwchemc_session_reset_topology~ clears the accepted topology while retaining
 the installed method parameters, so the next evaluation establishes a new atom
