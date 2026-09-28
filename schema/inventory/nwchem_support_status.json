@@ -15,14 +15,14 @@
     "absent": "Not present (unused for interned inventory rows)"
   },
   "inventory": "schema/inventory/nwchem_features.json",
-  "row_count": 1115,
+  "row_count": 1132,
   "counts_by_tier": {
     "tested": 613,
-    "text": 479,
-    "schema": 23
+    "text": 482,
+    "schema": 37
   },
   "done_count": 613,
-  "not_done_count": 502,
+  "not_done_count": 519,
   "features": [
     {
       "feature_id": "module.custom",
@@ -1524,6 +1524,86 @@
       "feature_id": "field.Capabilities.schemaVersion",
       "class": "schema_field",
       "schema_path": "Capabilities.schemaVersion",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.protocolFamily",
+      "class": "schema_field",
+      "schema_path": "Capabilities.protocolFamily",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.protocolMajor",
+      "class": "schema_field",
+      "schema_path": "Capabilities.protocolMajor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.protocolMinor",
+      "class": "schema_field",
+      "schema_path": "Capabilities.protocolMinor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.schemaId",
+      "class": "schema_field",
+      "schema_path": "Capabilities.schemaId",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.bridgeAbiMajor",
+      "class": "schema_field",
+      "schema_path": "Capabilities.bridgeAbiMajor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.bridgeAbiMinor",
+      "class": "schema_field",
+      "schema_path": "Capabilities.bridgeAbiMinor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.bridgeLayout",
+      "class": "schema_field",
+      "schema_path": "Capabilities.bridgeLayout",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.dlpackMajor",
+      "class": "schema_field",
+      "schema_path": "Capabilities.dlpackMajor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.dlpackMinor",
+      "class": "schema_field",
+      "schema_path": "Capabilities.dlpackMinor",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.Capabilities.bridgeFeatures",
+      "class": "schema_field",
+      "schema_path": "Capabilities.bridgeFeatures",
       "support_tier": "schema",
       "embed_applicable": false,
       "done": false
@@ -6309,6 +6389,62 @@
       "class": "schema_field",
       "schema_path": "Output.explicitGradients",
       "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.UmaParams.modelPath",
+      "class": "schema_field",
+      "schema_path": "UmaParams.modelPath",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.UmaParams.taskName",
+      "class": "schema_field",
+      "schema_path": "UmaParams.taskName",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.UmaParams.device",
+      "class": "schema_field",
+      "schema_path": "UmaParams.device",
+      "support_tier": "schema",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.UmaParams.charge",
+      "class": "schema_field",
+      "schema_path": "UmaParams.charge",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.UmaParams.spin",
+      "class": "schema_field",
+      "schema_path": "UmaParams.spin",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.UmaParams.cutoff",
+      "class": "schema_field",
+      "schema_path": "UmaParams.cutoff",
+      "support_tier": "text",
+      "embed_applicable": false,
+      "done": false
+    },
+    {
+      "feature_id": "field.UmaParams.maxNeighbors",
+      "class": "schema_field",
+      "schema_path": "UmaParams.maxNeighbors",
+      "support_tier": "schema",
       "embed_applicable": false,
       "done": false
     },
