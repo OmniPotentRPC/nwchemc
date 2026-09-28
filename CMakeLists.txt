@@ -641,6 +641,13 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     potential_config_common_reject.bin
   )
   nwchemc_add_encoded_fixture(
+    nwchem_params_new_stanzas_bin
+    NWCHEMC_NEW_STANZAS_PARAMS_BIN
+    NWChemParams
+    nwchem_params_new_stanzas.capnp.txt
+    nwchem_params_new_stanzas.bin
+  )
+  nwchemc_add_encoded_fixture(
     nwchem_pspspin_many_params_bin
     NWCHEMC_PSPSPIN_MANY_PARAMS_BIN
     NWChemParams
@@ -1171,6 +1178,7 @@ if(NWCHEMC_BUILD_TESTS AND BUILD_TESTING)
     potential_config_common_overlay_bin
     potential_config_common_planewave_bin
     potential_config_common_reject_bin
+    nwchem_params_new_stanzas_bin
   )
   add_test(NAME embed-config-cmocka
     COMMAND test_embed_config_cmocka
