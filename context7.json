@@ -3,8 +3,9 @@
   "projectTitle": "nwchemc",
   "description": "NWChem C ABI split engine for rgpot.",
   "folders": [
-    "docs/orgmode",
-    "include"
+    "docs",
+    "include",
+    "tools/patches"
   ],
   "excludeFolders": [
     "docs/source",
