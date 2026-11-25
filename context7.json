@@ -1,0 +1,20 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "nwchemc",
+  "description": "NWChem C ABI split engine for rgpot.",
+  "excludeFolders": [
+    "docs/source",
+    "docs/newsfragments",
+    "subprojects",
+    "tests",
+    "scripts",
+    ".github"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "CMakeLists.txt",
+    "meson_options.txt"
+  ],
+  "rules": []
+}
