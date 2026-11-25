@@ -2,11 +2,6 @@
   "$schema": "https://context7.com/schema/context7.json",
   "projectTitle": "nwchemc",
   "description": "NWChem C ABI split engine for rgpot.",
-  "folders": [
-    "docs",
-    "include",
-    "tools/patches"
-  ],
   "excludeFolders": [
     "docs/source",
     "docs/newsfragments",
@@ -17,8 +12,9 @@
   ],
   "excludeFiles": [
     "CHANGELOG.md",
-    "CODE_OF_CONDUCT.md",
-    "LICENSE"
+    "LICENSE",
+    "CMakeLists.txt",
+    "meson_options.txt"
   ],
   "rules": []
 }
